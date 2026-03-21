@@ -371,3 +371,104 @@ async def test_smtp_connection(test_email: str = None):
                 "success": False,
                 "message": f"E-posta gönderilemedi: {error_msg[:100]}"
             }
+
+
+
+# ==================== AGROSJET AYARLARI ====================
+
+class AgrosJetSettings(BaseModel):
+    api_key: str
+    base_url: str = "https://agrosjet.com"
+
+
+class AgrosJetSettingsUpdate(BaseModel):
+    api_key: Optional[str] = None
+    base_url: Optional[str] = None
+
+
+@router.get("/agrosjet")
+async def get_agrosjet_settings():
+    """AgrosJet entegrasyon ayarlarını getir."""
+    settings = await db.system_settings.find_one(
+        {"type": "agrosjet"},
+        {"_id": 0}
+    )
+
+    if not settings:
+        return {
+            "configured": False,
+            "api_key_masked": "",
+            "base_url": "https://agrosjet.com"
+        }
+
+    key = settings.get("api_key", "")
+    masked = f"{key[:8]}...{key[-6:]}" if len(key) > 14 else "****"
+
+    return {
+        "configured": True,
+        "api_key_masked": masked,
+        "base_url": settings.get("base_url", "https://agrosjet.com"),
+        "updated_at": settings.get("updated_at")
+    }
+
+
+@router.post("/agrosjet")
+async def save_agrosjet_settings(data: AgrosJetSettings):
+    """AgrosJet entegrasyon ayarlarını kaydet."""
+    settings = {
+        "type": "agrosjet",
+        "api_key": data.api_key,
+        "base_url": data.base_url.rstrip("/"),
+        "updated_at": get_turkey_now()
+    }
+
+    await db.system_settings.update_one(
+        {"type": "agrosjet"},
+        {"$set": settings},
+        upsert=True
+    )
+
+    return {"message": "AgrosJet ayarları kaydedildi"}
+
+
+@router.put("/agrosjet")
+async def update_agrosjet_settings(data: AgrosJetSettingsUpdate):
+    """AgrosJet ayarlarını güncelle (sadece değişen alanlar)."""
+    existing = await db.system_settings.find_one({"type": "agrosjet"})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Önce AgrosJet ayarlarını kaydedin")
+
+    update_data = {"updated_at": get_turkey_now()}
+
+    if data.api_key and not data.api_key.startswith("agj_"):
+        # Maskelenmis key geldiyse atla
+        pass
+    elif data.api_key:
+        update_data["api_key"] = data.api_key
+    if data.base_url:
+        update_data["base_url"] = data.base_url.rstrip("/")
+
+    await db.system_settings.update_one(
+        {"type": "agrosjet"},
+        {"$set": update_data}
+    )
+
+    return {"message": "AgrosJet ayarları güncellendi"}
+
+
+@router.post("/agrosjet/test")
+async def test_agrosjet_connection():
+    """AgrosJet bağlantısını test et."""
+    try:
+        from services.agrosjet_service import ping
+        result = await ping()
+        return {
+            "success": True,
+            "message": "Bağlantı başarılı!",
+            "details": result
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "message": str(e)
+        }

@@ -447,7 +447,7 @@ async def login_admin(request: Request, data: AdminLogin):
         accessible_companies = await companies_cursor.to_list(100)
     
     # Simple permission keys
-    simple_keys = {"vardiya", "muhasebe", "zimmet", "kuryeler", "market", "akademi", "sistem"}
+    simple_keys = {"vardiya", "muhasebe", "zimmet", "kuryeler", "market", "akademi", "sistem", "raporlar", "basvurular"}
     
     # Get permissions and check if they use the new simple format
     db_permissions = admin.get("permissions", {})
@@ -461,12 +461,14 @@ async def login_admin(request: Request, data: AdminLogin):
         if admin["role"] == "superadmin":
             permissions = {
                 "vardiya": True, "muhasebe": True, "zimmet": True,
-                "kuryeler": True, "market": True, "akademi": True, "sistem": True
+                "kuryeler": True, "market": True, "akademi": True, "sistem": True,
+                "raporlar": True, "basvurular": True
             }
         else:
             permissions = {
                 "vardiya": True, "muhasebe": True, "zimmet": True,
-                "kuryeler": True, "market": True, "akademi": True, "sistem": False
+                "kuryeler": True, "market": True, "akademi": True, "sistem": False,
+                "raporlar": False, "basvurular": False
             }
     
     # Determine super admin status: either is_super_admin flag or role is superadmin

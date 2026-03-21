@@ -3,7 +3,7 @@ import { useNavigate, Routes, Route, Link, useLocation } from "react-router-dom"
 import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, SlidersHorizontal, ShoppingBag, GraduationCap, User, Building2, Store, ClipboardList, Coins, AlertTriangle, Moon, Sun, BarChart3 } from "lucide-react";
+import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, SlidersHorizontal, ShoppingBag, GraduationCap, User, Building2, Store, ClipboardList, Coins, AlertTriangle, Moon, Sun, BarChart3, FileText } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 
 // Page components
@@ -16,6 +16,7 @@ import SistemPage from "./SistemPage";
 import JetPuanMarketPage from "./JetPuanMarketPage";
 import AkademiPage from "./admin/AkademiPage";
 import RestoranlarPage from "./admin/RestoranlarPage";
+import BasvurularPage from "./admin/BasvurularPage";
 import SiparisYonetimiPage from "./admin/SiparisYonetimiPage";
 import GecmisSiparislerPage from "./admin/GecmisSiparislerPage";
 import IptalSiparislerPage from "./admin/IptalSiparislerPage";
@@ -286,7 +287,8 @@ export default function AdminDashboard() {
     { path: "/admin/akademi", label: "Akademi", icon: GraduationCap, key: "akademi", permKey: "akademi" },
     { path: "/admin/kuryeler", label: "Kuryeler", icon: Users, key: "kuryeler", permKey: "kuryeler" },
     { path: "/admin/restoranlar", label: "Restoranlar", icon: Store, key: "restoranlar", permKey: "restoranlar" },
-    { path: "/admin/yoneticiler", label: "Yöneticiler", icon: UserCog, key: "yoneticiler", permKey: "yoneticiler" },
+    { path: "/admin/basvurular", label: "Başvurular", icon: FileText, key: "basvurular", permKey: "basvurular" },
+    { path: "/admin/yoneticiler", label: "Y\u00f6neticiler", icon: UserCog, key: "yoneticiler", permKey: "yoneticiler" },
     { path: "/admin/sistem", label: "Sistem", icon: SlidersHorizontal, key: "sistem", permKey: "sistem" },
   ];
 
@@ -493,6 +495,9 @@ export default function AdminDashboard() {
               <Route path="gecmis-siparisler" element={<GecmisSiparislerPage companyId={activeCompanyId} isSuperAdmin={isSuperAdmin} adminName={user.name || user.username} />} />
               <Route path="iptal-siparisler" element={<IptalSiparislerPage companyId={activeCompanyId} isSuperAdmin={isSuperAdmin} />} />
               <Route path="restoranlar" element={<RestoranlarPage companyId={activeCompanyId} />} />
+              {(isSuperAdmin || permissions.basvurular) && (
+                <Route path="basvurular" element={<BasvurularPage companyId={activeCompanyId} adminName={user.name || user.username} />} />
+              )}
               {(isSuperAdmin || permissions.vardiya) && (
                 <Route path="vardiyalar" element={<VardiyaPage companyId={activeCompanyId} />} />
               )}

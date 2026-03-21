@@ -1623,9 +1623,21 @@ function SistemAyarlariPage() {
     enabled: true
   });
 
+  // AgrosJet settings
+  const [agjSaving, setAgjSaving] = useState(false);
+  const [agjTesting, setAgjTesting] = useState(false);
+  const [agjTestResult, setAgjTestResult] = useState(null);
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [agjConfigured, setAgjConfigured] = useState(false);
+  const [agjSettings, setAgjSettings] = useState({
+    api_key: "",
+    base_url: "https://agrosjet.com"
+  });
+
   useEffect(() => {
     fetchSettings();
     fetchSmtpSettings();
+    fetchAgjSettings();
   }, []);
 
   const fetchSettings = async () => {
@@ -1736,6 +1748,59 @@ function SistemAyarlariPage() {
       setSmtpTestResult({ success: false, message: err.response?.data?.detail || "Test başarısız" });
     } finally {
       setSmtpTesting(false);
+    }
+  };
+
+  // AgrosJet functions
+  const fetchAgjSettings = async () => {
+    try {
+      const res = await axios.get(`${API}/system-settings/agrosjet`);
+      setAgjConfigured(res.data.configured);
+      if (res.data.configured) {
+        setAgjSettings({
+          api_key: "",
+          base_url: res.data.base_url || "https://agrosjet.com"
+        });
+      }
+    } catch (err) {
+      console.error("AgrosJet ayarları yüklenemedi:", err);
+    }
+  };
+
+  const handleAgjSave = async () => {
+    if (!agjConfigured && !agjSettings.api_key) {
+      toast.error("API anahtarı gerekli");
+      return;
+    }
+    setAgjSaving(true);
+    try {
+      const payload = { base_url: agjSettings.base_url };
+      if (agjSettings.api_key) payload.api_key = agjSettings.api_key;
+      
+      if (agjConfigured) {
+        await axios.put(`${API}/system-settings/agrosjet`, payload);
+      } else {
+        await axios.post(`${API}/system-settings/agrosjet`, { ...payload, api_key: agjSettings.api_key });
+      }
+      toast.success("AgrosJet ayarları kaydedildi");
+      fetchAgjSettings();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Kaydetme başarısız");
+    } finally {
+      setAgjSaving(false);
+    }
+  };
+
+  const handleAgjTest = async () => {
+    setAgjTesting(true);
+    setAgjTestResult(null);
+    try {
+      const res = await axios.post(`${API}/system-settings/agrosjet/test`);
+      setAgjTestResult(res.data);
+    } catch (err) {
+      setAgjTestResult({ success: false, message: err.response?.data?.detail || "Test başarısız" });
+    } finally {
+      setAgjTesting(false);
     }
   };
 
@@ -1999,6 +2064,105 @@ function SistemAyarlariPage() {
           <div className="p-3 bg-blue-50 rounded-lg text-xs text-blue-700">
             <p className="font-medium">Bilgi:</p>
             <p>Bu ayarlar tüm şirketler için geçerlidir. Şirketler kendi bildirim tercihlerini ayrıca yönetebilir.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* AgrosJet Entegrasyon Ayarları Kartı */}
+      <div className="bg-white border-2 border-border overflow-hidden">
+        <div className="p-3 sm:p-6 border-b-2 border-border flex items-center gap-3">
+          <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+            <ExternalLink className="w-5 h-5 text-emerald-600" />
+          </div>
+          <div>
+            <h2 className="font-heading font-bold text-sm sm:text-base">AgrosJet Entegrasyonu</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">AgrosJet.com başvuru senkronizasyonu</p>
+          </div>
+          <div className="ml-auto flex items-center gap-2">
+            {agjConfigured ? (
+              <span className="px-2 sm:px-3 py-1 bg-green-100 text-green-700 text-xs sm:text-sm font-semibold rounded-full flex items-center gap-1">
+                <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Yapılandırıldı</span>
+              </span>
+            ) : (
+              <span className="px-2 sm:px-3 py-1 bg-orange-100 text-orange-700 text-xs sm:text-sm font-semibold rounded-full flex items-center gap-1">
+                <XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Yapılandırılmadı</span>
+              </span>
+            )}
+          </div>
+        </div>
+        
+        <div className="p-3 sm:p-6 space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <Label className="text-sm font-semibold">Base URL</Label>
+              <Input
+                value={agjSettings.base_url}
+                onChange={(e) => setAgjSettings({...agjSettings, base_url: e.target.value})}
+                placeholder="https://agrosjet.com"
+                className="mt-1 border-2 text-sm"
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-semibold">
+                API Anahtarı
+                {agjConfigured && <span className="text-muted-foreground font-normal ml-1">(değiştirmek için doldurun)</span>}
+              </Label>
+              <div className="relative mt-1">
+                <Input
+                  type={showApiKey ? "text" : "password"}
+                  value={agjSettings.api_key}
+                  onChange={(e) => setAgjSettings({...agjSettings, api_key: e.target.value})}
+                  placeholder={agjConfigured ? "••••••••" : "agj_xxxxxxxxxxxxx"}
+                  className="border-2 text-sm pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowApiKey(!showApiKey)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">AgrosJet admin panelinden oluşturulur</p>
+            </div>
+          </div>
+
+          {agjTestResult && (
+            <div className={`p-4 rounded-lg border-2 ${agjTestResult.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+              <div className="flex items-center gap-2">
+                {agjTestResult.success ? (
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                ) : (
+                  <XCircle className="w-5 h-5 text-red-600" />
+                )}
+                <span className={`font-semibold text-sm ${agjTestResult.success ? 'text-green-700' : 'text-red-700'}`}>
+                  {agjTestResult.message}
+                </span>
+              </div>
+              {agjTestResult.details && (
+                <div className="mt-2 text-xs text-muted-foreground">
+                  {agjTestResult.details.sync_courier && <span className="mr-3">Kurye: Aktif</span>}
+                  {agjTestResult.details.sync_restaurant && <span className="mr-3">Restoran: Aktif</span>}
+                  {agjTestResult.details.sync_company && <span>Şirket: Aktif</span>}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-4 border-t">
+            <Button onClick={handleAgjSave} disabled={agjSaving} className="font-semibold">
+              {agjSaving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Kaydediliyor...</> : "Kaydet"}
+            </Button>
+            {agjConfigured && (
+              <Button variant="outline" onClick={handleAgjTest} disabled={agjTesting} className="font-semibold border-2">
+                {agjTesting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Test Ediliyor...</> : "Bağlantıyı Test Et"}
+              </Button>
+            )}
+          </div>
+
+          <div className="p-3 bg-emerald-50 rounded-lg text-xs text-emerald-700">
+            <p className="font-medium">Bilgi:</p>
+            <p>AgrosJet.com üzerinden gelen kurye, restoran ve şirket başvurularını görüntülemek ve yönetmek için bu entegrasyonu yapılandırın.</p>
           </div>
         </div>
       </div>

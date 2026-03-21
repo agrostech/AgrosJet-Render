@@ -27,7 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
-import { Trash2, Pencil, Shield, Clock, Calculator, Package, Users, ShoppingBag, GraduationCap, SlidersHorizontal, Link2, Unlink } from "lucide-react";
+import { Trash2, Pencil, Shield, Clock, Calculator, Package, Users, ShoppingBag, GraduationCap, SlidersHorizontal, Link2, Unlink, FileText, BarChart3 } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -36,10 +36,12 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const PERMISSION_ITEMS = [
   { key: "vardiya", label: "Vardiyalar", icon: Clock },
   { key: "muhasebe", label: "Muhasebe", icon: Calculator },
+  { key: "raporlar", label: "Raporlar", icon: BarChart3 },
   { key: "zimmet", label: "Zimmet", icon: Package },
   { key: "kuryeler", label: "Kuryeler", icon: Users },
   { key: "market", label: "Market", icon: ShoppingBag },
   { key: "akademi", label: "Akademi", icon: GraduationCap },
+  { key: "basvurular", label: "Başvurular", icon: FileText },
   { key: "sistem", label: "Sistem Ayarları", icon: SlidersHorizontal },
 ];
 

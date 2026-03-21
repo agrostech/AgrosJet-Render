@@ -525,6 +525,7 @@ from routers.auto_dispatch import router as auto_dispatch_router
 from routers.customers import router as customers_router
 from routers.credits import router as credits_router
 from routers.break_system import router as break_system_router
+from routers.applications import router as applications_router, webhook_router as applications_webhook_router
 
 # Set db for products router
 set_products_db(db)
@@ -585,6 +586,8 @@ app.include_router(auto_dispatch_router)
 app.include_router(customers_router)
 app.include_router(credits_router)
 app.include_router(break_system_router)
+app.include_router(applications_router)
+app.include_router(applications_webhook_router)
 
 # Health check
 @api_router.get("/")
