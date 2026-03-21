@@ -22,7 +22,7 @@ Full-stack delivery management application for managing couriers, restaurants, a
   - Backend service: `backend/services/agrosjet_service.py`
   - Backend router: `backend/routers/applications.py`
   - Webhook endpoint: `POST /api/webhook/applications`
-- **3 Application Types**: Kurye, Restoran, Şirket tabs
+- **2 Application Types**: Kurye, Restoran tabs (Şirket sekmesi kaldırıldı)
 - **Table Layout**: Desktop uses Table component (matching KuryelerPage CourierTable design)
 - **Mobile Cards**: Compact card layout for mobile (matching CourierCards design)
 - **Tab Design**: Matches Muhasebe sub-tab design (border-b-2, primary colors, scrollable)

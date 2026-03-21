@@ -13,8 +13,8 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Users, Store, Building2, ChevronLeft, ChevronRight,
-  RefreshCw, Loader2, Search, AlertCircle, ChevronDown, MapPin
+  Users, Store, ChevronLeft, ChevronRight,
+  RefreshCw, Loader2, Search, AlertCircle, ChevronDown, MapPin, History
 } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 
@@ -22,8 +22,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const TAB_CONFIG = [
   { key: "courier", label: "Kurye", icon: Users },
-  { key: "restaurant", label: "Restoran", icon: Store },
-  { key: "company", label: "Şirket", icon: Building2 }
+  { key: "restaurant", label: "Restoran", icon: Store }
 ];
 
 // Doğrudan application objesinden label ve color oku
@@ -61,6 +60,110 @@ function boolLabel(val) {
   if (val === true) return "Evet";
   if (val === false) return "Hayır";
   return "-";
+}
+
+// --- Geçmiş Modal ---
+function HistoryModal({ open, onOpenChange, application, uniqueStatuses }) {
+  if (!application) return null;
+  const history = application.status_history || [];
+
+  const getStatusInfo = (statusVal) => {
+    const fromList = uniqueStatuses.find(s => s.value === statusVal);
+    return {
+      label: fromList?.label || statusVal,
+      color: fromList?.color || "#94a3b8"
+    };
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="text-base font-bold">Durum Geçmişi</DialogTitle>
+          <p className="text-sm text-muted-foreground">{application.restaurant_name || application.full_name}</p>
+        </DialogHeader>
+
+        {history.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground text-sm">
+            Henüz durum değişikliği yok
+          </div>
+        ) : (
+          <div className="overflow-y-auto flex-1 -mx-1 px-1">
+            <div className="relative pl-6">
+              {/* Timeline çizgisi */}
+              <div className="absolute left-[7px] top-2 bottom-2 w-[2px] bg-slate-200 dark:bg-slate-700" />
+
+              <div className="space-y-4">
+                {[...history].reverse().map((h, i) => {
+                  const info = getStatusInfo(h.status);
+                  const isAgrosjetApp = h.source === "agrosjet_app" || (h.admin || "").includes("AgrosJet.app");
+                  return (
+                    <div key={i} className="relative">
+                      {/* Timeline noktası */}
+                      <div
+                        className="absolute -left-6 top-1 w-4 h-4 rounded-full border-2 border-white dark:border-slate-900"
+                        style={{ backgroundColor: info.color }}
+                      />
+
+                      <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span
+                            className="px-2 py-0.5 rounded-full text-[11px] font-bold"
+                            style={{ backgroundColor: info.color + "1a", color: info.color }}
+                          >
+                            {info.label}
+                          </span>
+                          {isAgrosjetApp && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 font-medium">
+                              AgrosJet.app
+                            </span>
+                          )}
+                        </div>
+                        {h.note && (
+                          <p className="text-sm text-foreground mt-1">{h.note}</p>
+                        )}
+                        <div className="flex items-center gap-2 mt-2 text-[11px] text-muted-foreground">
+                          <span className="font-medium">{h.admin || "-"}</span>
+                          <span>·</span>
+                          <span>{formatDate(h.timestamp)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// --- Geçmiş Butonu ---
+function HistoryButton({ application, uniqueStatuses }) {
+  const [open, setOpen] = useState(false);
+  const count = (application.status_history || []).length;
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className={`inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium transition-colors ${
+          count > 0
+            ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-700"
+            : "text-slate-300 dark:text-slate-600 cursor-default"
+        }`}
+        disabled={count === 0}
+        title={count > 0 ? `${count} kayıt` : "Geçmiş yok"}
+        data-testid={`history-btn-${application.id}`}
+      >
+        <History className="w-3.5 h-3.5" />
+        {count > 0 && <span>{count}</span>}
+      </button>
+      <HistoryModal open={open} onOpenChange={setOpen} application={application} uniqueStatuses={uniqueStatuses} />
+    </>
+  );
 }
 
 // --- Status Dropdown ---
@@ -190,7 +293,7 @@ function CourierTable({ applications, uniqueStatuses, adminName, onSuccess, empt
             <TableHead className="font-bold text-xs w-[120px]">Deneyim</TableHead>
             <TableHead className="font-bold text-xs min-w-[120px]">Açıklama</TableHead>
             <TableHead className="font-bold text-xs w-[120px]">Tarih</TableHead>
-            <TableHead className="font-bold text-xs w-[120px] text-right">Durum</TableHead>
+            <TableHead className="font-bold text-xs w-[150px] text-right">İşlemler</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -212,7 +315,10 @@ function CourierTable({ applications, uniqueStatuses, adminName, onSuccess, empt
               <TableCell className="text-sm truncate max-w-[200px]" title={app.description}>{app.description || "-"}</TableCell>
               <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{formatDate(app.created_at)}</TableCell>
               <TableCell className="text-right">
-                <StatusDropdown application={app} uniqueStatuses={uniqueStatuses} appType="courier" adminName={adminName} onSuccess={onSuccess} />
+                <div className="flex items-center justify-end gap-1">
+                  <HistoryButton application={app} uniqueStatuses={uniqueStatuses} />
+                  <StatusDropdown application={app} uniqueStatuses={uniqueStatuses} appType="courier" adminName={adminName} onSuccess={onSuccess} />
+                </div>
               </TableCell>
             </TableRow>
           ))}
@@ -226,20 +332,20 @@ function CourierTable({ applications, uniqueStatuses, adminName, onSuccess, empt
 function RestaurantTable({ applications, uniqueStatuses, adminName, onSuccess, emptyMsg }) {
   return (
     <div className="hidden md:block border-2 border-border bg-white overflow-x-auto" data-testid="applications-table">
-      <Table>
+      <Table className="table-fixed w-full">
         <TableHeader>
           <TableRow className="border-b-2 border-primary">
-            <TableHead className="font-bold text-xs w-[140px]">Restoran Adı</TableHead>
-            <TableHead className="font-bold text-xs w-[120px]">Yetkili</TableHead>
-            <TableHead className="font-bold text-xs w-[120px]">Telefon</TableHead>
-            <TableHead className="font-bold text-xs w-[120px]">İl / İlçe</TableHead>
-            <TableHead className="font-bold text-xs min-w-[140px]">Adres</TableHead>
-            <TableHead className="font-bold text-xs w-[70px]">Paket/Gün</TableHead>
-            <TableHead className="font-bold text-xs w-[60px]">Kuryesi</TableHead>
-            <TableHead className="font-bold text-xs w-[70px]">Başka Servis</TableHead>
-            <TableHead className="font-bold text-xs w-[100px]">Ziyaret</TableHead>
-            <TableHead className="font-bold text-xs w-[120px]">Tarih</TableHead>
-            <TableHead className="font-bold text-xs w-[120px] text-right">Durum</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"13%"}}>Restoran Adı</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"9%"}}>Yetkili</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"9%"}}>Telefon</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"8%"}}>İl / İlçe</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"15%"}}>Adres</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"5%"}}>Paket/Gün</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"5%"}}>Kuryesi</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"5%"}}>B. Servis</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"7%"}}>Ziyaret</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"9%"}}>Tarih</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap text-right" style={{width:"15%"}}>İşlemler</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -247,58 +353,21 @@ function RestaurantTable({ applications, uniqueStatuses, adminName, onSuccess, e
             <TableRow><TableCell colSpan={11} className="text-center text-muted-foreground py-8">{emptyMsg}</TableCell></TableRow>
           ) : applications.map(app => (
             <TableRow key={app.id} className="border-b border-border hover:bg-slate-50" data-testid={`app-row-${app.id}`}>
-              <TableCell className="font-medium text-sm">{app.restaurant_name || app.full_name}</TableCell>
-              <TableCell className="text-sm">{app.contact_name || "-"}</TableCell>
+              <TableCell className="font-medium text-sm truncate" title={app.restaurant_name || app.full_name}>{app.restaurant_name || app.full_name}</TableCell>
+              <TableCell className="text-sm truncate" title={app.contact_name}>{app.contact_name || "-"}</TableCell>
               <TableCell className="font-mono text-sm whitespace-nowrap">{formatPhone(app.phone)}</TableCell>
               <TableCell className="text-sm whitespace-nowrap">{app.province || "-"}{app.district ? ` / ${app.district}` : ""}</TableCell>
-              <TableCell className="text-sm truncate max-w-[220px]" title={app.address}>{app.address || "-"}</TableCell>
-              <TableCell className="text-sm">{app.package_count || "-"}</TableCell>
-              <TableCell className="text-sm">{boolLabel(app.has_courier)}</TableCell>
-              <TableCell className="text-sm">{boolLabel(app.uses_other_service)}</TableCell>
+              <TableCell className="text-sm truncate" title={app.address}>{app.address || "-"}</TableCell>
+              <TableCell className="text-sm text-center">{app.package_count || "-"}</TableCell>
+              <TableCell className="text-sm text-center">{boolLabel(app.has_courier)}</TableCell>
+              <TableCell className="text-sm text-center">{boolLabel(app.uses_other_service)}</TableCell>
               <TableCell className="text-sm whitespace-nowrap">{app.visit_date ? `${app.visit_date}${app.visit_time_slot ? ` ${app.visit_time_slot}` : ""}` : "-"}</TableCell>
               <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{formatDate(app.created_at)}</TableCell>
               <TableCell className="text-right">
-                <StatusDropdown application={app} uniqueStatuses={uniqueStatuses} appType="restaurant" adminName={adminName} onSuccess={onSuccess} />
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  );
-}
-
-// --- Şirket Table ---
-function CompanyTable({ applications, uniqueStatuses, adminName, onSuccess, emptyMsg }) {
-  return (
-    <div className="hidden md:block border-2 border-border bg-white overflow-x-auto" data-testid="applications-table">
-      <Table>
-        <TableHeader>
-          <TableRow className="border-b-2 border-primary">
-            <TableHead className="font-bold text-xs w-[160px]">Yetkili Adı</TableHead>
-            <TableHead className="font-bold text-xs w-[130px]">Telefon</TableHead>
-            <TableHead className="font-bold text-xs w-[140px]">İl / İlçe</TableHead>
-            <TableHead className="font-bold text-xs w-[140px]">Başvuru Tipi</TableHead>
-            <TableHead className="font-bold text-xs w-[90px]">Paket/Gün</TableHead>
-            <TableHead className="font-bold text-xs w-[90px]">Aktif Şirket</TableHead>
-            <TableHead className="font-bold text-xs w-[130px]">Tarih</TableHead>
-            <TableHead className="font-bold text-xs w-[120px] text-right">Durum</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {applications.length === 0 ? (
-            <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">{emptyMsg}</TableCell></TableRow>
-          ) : applications.map(app => (
-            <TableRow key={app.id} className="border-b border-border hover:bg-slate-50" data-testid={`app-row-${app.id}`}>
-              <TableCell className="font-medium text-sm">{app.full_name}</TableCell>
-              <TableCell className="font-mono text-sm whitespace-nowrap">{formatPhone(app.phone)}</TableCell>
-              <TableCell className="text-sm whitespace-nowrap">{app.province || "-"}{app.district ? ` / ${app.district}` : ""}</TableCell>
-              <TableCell className="text-sm">{app.application_type || "-"}</TableCell>
-              <TableCell className="text-sm">{app.package_count || "-"}</TableCell>
-              <TableCell className="text-sm">{boolLabel(app.has_active_company)}</TableCell>
-              <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{formatDate(app.created_at)}</TableCell>
-              <TableCell className="text-right">
-                <StatusDropdown application={app} uniqueStatuses={uniqueStatuses} appType="company" adminName={adminName} onSuccess={onSuccess} />
+                <div className="flex items-center justify-end gap-1">
+                  <HistoryButton application={app} uniqueStatuses={uniqueStatuses} />
+                  <StatusDropdown application={app} uniqueStatuses={uniqueStatuses} appType="restaurant" adminName={adminName} onSuccess={onSuccess} />
+                </div>
               </TableCell>
             </TableRow>
           ))}
@@ -334,7 +403,10 @@ function ApplicationMobileCards({ applications, activeTab, uniqueStatuses, admin
                 {activeTab === "restaurant" && app.package_count ? ` · ${app.package_count} paket` : ""}
               </p>
             </div>
-            <StatusDropdown application={app} uniqueStatuses={uniqueStatuses} appType={activeTab} adminName={adminName} onSuccess={onSuccess} />
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <HistoryButton application={app} uniqueStatuses={uniqueStatuses} />
+              <StatusDropdown application={app} uniqueStatuses={uniqueStatuses} appType={activeTab} adminName={adminName} onSuccess={onSuccess} />
+            </div>
           </div>
         </div>
       ))}
@@ -612,9 +684,6 @@ export default function BasvurularPage({ companyId, adminName, companyCity }) {
           )}
           {activeTab === "restaurant" && (
             <RestaurantTable applications={filtered} uniqueStatuses={displayStatuses} adminName={adminName || "Admin"} onSuccess={() => fetchApplications(false)} emptyMsg={emptyMsg} />
-          )}
-          {activeTab === "company" && (
-            <CompanyTable applications={filtered} uniqueStatuses={displayStatuses} adminName={adminName || "Admin"} onSuccess={() => fetchApplications(false)} emptyMsg={emptyMsg} />
           )}
           <ApplicationMobileCards
             applications={filtered}
