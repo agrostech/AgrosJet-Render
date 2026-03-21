@@ -187,7 +187,7 @@ function CourierTable({ applications, uniqueStatuses, adminName, onSuccess, empt
             <TableHead className="font-bold text-xs w-[60px]">Ehliyet</TableHead>
             <TableHead className="font-bold text-xs w-[130px]">Motosiklet</TableHead>
             <TableHead className="font-bold text-xs w-[70px]">Günlük Saat</TableHead>
-            <TableHead className="font-bold text-xs w-[80px]">Deneyim</TableHead>
+            <TableHead className="font-bold text-xs w-[120px]">Deneyim</TableHead>
             <TableHead className="font-bold text-xs min-w-[120px]">Açıklama</TableHead>
             <TableHead className="font-bold text-xs w-[120px]">Tarih</TableHead>
             <TableHead className="font-bold text-xs w-[120px] text-right">Durum</TableHead>
@@ -204,8 +204,8 @@ function CourierTable({ applications, uniqueStatuses, adminName, onSuccess, empt
               <TableCell className="text-sm">{(app.license_types || []).join(", ") || "-"}</TableCell>
               <TableCell className="text-sm">
                 {app.has_motorcycle
-                  ? <span className="text-green-600 whitespace-nowrap">{`${app.motorcycle_brand || ""} ${app.motorcycle_model || ""}`.trim() || "Var"}</span>
-                  : <span className="text-muted-foreground">Yok</span>}
+                  ? <span className="whitespace-nowrap">{`${app.motorcycle_brand || ""} ${app.motorcycle_model || ""}`.trim() || "Var"}</span>
+                  : <span className="text-red-500 font-medium">Yok</span>}
               </TableCell>
               <TableCell className="text-sm">{app.daily_hours || "-"}</TableCell>
               <TableCell className="text-sm">{app.experience || "-"}</TableCell>
