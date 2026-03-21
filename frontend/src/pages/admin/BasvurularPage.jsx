@@ -301,7 +301,7 @@ function CourierTable({ applications, uniqueStatuses, adminName, onSuccess, empt
             <TableHead className="font-bold text-xs w-[130px]">İl / İlçe</TableHead>
             <TableHead className="font-bold text-xs w-[100px]">Ehliyet</TableHead>
             <TableHead className="font-bold text-xs w-[130px]">Motosiklet</TableHead>
-            <TableHead className="font-bold text-xs w-[70px]">Günlük Saat</TableHead>
+            <TableHead className="font-bold text-xs w-[85px] whitespace-nowrap">Günlük Saat</TableHead>
             <TableHead className="font-bold text-xs w-[120px]">Deneyim</TableHead>
             <TableHead className="font-bold text-xs min-w-[120px]">Açıklama</TableHead>
             <TableHead className="font-bold text-xs w-[120px]">Tarih</TableHead>
