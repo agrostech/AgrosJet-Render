@@ -95,7 +95,9 @@ export default function AdminDashboard() {
         const perms = parsed.permissions || {};
         const isSA = parsed.role === "superadmin" || parsed.is_super_admin === true;
         if (isSA || perms.basvurular) {
-          const cityParam = company?.city ? `&city=${encodeURIComponent(company.city)}` : "";
+          const activeComp = (parsed.accessible_companies || []).find(c => c.id === companyId) || parsed.company || {};
+          const city = activeComp.city || "";
+          const cityParam = city ? `&city=${encodeURIComponent(city)}` : "";
           const res = await axios.get(`${API}/applications/new-count?_t=${Date.now()}${cityParam}`);
           setBadges(prev => ({ ...prev, basvurular: res.data.count }));
         }
@@ -103,7 +105,7 @@ export default function AdminDashboard() {
     } catch (err) {
       // ignore
     }
-  }, [activeCompanyId, company]);
+  }, [activeCompanyId]);
 
   // Kontör bilgisini çek
   const fetchCreditInfo = useCallback(async () => {
