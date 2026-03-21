@@ -26,18 +26,29 @@ const TAB_CONFIG = [
   { key: "company", label: "Şirket", icon: Building2 }
 ];
 
-// Durum rengi al - API'den gelen veya fallback
+// Bilinen durum kodları için Türkçe etiket ve renk
+const KNOWN_STATUS_MAP = {
+  new:        { label: "Yeni Başvuru",  color: "#3b82f6" },
+  pending:    { label: "Beklemede",     color: "#f59e0b" },
+  positive:   { label: "Olumlu",        color: "#10b981" },
+  negative:   { label: "Olumsuz",       color: "#ef4444" },
+  approved:   { label: "Onaylandı",     color: "#10b981" },
+  rejected:   { label: "Reddedildi",    color: "#ef4444" },
+  interview:  { label: "Mülakat",       color: "#8b5cf6" },
+  contacted:  { label: "İletişime Geçildi", color: "#06b6d4" },
+  cancelled:  { label: "İptal Edildi",  color: "#6b7280" },
+  completed:  { label: "Tamamlandı",    color: "#059669" },
+};
+
 function getStatusColor(status, statusMap) {
   if (statusMap[status]) return statusMap[status].color;
-  // Fallback renkler
-  const fallbacks = {
-    new: "#3b82f6", pending: "#f59e0b", positive: "#10b981", negative: "#ef4444"
-  };
-  return fallbacks[status] || "#94a3b8";
+  if (KNOWN_STATUS_MAP[status]) return KNOWN_STATUS_MAP[status].color;
+  return "#94a3b8";
 }
 
 function getStatusLabel(status, statusMap) {
   if (statusMap[status]) return statusMap[status].label;
+  if (KNOWN_STATUS_MAP[status]) return KNOWN_STATUS_MAP[status].label;
   return status;
 }
 
@@ -186,16 +197,16 @@ function CourierTable({ applications, statusMap, allStatuses, adminName, onSucce
       <Table>
         <TableHeader>
           <TableRow className="border-b-2 border-primary">
-            <TableHead className="font-bold text-xs">Ad Soyad</TableHead>
-            <TableHead className="font-bold text-xs">Telefon</TableHead>
-            <TableHead className="font-bold text-xs">İl / İlçe</TableHead>
-            <TableHead className="font-bold text-xs">Ehliyet</TableHead>
-            <TableHead className="font-bold text-xs">Motosiklet</TableHead>
-            <TableHead className="font-bold text-xs">Günlük Saat</TableHead>
-            <TableHead className="font-bold text-xs">Deneyim</TableHead>
-            <TableHead className="font-bold text-xs">Açıklama</TableHead>
-            <TableHead className="font-bold text-xs">Tarih</TableHead>
-            <TableHead className="font-bold text-xs text-right">Durum</TableHead>
+            <TableHead className="font-bold text-xs w-[140px]">Ad Soyad</TableHead>
+            <TableHead className="font-bold text-xs w-[120px]">Telefon</TableHead>
+            <TableHead className="font-bold text-xs w-[130px]">İl / İlçe</TableHead>
+            <TableHead className="font-bold text-xs w-[60px]">Ehliyet</TableHead>
+            <TableHead className="font-bold text-xs w-[130px]">Motosiklet</TableHead>
+            <TableHead className="font-bold text-xs w-[70px]">Günlük Saat</TableHead>
+            <TableHead className="font-bold text-xs w-[80px]">Deneyim</TableHead>
+            <TableHead className="font-bold text-xs min-w-[120px]">Açıklama</TableHead>
+            <TableHead className="font-bold text-xs w-[120px]">Tarih</TableHead>
+            <TableHead className="font-bold text-xs w-[110px] text-right">Durum</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -204,17 +215,17 @@ function CourierTable({ applications, statusMap, allStatuses, adminName, onSucce
           ) : applications.map(app => (
             <TableRow key={app.id} className="border-b border-border hover:bg-slate-50" data-testid={`app-row-${app.id}`}>
               <TableCell className="font-medium text-sm">{app.full_name}</TableCell>
-              <TableCell className="font-mono text-sm">{formatPhone(app.phone)}</TableCell>
-              <TableCell className="text-sm">{app.province || "-"}{app.district ? ` / ${app.district}` : ""}</TableCell>
+              <TableCell className="font-mono text-sm whitespace-nowrap">{formatPhone(app.phone)}</TableCell>
+              <TableCell className="text-sm whitespace-nowrap">{app.province || "-"}{app.district ? ` / ${app.district}` : ""}</TableCell>
               <TableCell className="text-sm">{(app.license_types || []).join(", ") || "-"}</TableCell>
               <TableCell className="text-sm">
                 {app.has_motorcycle
-                  ? <span className="text-green-600">{`${app.motorcycle_brand || ""} ${app.motorcycle_model || ""}`.trim() || "Var"}</span>
+                  ? <span className="text-green-600 whitespace-nowrap">{`${app.motorcycle_brand || ""} ${app.motorcycle_model || ""}`.trim() || "Var"}</span>
                   : <span className="text-muted-foreground">Yok</span>}
               </TableCell>
               <TableCell className="text-sm">{app.daily_hours || "-"}</TableCell>
               <TableCell className="text-sm">{app.experience || "-"}</TableCell>
-              <TableCell className="text-sm max-w-[200px] truncate" title={app.description}>{app.description || "-"}</TableCell>
+              <TableCell className="text-sm truncate max-w-[200px]" title={app.description}>{app.description || "-"}</TableCell>
               <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{formatDate(app.created_at)}</TableCell>
               <TableCell className="text-right">
                 <StatusDropdown application={app} statusMap={statusMap} allStatuses={allStatuses} appType="courier" adminName={adminName} onSuccess={onSuccess} />
@@ -234,17 +245,17 @@ function RestaurantTable({ applications, statusMap, allStatuses, adminName, onSu
       <Table>
         <TableHeader>
           <TableRow className="border-b-2 border-primary">
-            <TableHead className="font-bold text-xs">Restoran Adı</TableHead>
-            <TableHead className="font-bold text-xs">Yetkili</TableHead>
-            <TableHead className="font-bold text-xs">Telefon</TableHead>
-            <TableHead className="font-bold text-xs">İl / İlçe</TableHead>
-            <TableHead className="font-bold text-xs">Adres</TableHead>
-            <TableHead className="font-bold text-xs">Paket/Gün</TableHead>
-            <TableHead className="font-bold text-xs">Kuryesi</TableHead>
-            <TableHead className="font-bold text-xs">Başka Servis</TableHead>
-            <TableHead className="font-bold text-xs">Ziyaret</TableHead>
-            <TableHead className="font-bold text-xs">Tarih</TableHead>
-            <TableHead className="font-bold text-xs text-right">Durum</TableHead>
+            <TableHead className="font-bold text-xs w-[140px]">Restoran Adı</TableHead>
+            <TableHead className="font-bold text-xs w-[120px]">Yetkili</TableHead>
+            <TableHead className="font-bold text-xs w-[120px]">Telefon</TableHead>
+            <TableHead className="font-bold text-xs w-[120px]">İl / İlçe</TableHead>
+            <TableHead className="font-bold text-xs min-w-[140px]">Adres</TableHead>
+            <TableHead className="font-bold text-xs w-[70px]">Paket/Gün</TableHead>
+            <TableHead className="font-bold text-xs w-[60px]">Kuryesi</TableHead>
+            <TableHead className="font-bold text-xs w-[70px]">Başka Servis</TableHead>
+            <TableHead className="font-bold text-xs w-[100px]">Ziyaret</TableHead>
+            <TableHead className="font-bold text-xs w-[120px]">Tarih</TableHead>
+            <TableHead className="font-bold text-xs w-[110px] text-right">Durum</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -254,9 +265,9 @@ function RestaurantTable({ applications, statusMap, allStatuses, adminName, onSu
             <TableRow key={app.id} className="border-b border-border hover:bg-slate-50" data-testid={`app-row-${app.id}`}>
               <TableCell className="font-medium text-sm">{app.restaurant_name || app.full_name}</TableCell>
               <TableCell className="text-sm">{app.contact_name || "-"}</TableCell>
-              <TableCell className="font-mono text-sm">{formatPhone(app.phone)}</TableCell>
-              <TableCell className="text-sm">{app.province || "-"}{app.district ? ` / ${app.district}` : ""}</TableCell>
-              <TableCell className="text-sm max-w-[200px] truncate" title={app.address}>{app.address || "-"}</TableCell>
+              <TableCell className="font-mono text-sm whitespace-nowrap">{formatPhone(app.phone)}</TableCell>
+              <TableCell className="text-sm whitespace-nowrap">{app.province || "-"}{app.district ? ` / ${app.district}` : ""}</TableCell>
+              <TableCell className="text-sm truncate max-w-[220px]" title={app.address}>{app.address || "-"}</TableCell>
               <TableCell className="text-sm">{app.package_count || "-"}</TableCell>
               <TableCell className="text-sm">{boolLabel(app.has_courier)}</TableCell>
               <TableCell className="text-sm">{boolLabel(app.uses_other_service)}</TableCell>
@@ -280,14 +291,14 @@ function CompanyTable({ applications, statusMap, allStatuses, adminName, onSucce
       <Table>
         <TableHeader>
           <TableRow className="border-b-2 border-primary">
-            <TableHead className="font-bold text-xs">Yetkili Adı</TableHead>
-            <TableHead className="font-bold text-xs">Telefon</TableHead>
-            <TableHead className="font-bold text-xs">İl / İlçe</TableHead>
-            <TableHead className="font-bold text-xs">Başvuru Tipi</TableHead>
-            <TableHead className="font-bold text-xs">Paket/Gün</TableHead>
-            <TableHead className="font-bold text-xs">Aktif Şirket</TableHead>
-            <TableHead className="font-bold text-xs">Tarih</TableHead>
-            <TableHead className="font-bold text-xs text-right">Durum</TableHead>
+            <TableHead className="font-bold text-xs w-[160px]">Yetkili Adı</TableHead>
+            <TableHead className="font-bold text-xs w-[130px]">Telefon</TableHead>
+            <TableHead className="font-bold text-xs w-[140px]">İl / İlçe</TableHead>
+            <TableHead className="font-bold text-xs w-[140px]">Başvuru Tipi</TableHead>
+            <TableHead className="font-bold text-xs w-[90px]">Paket/Gün</TableHead>
+            <TableHead className="font-bold text-xs w-[90px]">Aktif Şirket</TableHead>
+            <TableHead className="font-bold text-xs w-[130px]">Tarih</TableHead>
+            <TableHead className="font-bold text-xs w-[120px] text-right">Durum</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -296,8 +307,8 @@ function CompanyTable({ applications, statusMap, allStatuses, adminName, onSucce
           ) : applications.map(app => (
             <TableRow key={app.id} className="border-b border-border hover:bg-slate-50" data-testid={`app-row-${app.id}`}>
               <TableCell className="font-medium text-sm">{app.full_name}</TableCell>
-              <TableCell className="font-mono text-sm">{formatPhone(app.phone)}</TableCell>
-              <TableCell className="text-sm">{app.province || "-"}{app.district ? ` / ${app.district}` : ""}</TableCell>
+              <TableCell className="font-mono text-sm whitespace-nowrap">{formatPhone(app.phone)}</TableCell>
+              <TableCell className="text-sm whitespace-nowrap">{app.province || "-"}{app.district ? ` / ${app.district}` : ""}</TableCell>
               <TableCell className="text-sm">{app.application_type || "-"}</TableCell>
               <TableCell className="text-sm">{app.package_count || "-"}</TableCell>
               <TableCell className="text-sm">{boolLabel(app.has_active_company)}</TableCell>
@@ -409,19 +420,19 @@ export default function BasvurularPage({ companyId, adminName, companyCity }) {
 
   // Veriden benzersiz durumları çıkar (API boş dönerse)
   const deriveStatusesFromData = useCallback((data) => {
-    // Fallback renk paleti
     const palette = ["#3b82f6", "#f59e0b", "#10b981", "#ef4444", "#8b5cf6", "#06b6d4", "#f97316", "#ec4899", "#14b8a6", "#6366f1"];
     const seen = new Map();
     let colorIdx = 0;
 
     data.forEach(app => {
       if (app.status && !seen.has(app.status)) {
+        const known = KNOWN_STATUS_MAP[app.status];
         seen.set(app.status, {
           value: app.status,
-          label: app.status.charAt(0).toUpperCase() + app.status.slice(1),
-          color: palette[colorIdx % palette.length]
+          label: known ? known.label : app.status,
+          color: known ? known.color : palette[colorIdx % palette.length]
         });
-        colorIdx++;
+        if (!known) colorIdx++;
       }
     });
 
