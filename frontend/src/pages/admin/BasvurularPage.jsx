@@ -400,16 +400,16 @@ export default function BasvurularPage({ companyId, adminName, companyCity }) {
     }
   };
 
-  // API'den tüm tanımlı durumları çek
+  // API'den tüm tanımlı durumları çek (cache-bust ile her zaman taze)
   const fetchStatuses = useCallback(async (type) => {
     try {
-      const res = await axios.get(`${API}/applications/statuses/${type}`);
+      const res = await axios.get(`${API}/applications/statuses/${type}`, {
+        params: { _t: Date.now() }
+      });
       const list = res.data.statuses || [];
-      if (list.length > 0) {
-        setApiStatuses(list);
-      }
+      setApiStatuses(list);
     } catch {
-      // API boş dönerse veriden türetilir
+      setApiStatuses([]);
     }
   }, []);
 
@@ -418,7 +418,9 @@ export default function BasvurularPage({ companyId, adminName, companyCity }) {
     else setRefreshing(true);
     try {
       // Her zaman filtresiz çek - durum listesini güncel tutmak için
-      const res = await axios.get(`${API}/applications/${activeTab}?limit=500&offset=0`);
+      const res = await axios.get(`${API}/applications/${activeTab}`, {
+        params: { limit: 500, offset: 0, _t: Date.now() }
+      });
       let rawData = res.data.data || [];
 
       // İl filtresi
