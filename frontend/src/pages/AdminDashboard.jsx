@@ -87,21 +87,23 @@ export default function AdminDashboard() {
     } catch (err) {
       // ignore
     }
-    // Başvuru bildirimi badge (sadece izni varsa)
+    // Başvuru badge - "new" statüsündeki kurye+restoran sayısı (sadece izni varsa)
     try {
       const stored = localStorage.getItem("user");
-      if (!stored) return;
-      const parsed = JSON.parse(stored);
-      const perms = parsed.permissions || {};
-      const isSA = parsed.role === "superadmin" || parsed.is_super_admin === true;
-      if (isSA || perms.basvurular) {
-        const res = await axios.get(`${API}/notifications/company/${companyId}/unread-count?type=basvuru`);
-        setBadges(prev => ({ ...prev, basvurular: res.data.count }));
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        const perms = parsed.permissions || {};
+        const isSA = parsed.role === "superadmin" || parsed.is_super_admin === true;
+        if (isSA || perms.basvurular) {
+          const cityParam = company?.city ? `&city=${encodeURIComponent(company.city)}` : "";
+          const res = await axios.get(`${API}/applications/new-count?_t=${Date.now()}${cityParam}`);
+          setBadges(prev => ({ ...prev, basvurular: res.data.count }));
+        }
       }
     } catch (err) {
       // ignore
     }
-  }, [activeCompanyId]);
+  }, [activeCompanyId, company]);
 
   // Kontör bilgisini çek
   const fetchCreditInfo = useCallback(async () => {

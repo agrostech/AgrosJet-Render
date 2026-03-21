@@ -30,6 +30,22 @@ class StatusUpdateRequest(BaseModel):
     admin_name: str
 
 
+@router.get("/new-count")
+async def get_new_applications_count(city: Optional[str] = Query(None)):
+    """Yeni (new) statüsündeki kurye + restoran başvuru sayısını döndür"""
+    total = 0
+    for app_type in ("courier", "restaurant"):
+        try:
+            result = await get_applications(app_type, status="new", limit=500, offset=0)
+            apps = result.get("applications", [])
+            if city:
+                apps = [a for a in apps if (a.get("province") or "").lower() == city.lower()]
+            total += len(apps)
+        except Exception:
+            pass
+    return {"count": total}
+
+
 # --- Endpoints ---
 
 @router.get("/ping")
@@ -163,9 +179,11 @@ async def receive_application_webhook(request: Request):
             }},
             upsert=True
         )
-        type_label = "kurye" if app_type == "courier" else "restoran"
-        name = application.get("full_name") or application.get("restaurant_name") or ""
-        await _create_basvuru_notification(app_type, application, f"Yeni {type_label} başvurusu: {name}")
+        # Sadece kurye ve restoran için bildirim gönder
+        if app_type in ("courier", "restaurant"):
+            type_label = "kurye" if app_type == "courier" else "restoran"
+            name = application.get("full_name") or application.get("restaurant_name") or ""
+            await _create_basvuru_notification(app_type, application, f"Yeni {type_label} başvurusu: {name}")
         return {"status": "ok", "message": "Başvuru kaydedildi"}
 
     if event == "status_updated":
@@ -179,10 +197,12 @@ async def receive_application_webhook(request: Request):
             }},
             upsert=True
         )
-        type_label = "kurye" if app_type == "courier" else "restoran"
-        name = application.get("full_name") or application.get("restaurant_name") or ""
-        status_label = application.get("status_label") or application.get("status") or ""
-        await _create_basvuru_notification(app_type, application, f"{type_label.capitalize()} başvurusu güncellendi: {name} → {status_label}")
+        # Sadece kurye ve restoran için bildirim gönder
+        if app_type in ("courier", "restaurant"):
+            type_label = "kurye" if app_type == "courier" else "restoran"
+            name = application.get("full_name") or application.get("restaurant_name") or ""
+            status_label = application.get("status_label") or application.get("status") or ""
+            await _create_basvuru_notification(app_type, application, f"{type_label.capitalize()} başvurusu güncellendi: {name} → {status_label}")
         return {"status": "ok", "message": "Durum güncellendi"}
 
     return {"status": "ok", "message": "Bilinmeyen event tipi"}
