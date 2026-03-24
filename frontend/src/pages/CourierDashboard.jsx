@@ -468,7 +468,16 @@ export default function CourierDashboard() {
     }
   }, [urlCourierId, navigate, fetchCompanyInfo, checkDocumentStatus, checkMaintenanceNotifications, checkCourierStatus, fetchAvailabilityStatus, fetchBreakStatus, fetchCourierBreakInfo]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Önce push token'ı temizle (eski cihaza bildirim gitmesini engelle)
+    if (user?.id) {
+      try {
+        await axios.put(`${API}/couriers/${user.id}/fcm-token`, { fcm_token: "" });
+      } catch (e) {
+        // ignore
+      }
+    }
+
     localStorage.removeItem("user");
     localStorage.removeItem("courierSession");
     sessionStorage.removeItem("courierSession");
