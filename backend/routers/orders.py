@@ -513,15 +513,13 @@ async def update_order_status_core(
         try:
             from services.push_notification_service import send_push_notification
             restaurant_name = order.get("restaurant_name", "Restoran")
-            order_number = order.get("order_number", "")
             await send_push_notification(
                 courier_id=old_courier_id,
                 title="Sipariş İptal Edildi",
-                body=f"{restaurant_name} - #{order_number}",
+                body=f"{restaurant_name}",
                 data={
                     "type": "ORDER_CANCELLED",
                     "orderId": order_id,
-                    "orderNumber": order_number,
                     "restaurantName": restaurant_name
                 },
                 sound="notification"
@@ -534,15 +532,13 @@ async def update_order_status_core(
         try:
             from services.push_notification_service import send_push_notification
             restaurant_name = order.get("restaurant_name", "Restoran")
-            order_number = order.get("order_number", "")
             await send_push_notification(
                 courier_id=old_courier_id,
                 title="Atama Kaldırıldı",
-                body=f"{restaurant_name} - #{order_number} atamanız kaldırıldı",
+                body=f"{restaurant_name} atamanız kaldırıldı",
                 data={
                     "type": "ORDER_UNASSIGNED",
                     "orderId": order_id,
-                    "orderNumber": order_number,
                     "restaurantName": restaurant_name
                 },
                 sound="notification"
