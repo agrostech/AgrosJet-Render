@@ -519,7 +519,7 @@ async def check_unconfirmed_orders(company_id: str, settings: Dict) -> List[Dict
                 restaurant_name = order.get("restaurant_name", "Restoran")
                 await send_push_notification(
                     courier_id=courier_id,
-                    title="Sipariş Üzerinizden Alındı",
+                    title="⏰ Sipariş Üzerinizden Alındı",
                     body=f"{restaurant_name} onaylamadığınız için alındı",
                     data={
                         "type": "ORDER_AUTO_UNASSIGNED",

@@ -515,7 +515,7 @@ async def update_order_status_core(
             restaurant_name = order.get("restaurant_name", "Restoran")
             await send_push_notification(
                 courier_id=old_courier_id,
-                title="Sipariş İptal Edildi",
+                title="❌ Sipariş İptal Edildi",
                 body=f"{restaurant_name}",
                 data={
                     "type": "ORDER_CANCELLED",
@@ -534,7 +534,7 @@ async def update_order_status_core(
             restaurant_name = order.get("restaurant_name", "Restoran")
             await send_push_notification(
                 courier_id=old_courier_id,
-                title="Atama Kaldırıldı",
+                title="🔄 Atama Kaldırıldı",
                 body=f"{restaurant_name} atamanız kaldırıldı",
                 data={
                     "type": "ORDER_UNASSIGNED",
