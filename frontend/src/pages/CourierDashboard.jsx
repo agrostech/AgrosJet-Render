@@ -126,8 +126,15 @@ export default function CourierDashboard() {
   // FCM Token'ı backend'e kaydet
   const saveFcmToken = useCallback(async (courierId, fcmToken) => {
     try {
+      // Her login'de benzersiz session_id oluştur
+      let sessionId = sessionStorage.getItem("push_session_id");
+      if (!sessionId) {
+        sessionId = Date.now().toString(36) + Math.random().toString(36).slice(2);
+        sessionStorage.setItem("push_session_id", sessionId);
+      }
       await axios.put(`${API}/couriers/${courierId}/fcm-token`, {
-        fcm_token: fcmToken
+        fcm_token: fcmToken,
+        session_id: sessionId
       });
       console.log('FCM Token kaydedildi');
     } catch (err) {
@@ -373,10 +380,11 @@ export default function CourierDashboard() {
   // Check if courier is deactivated (forced logout)
   const checkCourierStatus = useCallback(async (courierId, companyId) => {
     try {
-      const res = await axios.get(`${API}/auth/courier/${courierId}/check-status?company_id=${companyId}`);
+      const sessionId = sessionStorage.getItem("push_session_id") || "";
+      const res = await axios.get(`${API}/auth/courier/${courierId}/check-status?company_id=${companyId}&session_id=${sessionId}`);
       if (res.data.should_logout) {
-        // Pasife alınmış, logout yap
         localStorage.removeItem("user");
+        sessionStorage.removeItem("push_session_id");
         navigate("/courier-login", { state: { message: res.data.reason || "Hesabınız pasif durumda" } });
       }
     } catch (err) {

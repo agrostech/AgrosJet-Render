@@ -277,8 +277,8 @@ async def login_courier(request: Request, data: CourierLogin):
 
 
 @router.get("/courier/{courier_id}/check-status")
-async def check_courier_status(courier_id: str, company_id: str = None):
-    """Kurye durumunu kontrol et - pasif mi, logout edilmeli mi"""
+async def check_courier_status(courier_id: str, company_id: str = None, session_id: str = None):
+    """Kurye durumunu kontrol et - pasif mi, başka cihazda mı, logout edilmeli mi"""
     # company_couriers'dan kontrol et
     query = {"courier_id": courier_id}
     if company_id:
@@ -293,6 +293,18 @@ async def check_courier_status(courier_id: str, company_id: str = None):
                 "should_logout": True,
                 "reason": "Hesabınız pasif durumda",
                 "forced_logout_at": rel.get("forced_logout_at")
+            }
+    
+    # Session kontrolü: başka cihazdan giriş yapılmış mı?
+    if session_id:
+        courier = await db.couriers.find_one(
+            {"id": courier_id},
+            {"_id": 0, "push_session_id": 1}
+        )
+        if courier and courier.get("push_session_id") and courier["push_session_id"] != session_id:
+            return {
+                "should_logout": True,
+                "reason": "Başka bir cihazdan giriş yapıldı"
             }
     
     return {"should_logout": False}

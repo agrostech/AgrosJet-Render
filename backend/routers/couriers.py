@@ -1072,6 +1072,7 @@ class FCMTokenUpdate(BaseModel):
     fcmToken: Optional[str] = None  # Native app camelCase gönderiyor
     platform: Optional[str] = None
     updatedAt: Optional[int] = None
+    session_id: Optional[str] = None
 
 
 @router.put("/couriers/{courier_id}/fcm-token")
@@ -1087,9 +1088,14 @@ async def update_courier_fcm_token(courier_id: str, data: FCMTokenUpdate):
     if data.platform:
         update_data["fcm_platform"] = data.platform
 
-    # Boş token = logout, token temizle
+    # Session ID: her yeni token kaydında güncelle (son giren cihaz kazanır)
+    if data.session_id:
+        update_data["push_session_id"] = data.session_id
+
+    # Boş token = logout, session da temizle
     if not token:
         update_data["fcm_token"] = ""
+        update_data["push_session_id"] = ""
 
     result = await db.couriers.update_one(
         {"id": courier_id},
