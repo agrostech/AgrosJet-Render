@@ -107,7 +107,7 @@ export default function CourierLoginPage() {
       saveSession(res.data, rememberMe);
       // Push session ID'yi kaydet (cihaz bazlı oturum kontrolü)
       if (res.data.push_session_id) {
-        sessionStorage.setItem("push_session_id", res.data.push_session_id);
+        localStorage.setItem("push_session_id", res.data.push_session_id);
       }
       toast.success("Giriş başarılı!");
       

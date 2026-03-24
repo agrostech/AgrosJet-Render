@@ -1119,6 +1119,7 @@ async def update_courier_fcm_token(courier_id: str, data: FCMTokenUpdate):
 class FCMTokenRequest(BaseModel):
     fcm_token: str
     courier_id: Optional[str] = None
+    session_id: Optional[str] = None
 
 
 @router.post("/courier/fcm-token")
@@ -1129,9 +1130,22 @@ async def save_courier_fcm_token(data: FCMTokenRequest):
     if not courier_id:
         raise HTTPException(status_code=400, detail="courier_id gerekli")
     
+    # Session kontrolü: session_id gönderildiyse doğrula
+    if data.session_id:
+        courier = await db.couriers.find_one(
+            {"id": courier_id},
+            {"_id": 0, "push_session_id": 1}
+        )
+        if courier and courier.get("push_session_id") and courier["push_session_id"] != data.session_id:
+            return {"success": False, "message": "Oturum başka cihaza geçmiş, token kaydedilmedi"}
+    
+    update_data = {"fcm_token": data.fcm_token, "fcm_token_updated_at": get_turkey_now()}
+    if data.session_id:
+        update_data["push_session_id"] = data.session_id
+    
     result = await db.couriers.update_one(
         {"id": courier_id},
-        {"$set": {"fcm_token": data.fcm_token, "fcm_token_updated_at": get_turkey_now()}}
+        {"$set": update_data}
     )
     
     if result.matched_count == 0:

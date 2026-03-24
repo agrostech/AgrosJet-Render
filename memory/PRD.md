@@ -1,84 +1,73 @@
 # AgrosJet Delivery Management System - PRD
 
 ## Original Problem Statement
-Full-stack delivery management application for managing couriers, restaurants, and orders across multiple food delivery platforms (Adisyo, Getir, Trendyol, Yemeksepeti, Migros, Sepettakip).
+Delivery management system for courier companies. Multi-platform order aggregation (Getir, Trendyol, Migros, Yemeksepeti, Adisyo), courier management, shift system, financial tracking, restaurant panel.
+
+## User Language
+Turkish (All communication in Turkish)
 
 ## Core Architecture
-- **Frontend**: React (CRA) + Shadcn/UI + Tailwind CSS
-- **Backend**: FastAPI + MongoDB (Motor async driver)
-- **Platforms**: Adisyo, Getir Yemek, Trendyol Yemek, Yemeksepeti, Sepettakip, Migros Yemek
-
-## Credentials
-- System Admin: `AgrosJetSystem` or `onurertas` / `Delivery32..`
-- Company Admin: `admin` / `123456`
-- Test Restaurant: "Lezzet Duragi"
-- Company with Logo: `AgrosJet Isparta`
+- **Backend:** FastAPI + MongoDB (Motor async driver)
+- **Frontend:** React + Shadcn/UI + TailwindCSS
+- **Push Notifications:** Dual system - Expo Push API (iOS/new Android) + Firebase FCM (old Android)
+- **External APIs:** AgrosJet, Getir, Trendyol, Migros, Adisyo, Yemeksepeti
 
 ## What's Been Implemented
 
-### Başvurular (Applications) Feature (March 21, 2026)
-- **New Tab**: "Başvurular" added to admin panel sidebar (after Restoranlar)
-- **AgrosJet API Integration**: Full external API integration with agrosjet.com
-  - Backend service: `backend/services/agrosjet_service.py`
-  - Backend router: `backend/routers/applications.py`
-  - Webhook endpoint: `POST /api/webhook/applications`
-- **2 Application Types**: Kurye, Restoran tabs (Şirket sekmesi kaldırıldı)
-- **Table Layout**: Desktop uses Table component (matching KuryelerPage CourierTable design)
-- **Mobile Cards**: Compact card layout for mobile (matching CourierCards design)
-- **Tab Design**: Matches Muhasebe sub-tab design (border-b-2, primary colors, scrollable)
-- **Status Dropdown**: Colored dropdown with Yeni/Beklemede/Olumlu/Olumsuz options + note dialog
-- **Province Filter**: Filters applications by company's city (set by system admin)
-- **Permission-based**: `basvurular` permission added to admin permission system
-- **System Settings**: AgrosJet settings card in System Admin > Ayarlar (API key, Base URL, connection test)
-- **AgrosJet Config**: Stored in `system_settings` collection (type: "agrosjet")
+### Session & Push Notification System (Latest - March 2026)
+- **Login clears old fcm_token:** Prevents notifications going to old device during login transition
+- **Auto-logout notifies native:** `notifyLogout()` called during forced logout so native stops location tracking
+- **push_session_id in localStorage:** Persists across app restarts (was sessionStorage before - lost on restart)
+- **POST /courier/fcm-token session validation:** Alternate endpoint now validates session_id
+- **Dual push system:** ExponentPushToken → Expo API, FCM token → Firebase
 
-### Migros Fixes (March 17-20, 2026)
-- **Price Calculation**: Fixed double multiplication using `unitPrice`
-- **Status Updates**: Fixed `is_test` boolean parsing
-- **API 301 Redirect**: Updated to `test-gourmet.migrosone.com`
-- **Restaurant Open/Close**: Implemented Migros store status endpoints
-- **Order Cancellation**: Dynamic reasons from Migros API
+### Application (Başvurular) System
+- Removed "Şirket" tab
+- Clickable phone numbers with tel: links
+- Sidebar badge showing new application count from AgrosJet API
+- Webhook notifications filtered by city and application type
+- Mark-as-read on page visit
 
-### Previous Session Work
-- Bulk Invoice to Merged PDF, PDF Cover Pages, Report PDF Export
-- Superadmin Reset Fix, Courier Break Bug Fix
-- Mobile UI Tab Standardization
+### Courier Multi-Device Management
+- push_session_id based session tracking
+- Auto-logout for stale sessions via 10s polling
+- Token clearing only on explicit logout from active session
 
-## Key Files - Başvurular Feature
-- `frontend/src/pages/admin/BasvurularPage.jsx` - Main page (table + dropdown + tabs)
-- `frontend/src/pages/AdminDashboard.jsx` - Navigation + route (passes companyCity)
-- `frontend/src/pages/admin/YoneticilerPage.jsx` - Permission definitions
-- `frontend/src/pages/SystemDashboard.jsx` - AgrosJet settings card
-- `backend/services/agrosjet_service.py` - AgrosJet API service
-- `backend/routers/applications.py` - Application + webhook endpoints
-- `backend/routers/system_settings.py` - AgrosJet settings CRUD
-- `backend/routers/auth.py` - Updated permission keys + company city
+## Pending Issues
 
-## Pending / Upcoming Tasks
+### P0 - Critical
+1. **Migros Cancellation Reasons:** Dropdown not showing Migros-specific reasons. Analysis done:
+   - GET redirect not handled in migros_service.py for GetCancelReasons
+   - No "migros" key in PLATFORM_CANCEL_REASONS fallback
+   - `int("out_of_stock")` crash when using default reasons with Migros cancel API
+   - User requested analysis only, implementation pending approval
 
-### P0 - High Priority
-- Verify all Migros fixes with live test order
-- VatanSMS Integration (API analyzed, implementation pending)
+### P0 - Awaiting User Decision
+2. **Courier Route Creation Fallback:** "Create Route" defaults to restaurant location when courier GPS unavailable. Solutions proposed, user decision pending.
 
 ### P1
-- Migros "Reject" functionality
-- Migros 30-second cancellation rule
-- Chrome Extension for Yemeksepeti orders
-- "Stop Count" Based Capacity Logic
-- `restaurant_fee` calculation
+3. **VatanSMS Integration** 
+4. **Migros "Reject" Functionality**
+5. **Migros 30-Second Cancellation Rule**
 
-### P2+ Backlog
+## Future/Backlog
+- Chrome Extension (Yemeksepeti)
+- Stop Count capacity logic
+- restaurant_fee calculation
+- Scheduled job refactoring
+- New reports
 - Restaurant Courier System
-- Yemeksepeti security requirements
-- Haftalik Hakedis / Restoran Mutabakat job refactoring
-- Restaurant-Based Revenue Report + Cancellation Analysis Report
-- Caller ID integration, API request monitor
-- Native Courier App, dispatch_decision review
+- Caller ID integration
+- More courier permissions
+- API request monitor
+- Native Courier App
 
-## Key API Documentation
-- Migros API: test URL `test-gourmet.migrosone.com`, production `gourmet.migrosonline.com`
-- AgrosJet External API: Base URL configurable, auth via X-API-Key header
-  - `GET /api/external/applications/{type}` - List applications
-  - `PATCH /api/external/applications/{type}/{id}/status` - Update status
-  - `GET /api/external/statuses/{type}` - Status definitions
-  - `POST /api/webhook/applications` - Webhook receiver
+## Key DB Schema
+- **couriers:** `fcm_token`, `push_session_id`, `current_location`, `fcm_platform`, `fcm_token_updated_at`
+- **notifications:** `basvuru` type for application alerts
+- **company_couriers:** courier-company relations with `is_active` flag
+
+## Credentials (Test)
+- Admin: `onurertas` / `Delivery32..`
+- Company Admin: `admin` / `123456`
+- Courier: `05553331122` / `123456`

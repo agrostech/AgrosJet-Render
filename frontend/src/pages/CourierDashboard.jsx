@@ -126,7 +126,7 @@ export default function CourierDashboard() {
   // FCM Token'ı backend'e kaydet
   const saveFcmToken = useCallback(async (courierId, fcmToken) => {
     try {
-      const sessionId = sessionStorage.getItem("push_session_id") || "";
+      const sessionId = localStorage.getItem("push_session_id") || "";
       await axios.put(`${API}/couriers/${courierId}/fcm-token`, {
         fcm_token: fcmToken,
         session_id: sessionId
@@ -385,12 +385,18 @@ export default function CourierDashboard() {
   // Check if courier is deactivated (forced logout)
   const checkCourierStatus = useCallback(async (courierId, companyId) => {
     try {
-      const sessionId = sessionStorage.getItem("push_session_id") || "";
+      const sessionId = localStorage.getItem("push_session_id") || "";
       const res = await axios.get(`${API}/auth/courier/${courierId}/check-status?company_id=${companyId}&session_id=${sessionId}`);
       if (res.data.should_logout) {
-        // Sadece local state temizle — backend token'a DOKUNMA (yeni cihaz zaten devraldı)
+        // Native'e ÖNCE haber ver (konum gönderimi dursun!)
+        if (window.AgrosJetNative) {
+          try { window.AgrosJetNative.notifyLogout(); } catch(e) {}
+        }
+        if (window.ReactNativeWebView) {
+          try { window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOGOUT' })); } catch(e) {}
+        }
         localStorage.removeItem("user");
-        sessionStorage.removeItem("push_session_id");
+        localStorage.removeItem("push_session_id");
         navigate("/courier-login", { state: { message: res.data.reason || "Hesabınız pasif durumda" } });
       } else if (res.data.resend_token) {
         if (window.ReactNativeWebView) {
@@ -493,7 +499,7 @@ export default function CourierDashboard() {
     // Sadece explicit logout'ta token temizle (kendi session'ı ise)
     if (user?.id) {
       try {
-        const sessionId = sessionStorage.getItem("push_session_id") || "";
+        const sessionId = localStorage.getItem("push_session_id") || "";
         await axios.put(`${API}/couriers/${user.id}/fcm-token`, { 
           fcm_token: "", 
           session_id: sessionId 
@@ -506,7 +512,7 @@ export default function CourierDashboard() {
     localStorage.removeItem("user");
     localStorage.removeItem("courierSession");
     sessionStorage.removeItem("courierSession");
-    sessionStorage.removeItem("push_session_id");
+    localStorage.removeItem("push_session_id");
     
     // Native app'e bildir (AgrosJet App)
     if (window.isAgrosJetApp && window.AgrosJetNative) {
