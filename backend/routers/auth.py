@@ -269,16 +269,17 @@ async def login_courier(request: Request, data: CourierLogin):
         raise HTTPException(status_code=403, detail="Henüz bir şirkete eklenmemişsiniz. Çalışacağınız şirketin yöneticisiyle iletişime geçin.")
     
     # Yeni session oluştur — eski cihazları geçersiz kıl
-    # fcm_token'ı hemen temizle: eski cihaza bildirim GİTMESİN
-    # Eğer yeni cihazın push_token'ı varsa, aynı anda yaz (boşluk olmasın)
+    # Eğer yeni cihazın push_token'ı varsa, eski token'ı DEĞİŞTİR
+    # Yoksa eski token'a DOKUNMA (dashboard yüklenince yeni token gelecek)
     import secrets as _secrets
     push_session_id = _secrets.token_hex(16)
     new_token = (data.push_token or "").strip()
     update_fields = {
         "push_session_id": push_session_id,
-        "fcm_token": new_token,
-        "fcm_token_updated_at": get_turkey_now()
     }
+    if new_token:
+        update_fields["fcm_token"] = new_token
+        update_fields["fcm_token_updated_at"] = get_turkey_now()
     await db.couriers.update_one(
         {"id": courier["id"]},
         {"$set": update_fields}
