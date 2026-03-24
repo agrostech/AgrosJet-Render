@@ -299,13 +299,23 @@ async def check_courier_status(courier_id: str, company_id: str = None, session_
     if session_id:
         courier = await db.couriers.find_one(
             {"id": courier_id},
-            {"_id": 0, "push_session_id": 1}
+            {"_id": 0, "push_session_id": 1, "fcm_token": 1}
         )
-        if courier and courier.get("push_session_id") and courier["push_session_id"] != session_id:
-            return {
-                "should_logout": True,
-                "reason": "Başka bir cihazdan giriş yapıldı"
-            }
+        if courier:
+            db_session = courier.get("push_session_id", "")
+            db_token = courier.get("fcm_token", "")
+            if db_session and db_session != session_id:
+                # Farklı cihaz aktif → bu cihazı logout et
+                return {
+                    "should_logout": True,
+                    "reason": "Başka bir cihazdan giriş yapıldı"
+                }
+            if not db_session or not db_token:
+                # Önceki cihaz logout olmuş, token/session boş → bu cihaz token'ını tekrar göndersin
+                return {
+                    "should_logout": False,
+                    "resend_token": True
+                }
     
     return {"should_logout": False}
 

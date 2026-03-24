@@ -386,6 +386,14 @@ export default function CourierDashboard() {
         localStorage.removeItem("user");
         sessionStorage.removeItem("push_session_id");
         navigate("/courier-login", { state: { message: res.data.reason || "Hesabınız pasif durumda" } });
+      } else if (res.data.resend_token) {
+        // Önceki cihaz logout olmuş, token'ı tekrar gönder
+        if (window.ReactNativeWebView) {
+          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'REQUEST_PUSH_TOKEN' }));
+        }
+        if (window.AgrosJetNative?.getPushToken) {
+          window.AgrosJetNative.getPushToken();
+        }
       }
     } catch (err) {
       // Sessizce devam et
