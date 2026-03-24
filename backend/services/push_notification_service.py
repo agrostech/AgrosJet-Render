@@ -182,7 +182,7 @@ async def notify_courier_new_order(courier_id: str, order: dict):
     
     return await send_push_notification(
         courier_id=courier_id,
-        title="📦 Yeni Sipariş!",
+        title="✅ Yeni Sipariş!",
         body=f"{restaurant_name}",
         data={
             "type": "NEW_ORDER",
