@@ -115,11 +115,11 @@ def is_expo_token(token: str) -> bool:
 
 
 async def send_fcm_notification(courier_id: str, title: str, body: str, data: dict = None, sound: str = "default"):
-    """Send push notification to a courier (native app) - FCM veya Expo"""
+    """Send push notification to a courier (native app) - Platform'a göre Expo veya FCM"""
     try:
         courier = await db.couriers.find_one(
             {"id": courier_id},
-            {"_id": 0, "fcm_token": 1}
+            {"_id": 0, "fcm_token": 1, "fcm_platform": 1}
         )
 
         if not courier or not courier.get("fcm_token"):
@@ -127,19 +127,37 @@ async def send_fcm_notification(courier_id: str, title: str, body: str, data: di
             return False
 
         token = courier["fcm_token"]
+        platform = courier.get("fcm_platform", "")
 
-        # Token formatına göre Expo veya FCM kullan
-        if is_expo_token(token):
+        # Platform kaydedilmişse ona göre, yoksa token formatına göre karar ver
+        if platform == "ios" or (not platform and is_expo_token(token)):
             return await send_expo_push_notification(token, title, body, data, sound)
+        elif platform == "android":
+            # Yeni Android build'ler Expo token kullanıyor olabilir
+            if is_expo_token(token):
+                return await send_expo_push_notification(token, title, body, data, sound)
+            else:
+                from services.firebase_service import send_push_notification as firebase_send
+                return await firebase_send(
+                    fcm_token=token,
+                    title=title,
+                    body=body,
+                    data=data,
+                    sound=sound
+                )
         else:
-            from services.firebase_service import send_push_notification as firebase_send
-            return await firebase_send(
-                fcm_token=token,
-                title=title,
-                body=body,
-                data=data,
-                sound=sound
-            )
+            # Platform bilinmiyor — eski mantık (token formatına bak)
+            if is_expo_token(token):
+                return await send_expo_push_notification(token, title, body, data, sound)
+            else:
+                from services.firebase_service import send_push_notification as firebase_send
+                return await firebase_send(
+                    fcm_token=token,
+                    title=title,
+                    body=body,
+                    data=data,
+                    sound=sound
+                )
     except Exception as e:
         logger.error(f"Push notification error for courier {courier_id}: {e}")
         return False
