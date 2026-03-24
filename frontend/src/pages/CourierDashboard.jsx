@@ -126,12 +126,7 @@ export default function CourierDashboard() {
   // FCM Token'ı backend'e kaydet
   const saveFcmToken = useCallback(async (courierId, fcmToken) => {
     try {
-      // Her login'de benzersiz session_id oluştur
-      let sessionId = sessionStorage.getItem("push_session_id");
-      if (!sessionId) {
-        sessionId = Date.now().toString(36) + Math.random().toString(36).slice(2);
-        sessionStorage.setItem("push_session_id", sessionId);
-      }
+      const sessionId = sessionStorage.getItem("push_session_id") || "";
       await axios.put(`${API}/couriers/${courierId}/fcm-token`, {
         fcm_token: fcmToken,
         session_id: sessionId

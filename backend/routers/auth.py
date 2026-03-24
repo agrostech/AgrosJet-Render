@@ -267,12 +267,21 @@ async def login_courier(request: Request, data: CourierLogin):
     if len(company_relations) == 0:
         raise HTTPException(status_code=403, detail="Henüz bir şirkete eklenmemişsiniz. Çalışacağınız şirketin yöneticisiyle iletişime geçin.")
     
+    # Yeni session oluştur — eski cihazları geçersiz kıl
+    import secrets as _secrets
+    push_session_id = _secrets.token_hex(16)
+    await db.couriers.update_one(
+        {"id": courier["id"]},
+        {"$set": {"push_session_id": push_session_id, "fcm_token": ""}}
+    )
+
     return {
         "id": courier["id"],
         "name": courier["name"],
         "phone": courier["phone"],
         "role": "courier",
-        "companies": companies
+        "companies": companies,
+        "push_session_id": push_session_id
     }
 
 
