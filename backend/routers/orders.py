@@ -507,6 +507,49 @@ async def update_order_status_core(
         except Exception as e:
             logger.error(f"Platform bildirim hatası (core): {str(e)}")
     
+    # Kuryeye push bildirim: Sipariş iptal edildiyse ve kuryeye atanmışsa
+    old_courier_id = order.get("courier_id")
+    if old_courier_id and new_status == "cancelled":
+        try:
+            from services.push_notification_service import send_push_notification
+            restaurant_name = order.get("restaurant_name", "Restoran")
+            order_number = order.get("order_number", "")
+            await send_push_notification(
+                courier_id=old_courier_id,
+                title="Sipariş İptal Edildi",
+                body=f"{restaurant_name} - #{order_number}",
+                data={
+                    "type": "ORDER_CANCELLED",
+                    "orderId": order_id,
+                    "orderNumber": order_number,
+                    "restaurantName": restaurant_name
+                },
+                sound="notification"
+            )
+        except Exception as e:
+            logger.error(f"İptal bildirimi gönderilemedi: {e}")
+    
+    # Kuryeye push bildirim: Atama kaldırıldıysa (admin veya restoran tarafından)
+    if old_courier_id and new_status != "cancelled" and extra_updates and extra_updates.get("courier_id") is None and "courier_id" in extra_updates:
+        try:
+            from services.push_notification_service import send_push_notification
+            restaurant_name = order.get("restaurant_name", "Restoran")
+            order_number = order.get("order_number", "")
+            await send_push_notification(
+                courier_id=old_courier_id,
+                title="Atama Kaldırıldı",
+                body=f"{restaurant_name} - #{order_number} atamanız kaldırıldı",
+                data={
+                    "type": "ORDER_UNASSIGNED",
+                    "orderId": order_id,
+                    "orderNumber": order_number,
+                    "restaurantName": restaurant_name
+                },
+                sound="notification"
+            )
+        except Exception as e:
+            logger.error(f"Atama kaldırma bildirimi gönderilemedi: {e}")
+    
     return {"success": True, "order": updated_order}
 
 

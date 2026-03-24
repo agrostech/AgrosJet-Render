@@ -513,6 +513,26 @@ async def check_unconfirmed_orders(company_id: str, settings: Dict) -> List[Dict
         )
         
         if update_result.modified_count > 0:
+            # Kuryeye push bildirim gönder
+            try:
+                from services.push_notification_service import send_push_notification
+                restaurant_name = order.get("restaurant_name", "Restoran")
+                order_number = order.get("order_number", "")
+                await send_push_notification(
+                    courier_id=courier_id,
+                    title="Sipariş Üzerinizden Alındı",
+                    body=f"{restaurant_name} - #{order_number} onaylamadığınız için alındı",
+                    data={
+                        "type": "ORDER_AUTO_UNASSIGNED",
+                        "orderId": order_id,
+                        "orderNumber": order_number,
+                        "restaurantName": restaurant_name
+                    },
+                    sound="notification"
+                )
+            except Exception as e:
+                logger.error(f"Otomatik atama kaldırma bildirimi gönderilemedi: {e}")
+            
             # İhlal kaydı ekle
             await add_shift_violation(
                 company_id=company_id,
