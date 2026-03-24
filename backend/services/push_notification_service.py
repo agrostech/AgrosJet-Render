@@ -1,17 +1,23 @@
 """
 Push Notification Service
 Sends push notifications to couriers when orders are assigned
-Supports both Web Push (VAPID) and Firebase Cloud Messaging (FCM)
+Supports Web Push (VAPID), Firebase Cloud Messaging (FCM), and Expo Push (iOS)
 """
 from pywebpush import webpush, WebPushException
 from utils.database import db
 import json
 import os
+import httpx
+import logging
+
+logger = logging.getLogger(__name__)
 
 # VAPID keys for web push
 VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY", "")
 VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "")
 VAPID_CLAIMS = {"sub": "mailto:admin@shiftjet.com"}
+
+EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send"
 
 
 async def save_push_subscription(courier_id: str, subscription: dict):
@@ -71,30 +77,71 @@ async def send_web_push_notification(courier_id: str, title: str, body: str, dat
         return False
 
 
-async def send_fcm_notification(courier_id: str, title: str, body: str, data: dict = None, sound: str = "default"):
-    """Send Firebase Cloud Messaging notification to a courier (native app)"""
+async def send_expo_push_notification(token: str, title: str, body: str, data: dict = None, sound: str = "default") -> bool:
+    """Expo Push API ile bildirim gönder (iOS + yeni Android build)"""
     try:
-        from services.firebase_service import send_push_notification
-        
-        # Kuryenin FCM token'ını al
+        payload = {
+            "to": token,
+            "title": title,
+            "body": body,
+            "sound": sound if sound == "default" else f"{sound}.mp3",
+            "channelId": "orders_v6"
+        }
+        if data:
+            payload["data"] = {k: str(v) if v is not None else "" for k, v in data.items()}
+
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(
+                EXPO_PUSH_URL,
+                json=payload,
+                headers={"Content-Type": "application/json"}
+            )
+            result = response.json()
+            if result.get("data", {}).get("status") == "ok":
+                logger.info(f"Expo push sent: {token[:30]}...")
+                return True
+            else:
+                error = result.get("data", {}).get("message", str(result))
+                logger.warning(f"Expo push error: {error}")
+                return False
+    except Exception as e:
+        logger.error(f"Expo push exception: {e}")
+        return False
+
+
+def is_expo_token(token: str) -> bool:
+    """Token'ın Expo Push Token olup olmadığını kontrol et"""
+    return token.startswith("ExponentPushToken")
+
+
+async def send_fcm_notification(courier_id: str, title: str, body: str, data: dict = None, sound: str = "default"):
+    """Send push notification to a courier (native app) - FCM veya Expo"""
+    try:
         courier = await db.couriers.find_one(
             {"id": courier_id},
             {"_id": 0, "fcm_token": 1}
         )
-        
+
         if not courier or not courier.get("fcm_token"):
-            print(f"No FCM token found for courier {courier_id}")
+            logger.info(f"No push token found for courier {courier_id}")
             return False
-        
-        return await send_push_notification(
-            fcm_token=courier["fcm_token"],
-            title=title,
-            body=body,
-            data=data,
-            sound=sound
-        )
+
+        token = courier["fcm_token"]
+
+        # Token formatına göre Expo veya FCM kullan
+        if is_expo_token(token):
+            return await send_expo_push_notification(token, title, body, data, sound)
+        else:
+            from services.firebase_service import send_push_notification as firebase_send
+            return await firebase_send(
+                fcm_token=token,
+                title=title,
+                body=body,
+                data=data,
+                sound=sound
+            )
     except Exception as e:
-        print(f"FCM notification error: {e}")
+        logger.error(f"Push notification error for courier {courier_id}: {e}")
         return False
 
 
