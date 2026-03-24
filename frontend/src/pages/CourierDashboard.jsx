@@ -378,11 +378,11 @@ export default function CourierDashboard() {
       const sessionId = sessionStorage.getItem("push_session_id") || "";
       const res = await axios.get(`${API}/auth/courier/${courierId}/check-status?company_id=${companyId}&session_id=${sessionId}`);
       if (res.data.should_logout) {
+        // Sadece local state temizle — backend token'a DOKUNMA (yeni cihaz zaten devraldı)
         localStorage.removeItem("user");
         sessionStorage.removeItem("push_session_id");
         navigate("/courier-login", { state: { message: res.data.reason || "Hesabınız pasif durumda" } });
       } else if (res.data.resend_token) {
-        // Önceki cihaz logout olmuş, token'ı tekrar gönder
         if (window.ReactNativeWebView) {
           window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'REQUEST_PUSH_TOKEN' }));
         }
@@ -480,10 +480,14 @@ export default function CourierDashboard() {
   }, [urlCourierId, navigate, fetchCompanyInfo, checkDocumentStatus, checkMaintenanceNotifications, checkCourierStatus, fetchAvailabilityStatus, fetchBreakStatus, fetchCourierBreakInfo]);
 
   const handleLogout = async () => {
-    // Önce push token'ı temizle (eski cihaza bildirim gitmesini engelle)
+    // Sadece explicit logout'ta token temizle (kendi session'ı ise)
     if (user?.id) {
       try {
-        await axios.put(`${API}/couriers/${user.id}/fcm-token`, { fcm_token: "" });
+        const sessionId = sessionStorage.getItem("push_session_id") || "";
+        await axios.put(`${API}/couriers/${user.id}/fcm-token`, { 
+          fcm_token: "", 
+          session_id: sessionId 
+        });
       } catch (e) {
         // ignore
       }
@@ -492,6 +496,7 @@ export default function CourierDashboard() {
     localStorage.removeItem("user");
     localStorage.removeItem("courierSession");
     sessionStorage.removeItem("courierSession");
+    sessionStorage.removeItem("push_session_id");
     
     // Native app'e bildir (AgrosJet App)
     if (window.isAgrosJetApp && window.AgrosJetNative) {

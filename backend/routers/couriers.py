@@ -1092,8 +1092,16 @@ async def update_courier_fcm_token(courier_id: str, data: FCMTokenUpdate):
     if data.session_id:
         update_data["push_session_id"] = data.session_id
 
-    # Boş token = logout, session da temizle
+    # Boş token = explicit logout, session eşleşiyorsa temizle
     if not token:
+        if data.session_id:
+            courier = await db.couriers.find_one(
+                {"id": courier_id},
+                {"_id": 0, "push_session_id": 1}
+            )
+            # Session eşleşmiyorsa → eski cihaz, token'a dokunma
+            if courier and courier.get("push_session_id") and courier["push_session_id"] != data.session_id:
+                return {"success": False, "message": "Oturum başka cihaza geçmiş"}
         update_data["fcm_token"] = ""
         update_data["push_session_id"] = ""
 
