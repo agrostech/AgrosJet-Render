@@ -272,7 +272,7 @@ async def login_courier(request: Request, data: CourierLogin):
     push_session_id = _secrets.token_hex(16)
     await db.couriers.update_one(
         {"id": courier["id"]},
-        {"$set": {"push_session_id": push_session_id, "fcm_token": ""}}
+        {"$set": {"push_session_id": push_session_id}}
     )
 
     return {

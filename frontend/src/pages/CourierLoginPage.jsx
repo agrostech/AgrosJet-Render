@@ -64,6 +64,18 @@ export default function CourierLoginPage() {
       setLoginData(prev => ({ ...prev, phone: savedPhone }));
       setRememberMe(true);
     }
+
+    // Native'den gelen PUSH_TOKEN'ı cache'le (login öncesi gelirse kaybolmasın)
+    const tokenHandler = (event) => {
+      try {
+        const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+        if (data?.type === 'PUSH_TOKEN' && data.data) {
+          sessionStorage.setItem("cached_push_token", data.data);
+        }
+      } catch (e) {}
+    };
+    window.addEventListener('message', tokenHandler);
+    return () => window.removeEventListener('message', tokenHandler);
   }, [navigate]);
 
   const saveSession = (data, remember) => {

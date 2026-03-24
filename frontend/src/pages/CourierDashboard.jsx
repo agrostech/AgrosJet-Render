@@ -178,6 +178,16 @@ export default function CourierDashboard() {
         console.error('Native getPushToken hatası:', e);
       }
     }
+
+    // Login öncesi cache'lenmiş token varsa hemen gönder
+    if (user?.id) {
+      const cachedToken = sessionStorage.getItem("cached_push_token");
+      if (cachedToken) {
+        sessionStorage.removeItem("cached_push_token");
+        saveFcmToken(user.id, cachedToken);
+        console.log('Cache\'ten push token gönderildi');
+      }
+    }
     
     return () => {
       window.removeEventListener('nativeMessage', handleCustomEvent);
