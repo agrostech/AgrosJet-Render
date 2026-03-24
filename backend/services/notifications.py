@@ -52,7 +52,7 @@ async def _send_expo_push(token: str, title: str, body: str, data: dict = None) 
             "to": token,
             "title": title,
             "body": body,
-            "sound": "default",
+            "sound": "notification.wav",
             "channelId": "orders_v6"
         }
         if data:

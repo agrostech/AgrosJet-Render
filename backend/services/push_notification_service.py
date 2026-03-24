@@ -84,7 +84,7 @@ async def send_expo_push_notification(token: str, title: str, body: str, data: d
             "to": token,
             "title": title,
             "body": body,
-            "sound": sound if sound == "default" else f"{sound}.mp3",
+            "sound": "notification.wav",
             "channelId": "orders_v6"
         }
         if data:
