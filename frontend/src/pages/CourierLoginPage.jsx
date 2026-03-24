@@ -99,15 +99,22 @@ export default function CourierLoginPage() {
     setLoading(true);
 
     try {
+      // Login öncesi cache'lenmiş push token varsa login ile birlikte gönder
+      const cachedToken = sessionStorage.getItem("cached_push_token") || "";
       const res = await axios.post(`${API}/api/auth/courier/login`, {
         phone: loginData.phone,
-        password: loginData.password
+        password: loginData.password,
+        push_token: cachedToken
       });
       
       saveSession(res.data, rememberMe);
       // Push session ID'yi kaydet (cihaz bazlı oturum kontrolü)
       if (res.data.push_session_id) {
         localStorage.setItem("push_session_id", res.data.push_session_id);
+      }
+      // Login ile birlikte gönderilen token'ı temizle
+      if (cachedToken) {
+        sessionStorage.removeItem("cached_push_token");
       }
       toast.success("Giriş başarılı!");
       

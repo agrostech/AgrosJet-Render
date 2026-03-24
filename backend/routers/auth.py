@@ -35,6 +35,7 @@ class VerifyEmail(BaseModel):
 class CourierLogin(BaseModel):
     phone: str
     password: str
+    push_token: Optional[str] = None
 
 
 class ForgotPassword(BaseModel):
@@ -269,15 +270,18 @@ async def login_courier(request: Request, data: CourierLogin):
     
     # Yeni session oluştur — eski cihazları geçersiz kıl
     # fcm_token'ı hemen temizle: eski cihaza bildirim GİTMESİN
+    # Eğer yeni cihazın push_token'ı varsa, aynı anda yaz (boşluk olmasın)
     import secrets as _secrets
     push_session_id = _secrets.token_hex(16)
+    new_token = (data.push_token or "").strip()
+    update_fields = {
+        "push_session_id": push_session_id,
+        "fcm_token": new_token,
+        "fcm_token_updated_at": get_turkey_now()
+    }
     await db.couriers.update_one(
         {"id": courier["id"]},
-        {"$set": {
-            "push_session_id": push_session_id,
-            "fcm_token": "",
-            "fcm_token_updated_at": get_turkey_now()
-        }}
+        {"$set": update_fields}
     )
 
     return {
