@@ -43,6 +43,8 @@ const PAYMENT_METHODS = {
   cash: { label: "Nakit", icon: Banknote, color: "text-green-600", bg: "bg-green-50" },
   card: { label: "Kart", icon: CreditCard, color: "text-blue-600", bg: "bg-blue-50" },
   online: { label: "Online", icon: CreditCard, color: "text-purple-600", bg: "bg-purple-50" },
+  meal_card: { label: "Yemek Kartı", icon: CreditCard, color: "text-orange-600", bg: "bg-orange-50" },
+  online_meal_card: { label: "Online YK", icon: CreditCard, color: "text-orange-600", bg: "bg-orange-50" },
 };
 
 // Sipariş kaynakları
@@ -122,7 +124,8 @@ export default function OrderDetailModal({
   if (!order) return null;
 
   const statusConfig = ORDER_STATUS_CONFIG[order.status] || ORDER_STATUS_CONFIG.pending;
-  const paymentInfo = PAYMENT_METHODS[order.payment_method] || PAYMENT_METHODS.cash;
+  const paymentInfo = PAYMENT_METHODS[order.payment_type] || PAYMENT_METHODS[order.payment_method] || PAYMENT_METHODS.cash;
+  const paymentLabel = order.payment_method_detail || (PAYMENT_METHODS[order.payment_method] ? null : order.payment_method) || paymentInfo.label;
   const PaymentIcon = paymentInfo.icon;
   const sourceInfo = ORDER_SOURCES[order.source] || ORDER_SOURCES.manual;
   const SourceIcon = sourceInfo.icon;
@@ -283,7 +286,7 @@ function OrderDetails({
         </Badge>
         <div className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${paymentInfo.bg} ${paymentInfo.color} font-medium`}>
           <PaymentIcon className="w-3 h-3" />
-          <span>{paymentInfo.label}</span>
+          <span>{paymentLabel}</span>
         </div>
         <div className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-600">
           <SourceIcon className="w-3 h-3" />

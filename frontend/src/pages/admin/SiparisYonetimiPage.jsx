@@ -1159,14 +1159,11 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                             <td className="p-2 font-semibold whitespace-nowrap">{formatCurrency(order.total_amount)}</td>
                             <td className="p-2">
                               <span className={`px-2 py-0.5 text-xs rounded ${
-                                order.payment_method === 'cash' ? 'bg-emerald-100 text-emerald-700' : 
-                                order.payment_method === 'card' ? 'bg-blue-100 text-blue-700' : 
-                                (order.payment_method === 'meal_card' || order.payment_method === 'online_meal_card') ? 'bg-orange-100 text-orange-700' : 'bg-purple-100 text-purple-700'
+                                (order.payment_type || order.payment_method) === 'cash' ? 'bg-emerald-100 text-emerald-700' : 
+                                (order.payment_type || order.payment_method) === 'card' ? 'bg-blue-100 text-blue-700' : 
+                                ((order.payment_type || order.payment_method) === 'meal_card' || (order.payment_type || order.payment_method) === 'online_meal_card') ? 'bg-orange-100 text-orange-700' : 'bg-purple-100 text-purple-700'
                               }`}>
-                                {order.payment_method === 'cash' ? 'Nakit' : 
-                                 order.payment_method === 'card' ? 'Kart' : 
-                                 (order.payment_method === 'meal_card' || order.payment_method === 'online_meal_card') ? (order.payment_method_detail || 'Yemek Kartı') : 
-                                 'Online'}
+                                {order.payment_method_detail || order.payment_method || 'Nakit'}
                               </span>
                             </td>
                             <td className="p-2" onClick={(e) => e.stopPropagation()}>
@@ -1380,14 +1377,11 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                             </span>
                             <span className="text-[9px] text-slate-500 flex-shrink-0">{getOrderDistance(order) || "-"}</span>
                             <span className={`px-1 py-0.5 text-[9px] font-medium rounded flex-shrink-0 ${
-                              order.payment_method === 'cash' ? 'bg-emerald-100 text-emerald-700' : 
-                              order.payment_method === 'card' ? 'bg-blue-100 text-blue-700' : 
-                              (order.payment_method === 'meal_card' || order.payment_method === 'online_meal_card') ? 'bg-orange-100 text-orange-700' : 'bg-purple-100 text-purple-700'
+                              (order.payment_type || order.payment_method) === 'cash' ? 'bg-emerald-100 text-emerald-700' : 
+                              (order.payment_type || order.payment_method) === 'card' ? 'bg-blue-100 text-blue-700' : 
+                              ((order.payment_type || order.payment_method) === 'meal_card' || (order.payment_type || order.payment_method) === 'online_meal_card') ? 'bg-orange-100 text-orange-700' : 'bg-purple-100 text-purple-700'
                             }`}>
-                              {order.payment_method === 'cash' ? 'Nakit' : 
-                               order.payment_method === 'card' ? 'Kart' : 
-                               (order.payment_method === 'meal_card' || order.payment_method === 'online_meal_card') ? (order.payment_method_detail || 'Y.Kartı') : 
-                               'Online'}
+                              {order.payment_method_detail || order.payment_method || 'Nakit'}
                             </span>
                             <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200 flex-shrink-0">{formatCurrency(order.total_amount)}</span>
                           </div>
