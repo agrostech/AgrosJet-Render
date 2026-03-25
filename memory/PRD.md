@@ -20,7 +20,8 @@ Multi-platform delivery management system integrating with Migros, Getir, Trendy
 - Migros payment type: Added SODEXO/PAYE/MULTINET/TICKET/SETCARD/METROPOL to payment_type_map
 - Migros payment display: `payment_method` = internal code, `payment_method_detail` = Migros description
 - Frontend payment display: Admin + Restaurant panels show `payment_method_detail` when available
-- Courier session management & auto-logout
+- Route creation pin removed: Uses native location → backend courier location → restaurant fallback
+- Courier session management & auto-logout (awaiting user verification with native app)
 - Platform-aware push notifications (Expo/FCM)
 - Native-driven courier location tracking
 - Emoji push notifications (cancel, unassign, auto-unassign)

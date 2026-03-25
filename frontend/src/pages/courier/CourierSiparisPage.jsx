@@ -122,6 +122,31 @@ export default function CourierSiparisPage({ courierId, companyId }) {
     }
   }, []);
 
+  // Native konum verisi için ref
+  const lastLocationRef = useRef({ lat: 0, lng: 0, time: 0 });
+
+  // Native konum mesajlarını dinle
+  useEffect(() => {
+    const handleLocationMessage = (event) => {
+      try {
+        const msg = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+        if (msg?.type === 'LOCATION_UPDATE' && msg?.data) {
+          const { latitude, longitude } = msg.data;
+          if (latitude && longitude) {
+            lastLocationRef.current = { lat: latitude, lng: longitude, time: Date.now() };
+          }
+        }
+      } catch (e) {}
+    };
+    const handleCustomEvent = (e) => handleLocationMessage({ data: e.detail });
+    window.addEventListener('message', handleLocationMessage);
+    window.addEventListener('nativeMessage', handleCustomEvent);
+    return () => {
+      window.removeEventListener('message', handleLocationMessage);
+      window.removeEventListener('nativeMessage', handleCustomEvent);
+    };
+  }, []);
+
   // Rota oluştur - en yakından uzağa sırala ve Google Maps'te aç
   const createOptimizedRoute = useCallback(async () => {
     // Yolda olan siparişleri al
@@ -132,26 +157,28 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       return;
     }
     
-    // Başlangıç noktası - kullanıcının mevcut konumu
+    // Başlangıç noktası - native'den gelen son konum veya backend'den kurye konumu
     let startLat, startLng;
     
-    const currentPos = await new Promise((resolve) => {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-          () => resolve(null),
-          { enableHighAccuracy: true, timeout: 5000 }
-        );
-      } else {
-        resolve(null);
-      }
-    });
-
-    if (currentPos) {
-      startLat = currentPos.lat;
-      startLng = currentPos.lng;
+    // 1. Native'den gelen son konum (son 5 dk içinde)
+    if (lastLocationRef.current.lat && lastLocationRef.current.lng && 
+        (Date.now() - lastLocationRef.current.time) < 300000) {
+      startLat = lastLocationRef.current.lat;
+      startLng = lastLocationRef.current.lng;
     } else {
-      // Konum alınamazsa restoran konumunu fallback olarak kullan
+      // 2. Backend'den kurye konumunu al
+      try {
+        const res = await axios.get(`${API}/couriers/${courierId}`);
+        const loc = res.data?.current_location;
+        if (loc?.latitude && loc?.longitude) {
+          startLat = loc.latitude;
+          startLng = loc.longitude;
+        }
+      } catch (e) {}
+    }
+    
+    // 3. Hiçbiri yoksa ilk siparişin restoran konumunu kullan
+    if (!startLat || !startLng) {
       const firstOrder = onTheWayOrders[0];
       if (firstOrder.restaurant_location?.latitude) {
         startLat = firstOrder.restaurant_location.latitude;
