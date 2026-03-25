@@ -702,27 +702,25 @@ export default function CourierDashboard() {
           }`}
         >
           {/* Header */}
-          <div className="p-4 border-b border-white/20 flex items-center justify-between">
-            <div className="flex items-center gap-2">
+          <div className="px-4 pt-5 pb-4 border-b border-white/10">
+            <button 
+              onClick={() => setMobileMenuOpen(false)}
+              className="absolute top-3 right-3 p-1.5 hover:bg-white/10 rounded-lg"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div className="flex flex-col items-center text-center">
               {companyLogo ? (
                 <img 
                   src={companyLogo} 
                   alt={companyName} 
-                  className="w-10 h-10 rounded object-contain"
+                  className="w-16 h-16 rounded-xl object-contain mb-3"
                   onError={(e) => { e.target.style.display = 'none'; }}
                 />
               ) : null}
-              <div>
-                <span className="font-heading text-sm font-bold block leading-tight">{user.name}</span>
-                {companyName && <span className="text-[10px] text-white/70">{companyName}</span>}
-              </div>
+              <span className="font-heading text-base font-bold leading-tight">{user.name}</span>
+              {companyName && <span className="text-[11px] text-white/50 mt-0.5">{companyName}</span>}
             </div>
-            <button 
-              onClick={() => setMobileMenuOpen(false)}
-              className="p-1 hover:bg-white/10 rounded"
-            >
-              <X className="w-5 h-5" />
-            </button>
           </div>
           
           {/* Menu Items - Sadece sidebar-only itemlar */}
