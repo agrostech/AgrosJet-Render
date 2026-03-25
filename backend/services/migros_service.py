@@ -385,10 +385,15 @@ def transform_migros_order_to_shiftjet(migros_order: Dict[str, Any], restaurant_
             parsed = []
             for opt in (options_list or []):
                 opt_price = opt.get("primaryPrice", 0) / 100
+                opt_unit_price = opt.get("unitPrimaryPrice", 0) / 100
                 header_name = opt.get("headerName", "")
                 item_names = opt.get("itemNames", "")
                 quantity = opt.get("quantity", 1)
                 excluded = opt.get("excluded", False)
+                
+                # Birim fiyat yoksa toplam fiyattan hesapla
+                if opt_unit_price <= 0 and quantity > 0 and opt_price > 0:
+                    opt_unit_price = opt_price / quantity
                 
                 # Debug log - tüm option key'lerini göster
                 logger.debug(f"[Migros Parse] Depth={depth}, Keys={list(opt.keys())}, header={header_name}, items={item_names}")
@@ -416,6 +421,7 @@ def transform_migros_order_to_shiftjet(migros_order: Dict[str, Any], restaurant_
                             "header": header_name,
                             "value": item_names,
                             "price": opt_price,
+                            "unit_price": opt_unit_price,
                             "quantity": quantity,
                             "excluded": excluded,
                             "parent_header": parent_header

@@ -359,8 +359,8 @@ export function OrderDetailModal({
                       <div className="mt-1 ml-4 text-xs text-muted-foreground space-y-0.5">
                         {item.options.map((opt, optIdx) => (
                           <div key={optIdx} className={opt.excluded ? 'text-red-600' : ''}>
-                            {opt.excluded ? '- Çıkarılan: ' : '+ '}{opt.value || opt.name}
-                            {opt.price > 0 && ` (+${formatCurrency(opt.price)})`}
+                            {opt.excluded ? '- Çıkarılan: ' : '+ '}{opt.quantity > 1 ? `${opt.quantity}x ` : ''}{opt.value || opt.name}
+                            {opt.unit_price > 0 ? ` (+${formatCurrency(opt.unit_price)})` : opt.price > 0 ? ` (+${formatCurrency(opt.price)})` : ''}
                           </div>
                         ))}
                       </div>

@@ -310,7 +310,7 @@ export default function GetirReceiptModal({ open, onClose, order }) {
                 {item.options && item.options.length > 0 && (
                   <div className="text-[10px] text-gray-600 ml-3">
                     {item.options.map((opt, i) => (
-                      <div key={i}>+ {opt.name}</div>
+                      <div key={i}>+ {opt.quantity > 1 ? `${opt.quantity}x ` : ''}{opt.name}{opt.unit_price > 0 ? ` (+${formatCurrency(opt.unit_price)})` : opt.price > 0 ? ` (+${formatCurrency(opt.price)})` : ''}</div>
                     ))}
                   </div>
                 )}

@@ -1207,7 +1207,8 @@ function OrderDetailModal({ order, open, onClose, onPickup, onDeliver, onOpenMap
                     <div className="ml-3 mt-0.5 text-[10px] text-muted-foreground space-y-0.5">
                       {item.options.map((opt, optIdx) => (
                         <div key={optIdx} className={opt.excluded ? 'text-red-600' : ''}>
-                          {opt.excluded ? '- ' : '+ '}{opt.value || opt.name}
+                          {opt.excluded ? '- ' : '+ '}{opt.quantity > 1 ? `${opt.quantity}x ` : ''}{opt.value || opt.name}
+                          {opt.unit_price > 0 ? ` (+${formatCurrency(opt.unit_price)})` : opt.price > 0 ? ` (+${formatCurrency(opt.price)})` : ''}
                         </div>
                       ))}
                     </div>
