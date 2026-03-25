@@ -31,6 +31,7 @@ import {
   ClipboardList,
   Bike,
   BellOff,
+  AlertCircle,
 } from "lucide-react";
 
 // Ortak utility fonksiyonları import et
@@ -875,66 +876,62 @@ export default function CourierSiparisPage({ courierId, companyId }) {
 // Yeni Sipariş Kartı (Onay Bekleyen) - Kompakt
 function NewOrderCard({ order, onConfirm, loading }) {
   const courierFee = order.courier_fee || 0;
+  const distance = getOrderDistance(order);
+  const age = getOrderAgeText(order);
   
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-lg shadow border border-purple-200 dark:border-purple-800 overflow-hidden" data-testid={`new-order-card-${order.id}`}>
-      {/* Üst şerit: Yeni badge + süre + kazanç */}
-      <div className="bg-purple-600 px-3 py-1.5 flex items-center justify-between">
+    <div className="rounded-xl overflow-hidden border border-purple-100 bg-white shadow-sm" data-testid={`new-order-card-${order.id}`}>
+      {/* Header bar */}
+      <div className="bg-gradient-to-r from-purple-600 to-purple-500 px-3.5 py-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold text-white bg-white/20 px-1.5 py-0.5 rounded">YENİ</span>
-          {getOrderAgeText(order) && (
-            <span className="text-[10px] text-purple-100 flex items-center gap-0.5">
-              <Clock className="w-2.5 h-2.5" /> {getOrderAgeText(order)}
-            </span>
-          )}
+          <span className="text-[11px] font-bold text-white bg-white/25 px-2 py-0.5 rounded-full tracking-wide">YENİ</span>
+          {age && <span className="text-[11px] text-purple-100"><Clock className="w-3 h-3 inline mr-0.5 -mt-px" />{age}</span>}
         </div>
         {courierFee > 0 && (
-          <span className="text-[11px] font-bold text-white flex items-center gap-1">
-            <Banknote className="w-3 h-3" /> {formatCurrency(courierFee)}
-          </span>
+          <span className="text-sm font-bold text-white"><Banknote className="w-3.5 h-3.5 inline mr-0.5 -mt-px" />{formatCurrency(courierFee)}</span>
         )}
       </div>
 
-      <div className="p-2.5">
-        {/* Restoran + mesafe */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <Store className="w-3.5 h-3.5 text-purple-500 flex-shrink-0" />
-            <span className="text-xs font-semibold truncate">{order.restaurant_name}</span>
+      <div className="px-3.5 py-3">
+        {/* Restoran */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-7 h-7 rounded-full bg-purple-50 flex items-center justify-center flex-shrink-0">
+              <Store className="w-3.5 h-3.5 text-purple-600" />
+            </div>
+            <span className="text-sm font-semibold text-slate-800 truncate">{order.restaurant_name}</span>
           </div>
-          {getOrderDistance(order) && (
-            <span className="text-[10px] text-purple-600 font-medium flex-shrink-0 ml-2">{getOrderDistance(order)}</span>
-          )}
+          {distance && <span className="text-xs text-purple-600 font-semibold bg-purple-50 px-2 py-0.5 rounded-full flex-shrink-0">{distance}</span>}
         </div>
 
-        {/* Onay butonu */}
-        <Button
+        {/* CTA */}
+        <button
           onClick={onConfirm}
           disabled={loading}
-          size="sm"
-          className="w-full bg-purple-600 hover:bg-purple-700 h-9 text-xs mt-2"
+          className="w-full h-11 rounded-lg bg-purple-600 hover:bg-purple-700 active:scale-[0.98] text-white text-sm font-semibold flex items-center justify-center gap-2 transition-all disabled:opacity-50"
           data-testid={`confirm-order-btn-${order.id}`}
         >
-          {loading ? <RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Eye className="w-3.5 h-3.5 mr-1.5" />}
+          {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
           Siparişi Gördüm
-        </Button>
+        </button>
       </div>
     </div>
   );
 }
 
-// Aktif Sipariş Kartı - Kompakt Tasarım
+// Aktif Sipariş Kartı
 function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails, onOpenMaps, onOpenRestaurantMaps, onCall, loading, canMarkNotReady = true }) {
   const statusConfig = ORDER_STATUS_CONFIG[order.status] || ORDER_STATUS_CONFIG.confirmed;
   const paymentInfo = PAYMENT_METHODS[order.payment_method] || PAYMENT_METHODS.cash;
   const PaymentIcon = paymentInfo.icon;
+  const isConfirmed = order.status === "confirmed";
+  const isOnTheWay = order.status === "on_the_way";
+  const age = getOrderAgeText(order);
+  const distance = getOrderDistance(order);
 
   const callRestaurant = () => {
-    if (order.restaurant_phone) {
-      window.location.href = `tel:${order.restaurant_phone}`;
-    } else {
-      alert("Restoran telefon numarası bulunamadı");
-    }
+    if (order.restaurant_phone) window.location.href = `tel:${order.restaurant_phone}`;
+    else alert("Restoran telefon numarası bulunamadı");
   };
 
   const hasCustomerNote = order.notes?.includes("CUSTOMER:");
@@ -943,114 +940,118 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
     return match ? match[1].split(";").filter(n => n.trim()).join(" • ").substring(0, 60) : null;
   })() : null;
 
-  const isConfirmed = order.status === "confirmed";
-  const isOnTheWay = order.status === "on_the_way";
+  // İkon buton componenti
+  const IconBtn = ({ onClick, icon: Icon, color, testId }) => (
+    <button onClick={onClick} className={`w-9 h-9 rounded-full ${color} flex items-center justify-center active:scale-95 transition-transform`} data-testid={testId}>
+      <Icon className="w-4 h-4" />
+    </button>
+  );
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-lg shadow border border-slate-200 dark:border-slate-700 overflow-hidden" data-testid={`active-order-card-${order.id}`}>
-      {/* Üst şerit: Durum + Tutar + Ödeme */}
-      <div className={`${statusConfig.color} px-3 py-1.5 flex items-center justify-between`}>
+    <div className="rounded-xl overflow-hidden border border-slate-100 bg-white shadow-sm" data-testid={`active-order-card-${order.id}`}>
+      {/* Status bar */}
+      <div className={`${statusConfig.color} px-3.5 py-2 flex items-center justify-between`}>
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold text-white">{statusConfig.label}</span>
-          {getOrderAgeText(order) && (
-            <span className="text-[10px] text-white/70 flex items-center gap-0.5">
-              <Clock className="w-2.5 h-2.5" /> {getOrderAgeText(order)}
-            </span>
-          )}
+          <span className="text-[11px] font-bold text-white tracking-wide">{statusConfig.label}</span>
+          {age && <span className="text-[11px] text-white/70"><Clock className="w-3 h-3 inline mr-0.5 -mt-px" />{age}</span>}
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-0.5 text-[10px] text-white/90 bg-white/20 px-1.5 py-0.5 rounded">
-            <PaymentIcon className="w-2.5 h-2.5" />
-            <span>{getPaymentLabel(order)}</span>
-          </div>
-          <span className="text-[11px] font-bold text-white">{formatCurrency(order.total_amount)}</span>
+          <span className="text-[11px] text-white/80 bg-white/20 px-2 py-0.5 rounded-full flex items-center gap-1">
+            <PaymentIcon className="w-3 h-3" />{getPaymentLabel(order)}
+          </span>
+          <span className="text-sm font-bold text-white">{formatCurrency(order.total_amount)}</span>
         </div>
       </div>
 
-      <div className="p-2.5 space-y-1.5">
+      <div className="px-3.5 py-2.5">
         {/* Restoran satırı */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5 min-w-0 flex-1">
-            <Store className="w-3.5 h-3.5 text-orange-500 flex-shrink-0" />
-            <span className="text-xs font-semibold truncate">{order.restaurant_name}</span>
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <div className="w-7 h-7 rounded-full bg-orange-50 flex items-center justify-center flex-shrink-0">
+              <Store className="w-3.5 h-3.5 text-orange-500" />
+            </div>
+            <span className="text-[13px] font-semibold text-slate-800 truncate">{order.restaurant_name}</span>
           </div>
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <button onClick={callRestaurant} className="w-8 h-8 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center active:bg-orange-200" data-testid={`call-restaurant-btn-${order.id}`}>
-              <Phone className="w-3.5 h-3.5" />
-            </button>
-            <button onClick={onOpenRestaurantMaps} className="w-8 h-8 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center active:bg-orange-200" data-testid={`navigate-restaurant-btn-${order.id}`}>
-              <Navigation className="w-3.5 h-3.5" />
-            </button>
+          <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
+            <IconBtn onClick={callRestaurant} icon={Phone} color="bg-orange-50 text-orange-500" testId={`call-restaurant-btn-${order.id}`} />
+            <IconBtn onClick={onOpenRestaurantMaps} icon={Navigation} color="bg-orange-50 text-orange-500" testId={`navigate-restaurant-btn-${order.id}`} />
           </div>
         </div>
+
+        {/* Ayırıcı */}
+        <div className="border-t border-dashed border-slate-150 my-2" />
 
         {/* Müşteri satırı */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5 min-w-0 flex-1">
-            <User className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
-            <span className="text-xs font-medium truncate">{order.customer_name}</span>
-            {getOrderDistance(order) && (
-              <span className="text-[10px] text-slate-400 flex-shrink-0">{getOrderDistance(order)}</span>
-            )}
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <div className="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
+              <User className="w-3.5 h-3.5 text-blue-500" />
+            </div>
+            <div className="min-w-0">
+              <span className="text-[13px] font-medium text-slate-700 truncate block">{order.customer_name}</span>
+              {distance && <span className="text-[11px] text-slate-400">{distance}</span>}
+            </div>
           </div>
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <button onClick={onCall} className="w-8 h-8 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center active:bg-blue-200" data-testid={`call-customer-btn-${order.id}`}>
-              <Phone className="w-3.5 h-3.5" />
-            </button>
-            <button onClick={onOpenMaps} className="w-8 h-8 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center active:bg-blue-200" data-testid={`navigate-customer-btn-${order.id}`}>
-              <Navigation className="w-3.5 h-3.5" />
-            </button>
+          <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
+            <IconBtn onClick={onCall} icon={Phone} color="bg-blue-50 text-blue-500" testId={`call-customer-btn-${order.id}`} />
+            <IconBtn onClick={onOpenMaps} icon={Navigation} color="bg-blue-50 text-blue-500" testId={`navigate-customer-btn-${order.id}`} />
           </div>
         </div>
 
-        {/* Adres + Not */}
-        <div className="flex items-start gap-1 text-[11px] text-slate-500 dark:text-slate-400">
-          <MapPin className="w-3 h-3 flex-shrink-0 mt-0.5" />
+        {/* Adres */}
+        <div className="mt-2 flex items-start gap-1.5 text-[12px] text-slate-500 leading-snug pl-9">
+          <MapPin className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-slate-300" />
           <span className="line-clamp-1">{order.delivery_address}</span>
         </div>
+
+        {/* Müşteri notu */}
         {customerNotePreview && (
-          <div className="text-[10px] text-red-600 font-medium truncate pl-4">
-            Not: {customerNotePreview}
+          <div className="mt-1 text-[11px] text-red-600 font-medium truncate pl-9 flex items-center gap-1">
+            <AlertCircle className="w-3 h-3 flex-shrink-0" />
+            {customerNotePreview}
           </div>
         )}
 
+        {/* Ayırıcı */}
+        <div className="border-t border-slate-100 my-2.5" />
+
         {/* Aksiyon butonları */}
-        <div className="flex gap-1.5 pt-1">
+        <div className="flex gap-2">
           <button
             onClick={onViewDetails}
-            className="h-9 px-3 rounded-md border border-slate-200 text-slate-600 text-[11px] font-medium flex items-center gap-1 active:bg-slate-100"
+            className="h-10 px-4 rounded-lg border border-slate-200 text-slate-600 text-xs font-semibold flex items-center gap-1.5 active:scale-[0.97] active:bg-slate-50 transition-all"
             data-testid={`view-detail-btn-${order.id}`}
           >
-            <Eye className="w-3.5 h-3.5" /> Detay
+            <Eye className="w-4 h-4" /> Detay
           </button>
           {isConfirmed && canMarkNotReady && (
             <button
               onClick={onNotReady}
               disabled={loading}
-              className="h-9 px-3 rounded-md border border-orange-200 text-orange-600 text-[11px] font-medium flex items-center gap-1 active:bg-orange-50"
+              className="h-10 px-3 rounded-lg border border-orange-200 text-orange-600 text-xs font-semibold flex items-center gap-1.5 active:scale-[0.97] active:bg-orange-50 transition-all disabled:opacity-50"
               data-testid={`not-ready-btn-${order.id}`}
             >
-              <Clock className="w-3.5 h-3.5" /> Hazır Değil
+              <Clock className="w-4 h-4" /> Hazır Değil
             </button>
           )}
           {isConfirmed && (
             <button
               onClick={onPickup}
               disabled={loading}
-              className="flex-1 h-9 rounded-md bg-cyan-600 text-white text-[11px] font-semibold flex items-center justify-center gap-1 active:bg-cyan-700"
+              className="flex-1 h-10 rounded-lg bg-cyan-600 text-white text-sm font-bold flex items-center justify-center gap-1.5 active:scale-[0.97] active:bg-cyan-700 transition-all disabled:opacity-50"
               data-testid={`pickup-btn-${order.id}`}
             >
-              {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Truck className="w-3.5 h-3.5" />} Yola Çık
+              {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Truck className="w-4 h-4" />} Yola Çık
             </button>
           )}
           {isOnTheWay && (
             <button
               onClick={onDeliver}
               disabled={loading}
-              className="flex-1 h-9 rounded-md bg-green-600 text-white text-[11px] font-semibold flex items-center justify-center gap-1 active:bg-green-700"
+              className="flex-1 h-10 rounded-lg bg-green-600 text-white text-sm font-bold flex items-center justify-center gap-1.5 active:scale-[0.97] active:bg-green-700 transition-all disabled:opacity-50"
               data-testid={`deliver-btn-${order.id}`}
             >
-              {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />} Teslim Et
+              {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />} Teslim Et
             </button>
           )}
         </div>
