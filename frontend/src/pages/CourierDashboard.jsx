@@ -84,6 +84,7 @@ export default function CourierDashboard() {
   const [breakStatus, setBreakStatus] = useState(null);
   const [showBreakModal, setShowBreakModal] = useState(false);
   const [courierBreakInfo, setCourierBreakInfo] = useState({ dailyLimit: 30, usedTime: 0 });
+  const [activeOrderCount, setActiveOrderCount] = useState(0);
   
   // Base path for navigation (dynamic based on URL)
   const basePath = urlCourierId ? `/kurye/${urlCourierId}` : '/courier';
@@ -543,15 +544,26 @@ export default function CourierDashboard() {
       fetchBreakStatus(parsed.id);
       fetchCourierBreakInfo(parsed.id);
       
+      // Aktif sipariş sayısını çek
+      const fetchActiveOrderCount = () => {
+        axios.get(`${API}/orders/v2/list`, {
+          params: { panel: 'courier', courier_id: parsed.id, status: 'active', limit: 50 }
+        }).then(res => {
+          setActiveOrderCount((res.data.orders || []).length);
+        }).catch(() => {});
+      };
+      fetchActiveOrderCount();
+
       // İlk kontrol
       checkCourierStatus(parsed.id, parsed.company_id);
       
       // Her 10 saniyede bir durumu kontrol et (mola onayı için hızlı güncelleme)
       const intervalId = setInterval(() => {
         checkCourierStatus(parsed.id, parsed.company_id);
-        fetchAvailabilityStatus(parsed.id, false); // Polling - sadece değişiklikte bildir
+        fetchAvailabilityStatus(parsed.id, false);
         fetchBreakStatus(parsed.id);
         fetchCourierBreakInfo(parsed.id);
+        fetchActiveOrderCount();
       }, 10000);
       
       return () => clearInterval(intervalId);
@@ -828,7 +840,12 @@ export default function CourierDashboard() {
                   }`}
                 >
                   {isActive && <span className="absolute top-0 left-3 right-3 h-[2.5px] bg-slate-900 dark:bg-white rounded-b" />}
-                  <Icon className={`w-5 h-5 ${isActive ? "stroke-[2.5]" : "stroke-[1.5]"}`} />
+                  <span className="relative">
+                    <Icon className={`w-5 h-5 ${isActive ? "stroke-[2.5]" : "stroke-[1.5]"}`} />
+                    {item.key === "siparis" && activeOrderCount > 0 && (
+                      <span className="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 px-1 flex items-center justify-center bg-red-500 text-white text-[9px] font-bold rounded-full">{activeOrderCount}</span>
+                    )}
+                  </span>
                   <span className={`text-[10px] mt-0.5 ${isActive ? "font-semibold" : "font-medium"}`}>
                     {item.label}
                   </span>
