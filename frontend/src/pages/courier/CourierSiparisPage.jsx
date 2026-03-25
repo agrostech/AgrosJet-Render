@@ -934,7 +934,7 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
         <span className="text-[11px] font-bold text-white flex items-center gap-1">
           {sc.label}
           {age && (isLate
-            ? <span className="text-red-400 font-extrabold animate-pulse flex items-center">· ! {age}</span>
+            ? <span className="animate-pulse flex items-center"><span className="text-white">·</span> <span className="text-red-500 font-extrabold">!</span> <span className="text-red-500 font-extrabold">{age}</span></span>
             : <span>· {age}</span>
           )}
         </span>
