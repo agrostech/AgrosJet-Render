@@ -345,7 +345,13 @@ def transform_migros_order_to_shiftjet(migros_order: Dict[str, Any], restaurant_
         "CREDIT_CARD": "online",
         "ONLINE_PAYMENT": "online",
         "MEAL_CARD": "meal_card",
-        "MEAL_CARD_ON_DELIVERY": "meal_card"
+        "MEAL_CARD_ON_DELIVERY": "meal_card",
+        "SODEXO_ON_DELIVERY": "meal_card",
+        "MULTINET_ON_DELIVERY": "meal_card",
+        "SETCARD_ON_DELIVERY": "meal_card",
+        "TICKET_ON_DELIVERY": "meal_card",
+        "PAYE_ON_DELIVERY": "meal_card",
+        "METROPOL_ON_DELIVERY": "meal_card",
     }
     payment_name = payment.get("name") or payment.get("simplifiedName", "CASH_ON_DELIVERY")
     is_online = payment.get("isOnlinePayment", False)

@@ -556,8 +556,15 @@ def transform_migros_webhook_to_order(webhook_data: dict, restaurant: dict, prep
         "CASH_ON_DELIVERY": "cash",
         "CREDIT_CARD_ON_DELIVERY": "card",
         "CREDIT_CARD": "online",
+        "ONLINE_PAYMENT": "online",
         "MEAL_CARD": "meal_card",
-        "MEAL_CARD_ON_DELIVERY": "meal_card"
+        "MEAL_CARD_ON_DELIVERY": "meal_card",
+        "SODEXO_ON_DELIVERY": "meal_card",
+        "MULTINET_ON_DELIVERY": "meal_card",
+        "SETCARD_ON_DELIVERY": "meal_card",
+        "TICKET_ON_DELIVERY": "meal_card",
+        "PAYE_ON_DELIVERY": "meal_card",
+        "METROPOL_ON_DELIVERY": "meal_card",
     }
     payment_method = payment_type_map.get(payment_name, "online" if is_online else "cash")
     
@@ -571,13 +578,13 @@ def transform_migros_webhook_to_order(webhook_data: dict, restaurant: dict, prep
         unit_price_penny = item.get("unitPrice", 0)
         quantity = item.get("amount", 1)
         
-        total_price = total_price_penny / 100
+        item_total_price = total_price_penny / 100
         if unit_price_penny:
             unit_price = unit_price_penny / 100
         elif quantity > 0:
-            unit_price = total_price / quantity
+            unit_price = item_total_price / quantity
         else:
-            unit_price = total_price
+            unit_price = item_total_price
         
         item_data = {
             "id": str(item.get("productId", item.get("id", ""))),
@@ -585,7 +592,7 @@ def transform_migros_webhook_to_order(webhook_data: dict, restaurant: dict, prep
             "quantity": quantity,
             "price": unit_price,
             "unit_price": unit_price,
-            "total_price": total_price,
+            "total_price": item_total_price,
             "note": item.get("note", ""),
             "options": []
         }
@@ -596,10 +603,15 @@ def transform_migros_webhook_to_order(webhook_data: dict, restaurant: dict, prep
             parsed = []
             for opt in (options_list or []):
                 opt_price = opt.get("primaryPrice", 0) / 100
+                opt_unit_price = opt.get("unitPrimaryPrice", 0) / 100
                 header_name = opt.get("headerName", "")
                 item_names = opt.get("itemNames", "")
                 quantity = opt.get("quantity", 1)
                 excluded = opt.get("excluded", False)
+                
+                # Birim fiyat yoksa toplam fiyattan hesapla
+                if opt_unit_price <= 0 and quantity > 0 and opt_price > 0:
+                    opt_unit_price = opt_price / quantity
                 
                 if item_names:
                     # Virgülle ayrılmış çoklu öğeleri ayrı ayrı ekle
@@ -621,6 +633,7 @@ def transform_migros_webhook_to_order(webhook_data: dict, restaurant: dict, prep
                             "header": header_name,
                             "value": item_names,
                             "price": opt_price,
+                            "unit_price": opt_unit_price,
                             "quantity": quantity,
                             "excluded": excluded,
                             "parent_header": parent_header
@@ -699,7 +712,7 @@ def transform_migros_webhook_to_order(webhook_data: dict, restaurant: dict, prep
         # Ödeme bilgileri
         "total_amount": total_price,
         "payment_type": payment_method,
-        "payment_method": normalize_payment_method(payment_info),
+        "payment_method": payment_info.get("description", "") or normalize_payment_method(payment_info),
         "payment_method_detail": payment_info.get("description", ""),
         "is_paid": is_online,
         "discount": discount,
@@ -764,7 +777,7 @@ async def migros_order_webhook(
             "id": str(uuid.uuid4()),
             "platform": "migros",
             "endpoint": "order",
-            "raw_body": raw_body.decode('utf-8', errors='replace')[:5000] if raw_body else "EMPTY",
+            "raw_body": raw_body.decode('utf-8', errors='replace')[:50000] if raw_body else "EMPTY",
             "raw_body_length": len(raw_body) if raw_body else 0,
             "headers": {k: v for k, v in headers_dict.items() if k.lower() not in ['authorization', 'cookie']},
             "content_type": request.headers.get("content-type", "NOT_SET"),
