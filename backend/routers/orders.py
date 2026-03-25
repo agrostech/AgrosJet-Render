@@ -1580,7 +1580,7 @@ async def get_cancel_reasons_by_platform(source: str, restaurant_id: Optional[st
                         reasons_list = data if isinstance(data, list) else []
                         if reasons_list:
                             reasons = [
-                                {"id": str(r.get("reasonId", r.get("id", ""))), "label": r.get("name", r.get("label", ""))}
+                                {"id": str(r.get("reasonId", r.get("id", ""))), "label": r.get("description", "")}
                                 for r in reasons_list
                             ]
                             return {"success": True, "source": source, "reasons": reasons}

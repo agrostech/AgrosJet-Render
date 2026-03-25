@@ -36,11 +36,7 @@ Turkish (All communication in Turkish)
 ## Pending Issues
 
 ### P0 - Critical
-1. **Migros Cancellation Reasons:** Dropdown not showing Migros-specific reasons. Analysis done:
-   - GET redirect not handled in migros_service.py for GetCancelReasons
-   - No "migros" key in PLATFORM_CANCEL_REASONS fallback
-   - `int("out_of_stock")` crash when using default reasons with Migros cancel API
-   - User requested analysis only, implementation pending approval
+1. **Migros Cancellation Reasons:** ✅ FIXED (Feb 2026) — Dropdown was showing empty labels because code parsed `name`/`label` fields from Migros V2 API response, but the correct field is `description`. Fixed in `orders.py` line 1583.
 
 ### P0 - Awaiting User Decision
 2. **Courier Route Creation Fallback:** "Create Route" defaults to restaurant location when courier GPS unavailable. Solutions proposed, user decision pending.
