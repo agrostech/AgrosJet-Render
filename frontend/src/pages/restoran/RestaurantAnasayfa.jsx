@@ -823,7 +823,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                             </td>
                             <td className="p-2 text-xs whitespace-nowrap">{getOrderDistance(order) || "-"}</td>
                             <td className="p-2 font-semibold whitespace-nowrap">{formatCurrency(order.total_amount)}</td>
-                            <td className="p-2">{getPaymentBadge(order.payment_type || order.payment_method, order.payment_method_detail || order.payment_method)}</td>
+                            <td className="p-2">{getPaymentBadge(order.payment_type || order.payment_method, order.source === 'migros' ? order.payment_method_detail : null)}</td>
                             <td className="p-2">
                               <StatusDropdown
                                 order={order}

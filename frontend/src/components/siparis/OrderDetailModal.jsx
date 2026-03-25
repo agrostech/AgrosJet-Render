@@ -407,12 +407,11 @@ export function OrderDetailModal({
                   ((order.payment_type || order.payment_method) === 'meal_card' || (order.payment_type || order.payment_method) === 'online_meal_card') ? 'bg-orange-100 text-orange-700' :
                   'bg-purple-100 text-purple-700'
                 }`}>
-                  {order.payment_method_detail || order.payment_method || (
-                    (order.payment_type) === 'cash' ? 'Nakit' : 
-                    (order.payment_type) === 'card' ? 'Kart' : 
-                    (order.payment_type) === 'meal_card' ? 'Yemek Kartı' : 
-                    'Online'
-                  )}
+                  {order.source === 'migros' && order.payment_method_detail ? order.payment_method_detail :
+                    (order.payment_type || order.payment_method) === 'cash' ? 'Nakit' : 
+                    (order.payment_type || order.payment_method) === 'card' ? 'Kart' : 
+                    ((order.payment_type || order.payment_method) === 'meal_card' || (order.payment_type || order.payment_method) === 'online_meal_card') ? 'Yemek Kartı' : 
+                    'Online'}
                 </span>
               </div>
             </div>

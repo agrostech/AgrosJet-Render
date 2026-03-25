@@ -125,7 +125,7 @@ export default function OrderDetailModal({
 
   const statusConfig = ORDER_STATUS_CONFIG[order.status] || ORDER_STATUS_CONFIG.pending;
   const paymentInfo = PAYMENT_METHODS[order.payment_type] || PAYMENT_METHODS[order.payment_method] || PAYMENT_METHODS.cash;
-  const paymentLabel = order.payment_method_detail || (PAYMENT_METHODS[order.payment_method] ? null : order.payment_method) || paymentInfo.label;
+  const paymentLabel = order.source === 'migros' && order.payment_method_detail ? order.payment_method_detail : paymentInfo.label;
   const PaymentIcon = paymentInfo.icon;
   const sourceInfo = ORDER_SOURCES[order.source] || ORDER_SOURCES.manual;
   const SourceIcon = sourceInfo.icon;

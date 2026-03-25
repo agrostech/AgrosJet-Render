@@ -1163,7 +1163,11 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                                 (order.payment_type || order.payment_method) === 'card' ? 'bg-blue-100 text-blue-700' : 
                                 ((order.payment_type || order.payment_method) === 'meal_card' || (order.payment_type || order.payment_method) === 'online_meal_card') ? 'bg-orange-100 text-orange-700' : 'bg-purple-100 text-purple-700'
                               }`}>
-                                {order.payment_method_detail || order.payment_method || 'Nakit'}
+                                {order.source === 'migros' && order.payment_method_detail ? order.payment_method_detail :
+                                 (order.payment_type || order.payment_method) === 'cash' ? 'Nakit' :
+                                 (order.payment_type || order.payment_method) === 'card' ? 'Kart' :
+                                 ((order.payment_type || order.payment_method) === 'meal_card' || (order.payment_type || order.payment_method) === 'online_meal_card') ? 'Yemek Kartı' :
+                                 'Online'}
                               </span>
                             </td>
                             <td className="p-2" onClick={(e) => e.stopPropagation()}>
