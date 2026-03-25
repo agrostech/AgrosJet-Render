@@ -245,7 +245,7 @@ function TransactionMobileItem({ tx, invoices = [], companyInfo, uploadingFor, o
               </span>
             )}
           </div>
-          <p className="text-sm mt-0.5 truncate">{tx.description || '-'}</p>
+          <p className="text-xs mt-0.5 line-clamp-2">{tx.description || '-'}</p>
         </div>
         <div className="text-right shrink-0">
           <p className={`font-mono font-semibold text-sm ${
