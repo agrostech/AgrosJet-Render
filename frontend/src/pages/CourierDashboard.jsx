@@ -89,7 +89,6 @@ export default function CourierDashboard() {
   
   // Refs for background task management
   const wakeLockRef = useRef(null);
-  const locationWatchRef = useRef(null);
   const lastLocationRef = useRef({ lat: 0, lng: 0, time: 0 });
 
   // Wake Lock API - ekranın kapanmasını önle
@@ -115,88 +114,56 @@ export default function CourierDashboard() {
     }
   }, []);
 
-  // Konum tracking - 30sn interval veya 10m hareket kuralı
-  const LOCATION_MIN_INTERVAL = 30000; // 30 saniye
-  const LOCATION_MIN_DISTANCE = 10;    // 10 metre
+  // Native'den gelen konum güncellemelerini backend'e gönder
+  const sendLocationToBackend = useCallback(async (latitude, longitude, accuracy, speed) => {
+    const courierId = user?.id;
+    if (!courierId) return;
 
-  const getDistanceMeters = useCallback((lat1, lng1, lat2, lng2) => {
-    const R = 6371000;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLng = (lng2 - lng1) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-              Math.sin(dLng/2) * Math.sin(dLng/2);
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  }, []);
+    try {
+      const payload = { latitude, longitude };
+      if (accuracy != null) payload.accuracy = accuracy;
+      if (speed != null && speed >= 0) payload.speed = speed;
 
-  const sendLocationUpdate = useCallback(async (latitude, longitude, accuracy, speed) => {
-    const now = Date.now();
-    const last = lastLocationRef.current;
-    const timeDiff = now - last.time;
-    const distance = getDistanceMeters(last.lat, last.lng, latitude, longitude);
-
-    // İlk konum veya 30sn geçmiş veya 10m hareket etmiş
-    if (last.time === 0 || timeDiff >= LOCATION_MIN_INTERVAL || distance >= LOCATION_MIN_DISTANCE) {
-      lastLocationRef.current = { lat: latitude, lng: longitude, time: now };
-      
-      const courierId = user?.id;
-      if (!courierId) return;
-
-      try {
-        const payload = { latitude, longitude };
-        if (accuracy != null) payload.accuracy = accuracy;
-        if (speed != null && speed >= 0) payload.speed = speed;
-
-        // Push token ve platform bilgisini de gönder
-        const pushToken = localStorage.getItem("push_token") || "";
-        if (pushToken) {
-          payload.push_token = pushToken;
-          payload.platform = pushToken.startsWith("ExponentPushToken") ? "ios" : "android";
-        }
-
-        await axios.put(`${API}/couriers/${courierId}/location`, payload);
-      } catch (err) {
-        // Sessiz hata - konum güncellemesi kritik değil
+      // Push token ve platform bilgisini de gönder
+      const pushToken = localStorage.getItem("push_token") || "";
+      if (pushToken) {
+        payload.push_token = pushToken;
+        payload.platform = pushToken.startsWith("ExponentPushToken") ? "ios" : "android";
       }
+
+      await axios.put(`${API}/couriers/${courierId}/location`, payload);
+    } catch (err) {
+      // Sessiz hata
     }
-  }, [user?.id, getDistanceMeters]);
+  }, [user?.id]);
 
-  const startLocationTracking = useCallback(() => {
-    if (locationWatchRef.current) return; // Zaten izleniyor
-    if (!navigator.geolocation) return;
-
-    // Hemen ilk konumu al
-    navigator.geolocation.getCurrentPosition(
-      (pos) => sendLocationUpdate(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy, pos.coords.speed),
-      () => {},
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
-
-    // Sürekli izle
-    locationWatchRef.current = navigator.geolocation.watchPosition(
-      (pos) => sendLocationUpdate(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy, pos.coords.speed),
-      (err) => console.log("Konum hatası:", err.message),
-      { enableHighAccuracy: true, maximumAge: 10000, timeout: 30000 }
-    );
-  }, [sendLocationUpdate]);
-
-  const stopLocationTracking = useCallback(() => {
-    if (locationWatchRef.current) {
-      navigator.geolocation.clearWatch(locationWatchRef.current);
-      locationWatchRef.current = null;
-    }
-    lastLocationRef.current = { lat: 0, lng: 0, time: 0 };
-  }, []);
-
-  // Statü değiştiğinde konum tracking'i başlat/durdur
+  // Native konum mesajlarını dinle (LOCATION_UPDATE, LAST_LOCATION_RESULT, LOCATION_RESULT)
   useEffect(() => {
-    if (availabilityStatus === "active") {
-      startLocationTracking();
-    } else {
-      stopLocationTracking();
-    }
-    return () => stopLocationTracking();
-  }, [availabilityStatus, startLocationTracking, stopLocationTracking]);
+    const handleLocationMessage = (event) => {
+      try {
+        const msg = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+        if (msg?.type === 'LOCATION_UPDATE' && msg?.data) {
+          const { latitude, longitude, accuracy, speed } = msg.data;
+          if (latitude && longitude) {
+            lastLocationRef.current = { lat: latitude, lng: longitude, time: Date.now() };
+            sendLocationToBackend(latitude, longitude, accuracy, speed);
+          }
+        }
+      } catch (e) {}
+    };
+
+    const handleLocationCustomEvent = (e) => {
+      handleLocationMessage({ data: e.detail });
+    };
+
+    window.addEventListener('message', handleLocationMessage);
+    window.addEventListener('nativeMessage', handleLocationCustomEvent);
+
+    return () => {
+      window.removeEventListener('message', handleLocationMessage);
+      window.removeEventListener('nativeMessage', handleLocationCustomEvent);
+    };
+  }, [sendLocationToBackend]);
 
   // Fetch document status
   const checkDocumentStatus = useCallback(async (courierId) => {
