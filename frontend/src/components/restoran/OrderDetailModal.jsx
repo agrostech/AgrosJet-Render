@@ -440,7 +440,9 @@ function OrderDetails({
                       {item.options.map((opt, optIdx) => (
                         <div key={optIdx} className={opt.excluded ? 'text-red-600 font-medium' : 'text-slate-600'}>
                           {opt.excluded ? '- Çıkarılan: ' : '+ '}{opt.quantity > 1 ? `${opt.quantity}x ` : ''}{opt.value || opt.name}
-                          {opt.unit_price > 0 ? ` (+${formatCurrency(opt.unit_price)})` : opt.price > 0 ? ` (+${formatCurrency(opt.price)})` : ''}
+                          {opt.quantity > 1 && opt.unit_price > 0
+                            ? ` (+${formatCurrency(opt.unit_price)} x${opt.quantity} = ${formatCurrency(opt.price)})`
+                            : opt.price > 0 ? ` (+${formatCurrency(opt.price)})` : ''}
                         </div>
                       ))}
                     </div>
