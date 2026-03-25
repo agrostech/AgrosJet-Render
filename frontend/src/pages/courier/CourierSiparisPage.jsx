@@ -930,9 +930,9 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
   return (
     <div className="rounded-lg border border-slate-200 bg-white overflow-hidden" data-testid={`active-order-card-${order.id}`}>
       {/* Status bar: durum · süre | ödeme · tutar */}
-      <div className={`${isLate ? 'bg-red-600' : sc.color} px-3 py-1.5 flex items-center justify-between transition-colors`}>
+      <div className={`${sc.color} px-3 py-1.5 flex items-center justify-between`}>
         <span className="text-[11px] font-bold text-white flex items-center gap-1">
-          {isLate && <AlertCircle className="w-3.5 h-3.5 animate-pulse" />}
+          {isLate && <AlertCircle className="w-3.5 h-3.5 text-red-400 animate-pulse" />}
           {sc.label}{age ? ` · ${age}` : ''}
         </span>
         <span className="text-[11px] font-bold text-white flex items-center gap-2">
