@@ -500,7 +500,8 @@ def transform_migros_order_to_shiftjet(migros_order: Dict[str, Any], restaurant_
         # Ödeme bilgileri
         "total_amount": total_amount,
         "payment_type": payment_type,
-        "payment_method": payment.get("description", ""),
+        "payment_method": payment_type,
+        "payment_method_detail": payment.get("description", ""),
         "is_paid": is_online,
         "discount": discount,
         

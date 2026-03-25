@@ -712,7 +712,7 @@ def transform_migros_webhook_to_order(webhook_data: dict, restaurant: dict, prep
         # Ödeme bilgileri
         "total_amount": total_price,
         "payment_type": payment_method,
-        "payment_method": payment_info.get("description", "") or normalize_payment_method(payment_info),
+        "payment_method": payment_method,
         "payment_method_detail": payment_info.get("description", ""),
         "is_paid": is_online,
         "discount": discount,
