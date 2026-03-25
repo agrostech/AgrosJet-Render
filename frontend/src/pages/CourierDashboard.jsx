@@ -710,8 +710,8 @@ export default function CourierDashboard() {
               <X className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center text-lg font-bold">
-                {user.name?.charAt(0)?.toUpperCase()}
+              <div className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center">
+                <img src="https://customer-assets.emergentagent.com/job_dfe6f827-18c8-44fa-9707-d7a9c2d6e4a6/artifacts/zp317pya_agroslogo_20260325_192835_0000.png" alt="Rider" className="w-11 h-11 rounded-full object-cover" />
               </div>
               <div>
                 <span className="text-sm font-semibold block leading-tight">{user.name}</span>
