@@ -806,7 +806,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
           </DialogHeader>
           <div className="py-4">
             <p className="text-sm text-muted-foreground leading-relaxed">
-              <strong>{pendingDeliveryOrder?.order_number}</strong> numaralı siparişi teslim etmek istediğinize emin misiniz?
+              <strong>{pendingDeliveryOrder?.customer_name}</strong> adına siparişi teslim etmek istediğinize emin misiniz?
             </p>
           </div>
           <DialogFooter className="gap-2">
@@ -1292,12 +1292,12 @@ function PaymentConfirmModal({ order, open, onConfirm, onCancel, loading }) {
           {/* Sipariş bilgisi */}
           <div className={`p-3 rounded-lg ${paymentInfo.bg} border`}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium">{order.order_number}</span>
+              <span className="text-sm font-semibold">{order.customer_name}</span>
               <span className={`text-sm font-bold ${paymentInfo.color}`}>
                 {formatCurrency(totalAmount)}
               </span>
             </div>
-            <p className="text-xs text-muted-foreground">{order.customer_name}</p>
+            <p className="text-xs text-muted-foreground">{order.order_number}</p>
           </div>
 
           {/* Ödeme Modu Seçimi */}

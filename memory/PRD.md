@@ -28,9 +28,11 @@ Multi-platform delivery management system integrating with Migros, Getir, Trendy
 - Courier bottom navigation bar
 - Application notifications with sidebar badge
 
+## Completed (March 2026 - Latest)
+- Courier delivery/payment modals: Customer name shown instead of order number (PaymentConfirmModal + Online delivery modal)
+
 ## P0 - Critical (Next)
-1. Route creation pin removal — auto-use courier's current location
-2. Courier session fixes verification with native app
+1. Courier session fixes verification with native app
 
 ## P1 - High
 3. VatanSMS integration
