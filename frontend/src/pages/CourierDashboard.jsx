@@ -821,12 +821,13 @@ export default function CourierDashboard() {
                   key={item.key}
                   to={item.path}
                   data-testid={`bottom-bar-${item.key}`}
-                  className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
+                  className={`relative flex flex-col items-center justify-center flex-1 h-full transition-colors ${
                     isActive 
                       ? "text-slate-900 dark:text-white" 
                       : "text-slate-400 dark:text-slate-500"
                   }`}
                 >
+                  {isActive && <span className="absolute top-0 left-3 right-3 h-[2.5px] bg-slate-900 dark:bg-white rounded-b" />}
                   <Icon className={`w-5 h-5 ${isActive ? "stroke-[2.5]" : "stroke-[1.5]"}`} />
                   <span className={`text-[10px] mt-0.5 ${isActive ? "font-semibold" : "font-medium"}`}>
                     {item.label}
