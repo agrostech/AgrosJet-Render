@@ -702,24 +702,21 @@ export default function CourierDashboard() {
           }`}
         >
           {/* Header */}
-          <div className="px-4 pt-5 pb-4 border-b border-white/10">
+          <div className="px-4 pt-5 pb-4 border-b border-white/10 relative">
             <button 
               onClick={() => setMobileMenuOpen(false)}
               className="absolute top-3 right-3 p-1.5 hover:bg-white/10 rounded-lg"
             >
               <X className="w-5 h-5" />
             </button>
-            <div className="flex flex-col items-center text-center">
-              {companyLogo ? (
-                <img 
-                  src={companyLogo} 
-                  alt={companyName} 
-                  className="w-16 h-16 rounded-xl object-contain mb-3"
-                  onError={(e) => { e.target.style.display = 'none'; }}
-                />
-              ) : null}
-              <span className="font-heading text-base font-bold leading-tight">{user.name}</span>
-              {companyName && <span className="text-[11px] text-white/50 mt-0.5">{companyName}</span>}
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center text-lg font-bold">
+                {user.name?.charAt(0)?.toUpperCase()}
+              </div>
+              <div>
+                <span className="text-sm font-semibold block leading-tight">{user.name}</span>
+                {companyName && <span className="text-[11px] text-white/40">{companyName}</span>}
+              </div>
             </div>
           </div>
           
