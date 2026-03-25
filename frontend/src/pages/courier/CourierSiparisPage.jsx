@@ -873,46 +873,26 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   );
 }
 
-// Yeni Sipariş Kartı (Onay Bekleyen) - Kompakt
+// Yeni Sipariş Kartı (Onay Bekleyen)
 function NewOrderCard({ order, onConfirm, loading }) {
   const courierFee = order.courier_fee || 0;
   const distance = getOrderDistance(order);
   const age = getOrderAgeText(order);
   
   return (
-    <div className="rounded-xl overflow-hidden border border-purple-100 bg-white shadow-sm" data-testid={`new-order-card-${order.id}`}>
-      {/* Header bar */}
-      <div className="bg-gradient-to-r from-purple-600 to-purple-500 px-3.5 py-2 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] font-bold text-white bg-white/25 px-2 py-0.5 rounded-full tracking-wide">YENİ</span>
-          {age && <span className="text-[11px] text-purple-100"><Clock className="w-3 h-3 inline mr-0.5 -mt-px" />{age}</span>}
-        </div>
-        {courierFee > 0 && (
-          <span className="text-sm font-bold text-white"><Banknote className="w-3.5 h-3.5 inline mr-0.5 -mt-px" />{formatCurrency(courierFee)}</span>
-        )}
+    <div className="rounded-lg border border-purple-200 bg-white overflow-hidden" data-testid={`new-order-card-${order.id}`}>
+      <div className="bg-purple-600 px-3 py-1.5 flex items-center justify-between">
+        <span className="text-[11px] font-bold text-white bg-white/20 px-2 py-px rounded-full">YENİ{age ? ` · ${age}` : ''}</span>
+        {courierFee > 0 && <span className="text-[12px] font-bold text-white">{formatCurrency(courierFee)}</span>}
       </div>
-
-      <div className="px-3.5 py-3">
-        {/* Restoran */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-7 h-7 rounded-full bg-purple-50 flex items-center justify-center flex-shrink-0">
-              <Store className="w-3.5 h-3.5 text-purple-600" />
-            </div>
-            <span className="text-sm font-semibold text-slate-800 truncate">{order.restaurant_name}</span>
-          </div>
-          {distance && <span className="text-xs text-purple-600 font-semibold bg-purple-50 px-2 py-0.5 rounded-full flex-shrink-0">{distance}</span>}
-        </div>
-
-        {/* CTA */}
-        <button
-          onClick={onConfirm}
-          disabled={loading}
-          className="w-full h-11 rounded-lg bg-purple-600 hover:bg-purple-700 active:scale-[0.98] text-white text-sm font-semibold flex items-center justify-center gap-2 transition-all disabled:opacity-50"
-          data-testid={`confirm-order-btn-${order.id}`}
-        >
-          {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
-          Siparişi Gördüm
+      <div className="px-3 py-2.5 flex items-center gap-2">
+        <Store className="w-4 h-4 text-purple-500 flex-shrink-0" />
+        <span className="text-[13px] font-semibold text-slate-800 truncate flex-1">{order.restaurant_name}</span>
+        {distance && <span className="text-[11px] text-purple-600 font-medium flex-shrink-0">{distance}</span>}
+      </div>
+      <div className="px-3 pb-3">
+        <button onClick={onConfirm} disabled={loading} className="w-full h-10 rounded-lg bg-purple-600 active:bg-purple-700 active:scale-[0.98] text-white text-[13px] font-semibold flex items-center justify-center gap-2 transition-all disabled:opacity-50" data-testid={`confirm-order-btn-${order.id}`}>
+          {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />} Siparişi Gördüm
         </button>
       </div>
     </div>
@@ -921,137 +901,88 @@ function NewOrderCard({ order, onConfirm, loading }) {
 
 // Aktif Sipariş Kartı
 function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails, onOpenMaps, onOpenRestaurantMaps, onCall, loading, canMarkNotReady = true }) {
-  const statusConfig = ORDER_STATUS_CONFIG[order.status] || ORDER_STATUS_CONFIG.confirmed;
-  const paymentInfo = PAYMENT_METHODS[order.payment_method] || PAYMENT_METHODS.cash;
-  const PaymentIcon = paymentInfo.icon;
+  const sc = ORDER_STATUS_CONFIG[order.status] || ORDER_STATUS_CONFIG.confirmed;
+  const pi = PAYMENT_METHODS[order.payment_method] || PAYMENT_METHODS.cash;
+  const PI = pi.icon;
   const isConfirmed = order.status === "confirmed";
   const isOnTheWay = order.status === "on_the_way";
   const age = getOrderAgeText(order);
-  const distance = getOrderDistance(order);
+  const dist = getOrderDistance(order);
 
-  const callRestaurant = () => {
-    if (order.restaurant_phone) window.location.href = `tel:${order.restaurant_phone}`;
-    else alert("Restoran telefon numarası bulunamadı");
-  };
+  const callRest = () => order.restaurant_phone ? (window.location.href = `tel:${order.restaurant_phone}`) : alert("Telefon bulunamadı");
 
-  const hasCustomerNote = order.notes?.includes("CUSTOMER:");
-  const customerNotePreview = hasCustomerNote ? (() => {
-    const match = order.notes.match(/CUSTOMER:([^|]*)/);
-    return match ? match[1].split(";").filter(n => n.trim()).join(" • ").substring(0, 60) : null;
+  const note = order.notes?.includes("CUSTOMER:") ? (() => {
+    const m = order.notes.match(/CUSTOMER:([^|]*)/);
+    return m ? m[1].split(";").filter(n => n.trim()).join(" · ").substring(0, 55) : null;
   })() : null;
 
-  // İkon buton componenti
-  const IconBtn = ({ onClick, icon: Icon, color, testId }) => (
-    <button onClick={onClick} className={`w-9 h-9 rounded-full ${color} flex items-center justify-center active:scale-95 transition-transform`} data-testid={testId}>
-      <Icon className="w-4 h-4" />
+  // Satır içi ikon buton
+  const Ic = ({ onClick, icon: I, cls, tid }) => (
+    <button onClick={onClick} className={`w-8 h-8 rounded-full flex items-center justify-center active:scale-90 transition-transform ${cls}`} data-testid={tid}>
+      <I className="w-3.5 h-3.5" />
     </button>
   );
 
   return (
-    <div className="rounded-xl overflow-hidden border border-slate-100 bg-white shadow-sm" data-testid={`active-order-card-${order.id}`}>
-      {/* Status bar */}
-      <div className={`${statusConfig.color} px-3.5 py-2 flex items-center justify-between`}>
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] font-bold text-white tracking-wide">{statusConfig.label}</span>
-          {age && <span className="text-[11px] text-white/70"><Clock className="w-3 h-3 inline mr-0.5 -mt-px" />{age}</span>}
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] text-white/80 bg-white/20 px-2 py-0.5 rounded-full flex items-center gap-1">
-            <PaymentIcon className="w-3 h-3" />{getPaymentLabel(order)}
-          </span>
-          <span className="text-sm font-bold text-white">{formatCurrency(order.total_amount)}</span>
-        </div>
+    <div className="rounded-lg border border-slate-200 bg-white overflow-hidden" data-testid={`active-order-card-${order.id}`}>
+      {/* Status bar: durum · süre | ödeme · tutar */}
+      <div className={`${sc.color} px-3 py-1.5 flex items-center justify-between`}>
+        <span className="text-[11px] font-bold text-white">{sc.label}{age ? ` · ${age}` : ''}</span>
+        <span className="text-[11px] font-bold text-white flex items-center gap-1.5">
+          <span className="text-white/70 flex items-center gap-0.5 text-[10px]"><PI className="w-3 h-3" />{getPaymentLabel(order)}</span>
+          {formatCurrency(order.total_amount)}
+        </span>
       </div>
 
-      <div className="px-3.5 py-2.5">
+      <div className="px-3 py-2">
         {/* Restoran satırı */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <div className="w-7 h-7 rounded-full bg-orange-50 flex items-center justify-center flex-shrink-0">
-              <Store className="w-3.5 h-3.5 text-orange-500" />
-            </div>
-            <span className="text-[13px] font-semibold text-slate-800 truncate">{order.restaurant_name}</span>
-          </div>
-          <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
-            <IconBtn onClick={callRestaurant} icon={Phone} color="bg-orange-50 text-orange-500" testId={`call-restaurant-btn-${order.id}`} />
-            <IconBtn onClick={onOpenRestaurantMaps} icon={Navigation} color="bg-orange-50 text-orange-500" testId={`navigate-restaurant-btn-${order.id}`} />
-          </div>
+        <div className="flex items-center h-8">
+          <Store className="w-3.5 h-3.5 text-orange-500 flex-shrink-0 mr-2" />
+          <span className="text-[13px] font-semibold text-slate-800 truncate flex-1">{order.restaurant_name}</span>
+          <Ic onClick={callRest} icon={Phone} cls="bg-orange-50 text-orange-500" tid={`call-restaurant-btn-${order.id}`} />
+          <Ic onClick={onOpenRestaurantMaps} icon={Navigation} cls="bg-orange-50 text-orange-500 ml-1" tid={`navigate-restaurant-btn-${order.id}`} />
         </div>
 
-        {/* Ayırıcı */}
-        <div className="border-t border-dashed border-slate-150 my-2" />
+        <div className="border-t border-dashed border-slate-200 my-1.5" />
 
         {/* Müşteri satırı */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <div className="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
-              <User className="w-3.5 h-3.5 text-blue-500" />
-            </div>
-            <div className="min-w-0">
-              <span className="text-[13px] font-medium text-slate-700 truncate block">{order.customer_name}</span>
-              {distance && <span className="text-[11px] text-slate-400">{distance}</span>}
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
-            <IconBtn onClick={onCall} icon={Phone} color="bg-blue-50 text-blue-500" testId={`call-customer-btn-${order.id}`} />
-            <IconBtn onClick={onOpenMaps} icon={Navigation} color="bg-blue-50 text-blue-500" testId={`navigate-customer-btn-${order.id}`} />
-          </div>
+        <div className="flex items-center h-8">
+          <User className="w-3.5 h-3.5 text-blue-500 flex-shrink-0 mr-2" />
+          <span className="text-[13px] font-medium text-slate-700 truncate">{order.customer_name}</span>
+          {dist && <span className="text-[10px] text-slate-400 ml-1.5 flex-shrink-0">{dist}</span>}
+          <span className="flex-1" />
+          <Ic onClick={onCall} icon={Phone} cls="bg-blue-50 text-blue-500" tid={`call-customer-btn-${order.id}`} />
+          <Ic onClick={onOpenMaps} icon={Navigation} cls="bg-blue-50 text-blue-500 ml-1" tid={`navigate-customer-btn-${order.id}`} />
         </div>
 
-        {/* Adres */}
-        <div className="mt-2 flex items-start gap-1.5 text-[12px] text-slate-500 leading-snug pl-9">
-          <MapPin className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-slate-300" />
-          <span className="line-clamp-1">{order.delivery_address}</span>
-        </div>
-
-        {/* Müşteri notu */}
-        {customerNotePreview && (
-          <div className="mt-1 text-[11px] text-red-600 font-medium truncate pl-9 flex items-center gap-1">
-            <AlertCircle className="w-3 h-3 flex-shrink-0" />
-            {customerNotePreview}
-          </div>
+        {/* Adres (varsa) */}
+        {order.delivery_address && (
+          <div className="text-[11px] text-slate-400 truncate pl-[22px] mt-0.5 leading-tight">{order.delivery_address}</div>
         )}
 
-        {/* Ayırıcı */}
-        <div className="border-t border-slate-100 my-2.5" />
+        {/* Müşteri notu */}
+        {note && <div className="text-[10px] text-red-500 font-medium truncate pl-[22px] mt-0.5 leading-tight"><AlertCircle className="w-2.5 h-2.5 inline -mt-px mr-0.5" />{note}</div>}
 
-        {/* Aksiyon butonları */}
-        <div className="flex gap-2">
-          <button
-            onClick={onViewDetails}
-            className="h-10 px-4 rounded-lg border border-slate-200 text-slate-600 text-xs font-semibold flex items-center gap-1.5 active:scale-[0.97] active:bg-slate-50 transition-all"
-            data-testid={`view-detail-btn-${order.id}`}
-          >
-            <Eye className="w-4 h-4" /> Detay
+        <div className="border-t border-slate-100 mt-2 mb-1.5" />
+
+        {/* Aksiyonlar — tek satır */}
+        <div className="flex gap-1.5">
+          <button onClick={onViewDetails} className="h-9 px-3 rounded-md border border-slate-200 text-slate-500 text-[11px] font-medium flex items-center gap-1 active:bg-slate-50" data-testid={`view-detail-btn-${order.id}`}>
+            <Eye className="w-3.5 h-3.5" />Detay
           </button>
           {isConfirmed && canMarkNotReady && (
-            <button
-              onClick={onNotReady}
-              disabled={loading}
-              className="h-10 px-3 rounded-lg border border-orange-200 text-orange-600 text-xs font-semibold flex items-center gap-1.5 active:scale-[0.97] active:bg-orange-50 transition-all disabled:opacity-50"
-              data-testid={`not-ready-btn-${order.id}`}
-            >
-              <Clock className="w-4 h-4" /> Hazır Değil
+            <button onClick={onNotReady} disabled={loading} className="h-9 px-3 rounded-md border border-orange-200 text-orange-500 text-[11px] font-medium flex items-center gap-1 active:bg-orange-50 disabled:opacity-50" data-testid={`not-ready-btn-${order.id}`}>
+              <Clock className="w-3.5 h-3.5" />Hazır Değil
             </button>
           )}
           {isConfirmed && (
-            <button
-              onClick={onPickup}
-              disabled={loading}
-              className="flex-1 h-10 rounded-lg bg-cyan-600 text-white text-sm font-bold flex items-center justify-center gap-1.5 active:scale-[0.97] active:bg-cyan-700 transition-all disabled:opacity-50"
-              data-testid={`pickup-btn-${order.id}`}
-            >
-              {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Truck className="w-4 h-4" />} Yola Çık
+            <button onClick={onPickup} disabled={loading} className="flex-1 h-9 rounded-md bg-cyan-600 text-white text-[12px] font-bold flex items-center justify-center gap-1.5 active:bg-cyan-700 active:scale-[0.98] disabled:opacity-50 transition-all" data-testid={`pickup-btn-${order.id}`}>
+              {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Truck className="w-3.5 h-3.5" />}Yola Çık
             </button>
           )}
           {isOnTheWay && (
-            <button
-              onClick={onDeliver}
-              disabled={loading}
-              className="flex-1 h-10 rounded-lg bg-green-600 text-white text-sm font-bold flex items-center justify-center gap-1.5 active:scale-[0.97] active:bg-green-700 transition-all disabled:opacity-50"
-              data-testid={`deliver-btn-${order.id}`}
-            >
-              {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />} Teslim Et
+            <button onClick={onDeliver} disabled={loading} className="flex-1 h-9 rounded-md bg-green-600 text-white text-[12px] font-bold flex items-center justify-center gap-1.5 active:bg-green-700 active:scale-[0.98] disabled:opacity-50 transition-all" data-testid={`deliver-btn-${order.id}`}>
+              {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />}Teslim Et
             </button>
           )}
         </div>
