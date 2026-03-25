@@ -1,75 +1,83 @@
-<analysis>**original_problem_statement:**
-The user requested a new feature: a Başvurular (Applications) tab to be added to the admin panel, right below the Restoranlar tab. This feature is intended to integrate with an external system, AgrosJet.com, via a provided API.
+<analysis>Analyse of the entire LLM message history has been completed. Here is the summary:
 
-**PRODUCT REQUIREMENTS:**
-1.  **Fetch Applications:** The system must fetch Courier, Restaurant, and Company applications from the AgrosJet API.
-2.  **Display Applications:** Create a new page with a tabbed interface (one for each application type) to display the fetched applications. The UI design should be consistent with existing pages (Muhasebe for tabs, Kuryeler for the data table).
-3.  **Update Status:** Allow admins to update the status of an application. The update must be sent back to the AgrosJet API. The status update mechanism should be a dropdown menu showing colored statuses.
-4.  **Dynamic Data:** The application list, status labels, status colors, and table columns should be dynamic and reflect all data coming from the API. The UI must automatically adapt to new statuses added in the AgrosJet system.
-5.  **Configuration:** The AgrosJet API URL and Key must be configurable from the System Admin panel's settings page, not hardcoded.
-6.  **Permission Control:** Access to the new Başvurular page must be controlled by a new  permission for admin users.
-7.  **History View:** Add a Geçmiş (History) button to each application to display its status change history in a modal.
-8.  **Filtering:** The application list should be filterable by the city of the admin's currently active company.
+**original_problem_statement:**
+The user initially reported UI layout issues and requested the removal of a tab on the Başvurular (Applications) page. This evolved into a series of feature requests and bug fixes, including:
+1.  **Phone Number Formatting:** Make phone numbers clickable  links.
+2.  **Application Notifications:** Implement a sidebar badge for new applications and real-time popover notifications via a webhook, with filtering by city and application type.
+3.  **iOS Push Notifications:** Add support for the Expo Push API for iOS devices alongside the existing Firebase (FCM) for Android.
+4.  **Courier Multi-Device & Session Management:** Resolve push notification conflicts when a courier is logged into multiple devices. The last logged-in device should receive notifications, and old sessions should be automatically logged out. This also involved fixing notification delivery race conditions and ensuring session state persists through app restarts.
+5.  **Courier Location Tracking:** Rework location tracking to be driven by the native app to remove duplicate permission prompts from the WebView.
+6.  **New Courier Notifications:** Add push notifications with emojis for order cancellations, manual un-assignments, and automatic take-backs.
+7.  **Courier UI/UX:** Add a bottom navigation bar to the courier panel.
+8.  **Migros Cancellation Issue:** Analyze and fix an issue where cancellation reasons for Migros orders were not appearing correctly. The analysis revealed the backend was parsing the wrong data field from the Migros API.
 
 **User's preferred language**: Turkish
 
 **what currently exists?**
-A new, fully functional Başvurular page has been developed and integrated into the admin panel. The backend now includes a dedicated service () and a proxy router () to communicate with the external AgrosJet API. The frontend features the new , which is permission-gated and includes a responsive, tabbed UI that dynamically displays applications, fetches status definitions from the API, and allows for status updates and viewing history. The integration settings are now fully configurable in the System Admin panel.
+The Başvurular page UI has been fixed, and phone numbers are now clickable links. A comprehensive notification system for new applications is fully functional, including a dynamic sidebar badge and real-time popover alerts filtered by city.
+
+The push notification backend is now platform-aware, intelligently routing notifications to Expo (for iOS) or FCM (for Android) based on a  field stored in the database, making the system more robust than its previous token-parsing approach.
+
+Courier session management has been significantly overhauled. A  stored in  ensures session persistence. An auto-logout mechanism correctly invalidates stale sessions on other devices, ensuring notifications are delivered to the correct, most recently used device.
+
+Courier location tracking is now driven by the native application; the web panel passively listens for location updates, which has eliminated the redundant permission prompts. New push notifications for various order events have been added, complete with emojis, and the courier panel UI has been improved with a bottom navigation bar.
+
+A precise analysis of the Migros cancellation issue is complete. The root cause is confirmed to be the backend parsing the wrong field (/ instead of ) from the Migros API response.
 
 **Last working item**:
--   Last item agent was working: Adding a Geçmiş (History) modal. A Geçmiş button was added to each application's row in the table (and to the mobile card view). Clicking this button opens a modal that displays the application's status change history ( array), showing the status, note, admin, and timestamp for each change.
+-   Last item agent was working: The agent sent a plan of action to the user via the  tool and is awaiting their approval before proceeding with the next set of tasks, starting with the fix for the Migros cancellation issue.
 -   Status: **USER VERIFICATION PENDING**
--   Agent Testing Done: Y
--   Which testing method agent to use? frontend testing agent
+-   Agent Testing Done: N/A
+-   Which testing method agent to use? backend testing agent
 -   User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   There are no pending or in-progress issues.
+-   **Issue 1:** Migros order cancellation reasons have empty labels. (P0)
+
+    -   **Issues Detail:**
+        -   **Issue 1:** Migros order cancellation reasons are appearing in the dropdown, but their text labels are empty because the backend is parsing the wrong field from the API response.
+            -   **Attempted fixes:** None. The user requested analysis only, which is now complete.
+            -   **Next debug checklist:**
+                1.  Open .
+                2.  In the  endpoint, find the list comprehension that builds .
+                3.  Change the value for the  key from  to .
+            -   **Why fix this issue and what will be achieved with the fix?** This will display the correct cancellation reason text, making the order cancellation feature for Migros fully functional and usable.
+            -   **Status:** NOT STARTED
+            -   **Is recurring issue?** Y
+            -   **Should Test frontend/backend/both after fix?** Both
+            -   **Blocked on other issue:** None
 
 **In progress Task List**:
--   There are no tasks currently in progress.
+-   None.
 
 **Upcoming and Future Tasks**
 
 **Upcoming Tasks:**
--   **(P0) Verify All Migros Fixes:** (Carried over from previous session) The user needs to confirm that all recent Migros bug fixes are working correctly in their environment.
--   **(P1) Implement VatanSMS Integration:** Based on the user's prior request, the next major feature is to implement SMS integration using VatanSMS.
--   **(P1) Implement Migros Reject Functionality:** Implement the order rejection flow for the Migros integration.
--   **(P2) Implement 30-Second Rule for Migros Cancellation:** Add validation to prevent order cancellations within 30 seconds of creation, as per Migros API rules.
+*   **(P0) Implement Fix for Migros Cancellation Labels:** Based on the latest analysis, apply the fix in .
+*   **(P0) Remove Route Creation Pin:** Automate the starting point of a route using the courier's current location instead of requiring a manual pin placement.
+*   **(P0) Verify Courier Session Fixes:** The user needs to test the comprehensive session and notification fixes with an updated native application.
+*   **(P1) Verify Courier Rota Fallback:** The user's decision on the proposed solutions for the route fallback issue is pending.
+*   **(P1) Implement VatanSMS Integration:** (Carried over)
+*   **(P1) Implement Migros Reject Functionality:** (Carried over)
+*   **(P2) Implement 30-Second Rule for Migros Cancellation:** (Carried over)
 
 **Future Tasks:**
--   **(P1)** Implement a Chrome extension to scrape Yemeksepeti orders.
--   **(P1)** Implement Stop Count Based Capacity Logic.
--   **(P1)** Address technical security requirements outlined by Yemeksepeti.
--   **(P1)** Implement  calculation on order creation.
--   **(P1)** Refactor  and  scheduled jobs.
--   **(P1)** Add a Restaurant-Based Revenue Report and a Cancellation Analysis Report.
--   **(P0)** Restaurant Courier System: A large feature for restaurants to manage their own couriers.
--   **(P2)** Investigate Caller ID integration.
--   **(P2)** Add more permissions to the courier permission system.
--   **(P2)** Investigate and potentially remove the  function.
--   **(P2)** Implement an API request monitor in the admin panel.
--   **(P2)** Develop a Native Courier App.
+*   (Carried over) Implement a Chrome extension for Yemeksepeti, Stop Count capacity logic, technical security requirements,  calculation, scheduled job refactoring, new reports, the Restaurant Courier System, Caller ID integration, more courier permissions, API request monitor, and a Native Courier App.
 
 **Completed work in this session**
--   **Feature: AgrosJet Applications Integration (End-to-End)**
-    -   **Backend:**
-        -   Created  to handle all communication with the external API.
-        -   Created  to act as a secure proxy between the frontend and the AgrosJet API.
-        -   Added endpoints to  for managing the AgrosJet API URL and Key.
-        -   Updated  to include the new  permission and company  in login responses.
-    -   **Frontend:**
-        -   Created  with a responsive UI using Muhasebe-style tabs and Kuryeler-style tables/cards.
-        -   Added a Başvurular navigation link and route to , gated by the  permission.
-        -   Added a settings card to  to configure the integration.
-        -   Added a Geçmiş (History) modal to display an application's status change history.
-    -   **Dynamic UI & Data Handling:**
-        -   The page dynamically fetches status definitions (labels, colors) from  for each application type.
-        -   Implemented a fallback mechanism to derive statuses from application data if the statuses API returns empty.
-        -   Implemented cache-busting on all API calls to ensure data is always fresh.
+-   **Courier Session & Auto-Logout Fix:** Refactored login and logout logic in  and  to correctly manage sessions using  and notify the native layer.
+-   **Platform-Aware Push Notification System:** Reworked  and  to use a  DB field for routing notifications instead of parsing token strings.
+-   **Courier Location Tracking Rework:** Removed  from  and implemented a listener for native app messages, solving the double permission prompt issue.
+-   **New Push Notifications with Emojis:** Implemented notifications for order cancellations (❌), un-assignments (🔄), and auto-unassignments (⏰).
+-   **Courier Panel UI Update:** Added a fixed bottom navigation bar in .
+-   **Migros Issue Analysis:** Conclusively identified the root cause of the cancellation reason bug using user-provided network logs.
 
 **Earlier issues found/mentioned but not fixed**
--   None.
+-   **Issue 1: Route Creation Start Pin:** The user wants to automate the starting point of a route using the courier's current location instead of requiring a manual pin. The agent analyzed this and confirmed it's feasible, but implementation is pending.
+    -   **Debug checklist:** In the route creation component, use the courier's last known location ( or fetch from backend) as the starting point instead of prompting the user.
+    -   **Why to solve this issue and what will be achieved with this?** This will improve user experience by simplifying and speeding up the route creation process.
+    -   **Should Test frontend/backend/both after fix:** Frontend
+    -   **Is recurring issue?** N
 
 **Known issue recurrence from previous fork**
 -   None.
@@ -78,18 +86,19 @@ A new, fully functional Başvurular page has been developed and integrated into 
 
 
 **Key Technical Concepts**
--   **External API Integration:** Built a complete feature around a third-party API, including  authentication, data fetching, and status updates.
--   **Backend as a Proxy (BFF):** Used the backend to proxy requests to the external API, abstracting the frontend from the third-party service and securely managing API keys.
--   **Dynamic UI Rendering:** The UI (filter buttons, status dropdowns, badges) is generated dynamically from data fetched from API endpoints, making it resilient to changes in the external system.
--   **Role-Based Access Control (RBAC):** The new page is only accessible if the admin user has the  permission.
--   **Configurable Settings:** The integration's API URL and key are managed through a dedicated settings UI, allowing for easy updates without code changes.
--   **Cache Busting:** Implemented a  parameter to ensure fresh data is fetched on every page load and tab switch.
+-   **Native-First Communication:** Shifted from WebView-led () to Native-led location tracking. The WebView now passively listens for  messages from the native app.
+-   **Platform-Aware Push Service:** The backend determines the push service (Expo vs. FCM) based on an explicit  field (android or ios) sent by the native app, which is more reliable than token parsing.
+-   **State Persistence:** Critical session information () is stored in  to survive application restarts and WebView reloads, making session management robust.
+-   **Single Source of Truth:** The  endpoint is now the definitive source for updating a courier's active device  and .
 
 **key DB schema**
--   **system_settings:** Added a new document .
--   **admins:** The  object within the admin documents was updated to support a new key: .
+-   **couriers:**
+    -    - Manages unique login sessions across devices.
+    -    - Stores  or  to determine which push service to use.
+-   **notifications:** Used for storing application () and order-related notifications.
 
 **All files of reference**
+-   
 -   
 -   
 -   
@@ -99,47 +108,49 @@ A new, fully functional Başvurular page has been developed and integrated into 
 
 **Critical Info for New Agent**
 -   **You MUST communicate in Turkish.**
--   The Başvurular feature is entirely dependent on the external AgrosJet API. The UI is designed to be highly dynamic and fetch status definitions and colors directly from API endpoints.
--   The test environment's AgrosJet API () currently only returns data for the  type. The code correctly handles this by falling back to data within the application objects for  and  types.
--   Access to the feature is gated by the  permission. The default  user has been granted this permission for testing.
+-   The immediate priority is to **fix the Migros cancellation labels**. The analysis is complete. You need to edit  and change the parsed field from / to  after getting user approval.
+-   The courier session and location system has been completely overhauled. **Do not use **. The WebView now passively listens for messages from the native app for location updates.
+-   An upcoming task is to **remove the manual pin for route creation**, automating it with the courier's current location.
+-   The last action was an  call. You are waiting for the user's response to proceed.
 
 **documents and test reports created in this job**
--   : Updated to include the new Başvurular feature requirements and implementation details.
--   : A comprehensive test report from  verifying the redesigned Başvurular page.
+-   None in the last session.
 
 **Last 10 User Messages and any pending HUMAN messages**
-10. **Request:** Add a history modal and button for . (Implemented)
-9.  **Feedback:** The Deneyim column is too narrow, and the green styling for Motosiklet is confusing. (Fixed)
-8.  **Feedback:** Noticed that status labels were not independent for each application type and were using a fallback. (Corrected)
-7.  **Report:** pending is showing instead of the Turkish label Beklemede for restaurant applications. (Fixed)
-6.  **Question:** Asked how status updates from AgrosJet would be reflected and chose the fetch on every load option. (Implemented)
-5.  **Report:** The status badge in the table row doesn't have the correct color/label before the dropdown is clicked. (Fixed)
-4.  **Report:** The status dropdown only shows statuses present in the current data, not all possible statuses from the API. (Fixed)
-3.  **Report:** Status labels were showing the raw code (e.g., new), and several data columns were missing from the tables. (Fixed)
-2.  **Request:** A major redesign of the page to match the UI of the Muhasebe (tabs) and Kuryeler (table) pages, and to filter by city. (Implemented)
-1.  **Request:** Acknowledge understanding of the provided API documentation and confirm the plan. (Done)
+10. **User confirms**  (backend-only) approach for fixing the auto-logout issue.
+9.  **User reports** auto-logout is working, but now no notifications are being sent to either device.
+8.  **User asks** for clarification on when the new push token is written during login and how the system knows whether it's for Android or iOS.
+7.  **User asks** if the agent can proceed with a solution for the timing issue.
+6.  **User asks** if it's possible to get rid of the extra location permission prompt from the WebView.
+5.  **User provides instructions** for the web team to integrate with the new native location methods.
+4.  **User requests** adding a bottom navigation bar to the courier panel.
+3.  **User provides console logs** and asks for another analysis of the Migros cancellation reason issue.
+2.  **User provides network request/response details** for the failing Migros API call.
+1.  **User asks to ** after the agent analyzes the API documentation.
+-   **Pending Human Message:** The agent has sent a plan of action via  and is waiting for the user's response.
 
 **Project Health Check:**
--   **Broken:** None
--   **Mocked:** The external AgrosJet API is being hit, but the data it returns is from a test environment. The  endpoint is returning empty for  and , for which the agent has implemented a graceful fallback.
+-   **Broken:**
+    -   The Migros order cancellation feature is partially broken (reasons display with empty labels).
+-   **Mocked:**
+    -   External APIs (AgrosJet, Migros, etc.) are returning test environment data.
 
 **3rd Party Integrations**
--   **AgrosJet.com API:** A new integration for fetching and managing applications.
--   All other existing integrations (Adisyo, Getir, Trendyol, etc.) remain.
+-   **AgrosJet.com API:** For fetching and managing applications.
+-   **Expo Push Notifications:** For sending push notifications to iOS and new Android builds.
+-   **Firebase Cloud Messaging (FCM):** For sending push notifications to older Android builds.
+-   **Migros, Adisyo, Getir, Trendyol:** Existing integrations for order management.
 
 **Testing status**
--   Testing agent used after significant changes: YES
+-   Testing agent used after significant changes: NO
 -   Troubleshoot agent used after agent stuck in loop: NO
 -   Test files created: []
--   Known regressions: None
+-   Known regressions: None.
 
 **Credentials to test flow:**
--   **System Admin Panel (for settings):**
-    -   User: 
-    -   Password: 
--   **Company Admin Panel (for feature):**
-    -   User: 
-    -   Password: 
+-   **System Admin Panel:** User: , Password: 
+-   **Company Admin Panel:** User: , Password: 
+-   **Courier Panel:** User/Phone: , Password: 
 
 **What agent forgot to execute**
--   Nothing. The agent successfully addressed all user requests and feedback in this session.</analysis>
+-   Nothing. The agent systematically addressed a complex chain of interconnected issues, analyzed them, and implemented fixes or prepared for them based on user feedback.</analysis>
