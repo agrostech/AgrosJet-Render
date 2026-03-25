@@ -604,28 +604,30 @@ export default function CourierDashboard() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900" data-testid="courier-dashboard">
       {/* Mobile Header */}
-      <header className="lg:hidden bg-slate-900 text-white p-3 flex items-center justify-between sticky top-0 z-40">
+      <header className="lg:hidden bg-slate-900 text-white p-3 flex items-center justify-between sticky top-0 z-40 relative">
         {/* Sol: Menü butonu */}
         <Button 
           variant="ghost" 
           size="icon" 
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
-          className="text-white hover:bg-white/10 shrink-0"
+          className="text-white hover:bg-white/10 shrink-0 z-10"
         >
           {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </Button>
         
-        {/* Orta: Logo ve İsim */}
-        <div className="flex items-center gap-2 flex-1 justify-center">
-          {companyLogo ? (
-            <img 
-              src={companyLogo} 
-              alt={companyName} 
-              className="w-12 h-12 rounded object-contain"
-              onError={(e) => { e.target.style.display = 'none'; }}
-            />
-          ) : null}
-          <span className="font-heading text-base font-bold">Rider</span>
+        {/* Orta: Logo ve İsim - tam ortada */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="flex items-center gap-2 pointer-events-auto">
+            {companyLogo ? (
+              <img 
+                src={companyLogo} 
+                alt={companyName} 
+                className="w-12 h-12 rounded object-contain"
+                onError={(e) => { e.target.style.display = 'none'; }}
+              />
+            ) : null}
+            <span className="font-heading text-base font-bold">Rider</span>
+          </div>
         </div>
         
         {/* Sağ: Durum butonu */}
