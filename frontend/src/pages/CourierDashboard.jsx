@@ -615,59 +615,59 @@ export default function CourierDashboard() {
           {mobileMenuOpen ? <X className="!w-5 !h-5" /> : <Menu className="!w-5 !h-5" />}
         </Button>
         
-        {/* Orta: Logo - tam ortada */}
+        {/* Orta: Durum butonu - tam ortada */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="flex items-center gap-2 pointer-events-auto">
-            {companyLogo ? (
-              <img 
-                src={companyLogo} 
-                alt={companyName} 
-                className="w-12 h-12 rounded object-contain"
-                onError={(e) => { e.target.style.display = 'none'; }}
-              />
-            ) : null}
+          <div className="pointer-events-auto">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button 
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${currentStatus.color} text-white`}
+                  disabled={statusLoading}
+                  data-testid="mobile-status-dropdown"
+                >
+                  <StatusIcon className="w-4 h-4" />
+                  <span className="text-xs font-medium">{currentStatus.label}</span>
+                  <ChevronDown className="w-3 h-3" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" className="w-48">
+                {Object.entries(AVAILABILITY_STATUSES).map(([key, status]) => {
+                  const Icon = status.icon;
+                  const isOnBreak = key === "on_break";
+                  return (
+                    <DropdownMenuItem
+                      key={key}
+                      onClick={() => handleStatusChange(key)}
+                      className={`flex items-center justify-between ${availabilityStatus === key ? 'bg-accent' : ''}`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${status.color}`} />
+                        <Icon className="w-4 h-4" />
+                        {status.label}
+                      </div>
+                      {isOnBreak && breakStatus && (
+                        <span className={`text-xs ${breakStatus.remaining_break_time <= 5 ? 'text-red-500' : 'text-muted-foreground'}`}>
+                          (Kalan {breakStatus.remaining_break_time}dk)
+                        </span>
+                      )}
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
         
-        {/* Sağ: Durum butonu */}
-        <div className="shrink-0">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button 
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${currentStatus.color} text-white`}
-                disabled={statusLoading}
-                data-testid="mobile-status-dropdown"
-              >
-                <StatusIcon className="w-4 h-4" />
-                <span className="text-xs font-medium">{currentStatus.label}</span>
-                <ChevronDown className="w-3 h-3" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              {Object.entries(AVAILABILITY_STATUSES).map(([key, status]) => {
-                const Icon = status.icon;
-                const isOnBreak = key === "on_break";
-                return (
-                  <DropdownMenuItem
-                    key={key}
-                    onClick={() => handleStatusChange(key)}
-                    className={`flex items-center justify-between ${availabilityStatus === key ? 'bg-accent' : ''}`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${status.color}`} />
-                      <Icon className="w-4 h-4" />
-                      {status.label}
-                    </div>
-                    {isOnBreak && breakStatus && (
-                      <span className={`text-xs ${breakStatus.remaining_break_time <= 5 ? 'text-red-500' : 'text-muted-foreground'}`}>
-                        (Kalan {breakStatus.remaining_break_time}dk)
-                      </span>
-                    )}
-                  </DropdownMenuItem>
-                );
-              })}
-            </DropdownMenuContent>
-          </DropdownMenu>
+        {/* Sağ: Logo */}
+        <div className="shrink-0 z-10">
+          {companyLogo ? (
+            <img 
+              src={companyLogo} 
+              alt={companyName} 
+              className="w-10 h-10 rounded object-contain"
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
+          ) : null}
         </div>
       </header>
 
