@@ -1,54 +1,48 @@
 # AgrosJet Delivery Management System - PRD
 
 ## Original Problem Statement
-Delivery management system for courier companies. Multi-platform order aggregation (Getir, Trendyol, Migros, Yemeksepeti, Adisyo), courier management, shift system, financial tracking, restaurant panel.
+Multi-platform delivery management system integrating with Migros, Getir, Trendyol, Adisyo, Yemeksepeti, and SepetTakip. Includes admin panel, restaurant panel, and courier panel.
 
-## User Language
-Turkish (All communication in Turkish)
+## Architecture
+- Backend: FastAPI + MongoDB
+- Frontend: React + Shadcn/UI
+- Services: migros_service, getir_service, trendyol_service, adisyo_service, yemeksepeti_service
 
-## Core Architecture
-- **Backend:** FastAPI + MongoDB (Motor async driver)
-- **Frontend:** React + Shadcn/UI + TailwindCSS
-- **Push Notifications:** Dual system - Expo Push API (iOS/new Android) + Firebase FCM (old Android)
-- **External APIs:** AgrosJet, Getir, Trendyol, Migros, Adisyo, Yemeksepeti
+## Payment System Standard
+- `payment_type` / `payment_method`: Internal code (cash, card, online, meal_card, online_meal_card) — for reports
+- `payment_method_detail`: Display name — for frontend (Migros: "Kapıda Ödeme - Sodexo", Adisyo: "Sodexo" etc.)
+- `payment_method_name`: Getir-specific display name field
 
-## What's Been Implemented
+## Completed (March 2026)
+- Migros cancel reasons: `description` field parsed instead of `name`/`label`
+- Migros option prices: `unit_price` + `quantity` display (4x Tatlı Patates format)
+- Migros total price: Fixed variable collision in webhooks.py
+- Migros payment type: Added SODEXO/PAYE/MULTINET/TICKET/SETCARD/METROPOL to payment_type_map
+- Migros payment display: `payment_method` = internal code, `payment_method_detail` = Migros description
+- Frontend payment display: Admin + Restaurant panels show `payment_method_detail` when available
+- Courier session management & auto-logout
+- Platform-aware push notifications (Expo/FCM)
+- Native-driven courier location tracking
+- Emoji push notifications (cancel, unassign, auto-unassign)
+- Courier bottom navigation bar
+- Application notifications with sidebar badge
 
-### Session & Push Notification System (Latest - March 2026)
-- **Login clears old fcm_token:** Prevents notifications going to old device during login transition
-- **Auto-logout notifies native:** `notifyLogout()` called during forced logout so native stops location tracking
-- **push_session_id in localStorage:** Persists across app restarts (was sessionStorage before - lost on restart)
-- **POST /courier/fcm-token session validation:** Alternate endpoint now validates session_id
-- **Dual push system:** ExponentPushToken → Expo API, FCM token → Firebase
+## P0 - Critical (Next)
+1. Route creation pin removal — auto-use courier's current location
+2. Courier session fixes verification with native app
 
-### Application (Başvurular) System
-- Removed "Şirket" tab
-- Clickable phone numbers with tel: links
-- Sidebar badge showing new application count from AgrosJet API
-- Webhook notifications filtered by city and application type
-- Mark-as-read on page visit
+## P1 - High
+3. VatanSMS integration
+4. Migros "Reject" functionality
+5. Courier Rota Fallback verification
 
-### Courier Multi-Device Management
-- push_session_id based session tracking
-- Auto-logout for stale sessions via 10s polling
-- Token clearing only on explicit logout from active session
-
-## Pending Issues
-
-### P0 - Critical
-1. **Migros Cancellation Reasons:** ✅ FIXED (Feb 2026) — Dropdown was showing empty labels because code parsed `name`/`label` fields from Migros V2 API response, but the correct field is `description`. Fixed in `orders.py` line 1583.
-
-### P0 - Awaiting User Decision
-2. **Courier Route Creation Fallback:** "Create Route" defaults to restaurant location when courier GPS unavailable. Solutions proposed, user decision pending.
-
-### P1
-3. **VatanSMS Integration** 
-4. **Migros "Reject" Functionality**
-5. **Migros 30-Second Cancellation Rule**
+## P2 - Medium
+6. Migros 30-second cancellation rule
 
 ## Future/Backlog
-- Chrome Extension (Yemeksepeti)
+- Chrome extension for Yemeksepeti
 - Stop Count capacity logic
+- Technical security requirements
 - restaurant_fee calculation
 - Scheduled job refactoring
 - New reports
@@ -58,12 +52,7 @@ Turkish (All communication in Turkish)
 - API request monitor
 - Native Courier App
 
-## Key DB Schema
-- **couriers:** `fcm_token`, `push_session_id`, `current_location`, `fcm_platform`, `fcm_token_updated_at`
-- **notifications:** `basvuru` type for application alerts
-- **company_couriers:** courier-company relations with `is_active` flag
-
-## Credentials (Test)
-- Admin: `onurertas` / `Delivery32..`
+## Test Credentials
+- System Admin: `onurertas` / `Delivery32..`
 - Company Admin: `admin` / `123456`
 - Courier: `05553331122` / `123456`
