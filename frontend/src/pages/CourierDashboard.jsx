@@ -822,8 +822,8 @@ export default function CourierDashboard() {
                   data-testid={`bottom-bar-${item.key}`}
                   className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
                     isActive 
-                      ? "text-blue-600 dark:text-blue-400" 
-                      : "text-slate-500 dark:text-slate-400"
+                      ? "text-slate-900 dark:text-white" 
+                      : "text-slate-400 dark:text-slate-500"
                   }`}
                 >
                   <Icon className={`w-5 h-5 ${isActive ? "stroke-[2.5]" : "stroke-[1.5]"}`} />
