@@ -1291,13 +1291,12 @@ function PaymentConfirmModal({ order, open, onConfirm, onCancel, loading }) {
         <div className="space-y-4">
           {/* Sipariş bilgisi */}
           <div className={`p-3 rounded-lg ${paymentInfo.bg} border`}>
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between">
               <span className="text-sm font-semibold">{order.customer_name}</span>
               <span className={`text-sm font-bold ${paymentInfo.color}`}>
                 {formatCurrency(totalAmount)}
               </span>
             </div>
-            <p className="text-xs text-muted-foreground">{order.order_number}</p>
           </div>
 
           {/* Ödeme Modu Seçimi */}
