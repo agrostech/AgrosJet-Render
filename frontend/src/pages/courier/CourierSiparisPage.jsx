@@ -932,7 +932,7 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
       {/* Status bar: durum · süre | ödeme · tutar */}
       <div className={`${sc.color} px-3 py-1.5 flex items-center justify-between`}>
         <span className="text-[11px] font-bold text-white flex items-center gap-1">
-          {isLate && <AlertCircle className="w-3.5 h-3.5 text-red-400 animate-pulse" />}
+          {isLate && <span className="bg-red-500 rounded-full p-0.5 animate-pulse"><AlertCircle className="w-3.5 h-3.5 text-white" /></span>}
           {sc.label}{age ? ` · ${age}` : ''}
         </span>
         <span className="text-[11px] font-bold text-white flex items-center gap-2">
