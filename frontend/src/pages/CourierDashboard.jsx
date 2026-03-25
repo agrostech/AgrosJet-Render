@@ -612,7 +612,7 @@ export default function CourierDashboard() {
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
           className="text-white hover:bg-white/10 shrink-0 z-10"
         >
-          {mobileMenuOpen ? <X className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
+          {mobileMenuOpen ? <X className="w-9 h-9" /> : <Menu className="w-9 h-9" />}
         </Button>
         
         {/* Orta: Logo ve İsim - tam ortada */}
