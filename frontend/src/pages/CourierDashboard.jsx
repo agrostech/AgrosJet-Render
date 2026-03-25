@@ -625,7 +625,7 @@ export default function CourierDashboard() {
               onError={(e) => { e.target.style.display = 'none'; }}
             />
           ) : null}
-          <span className="font-heading text-base font-bold">{formatCourierName(user.name)}</span>
+          <span className="font-heading text-base font-bold">Rider</span>
         </div>
         
         {/* Sağ: Durum butonu */}
