@@ -40,12 +40,16 @@ const formatCourierName = (name) => {
   return `${firstName} ${middleInitials} ${lastName}`;
 };
 
-// Yeni sıralama - relative paths (courierId ile birleştirilecek)
-const getNavItems = (basePath) => [
+// Bottom bar itemları (mobilde alt bar, masaüstünde sidebar'da da görünür)
+const getBottomBarItems = (basePath) => [
   { path: basePath, label: "Siparişler", icon: ClipboardList, key: "siparis" },
-  { path: `${basePath}/vardiyalar`, label: "Vardiyalarım", icon: Clock, key: "vardiya" },
+  { path: `${basePath}/vardiyalar`, label: "Vardiyalar", icon: Clock, key: "vardiya" },
   { path: `${basePath}/muhasebe`, label: "Muhasebe", icon: Calculator, key: "muhasebe" },
   { path: `${basePath}/raporlar`, label: "Raporlar", icon: BarChart3, key: "raporlar" },
+];
+
+// Sidebar-only itemlar (bottom bar'da görünmez)
+const getSidebarItems = (basePath) => [
   { path: `${basePath}/zimmet`, label: "Zimmetlerim", icon: Package, key: "zimmet" },
   { path: `${basePath}/motosikletim`, label: "Motosikletim", icon: Bike, key: "motosikletim" },
   { path: `${basePath}/akademi`, label: "Akademi", icon: GraduationCap, key: "akademi" },
@@ -73,6 +77,8 @@ export default function CourierDashboard() {
   const [documentsComplete, setDocumentsComplete] = useState(true);
   const [maintenanceNotifications, setMaintenanceNotifications] = useState(0);
   const [navItems, setNavItems] = useState([]);
+  const [bottomBarItems, setBottomBarItems] = useState([]);
+  const [sidebarOnlyItems, setSidebarOnlyItems] = useState([]);
   const [availabilityStatus, setAvailabilityStatus] = useState("offline");
   const [statusLoading, setStatusLoading] = useState(false);
   const [breakStatus, setBreakStatus] = useState(null);
@@ -84,7 +90,9 @@ export default function CourierDashboard() {
   
   // NavItems'ı basePath değiştiğinde güncelle
   useEffect(() => {
-    setNavItems(getNavItems(basePath));
+    setNavItems([...getBottomBarItems(basePath), ...getSidebarItems(basePath)]);
+    setBottomBarItems(getBottomBarItems(basePath));
+    setSidebarOnlyItems(getSidebarItems(basePath));
   }, [basePath]);
   
   // Refs for background task management
@@ -704,9 +712,9 @@ export default function CourierDashboard() {
             </button>
           </div>
           
-          {/* Menu Items */}
+          {/* Menu Items - Sadece sidebar-only itemlar */}
           <div className="p-3 space-y-1 overflow-y-auto max-h-[calc(100vh-140px)]">
-            {navItems.map((item) => (
+            {sidebarOnlyItems.map((item) => (
               <Link 
                 key={item.path} 
                 to={item.path} 
@@ -717,7 +725,7 @@ export default function CourierDashboard() {
               >
                 <item.icon className="w-5 h-5" />
                 <span className="text-sm font-medium">{item.label}</span>
-                {item.path === "/courier/motosikletim" && maintenanceNotifications > 0 && (
+                {item.path.includes("/motosikletim") && maintenanceNotifications > 0 && (
                   <span className="ml-auto w-5 h-5 bg-white text-primary text-[10px] font-bold rounded-full flex items-center justify-center">
                     {maintenanceNotifications}
                   </span>
@@ -796,11 +804,37 @@ export default function CourierDashboard() {
             </Routes>
           </div>
           
-          {/* Footer */}
-          <footer className="bg-white dark:bg-slate-800 border-t dark:border-slate-700 py-2 text-center">
-            <span className="text-[10px] text-muted-foreground">© 2026 AgrosJet · Powered by AgrosTech.</span>
-          </footer>
+          {/* Bottom Bar için alt boşluk */}
+          <div className="h-16" />
         </main>
+
+        {/* Bottom Navigation Bar */}
+        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 safe-area-bottom" data-testid="courier-bottom-bar">
+          <div className="flex items-center justify-around h-14 max-w-lg mx-auto">
+            {bottomBarItems.map((item) => {
+              const isActive = location.pathname === item.path || 
+                (item.key === "siparis" && location.pathname === basePath);
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.key}
+                  to={item.path}
+                  data-testid={`bottom-bar-${item.key}`}
+                  className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
+                    isActive 
+                      ? "text-blue-600 dark:text-blue-400" 
+                      : "text-slate-500 dark:text-slate-400"
+                  }`}
+                >
+                  <Icon className={`w-5 h-5 ${isActive ? "stroke-[2.5]" : "stroke-[1.5]"}`} />
+                  <span className={`text-[10px] mt-0.5 ${isActive ? "font-semibold" : "font-medium"}`}>
+                    {item.label}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
       </div>
 
       {/* Mola Modalı */}
