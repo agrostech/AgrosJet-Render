@@ -961,7 +961,7 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
         <div className="flex items-center h-8">
           <User className="w-3.5 h-3.5 text-blue-500 flex-shrink-0 mr-2" />
           <span className="text-[13px] font-medium text-slate-700 truncate">{order.customer_name}</span>
-          {dist && <span className="text-[10px] text-slate-400 ml-1.5 flex-shrink-0">{dist}</span>}
+          {dist && <span className="text-[11px] text-slate-600 font-medium ml-1.5 flex-shrink-0">{dist}</span>}
           <span className="flex-1" />
           <Ic onClick={onCall} icon={Phone} cls="bg-blue-50 text-blue-500" tid={`call-customer-btn-${order.id}`} />
           <Ic onClick={onOpenMaps} icon={Navigation} cls="bg-blue-50 text-blue-500 ml-1" tid={`navigate-customer-btn-${order.id}`} />
