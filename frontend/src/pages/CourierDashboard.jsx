@@ -615,7 +615,7 @@ export default function CourierDashboard() {
           {mobileMenuOpen ? <X className="w-9 h-9" /> : <Menu className="w-9 h-9" />}
         </Button>
         
-        {/* Orta: Logo ve İsim - tam ortada */}
+        {/* Orta: Logo - tam ortada */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="flex items-center gap-2 pointer-events-auto">
             {companyLogo ? (
@@ -626,7 +626,6 @@ export default function CourierDashboard() {
                 onError={(e) => { e.target.style.display = 'none'; }}
               />
             ) : null}
-            <span className="font-heading text-base font-bold">Rider</span>
           </div>
         </div>
         
