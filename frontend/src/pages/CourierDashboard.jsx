@@ -604,7 +604,7 @@ export default function CourierDashboard() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900" data-testid="courier-dashboard">
       {/* Mobile Header */}
-      <header className="lg:hidden bg-slate-900 text-white p-3 flex items-center justify-between">
+      <header className="lg:hidden bg-slate-900 text-white p-3 flex items-center justify-between sticky top-0 z-40">
         {/* Sol: Menü butonu */}
         <Button 
           variant="ghost" 
