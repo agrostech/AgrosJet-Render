@@ -936,7 +936,9 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
           {sc.label}{age ? ` · ${age}` : ''}
         </span>
         <span className="text-[11px] font-bold text-white flex items-center gap-2">
-          {order.payment_method !== 'online' && (
+          {order.payment_method === 'online' ? (
+            <span className="text-[10px] text-white/80">Online</span>
+          ) : (
             <span className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${
               order.payment_method === 'cash' ? 'bg-green-500 text-white' :
               order.payment_method === 'card' ? 'bg-blue-500 text-white' :
