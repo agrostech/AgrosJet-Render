@@ -928,8 +928,13 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
       {/* Status bar: durum · süre | ödeme · tutar */}
       <div className={`${sc.color} px-3 py-1.5 flex items-center justify-between`}>
         <span className="text-[11px] font-bold text-white">{sc.label}{age ? ` · ${age}` : ''}</span>
-        <span className="text-[11px] font-bold text-white flex items-center gap-1.5">
-          <span className="text-white/70 flex items-center gap-0.5 text-[10px]"><PI className="w-3 h-3" />{getPaymentLabel(order)}</span>
+        <span className="text-[11px] font-bold text-white flex items-center gap-2">
+          <span className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+            order.payment_method === 'cash' ? 'bg-green-400/30 text-green-100' :
+            order.payment_method === 'card' ? 'bg-blue-400/30 text-blue-100' :
+            (order.payment_method === 'meal_card' || order.payment_method === 'online_meal_card') ? 'bg-yellow-400/30 text-yellow-100' :
+            'bg-purple-400/30 text-purple-100'
+          }`}><PI className="w-3 h-3" />{getPaymentLabel(order)}</span>
           {formatCurrency(order.total_amount)}
         </span>
       </div>
