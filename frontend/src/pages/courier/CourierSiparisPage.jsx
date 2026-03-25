@@ -909,6 +909,10 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
   const age = getOrderAgeText(order);
   const dist = getOrderDistance(order);
 
+  // Süre uyarısı: onaylandı >15dk, yolda >35dk
+  const ageMinutes = order.created_at ? Math.floor((Date.now() - new Date(order.created_at).getTime()) / 60000) : 0;
+  const isLate = (isConfirmed && ageMinutes > 15) || (isOnTheWay && ageMinutes > 35);
+
   const callRest = () => order.restaurant_phone ? (window.location.href = `tel:${order.restaurant_phone}`) : alert("Telefon bulunamadı");
 
   const note = order.notes?.includes("CUSTOMER:") ? (() => {
@@ -926,8 +930,11 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
   return (
     <div className="rounded-lg border border-slate-200 bg-white overflow-hidden" data-testid={`active-order-card-${order.id}`}>
       {/* Status bar: durum · süre | ödeme · tutar */}
-      <div className={`${sc.color} px-3 py-1.5 flex items-center justify-between`}>
-        <span className="text-[11px] font-bold text-white">{sc.label}{age ? ` · ${age}` : ''}</span>
+      <div className={`${isLate ? 'bg-red-600' : sc.color} px-3 py-1.5 flex items-center justify-between transition-colors`}>
+        <span className="text-[11px] font-bold text-white flex items-center gap-1">
+          {isLate && <AlertCircle className="w-3.5 h-3.5 animate-pulse" />}
+          {sc.label}{age ? ` · ${age}` : ''}
+        </span>
         <span className="text-[11px] font-bold text-white flex items-center gap-2">
           <span className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${
             order.payment_method === 'cash' ? 'bg-green-500 text-white' :
@@ -962,7 +969,7 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
 
         {/* Adres (varsa) */}
         {order.delivery_address && (
-          <div className="text-[11px] text-slate-400 truncate pl-[22px] mt-0.5 leading-tight">{order.delivery_address}</div>
+          <div className="text-[11px] text-slate-600 pl-[22px] mt-0.5 leading-relaxed line-clamp-2">{order.delivery_address}</div>
         )}
 
         {/* Müşteri notu */}
