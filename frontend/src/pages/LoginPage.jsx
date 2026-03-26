@@ -73,7 +73,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: "radial-gradient(ellipse at 20% 50%, rgba(30, 58, 95, 0.9) 0%, rgba(15, 23, 42, 0.95) 50%), radial-gradient(ellipse at 80% 20%, rgba(225, 60, 16, 0.15) 0%, transparent 50%), radial-gradient(ellipse at 60% 80%, rgba(225, 60, 16, 0.1) 0%, transparent 40%), linear-gradient(135deg, #1e3a5f 0%, #0f172a 40%, #1a1a2e 70%, #0f172a 100%)" }}>
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: "radial-gradient(ellipse at 30% 30%, rgba(203, 213, 225, 0.6) 0%, transparent 50%), radial-gradient(ellipse at 70% 60%, rgba(148, 163, 184, 0.4) 0%, transparent 50%), radial-gradient(ellipse at 20% 80%, rgba(225, 60, 16, 0.08) 0%, transparent 40%), radial-gradient(ellipse at 90% 20%, rgba(225, 60, 16, 0.06) 0%, transparent 35%), linear-gradient(160deg, #e2e8f0 0%, #cbd5e1 25%, #94a3b8 50%, #cbd5e1 75%, #e2e8f0 100%)" }}>
       {/* Centered Card */}
       <div className="w-full max-w-[900px] flex rounded-2xl overflow-hidden shadow-2xl shadow-black/40">
         
