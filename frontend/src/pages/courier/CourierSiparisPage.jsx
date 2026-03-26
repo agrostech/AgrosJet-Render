@@ -298,8 +298,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       }
     }
     
-    // Google Maps URL oluştur
-    const origin = `${startLat},${startLng}`;
+    // Google Maps URL oluştur - origin verilmez, cihazın GPS'i otomatik başlangıç noktası olur
     const destination = `${bestRoute[bestRoute.length - 1].delivery_location.latitude},${bestRoute[bestRoute.length - 1].delivery_location.longitude}`;
     
     const waypoints = bestRoute
@@ -307,7 +306,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       .map(o => `${o.delivery_location.latitude},${o.delivery_location.longitude}`)
       .join("|");
     
-    let mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving`;
+    let mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination}&travelmode=driving`;
     if (waypoints) {
       mapsUrl += `&waypoints=${encodeURIComponent(waypoints)}`;
     }
