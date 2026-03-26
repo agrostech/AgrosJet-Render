@@ -118,8 +118,7 @@ const PLATFORM_CONFIG = {
       { key: "api_key", label: "API Key (XApiKey)", type: "password", required: true, placeholder: "Migros API Key" },
       { key: "secret_key", label: "Secret Key", type: "password", required: true, placeholder: "Şifreleme için Secret Key (32 karakter)" },
       { key: "store_id", label: "Store ID", type: "text", required: true, placeholder: "Restoran ID (örn: 23000000101833)" },
-      { key: "store_group_id", label: "Zincir ID (Store Group)", type: "text", required: false, placeholder: "Store Group ID (örn: 1054)" },
-      { key: "is_test", label: "Test Ortamı", type: "checkbox", required: false }
+      { key: "store_group_id", label: "Zincir ID (Store Group)", type: "text", required: false, placeholder: "Store Group ID (örn: 1054)" }
     ],
     helpText: "API bilgilerini Migros Yemek entegrasyon ekibinden alabilirsiniz. Webhook tabanlı çalışır - siparişler otomatik olarak gelir.",
     helpUrl: null,
@@ -660,36 +659,6 @@ export default function IntegrationStoresManager({ restaurantId }) {
                           <Settings className="w-4 h-4 mr-1" />
                           Düzenle
                         </Button>
-
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleTest(store.id)}
-                          disabled={testing[store.id]}
-                        >
-                          {testing[store.id] ? (
-                            <RefreshCw className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Link2 className="w-4 h-4" />
-                          )}
-                          <span className="ml-1">Test</span>
-                        </Button>
-
-                        {store.connected && platformKey !== "yemeksepeti" && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleSync(store.id)}
-                            disabled={syncing[store.id]}
-                          >
-                            {syncing[store.id] ? (
-                              <RefreshCw className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <RefreshCw className="w-4 h-4" />
-                            )}
-                            <span className="ml-1">Senkronize</span>
-                          </Button>
-                        )}
 
                         <Button
                           size="sm"

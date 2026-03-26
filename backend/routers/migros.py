@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/migros", tags=["Migros Yemek"])
 
 # Test ortamı bilgileri
-MIGROS_TEST_SECRET = "YRwPHEl09DTCFkw5qrAHswr9e4h7Wex7"
+MIGROS_TEST_SECRET = "oPbkAZjSO6HDD0E0wt9GR5IVQWNNgpFA"
 
 
 class MigrosConfigRequest(BaseModel):
@@ -77,7 +77,7 @@ async def test_encryption():
         service = MigrosYemekService(
             api_key="test",
             secret_key=MIGROS_TEST_SECRET,
-            is_test=True
+            is_test=False
         )
         
         # Test verisi
@@ -111,7 +111,7 @@ async def get_order_status_list(api_key: str):
         service = MigrosYemekService(
             api_key=api_key,
             secret_key=MIGROS_TEST_SECRET,
-            is_test=True
+            is_test=False
         )
         
         result = await service.get_order_status_list()
@@ -131,7 +131,7 @@ async def get_cancel_reasons(api_key: str):
         service = MigrosYemekService(
             api_key=api_key,
             secret_key=MIGROS_TEST_SECRET,
-            is_test=True
+            is_test=False
         )
         
         result = await service.get_cancel_reasons()

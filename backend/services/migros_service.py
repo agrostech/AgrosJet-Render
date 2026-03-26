@@ -42,7 +42,7 @@ MIGROS_PROD_URL = "https://gourmet.migrosonline.com"
 class MigrosYemekService:
     """Migros Yemek API entegrasyon servisi"""
     
-    def __init__(self, api_key: str, secret_key: str, is_test: bool = True):
+    def __init__(self, api_key: str, secret_key: str, is_test: bool = False):
         self.api_key = api_key
         self.secret_key = secret_key
         self.base_url = MIGROS_TEST_URL if is_test else MIGROS_PROD_URL

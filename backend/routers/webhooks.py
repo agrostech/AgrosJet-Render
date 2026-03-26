@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 from services.integration_log_service import save_integration_log as _save_log
 
 # Migros Secret Key - .env'den al (tüm restoranlar için ortak)
-MIGROS_SECRET_KEY = os.environ.get("MIGROS_SECRET_KEY", "YRwPHEl09DTCFkw5qrAHswr9e4h7Wex7")
+MIGROS_SECRET_KEY = "oPbkAZjSO6HDD0E0wt9GR5IVQWNNgpFA"
 
 
 # ==================== GETİR WEBHOOKS ====================
