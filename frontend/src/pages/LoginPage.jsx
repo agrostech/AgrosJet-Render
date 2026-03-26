@@ -79,7 +79,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundImage: "url('https://static.prod-images.emergentagent.com/jobs/dfe6f827-18c8-44fa-9707-d7a9c2d6e4a6/images/82a43274b9a58b03a98e96b8cd421b48d55998e40d54d5fd3b0cd24ecb44f9fd.png')", backgroundSize: "cover", backgroundPosition: "center" }}>
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundImage: "url('https://static.prod-images.emergentagent.com/jobs/dfe6f827-18c8-44fa-9707-d7a9c2d6e4a6/images/df1ee712afbdbe4a80c6c8d13bb106900f89ddc6a7a9eff3309ca29c9ca23dea.png')", backgroundSize: "cover", backgroundPosition: "center" }}>
       {/* Centered Card */}
       <div className="w-full max-w-[900px] flex rounded-2xl overflow-hidden shadow-2xl shadow-black/40">
         
