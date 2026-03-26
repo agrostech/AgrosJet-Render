@@ -12,6 +12,7 @@ from io import BytesIO
 
 from utils.database import db
 from utils.helpers import get_turkey_now, ensure_turkey_timezone, TURKEY_TZ
+from services.r2_storage import upload_file_to_r2
 
 router = APIRouter(prefix="/api/business-invoices", tags=["İşletme Faturaları"])
 
@@ -338,14 +339,20 @@ async def upload_invoice(
     if len(content) > 10 * 1024 * 1024:  # 10MB limit
         raise HTTPException(status_code=400, detail="Dosya boyutu 10MB'dan büyük olamaz")
     
-    # Convert to base64
-    file_base64 = base64.b64encode(content).decode('utf-8')
+    # Upload to R2
     file_extension = file.filename.split('.')[-1].lower()
+    r2_key = f"business-invoices/{company_id}/{year}/{month}/{business_id}/{str(uuid.uuid4())}.{file_extension}"
+    content_type = file.content_type or "application/pdf"
+    
+    upload_result = await upload_file_to_r2(content, r2_key, content_type)
+    if not upload_result['success']:
+        raise HTTPException(status_code=503, detail="Dosya depolama servisi (Cloudflare R2) yapılandırılmamış. Sistem ayarlarından R2 bağlantısını yapın.")
     
     # Create invoice object
     invoice_obj = {
         "invoice_id": str(uuid.uuid4()),
-        "file_data": file_base64,
+        "r2_key": r2_key,
+        "storage_type": "r2",
         "filename": file.filename,
         "extension": file_extension,
         "uploaded_at": get_turkey_now()

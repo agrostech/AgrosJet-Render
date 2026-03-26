@@ -343,37 +343,23 @@ async def upload_invoice(
     content_type = "application/pdf" if ext == "pdf" else f"image/{ext}"
     upload_result = await upload_file_to_r2(contents, r2_key, content_type)
     
-    if upload_result.get("success"):
-        invoice_data = {
-            "id": invoice_id,
-            "company_id": company_id,
-            "restaurant_id": restaurant_id,
-            "week_start": week_start,
-            "week_label": week_label,
-            "filename": filename,
-            "r2_key": r2_key,
-            "storage_type": "r2",
-            "file_extension": ext,
-            "uploaded_at": now.isoformat(),
-            "uploaded_by_id": admin_id,
-            "uploaded_by_name": admin_name
-        }
-    else:
-        # Fallback to base64
-        invoice_data = {
-            "id": invoice_id,
-            "company_id": company_id,
-            "restaurant_id": restaurant_id,
-            "week_start": week_start,
-            "week_label": week_label,
-            "filename": filename,
-            "file_data": base64.b64encode(contents).decode("utf-8"),
-            "storage_type": "base64",
-            "file_extension": ext,
-            "uploaded_at": now.isoformat(),
-            "uploaded_by_id": admin_id,
-            "uploaded_by_name": admin_name
-        }
+    if not upload_result.get("success"):
+        raise HTTPException(status_code=503, detail="Dosya depolama servisi (Cloudflare R2) yapılandırılmamış. Sistem ayarlarından R2 bağlantısını yapın.")
+    
+    invoice_data = {
+        "id": invoice_id,
+        "company_id": company_id,
+        "restaurant_id": restaurant_id,
+        "week_start": week_start,
+        "week_label": week_label,
+        "filename": filename,
+        "r2_key": r2_key,
+        "storage_type": "r2",
+        "file_extension": ext,
+        "uploaded_at": now.isoformat(),
+        "uploaded_by_id": admin_id,
+        "uploaded_by_name": admin_name
+    }
     
     await db.issued_invoices.update_one(
         {"id": invoice_id},

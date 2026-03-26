@@ -786,34 +786,21 @@ async def upload_invoice(
     upload_result = await upload_file_to_r2(content, r2_key, content_type)
     
     if not upload_result.get("success"):
-        # R2 başarısız olursa base64 olarak kaydet (fallback)
-        file_data = base64.b64encode(content).decode("utf-8")
-        invoice_entry = {
-            "invoice_id": invoice_id,
-            "filename": filename,
-            "extension": extension,
-            "file_data": file_data,
-            "storage_type": "base64",
-            "uploaded_at": now.isoformat(),
-            "uploaded_by_admin_id": admin_id,
-            "uploaded_by_admin_name": admin_name,
-            "verified": False,
-            "verified_amount": 0
-        }
-    else:
-        # R2'de başarıyla kaydedildi
-        invoice_entry = {
-            "invoice_id": invoice_id,
-            "filename": filename,
-            "extension": extension,
-            "r2_key": r2_key,
-            "storage_type": "r2",
-            "uploaded_at": now.isoformat(),
-            "uploaded_by_admin_id": admin_id,
-            "uploaded_by_admin_name": admin_name,
-            "verified": False,
-            "verified_amount": 0
-        }
+        raise HTTPException(status_code=503, detail="Dosya depolama servisi (Cloudflare R2) yapılandırılmamış. Sistem ayarlarından R2 bağlantısını yapın.")
+    
+    # R2'de başarıyla kaydedildi
+    invoice_entry = {
+        "invoice_id": invoice_id,
+        "filename": filename,
+        "extension": extension,
+        "r2_key": r2_key,
+        "storage_type": "r2",
+        "uploaded_at": now.isoformat(),
+        "uploaded_by_admin_id": admin_id,
+        "uploaded_by_admin_name": admin_name,
+        "verified": False,
+        "verified_amount": 0
+    }
     
     # Mevcut kaydı bul veya oluştur
     existing = await db.restaurant_invoices.find_one({

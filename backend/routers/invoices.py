@@ -146,7 +146,7 @@ async def upload_invoice(
     # Upload to R2
     upload_result = await upload_file_to_r2(content, r2_key, content_type)
     if not upload_result['success']:
-        raise HTTPException(status_code=500, detail="Dosya yüklenemedi: " + upload_result.get('error', 'Bilinmeyen hata'))
+        raise HTTPException(status_code=503, detail="Dosya depolama servisi (Cloudflare R2) yapılandırılmamış. Sistem ayarlarından R2 bağlantısını yapın.")
     
     # Create invoice record with R2 reference
     invoice = {
@@ -620,7 +620,7 @@ async def upload_invoice_by_admin(
     # Upload to R2
     upload_result = await upload_file_to_r2(content, r2_key, content_type)
     if not upload_result['success']:
-        raise HTTPException(status_code=500, detail="Dosya yüklenemedi: " + upload_result.get('error', 'Bilinmeyen hata'))
+        raise HTTPException(status_code=503, detail="Dosya depolama servisi (Cloudflare R2) yapılandırılmamış. Sistem ayarlarından R2 bağlantısını yapın.")
     
     # Create invoice record
     invoice = {
