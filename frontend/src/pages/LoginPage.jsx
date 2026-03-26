@@ -19,6 +19,12 @@ export default function LoginPage() {
   
   const [adminData, setAdminData] = useState({ username: "", password: "" });
   const [restaurantData, setRestaurantData] = useState({ username: "", password: "" });
+  const [activeTab, setActiveTab] = useState("admin");
+
+  const loginImages = {
+    admin: "https://customer-assets.emergentagent.com/job_dfe6f827-18c8-44fa-9707-d7a9c2d6e4a6/artifacts/zcscsfm0_agrosjetapplogin.png",
+    restaurant: "https://customer-assets.emergentagent.com/job_dfe6f827-18c8-44fa-9707-d7a9c2d6e4a6/artifacts/x97yidci_agrosjetapplogin%20%281%29.png"
+  };
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user") || "null");
@@ -80,7 +86,7 @@ export default function LoginPage() {
         {/* Left - Image Panel (hidden on mobile) */}
         <div 
           className="hidden lg:flex lg:w-[45%] relative bg-cover bg-center"
-          style={{ backgroundImage: `url('https://customer-assets.emergentagent.com/job_dfe6f827-18c8-44fa-9707-d7a9c2d6e4a6/artifacts/zcscsfm0_agrosjetapplogin.png')` }}
+          style={{ backgroundImage: `url('${loginImages[activeTab]}')`, transition: "background-image 0.5s ease" }}
         >
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
           <div className="relative z-10 flex flex-col justify-end p-8 w-full">
@@ -103,7 +109,7 @@ export default function LoginPage() {
           <h2 className="text-2xl font-bold text-slate-900 mb-1">Hoş geldiniz</h2>
           <p className="text-sm text-slate-500 mb-6">Panele giriş yapın</p>
 
-          <Tabs defaultValue="admin" className="w-full">
+          <Tabs defaultValue="admin" onValueChange={(v) => setActiveTab(v)} className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-5 bg-slate-100 border border-slate-200">
               <TabsTrigger 
                 value="admin" 
