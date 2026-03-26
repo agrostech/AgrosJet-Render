@@ -153,9 +153,8 @@ export default function CourierSiparisPage({ courierId, companyId }) {
     };
   }, []);
 
-  // Rota oluştur - en yakından uzağa sırala ve Google Maps'te aç
+  // Rota oluştur - yolda olan siparişler için teslimat rotası, modal ile göster
   const createOptimizedRoute = useCallback(async () => {
-    // Yolda olan siparişleri al
     const onTheWayOrders = orders.filter(o => o.status === "on_the_way");
     
     if (onTheWayOrders.length < 2) {
@@ -163,188 +162,106 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       return;
     }
     
-    // Başlangıç noktası - native'den gelen son konum veya backend'den kurye konumu
     let startLat, startLng;
-    
-    // 1. Native'den gelen son konum (son 5 dk içinde)
     if (lastLocationRef.current.lat && lastLocationRef.current.lng && 
         (Date.now() - lastLocationRef.current.time) < 300000) {
       startLat = lastLocationRef.current.lat;
       startLng = lastLocationRef.current.lng;
     } else {
-      // 2. Backend'den kurye konumunu al
       try {
         const res = await axios.get(`${API}/couriers/${courierId}`);
         const loc = res.data?.current_location;
-        if (loc?.latitude && loc?.longitude) {
-          startLat = loc.latitude;
-          startLng = loc.longitude;
-        }
+        if (loc?.latitude && loc?.longitude) { startLat = loc.latitude; startLng = loc.longitude; }
       } catch (e) {}
     }
     
-    // 3. Hiçbiri yoksa ilk siparişin restoran konumunu kullan
     if (!startLat || !startLng) {
       const firstOrder = onTheWayOrders[0];
       if (firstOrder.restaurant_location?.latitude) {
         startLat = firstOrder.restaurant_location.latitude;
         startLng = firstOrder.restaurant_location.longitude;
-      } else {
-        toast.error("Konum bilgisi alınamadı");
-        return;
-      }
+      } else { toast.error("Konum bilgisi alınamadı"); return; }
     }
     
-    // Geçerli konum bilgisi olan siparişleri filtrele
     const validOrders = onTheWayOrders.filter(
       o => o.delivery_location?.latitude && o.delivery_location?.longitude
     );
+    if (validOrders.length < 2) { toast.error("Yeterli konum bilgisi yok"); return; }
     
-    if (validOrders.length < 2) {
-      toast.error("Yeterli konum bilgisi yok");
-      return;
-    }
-    
-    // Toplam rota mesafesini hesapla
-    const calculateTotalDistance = (route, sLat, sLng) => {
-      let total = 0;
-      let prevLat = sLat;
-      let prevLng = sLng;
-      
-      for (const order of route) {
-        const dist = calculateDistance(prevLat, prevLng, 
-          order.delivery_location.latitude, order.delivery_location.longitude);
-        total += dist || 0;
-        prevLat = order.delivery_location.latitude;
-        prevLng = order.delivery_location.longitude;
+    const calcDist = (route, sLat, sLng) => {
+      let total = 0, pLat = sLat, pLng = sLng;
+      for (const o of route) {
+        total += calculateDistance(pLat, pLng, o.delivery_location.latitude, o.delivery_location.longitude) || 0;
+        pLat = o.delivery_location.latitude; pLng = o.delivery_location.longitude;
       }
       return total;
     };
     
-    // Az sipariş varsa (≤6) tüm kombinasyonları dene (brute force)
     let bestRoute;
-    
     if (validOrders.length <= 6) {
-      // Tüm permütasyonları oluştur
       const permute = (arr) => {
         if (arr.length <= 1) return [arr];
         const result = [];
         for (let i = 0; i < arr.length; i++) {
           const rest = [...arr.slice(0, i), ...arr.slice(i + 1)];
-          const perms = permute(rest);
-          for (const perm of perms) {
-            result.push([arr[i], ...perm]);
-          }
+          for (const perm of permute(rest)) result.push([arr[i], ...perm]);
         }
         return result;
       };
-      
-      const allRoutes = permute(validOrders);
-      let bestDistance = Infinity;
-      
-      for (const route of allRoutes) {
-        const dist = calculateTotalDistance(route, startLat, startLng);
-        if (dist < bestDistance) {
-          bestDistance = dist;
-          bestRoute = route;
-        }
+      let bestDist = Infinity;
+      for (const route of permute(validOrders)) {
+        const dist = calcDist(route, startLat, startLng);
+        if (dist < bestDist) { bestDist = dist; bestRoute = route; }
       }
     } else {
-      // Çok sipariş varsa Nearest Neighbor + 2-opt
-      // 1. Nearest Neighbor ile başlangıç rotası
       const remaining = [...validOrders];
       bestRoute = [];
-      let currentLat = startLat;
-      let currentLng = startLng;
-      
+      let cLat = startLat, cLng = startLng;
       while (remaining.length > 0) {
-        let nearestIdx = 0;
-        let nearestDist = Infinity;
-        
-        remaining.forEach((order, idx) => {
-          const dist = calculateDistance(currentLat, currentLng,
-            order.delivery_location.latitude, order.delivery_location.longitude);
-          if (dist !== null && dist < nearestDist) {
-            nearestDist = dist;
-            nearestIdx = idx;
-          }
+        let nIdx = 0, nDist = Infinity;
+        remaining.forEach((o, idx) => {
+          const d = calculateDistance(cLat, cLng, o.delivery_location.latitude, o.delivery_location.longitude);
+          if (d !== null && d < nDist) { nDist = d; nIdx = idx; }
         });
-        
-        const nearest = remaining.splice(nearestIdx, 1)[0];
+        const nearest = remaining.splice(nIdx, 1)[0];
         bestRoute.push(nearest);
-        currentLat = nearest.delivery_location.latitude;
-        currentLng = nearest.delivery_location.longitude;
+        cLat = nearest.delivery_location.latitude; cLng = nearest.delivery_location.longitude;
       }
-      
-      // 2. 2-opt ile iyileştir
       let improved = true;
       while (improved) {
         improved = false;
-        const n = bestRoute.length;
-        
-        for (let i = 0; i < n - 1; i++) {
-          for (let j = i + 2; j < n; j++) {
-            // i ve j arasını ters çevir
-            const newRoute = [
-              ...bestRoute.slice(0, i + 1),
-              ...bestRoute.slice(i + 1, j + 1).reverse(),
-              ...bestRoute.slice(j + 1)
-            ];
-            
-            const currentDist = calculateTotalDistance(bestRoute, startLat, startLng);
-            const newDist = calculateTotalDistance(newRoute, startLat, startLng);
-            
-            if (newDist < currentDist) {
-              bestRoute = newRoute;
-              improved = true;
-            }
+        for (let i = 0; i < bestRoute.length - 1; i++) {
+          for (let j = i + 2; j < bestRoute.length; j++) {
+            const newRoute = [...bestRoute.slice(0, i + 1), ...bestRoute.slice(i + 1, j + 1).reverse(), ...bestRoute.slice(j + 1)];
+            if (calcDist(newRoute, startLat, startLng) < calcDist(bestRoute, startLat, startLng)) { bestRoute = newRoute; improved = true; }
           }
         }
       }
     }
-    
-    // Google Maps URL oluştur - origin verilmez, cihazın GPS'i otomatik başlangıç noktası olur
-    const destination = `${bestRoute[bestRoute.length - 1].delivery_location.latitude},${bestRoute[bestRoute.length - 1].delivery_location.longitude}`;
-    
-    const waypoints = bestRoute
-      .slice(0, -1)
-      .map(o => `${o.delivery_location.latitude},${o.delivery_location.longitude}`)
-      .join("|");
-    
-    let mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination}&travelmode=driving`;
-    if (waypoints) {
-      mapsUrl += `&waypoints=${encodeURIComponent(waypoints)}`;
-    }
 
-    // Apple Maps URL oluştur - saddr yok, cihazın GPS'i otomatik başlangıç
-    const appleMapsStops = bestRoute
-      .map(o => `${o.delivery_location.latitude},${o.delivery_location.longitude}`)
-      .join("+to:");
-    const appleMapsUrl = `maps://?daddr=${appleMapsStops}&dirflg=d`;
-    
-    // Native app için route bilgisini de gönder
-    if (window.ReactNativeWebView) {
-      window.ReactNativeWebView.postMessage(JSON.stringify({
-        type: 'OPEN_ROUTE',
-        data: {
-          destination: {
-            lat: bestRoute[bestRoute.length - 1].delivery_location.latitude,
-            lng: bestRoute[bestRoute.length - 1].delivery_location.longitude
-          },
-          waypoints: bestRoute.slice(0, -1).map(o => ({
-            lat: o.delivery_location.latitude,
-            lng: o.delivery_location.longitude,
-            address: o.customer_address || o.address,
-            orderId: o.id
-          })),
-          mapsUrl: mapsUrl,
-          appleMapsUrl: appleMapsUrl
-        }
-      }));
-    } else {
-      window.open(mapsUrl, "_blank");
-    }
-  }, [orders]);
+    // Modal için adımları hazırla
+    const steps = bestRoute.map((order, i) => ({
+      step: i + 1,
+      type: 'delivery',
+      label: order.customer_name || order.delivery_address,
+      lat: order.delivery_location.latitude,
+      lng: order.delivery_location.longitude,
+    }));
+
+    const totalDist = calcDist(bestRoute, startLat, startLng);
+    const dest = `${bestRoute[bestRoute.length - 1].delivery_location.latitude},${bestRoute[bestRoute.length - 1].delivery_location.longitude}`;
+    const wps = bestRoute.slice(0, -1).map(o => `${o.delivery_location.latitude},${o.delivery_location.longitude}`).join("|");
+    let gUrl = `https://www.google.com/maps/dir/?api=1&destination=${dest}&travelmode=driving`;
+    if (wps) gUrl += `&waypoints=${encodeURIComponent(wps)}`;
+    const aStops = bestRoute.map(o => `${o.delivery_location.latitude},${o.delivery_location.longitude}`).join("+to:");
+    const aUrl = `maps://?daddr=${aStops}&dirflg=d`;
+
+    setSmartRouteSteps(steps);
+    setSmartRouteTotalDistance(totalDist);
+    setSmartRouteMapsUrl(gUrl);
+    setSmartRouteAppleMapsUrl(aUrl);
+    setShowSmartRouteModal(true);
+  }, [orders, courierId]);
 
   // Akıllı Rota Oluştur - Restoran alımları + teslimatları birlikte optimize et (PDP)
   const createSmartRoute = useCallback(async () => {
@@ -1126,7 +1043,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-indigo-700">
               <Route className="w-5 h-5" />
-              Akıllı Rota Önizleme
+              {smartRouteSteps.some(s => s.type === 'pickup') ? 'Akıllı Rota Önizleme' : 'Teslimat Rotası'}
             </DialogTitle>
             <DialogDescription>
               {smartRouteSteps.length} durak · ~{smartRouteTotalDistance.toFixed(1)} km
