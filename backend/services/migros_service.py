@@ -470,6 +470,11 @@ def transform_migros_order_to_shiftjet(migros_order: Dict[str, Any], restaurant_
     else:
         created_at = get_turkey_now()
     
+    # Telefon numarasını 05xx formatına çevir
+    raw_phone = customer.get("phoneNumber", "")
+    if raw_phone and not raw_phone.startswith("0"):
+        raw_phone = "0" + raw_phone
+    
     return {
         "id": str(uuid.uuid4()),
         "external_id": f"migros_{migros_order.get('id')}",
@@ -480,9 +485,8 @@ def transform_migros_order_to_shiftjet(migros_order: Dict[str, Any], restaurant_
         "source": "migros",
         "status": "pending",
         
-        # Müşteri bilgileri
         "customer_name": customer.get("fullName", ""),
-        "customer_phone": customer.get("phoneNumber", ""),
+        "customer_phone": raw_phone,
         "delivery_address": delivery_address.get("detail", ""),
         "address_direction": delivery_address.get("direction", ""),
         "delivery_location": {
