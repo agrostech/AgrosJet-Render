@@ -310,6 +310,12 @@ export default function CourierSiparisPage({ courierId, companyId }) {
     if (waypoints) {
       mapsUrl += `&waypoints=${encodeURIComponent(waypoints)}`;
     }
+
+    // Apple Maps URL oluştur - saddr yok, cihazın GPS'i otomatik başlangıç
+    const appleMapsStops = bestRoute
+      .map(o => `${o.delivery_location.latitude},${o.delivery_location.longitude}`)
+      .join("+to:");
+    const appleMapsUrl = `maps://?daddr=${appleMapsStops}&dirflg=d`;
     
     // Native app için route bilgisini de gönder
     if (window.ReactNativeWebView) {
@@ -326,7 +332,8 @@ export default function CourierSiparisPage({ courierId, companyId }) {
             address: o.customer_address || o.address,
             orderId: o.id
           })),
-          mapsUrl: mapsUrl
+          mapsUrl: mapsUrl,
+          appleMapsUrl: appleMapsUrl
         }
       }));
     } else {
@@ -528,17 +535,19 @@ export default function CourierSiparisPage({ courierId, companyId }) {
 
   // Haritada aç
   const openInMaps = (lat, lng, label) => {
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
+    const googleUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
+    const appleUrl = `maps://?daddr=${lat},${lng}&dirflg=d`;
     if (window.ReactNativeWebView) {
       window.ReactNativeWebView.postMessage(JSON.stringify({
         type: 'OPEN_NAVIGATION',
         data: {
           destination: { lat, lng, label },
-          mapsUrl: url
+          mapsUrl: googleUrl,
+          appleMapsUrl: appleUrl
         }
       }));
     } else {
-      window.open(url, "_blank");
+      window.open(googleUrl, "_blank");
     }
   };
 
