@@ -546,8 +546,6 @@ export default function CourierSiparisPage({ courierId, companyId }) {
           appleMapsUrl: appleUrl
         }
       }));
-      // Fallback: native app OPEN_NAVIGATION'ı henüz tanımıyorsa Google Maps açılsın
-      setTimeout(() => { window.open(googleUrl, "_blank"); }, 300);
     } else {
       window.open(googleUrl, "_blank");
     }
