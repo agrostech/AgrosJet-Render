@@ -1,61 +1,63 @@
 # AgrosJet Delivery Management System - PRD
 
-## Original Problem Statement
-Multi-platform delivery management system integrating with Migros, Getir, Trendyol, Adisyo, Yemeksepeti, and SepetTakip. Includes admin panel, restaurant panel, and courier panel.
+## Problem Statement
+Teslimat yönetim sistemi: Restoran, Admin ve Kurye panelleri. Migros, Getir, Trendyol, Adisyo, Yemeksepeti entegrasyonları ile sipariş yönetimi, kurye takip, muhasebe ve raporlama.
 
 ## Architecture
+- Frontend: React + Tailwind + Shadcn UI
 - Backend: FastAPI + MongoDB
-- Frontend: React + Shadcn/UI
-- Services: migros_service, getir_service, trendyol_service, adisyo_service, yemeksepeti_service
+- Push: Expo (iOS) + FCM (Android)
+- External: Migros, Getir, Trendyol, Adisyo, Yemeksepeti, SepetTakip, AgrosJet API
 
-## Payment System Standard
-- `payment_type` / `payment_method`: Internal code (cash, card, online, meal_card, online_meal_card) — for reports
-- `payment_method_detail`: Display name — for frontend (Migros: "Kapıda Ödeme - Sodexo", Adisyo: "Sodexo" etc.)
-- `payment_method_name`: Getir-specific display name field
+## Panels
+- **Admin Panel**: Sipariş Yönetimi (canlı harita), Vardiya, Muhasebe, Raporlar, Zimmet, Market, Akademi, Kuryeler, Restoranlar, Başvurular, Yöneticiler, Sistem
+- **Restoran Panel**: Sipariş Yönetimi, Raporlar, Muhasebe, Ürünler, Müşteriler, Entegrasyonlar, Ayarlar
+- **Kurye Panel (Rider)**: Siparişler, Muhasebe, Raporlar + Sidebar: Vardiyalar, Evraklar, Motosiklet, Akademi, JetPuan, Zimmet
 
-## Completed (March 2026)
-- Migros cancel reasons: `description` field parsed instead of `name`/`label`
-- Migros option prices: `unit_price` + `quantity` display (4x Tatlı Patates format)
-- Migros total price: Fixed variable collision in webhooks.py
-- Migros payment type: Added SODEXO/PAYE/MULTINET/TICKET/SETCARD/METROPOL to payment_type_map
-- Migros payment display: `payment_method` = internal code, `payment_method_detail` = Migros description
-- Frontend payment display: Admin + Restaurant panels show `payment_method_detail` when available
-- Route creation pin removed: Uses native location → backend courier location → restaurant fallback
-- Courier session management & auto-logout (awaiting user verification with native app)
-- Platform-aware push notifications (Expo/FCM)
-- Native-driven courier location tracking
-- Emoji push notifications (cancel, unassign, auto-unassign)
-- Courier bottom navigation bar
-- Application notifications with sidebar badge
+## Completed (March 2026 - Latest Session)
+- Ödeme onay modalından sipariş no kaldırıldı, sadece müşteri ismi + tutar
+- Online teslimat onay modalında müşteri ismi gösterimi
+- Alt bar seçili sekme rengi lacivert (slate-900) + üst çizgi indicator
+- Alt bar siparişler sekmesinde aktif sipariş sayı badge'i (kırmızı)
+- Header: Logo sağda, statü dropdown ortada, menü sol
+- Header yükseklik optimize (py-0.5)
+- Sidebar header: Şirket logosu + kurye ismi + şirket adı
+- Menü ikonu boyut ayarları (!w-5 !h-5)
+- Muhasebe işlem geçmişi: text-xs + line-clamp-2
+- Başvurular sayfasına doğum tarihi sütunu eklendi (D.Tarihi - dd.mm.yyyy)
 
-## Completed (March 2026 - Latest)
-- Courier delivery/payment modals: Customer name shown instead of order number (PaymentConfirmModal + Online delivery modal)
+## Completed (Previous Sessions)
+- Migros V2 iptal sebepleri, opsiyon fiyat/adet, toplam tutar, ödeme yöntemi
+- Kurye paneli: Sticky header, kompakt sipariş kartları, gecikme uyarıları, renkli ödeme badge'leri
+- Rota oluşturmada otomatik konum (lastLocationRef)
+- Platform-aware push notifications (Expo + FCM)
+- Kurye session management (push_session_id + auto-logout)
+- Native-first location tracking
+- Başvuru bildirimleri (sidebar badge + popover)
 
 ## P0 - Critical (Next)
-1. Courier session fixes verification with native app
+1. Kurye oturum düzeltmelerinin native app ile doğrulanması
 
-## P1 - High
-3. VatanSMS integration
-4. Migros "Reject" functionality
-5. Courier Rota Fallback verification
+## P1 - Important
+1. Migros "Reddet" fonksiyonalitesi
+2. VatanSMS entegrasyonu
+3. Kurye Rota Fallback doğrulaması
 
-## P2 - Medium
-6. Migros 30-second cancellation rule
+## P2 - Nice to Have
+1. Migros 30 saniye kuralı
 
 ## Future/Backlog
-- Chrome extension for Yemeksepeti
-- Stop Count capacity logic
-- Technical security requirements
-- restaurant_fee calculation
+- Yemeksepeti Chrome extension
+- Stop Count capacity mantığı
+- Technical security gereksinimleri
+- restaurant_fee hesaplaması
 - Scheduled job refactoring
-- New reports
-- Restaurant Courier System
-- Caller ID integration
-- More courier permissions
-- API request monitor
+- Yeni raporlar
+- Restoran Kurye Sistemi
+- Caller ID entegrasyonu
 - Native Courier App
 
-## Test Credentials
+## Credentials
 - System Admin: `onurertas` / `Delivery32..`
 - Company Admin: `admin` / `123456`
-- Courier: `05553331122` / `123456`
+- Courier: `05550003201` / `123456`
