@@ -93,15 +93,10 @@ const PLATFORM_CONFIG = {
       { key: "restaurant_secret_key", label: "Restaurant Secret Key", type: "password", required: true, placeholder: "a04f73c8e4caf7f5..." },
       { key: "restaurant_id", label: "Getir Restaurant ID", type: "text", required: false, placeholder: "699817751a105bfd0b93ef38", description: "Getir tarafından verilen restoran ID (opsiyonel)" }
     ],
-    helpText: "API bilgilerinizi Getir entegrasyon e-postasından alabilirsiniz. İlk bağlantıda POS durumu otomatik aktif edilir.",
+    helpText: "API bilgilerinizi Getir entegrasyon e-postasından alabilirsiniz.",
     helpUrl: null,
-    isWebhook: true,
-    isPolling: true, // Hem webhook hem polling destekler
-    webhookInfo: {
-      orderEndpoint: "/api/getir/webhook/order",
-      cancelEndpoint: "/api/getir/webhook/cancel",
-      note: "Bu webhook URL'lerini Getir entegrasyon ekibine iletmeniz gerekmektedir."
-    },
+    isWebhook: false,
+    isPolling: true,
     statusInfo: {
       "30saniye": "Sipariş 30 saniye içinde onaylanmalıdır",
       "1dakika": "verify → prepare → deliver arasında en az 1 dakika beklenmeli"
