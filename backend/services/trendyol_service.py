@@ -351,8 +351,8 @@ async def convert_trendyol_package_to_shiftjet(package: dict, restaurant: dict) 
     raw_phone = address.get("phone", package.get("callCenterPhone", ""))
     order_id = package.get("orderId", "")
     
-    # Telefon numarasından boşluk ve tire kaldır
-    clean_phone = raw_phone.replace(" ", "").replace("-", "") if raw_phone else ""
+    # Telefon numarasından boşluk, tire ve parantez kaldır
+    clean_phone = raw_phone.replace(" ", "").replace("-", "").replace("(", "").replace(")", "") if raw_phone else ""
     
     # orderId varsa otomatik tuşlama formatı ekle
     if clean_phone and order_id:
