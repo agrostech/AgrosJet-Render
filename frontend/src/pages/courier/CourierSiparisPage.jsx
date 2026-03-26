@@ -305,21 +305,42 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       startLng = validOrders[0].restaurant_location.longitude;
     }
 
-    // Her sipariş için 2 durak oluştur: pickup (restoran) + delivery (müşteri)
-    // Kısıt: pickup her zaman kendi delivery'sinden önce olmalı
-    const stops = [];
+    // Siparişleri restoran bazında grupla - aynı restorandan tek pickup durağı
+    const restaurantGroups = {};
     validOrders.forEach((order, idx) => {
+      const rId = order.restaurant_id;
+      if (!restaurantGroups[rId]) {
+        restaurantGroups[rId] = {
+          restaurant_name: order.restaurant_name,
+          lat: order.restaurant_location.latitude,
+          lng: order.restaurant_location.longitude,
+          orderIndices: [],
+          orderLabels: [],
+        };
+      }
+      restaurantGroups[rId].orderIndices.push(idx);
+      restaurantGroups[rId].orderLabels.push(order.customer_name || order.delivery_address);
+    });
+
+    // Durakları oluştur: her restoran için 1 pickup + her sipariş için 1 delivery
+    const stops = [];
+    const pickupGroupMap = {}; // orderIdx -> pickupGroupId
+    Object.values(restaurantGroups).forEach((group, gIdx) => {
+      group.orderIndices.forEach(oIdx => { pickupGroupMap[oIdx] = gIdx; });
       stops.push({
         type: 'pickup',
-        orderId: order.id,
-        orderIdx: idx,
-        label: order.restaurant_name,
-        lat: order.restaurant_location.latitude,
-        lng: order.restaurant_location.longitude,
+        groupId: gIdx,
+        orderIndices: group.orderIndices,
+        label: group.restaurant_name,
+        subLabels: group.orderLabels,
+        lat: group.lat,
+        lng: group.lng,
       });
+    });
+    validOrders.forEach((order, idx) => {
       stops.push({
         type: 'delivery',
-        orderId: order.id,
+        groupId: pickupGroupMap[idx],
         orderIdx: idx,
         label: order.customer_name || order.delivery_address,
         lat: order.delivery_location.latitude,
@@ -327,12 +348,12 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       });
     });
 
-    // Geçerlilik kontrolü: her pickup kendi delivery'sinden önce mi?
+    // Geçerlilik kontrolü: her delivery'nin restoran pickup'ı daha önce ziyaret edilmiş mi?
     const isValidRoute = (route) => {
-      const pickedUp = new Set();
+      const pickedUpGroups = new Set();
       for (const stop of route) {
-        if (stop.type === 'pickup') pickedUp.add(stop.orderIdx);
-        else if (!pickedUp.has(stop.orderIdx)) return false;
+        if (stop.type === 'pickup') pickedUpGroups.add(stop.groupId);
+        else if (!pickedUpGroups.has(stop.groupId)) return false;
       }
       return true;
     };
@@ -375,12 +396,12 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       const remaining = [...stops];
       bestRoute = [];
       let cLat = startLat, cLng = startLng;
-      const pickedUp = new Set();
+      const pickedUpGroups = new Set();
 
       while (remaining.length > 0) {
         // Seçilebilir duraklar: pickup'lar her zaman, delivery'ler sadece pickup yapılmışsa
         const eligible = remaining.filter(s => 
-          s.type === 'pickup' || pickedUp.has(s.orderIdx)
+          s.type === 'pickup' || pickedUpGroups.has(s.groupId)
         );
         
         let nearestIdx = -1, nearestDist = Infinity;
@@ -396,7 +417,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
         if (nearestIdx === -1) break;
         const chosen = remaining.splice(nearestIdx, 1)[0];
         bestRoute.push(chosen);
-        if (chosen.type === 'pickup') pickedUp.add(chosen.orderIdx);
+        if (chosen.type === 'pickup') pickedUpGroups.add(chosen.groupId);
         cLat = chosen.lat;
         cLng = chosen.lng;
       }
@@ -432,6 +453,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       step: i + 1,
       type: stop.type,
       label: stop.label,
+      subLabels: stop.subLabels || null,
       lat: stop.lat,
       lng: stop.lng,
     }));
@@ -1072,6 +1094,11 @@ export default function CourierSiparisPage({ courierId, companyId }) {
                       {step.type === 'pickup' ? 'AL' : 'TESLİM ET'}
                     </span>
                     <p className="text-sm font-medium text-slate-800 truncate">{step.label}</p>
+                    {step.subLabels && step.subLabels.length > 0 && (
+                      <p className="text-[11px] text-slate-500 truncate">
+                        {step.subLabels.join(', ')}
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}
