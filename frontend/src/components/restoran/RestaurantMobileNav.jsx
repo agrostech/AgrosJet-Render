@@ -87,7 +87,7 @@ export default function RestaurantMobileNav({
           <img 
             src={companyLogo} 
             alt="Logo" 
-            className="w-12 h-12 rounded object-contain"
+            className="w-[52px] h-[52px] rounded object-contain"
             onError={(e) => { e.target.style.display = 'none'; }}
           />
         )}
