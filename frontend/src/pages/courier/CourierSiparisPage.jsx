@@ -240,14 +240,18 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       }
     }
 
-    // Modal için adımları hazırla
-    const steps = bestRoute.map((order, i) => ({
-      step: i + 1,
-      type: 'delivery',
-      label: order.customer_name || order.delivery_address,
-      lat: order.delivery_location.latitude,
-      lng: order.delivery_location.longitude,
-    }));
+    // Modal için adımları hazırla - gecikme bilgisi ile
+    const steps = bestRoute.map((order, i) => {
+      const age = order.created_at ? Math.floor((Date.now() - new Date(order.created_at).getTime()) / 60000) : 0;
+      return {
+        step: i + 1,
+        type: 'delivery',
+        label: order.customer_name || order.delivery_address,
+        delayMin: age > 35 ? age : null,
+        lat: order.delivery_location.latitude,
+        lng: order.delivery_location.longitude,
+      };
+    });
 
     const totalDist = calcDist(bestRoute, startLat, startLng);
     const dest = `${bestRoute[bestRoute.length - 1].delivery_location.latitude},${bestRoute[bestRoute.length - 1].delivery_location.longitude}`;
@@ -449,15 +453,32 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       return;
     }
 
-    // Modal için adımları hazırla
-    const steps = bestRoute.map((stop, i) => ({
-      step: i + 1,
-      type: stop.type,
-      label: stop.label,
-      subLabels: stop.subLabels || null,
-      lat: stop.lat,
-      lng: stop.lng,
-    }));
+    // Modal için adımları hazırla - gecikme bilgisi ile
+    const steps = bestRoute.map((stop, i) => {
+      let delayMin = null;
+      if (stop.type === 'pickup') {
+        // Pickup gecikme: gruptaki en eski siparişin yaşı, >15dk ise gecikmiş
+        const maxAge = Math.max(...stop.orderIndices.map(oIdx => {
+          const o = validOrders[oIdx];
+          return o.created_at ? Math.floor((Date.now() - new Date(o.created_at).getTime()) / 60000) : 0;
+        }));
+        if (maxAge > 15) delayMin = maxAge;
+      } else {
+        // Delivery gecikme: siparişin yaşı, >35dk ise gecikmiş
+        const o = validOrders[stop.orderIdx];
+        const age = o?.created_at ? Math.floor((Date.now() - new Date(o.created_at).getTime()) / 60000) : 0;
+        if (age > 35) delayMin = age;
+      }
+      return {
+        step: i + 1,
+        type: stop.type,
+        label: stop.label,
+        subLabels: stop.subLabels || null,
+        delayMin,
+        lat: stop.lat,
+        lng: stop.lng,
+      };
+    });
 
     const totalDist = calcRouteDist(bestRoute, startLat, startLng);
 
@@ -1090,12 +1111,20 @@ export default function CourierSiparisPage({ courierId, companyId }) {
                       : <Package className="w-4 h-4" />
                     }
                   </div>
-                  <div className="pt-1.5 min-w-0">
-                    <span className={`text-[11px] font-bold uppercase tracking-wide ${
-                      step.type === 'pickup' ? 'text-orange-600' : 'text-green-600'
-                    }`}>
-                      {step.type === 'pickup' ? 'AL' : 'TESLİM ET'}
-                    </span>
+                  <div className="pt-1.5 min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[11px] font-bold uppercase tracking-wide ${
+                        step.type === 'pickup' ? 'text-orange-600' : 'text-green-600'
+                      }`}>
+                        {step.type === 'pickup' ? 'AL' : 'TESLİM ET'}
+                      </span>
+                      {step.delayMin && (
+                        <span className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded-full flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          {step.delayMin} dk
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm font-medium text-slate-800 truncate">{step.label}</p>
                     {step.subLabels && step.subLabels.length > 0 && (
                       <p className="text-[11px] text-slate-500 truncate">
