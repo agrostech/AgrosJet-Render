@@ -73,14 +73,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f172a] flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: "radial-gradient(ellipse at 20% 50%, rgba(30, 58, 95, 0.9) 0%, rgba(15, 23, 42, 0.95) 50%), radial-gradient(ellipse at 80% 20%, rgba(225, 60, 16, 0.15) 0%, transparent 50%), radial-gradient(ellipse at 60% 80%, rgba(225, 60, 16, 0.1) 0%, transparent 40%), linear-gradient(135deg, #1e3a5f 0%, #0f172a 40%, #1a1a2e 70%, #0f172a 100%)" }}>
       {/* Centered Card */}
       <div className="w-full max-w-[900px] flex rounded-2xl overflow-hidden shadow-2xl shadow-black/40">
         
         {/* Left - Image Panel (hidden on mobile) */}
         <div 
           className="hidden lg:flex lg:w-[45%] relative bg-cover bg-center"
-          style={{ backgroundImage: `url('https://customer-assets.emergentagent.com/job_dfe6f827-18c8-44fa-9707-d7a9c2d6e4a6/artifacts/xe6motu6_Gemini_Generated_Image_1mnj9s1mnj9s1mnj.png')` }}
+          style={{ backgroundImage: `url('https://customer-assets.emergentagent.com/job_dfe6f827-18c8-44fa-9707-d7a9c2d6e4a6/artifacts/zcscsfm0_agrosjetapplogin.png')` }}
         >
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
           <div className="relative z-10 flex flex-col justify-end p-8 w-full">
