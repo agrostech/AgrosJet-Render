@@ -79,7 +79,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: "radial-gradient(ellipse at 30% 30%, rgba(203, 213, 225, 0.6) 0%, transparent 50%), radial-gradient(ellipse at 70% 60%, rgba(148, 163, 184, 0.4) 0%, transparent 50%), radial-gradient(ellipse at 20% 80%, rgba(225, 60, 16, 0.08) 0%, transparent 40%), radial-gradient(ellipse at 90% 20%, rgba(225, 60, 16, 0.06) 0%, transparent 35%), linear-gradient(160deg, #e2e8f0 0%, #cbd5e1 25%, #94a3b8 50%, #cbd5e1 75%, #e2e8f0 100%)" }}>
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundImage: "url('https://static.prod-images.emergentagent.com/jobs/dfe6f827-18c8-44fa-9707-d7a9c2d6e4a6/images/82a43274b9a58b03a98e96b8cd421b48d55998e40d54d5fd3b0cd24ecb44f9fd.png')", backgroundSize: "cover", backgroundPosition: "center" }}>
       {/* Centered Card */}
       <div className="w-full max-w-[900px] flex rounded-2xl overflow-hidden shadow-2xl shadow-black/40">
         
