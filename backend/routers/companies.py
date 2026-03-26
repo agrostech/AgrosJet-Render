@@ -8,9 +8,11 @@ import os
 
 from utils.database import db
 from utils.helpers import get_turkey_now, ensure_turkey_timezone, TURKEY_TZ
+from services.r2_storage import upload_file_to_r2, generate_presigned_url
 
 router = APIRouter(prefix="/api", tags=["Companies"])
 
+# Legacy local dir (for backward compat serving old logos)
 LOGO_DIR = "/app/uploads/logos"
 os.makedirs(LOGO_DIR, exist_ok=True)
 
@@ -165,32 +167,55 @@ async def upload_company_logo(
     if logo_type not in ("dark", "light"):
         raise HTTPException(status_code=400, detail="logo_type 'dark' veya 'light' olmalı")
     
-    company = await db.companies.find_one({"id": company_id}, {"_id": 0, "id": 1})
+    company = await db.companies.find_one({"id": company_id}, {"_id": 0, "id": 1, "name": 1})
     if not company:
         raise HTTPException(status_code=404, detail="Şirket bulunamadı")
     
     ext = os.path.splitext(file.filename or "logo.png")[1] or ".png"
-    filename = f"{company_id}_{logo_type}{ext}"
-    filepath = os.path.join(LOGO_DIR, filename)
-    
     content = await file.read()
-    with open(filepath, "wb") as f:
-        f.write(content)
+    content_type = file.content_type or "image/png"
     
-    logo_path = f"/api/companies/logo/{filename}"
+    r2_key = f"logos/{company_id}/{logo_type}{ext}"
+    upload_result = await upload_file_to_r2(content, r2_key, content_type)
+    
+    if not upload_result['success']:
+        raise HTTPException(status_code=503, detail="Dosya depolama servisi (Cloudflare R2) yapılandırılmamış. Sistem ayarlarından R2 bağlantısını yapın.")
+    
+    logo_path = f"/api/companies/logo/{company_id}_{logo_type}"
     field = f"logo_{logo_type}"
-    await db.companies.update_one({"id": company_id}, {"$set": {field: logo_path}})
+    await db.companies.update_one({"id": company_id}, {"$set": {field: logo_path, f"{field}_r2_key": r2_key}})
     
     return {"message": "Logo yüklendi", "path": logo_path, "type": logo_type}
 
 
 @router.get("/companies/logo/{filename}")
 async def get_company_logo(filename: str):
-    """Logo dosyasını serve et"""
+    """Logo dosyasını serve et - önce R2, fallback local"""
+    # R2'den çek: filename = "{company_id}_{type}" formatında
+    parts = filename.replace(".png", "").replace(".jpg", "").replace(".jpeg", "").replace(".webp", "").rsplit("_", 1)
+    if len(parts) == 2:
+        company_id, logo_type = parts
+        company = await db.companies.find_one({"id": company_id}, {"_id": 0, f"logo_{logo_type}_r2_key": 1})
+        if company:
+            r2_key = company.get(f"logo_{logo_type}_r2_key")
+            if r2_key:
+                presigned = generate_presigned_url(r2_key)
+                if presigned:
+                    from fastapi.responses import RedirectResponse
+                    return RedirectResponse(url=presigned)
+    
+    # Fallback: local file
+    for ext in [".png", ".jpg", ".jpeg", ".webp", ""]:
+        filepath = os.path.join(LOGO_DIR, f"{filename}{ext}")
+        if os.path.exists(filepath):
+            return FileResponse(filepath)
+    
+    # Dosya adıyla direkt dene
     filepath = os.path.join(LOGO_DIR, filename)
-    if not os.path.exists(filepath):
-        raise HTTPException(status_code=404, detail="Logo bulunamadı")
-    return FileResponse(filepath)
+    if os.path.exists(filepath):
+        return FileResponse(filepath)
+    
+    raise HTTPException(status_code=404, detail="Logo bulunamadı")
 
 
 @router.delete("/companies/{company_id}")
