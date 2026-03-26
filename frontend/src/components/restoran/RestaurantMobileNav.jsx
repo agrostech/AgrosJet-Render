@@ -30,7 +30,7 @@ export default function RestaurantMobileNav({
                 <img 
                   src={companyLogo} 
                   alt="Logo" 
-                  className="w-7 h-7 rounded object-contain bg-white/10"
+                  className="w-14 h-14 rounded object-contain bg-white/10"
                   onError={(e) => { e.target.style.display = 'none'; }}
                 />
               )}
@@ -85,7 +85,7 @@ export default function RestaurantMobileNav({
           <img 
             src={companyLogo} 
             alt="Logo" 
-            className="w-6 h-6 rounded object-contain"
+            className="w-12 h-12 rounded object-contain"
             onError={(e) => { e.target.style.display = 'none'; }}
           />
         )}
