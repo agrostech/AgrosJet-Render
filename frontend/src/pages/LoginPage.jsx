@@ -80,7 +80,7 @@ export default function LoginPage() {
         {/* Left - Image Panel (hidden on mobile) */}
         <div 
           className="hidden lg:flex lg:w-[45%] relative bg-cover bg-center"
-          style={{ backgroundImage: `url('/login-bg.jpg')` }}
+          style={{ backgroundImage: `url('https://customer-assets.emergentagent.com/job_dfe6f827-18c8-44fa-9707-d7a9c2d6e4a6/artifacts/xe6motu6_Gemini_Generated_Image_1mnj9s1mnj9s1mnj.png')` }}
         >
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
           <div className="relative z-10 flex flex-col justify-end p-8 w-full">
