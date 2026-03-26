@@ -36,8 +36,8 @@ export default function AdminSidebar({
         {sidebarCollapsed ? (
           // Kapalı halde sadece logo ve kontör
           <>
-            {company?.logo_url && (
-              <img src={company.logo_url} alt={company.name} className="h-10 object-contain" />
+            {(company?.logo_dark || company?.logo_url) && (
+              <img src={company.logo_dark ? `${process.env.REACT_APP_BACKEND_URL}${company.logo_dark}` : company.logo_url} alt={company.name} className="h-12 object-contain" />
             )}
             {/* Kontör - Kapalı */}
             {(creditInfo.unlimited || creditInfo.credits !== null) && (
@@ -48,8 +48,8 @@ export default function AdminSidebar({
           </>
         ) : (
           <>
-            {company?.logo_url ? (
-              <img src={company.logo_url} alt={company.name} className="h-10 mb-2 object-contain" />
+            {(company?.logo_dark || company?.logo_url) ? (
+              <img src={company.logo_dark ? `${process.env.REACT_APP_BACKEND_URL}${company.logo_dark}` : company.logo_url} alt={company.name} className="h-12 mb-2 object-contain" />
             ) : (
               <h1 className="font-heading text-lg font-bold truncate">{company?.name}</h1>
             )}
