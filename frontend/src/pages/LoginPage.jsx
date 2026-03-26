@@ -97,7 +97,7 @@ export default function LoginPage() {
         <div className="w-full lg:w-[55%] bg-white p-8 md:p-10 flex flex-col justify-center">
           {/* Mobile logo */}
           <div className="flex justify-center mb-6 lg:hidden">
-            <img src="/agrosjet-login-logo.png" alt="AgrosJet" className="h-14" />
+            <img src="https://customer-assets.emergentagent.com/job_dfe6f827-18c8-44fa-9707-d7a9c2d6e4a6/artifacts/kj7xrk2d_agroslogo.png" alt="AgrosJet" className="h-20" />
           </div>
 
           <h2 className="text-2xl font-bold text-slate-900 mb-1">Hoş geldiniz</h2>
