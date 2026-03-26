@@ -98,6 +98,11 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   const [showNotReadyModal, setShowNotReadyModal] = useState(false);
   const [pendingNotReadyOrder, setPendingNotReadyOrder] = useState(null);
   const [permissions, setPermissions] = useState({ can_mark_not_ready: true });
+  const [showSmartRouteModal, setShowSmartRouteModal] = useState(false);
+  const [smartRouteSteps, setSmartRouteSteps] = useState([]);
+  const [smartRouteTotalDistance, setSmartRouteTotalDistance] = useState(0);
+  const [smartRouteMapsUrl, setSmartRouteMapsUrl] = useState("");
+  const [smartRouteAppleMapsUrl, setSmartRouteAppleMapsUrl] = useState("");
   const wakeLockRef = useRef(null);
 
   // Wake Lock API - ekranın kapanmasını önle ve arka plan işlemlerini sürdür
@@ -341,6 +346,222 @@ export default function CourierSiparisPage({ courierId, companyId }) {
     }
   }, [orders]);
 
+  // Akıllı Rota Oluştur - Restoran alımları + teslimatları birlikte optimize et (PDP)
+  const createSmartRoute = useCallback(async () => {
+    const assignedOrs = orders.filter(o => ["assigned", "confirmed"].includes(o.status));
+    
+    if (assignedOrs.length < 2) {
+      toast.error("Akıllı rota için en az 2 sipariş gerekli");
+      return;
+    }
+
+    // Geçerli konum bilgisi olan siparişleri filtrele
+    const validOrders = assignedOrs.filter(
+      o => o.delivery_location?.latitude && o.delivery_location?.longitude &&
+           o.restaurant_location?.latitude && o.restaurant_location?.longitude
+    );
+
+    if (validOrders.length < 2) {
+      toast.error("Yeterli konum bilgisi yok");
+      return;
+    }
+
+    // Başlangıç noktası - kuryenin mevcut konumu
+    let startLat, startLng;
+    if (lastLocationRef.current.lat && lastLocationRef.current.lng && 
+        (Date.now() - lastLocationRef.current.time) < 300000) {
+      startLat = lastLocationRef.current.lat;
+      startLng = lastLocationRef.current.lng;
+    } else {
+      try {
+        const res = await axios.get(`${API}/couriers/${courierId}`);
+        const loc = res.data?.current_location;
+        if (loc?.latitude && loc?.longitude) {
+          startLat = loc.latitude;
+          startLng = loc.longitude;
+        }
+      } catch (e) {}
+    }
+
+    if (!startLat || !startLng) {
+      startLat = validOrders[0].restaurant_location.latitude;
+      startLng = validOrders[0].restaurant_location.longitude;
+    }
+
+    // Her sipariş için 2 durak oluştur: pickup (restoran) + delivery (müşteri)
+    // Kısıt: pickup her zaman kendi delivery'sinden önce olmalı
+    const stops = [];
+    validOrders.forEach((order, idx) => {
+      stops.push({
+        type: 'pickup',
+        orderId: order.id,
+        orderIdx: idx,
+        label: order.restaurant_name,
+        lat: order.restaurant_location.latitude,
+        lng: order.restaurant_location.longitude,
+      });
+      stops.push({
+        type: 'delivery',
+        orderId: order.id,
+        orderIdx: idx,
+        label: order.customer_name || order.delivery_address,
+        lat: order.delivery_location.latitude,
+        lng: order.delivery_location.longitude,
+      });
+    });
+
+    // Geçerlilik kontrolü: her pickup kendi delivery'sinden önce mi?
+    const isValidRoute = (route) => {
+      const pickedUp = new Set();
+      for (const stop of route) {
+        if (stop.type === 'pickup') pickedUp.add(stop.orderIdx);
+        else if (!pickedUp.has(stop.orderIdx)) return false;
+      }
+      return true;
+    };
+
+    const calcRouteDist = (route, sLat, sLng) => {
+      let total = 0, pLat = sLat, pLng = sLng;
+      for (const s of route) {
+        total += calculateDistance(pLat, pLng, s.lat, s.lng) || 0;
+        pLat = s.lat;
+        pLng = s.lng;
+      }
+      return total;
+    };
+
+    let bestRoute;
+
+    if (validOrders.length <= 4) {
+      // Brute force: tüm permütasyonlar (≤8 durak = 40320 max, kısıtla çok daha az)
+      const permute = (arr) => {
+        if (arr.length <= 1) return [arr];
+        const result = [];
+        for (let i = 0; i < arr.length; i++) {
+          const rest = [...arr.slice(0, i), ...arr.slice(i + 1)];
+          for (const perm of permute(rest)) result.push([arr[i], ...perm]);
+        }
+        return result;
+      };
+      
+      let bestDist = Infinity;
+      for (const route of permute(stops)) {
+        if (!isValidRoute(route)) continue;
+        const dist = calcRouteDist(route, startLat, startLng);
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestRoute = route;
+        }
+      }
+    } else {
+      // Nearest neighbor (kısıtlı) + 2-opt
+      const remaining = [...stops];
+      bestRoute = [];
+      let cLat = startLat, cLng = startLng;
+      const pickedUp = new Set();
+
+      while (remaining.length > 0) {
+        // Seçilebilir duraklar: pickup'lar her zaman, delivery'ler sadece pickup yapılmışsa
+        const eligible = remaining.filter(s => 
+          s.type === 'pickup' || pickedUp.has(s.orderIdx)
+        );
+        
+        let nearestIdx = -1, nearestDist = Infinity;
+        for (const s of eligible) {
+          const rIdx = remaining.indexOf(s);
+          const dist = calculateDistance(cLat, cLng, s.lat, s.lng);
+          if (dist !== null && dist < nearestDist) {
+            nearestDist = dist;
+            nearestIdx = rIdx;
+          }
+        }
+
+        if (nearestIdx === -1) break;
+        const chosen = remaining.splice(nearestIdx, 1)[0];
+        bestRoute.push(chosen);
+        if (chosen.type === 'pickup') pickedUp.add(chosen.orderIdx);
+        cLat = chosen.lat;
+        cLng = chosen.lng;
+      }
+
+      // 2-opt (kısıtlı)
+      let improved = true;
+      while (improved) {
+        improved = false;
+        for (let i = 0; i < bestRoute.length - 1; i++) {
+          for (let j = i + 2; j < bestRoute.length; j++) {
+            const newRoute = [
+              ...bestRoute.slice(0, i + 1),
+              ...bestRoute.slice(i + 1, j + 1).reverse(),
+              ...bestRoute.slice(j + 1)
+            ];
+            if (!isValidRoute(newRoute)) continue;
+            if (calcRouteDist(newRoute, startLat, startLng) < calcRouteDist(bestRoute, startLat, startLng)) {
+              bestRoute = newRoute;
+              improved = true;
+            }
+          }
+        }
+      }
+    }
+
+    if (!bestRoute || bestRoute.length === 0) {
+      toast.error("Rota oluşturulamadı");
+      return;
+    }
+
+    // Modal için adımları hazırla
+    const steps = bestRoute.map((stop, i) => ({
+      step: i + 1,
+      type: stop.type,
+      label: stop.label,
+      lat: stop.lat,
+      lng: stop.lng,
+    }));
+
+    const totalDist = calcRouteDist(bestRoute, startLat, startLng);
+
+    // Google Maps URL
+    const dest = `${bestRoute[bestRoute.length - 1].lat},${bestRoute[bestRoute.length - 1].lng}`;
+    const wps = bestRoute.slice(0, -1).map(s => `${s.lat},${s.lng}`).join("|");
+    let gUrl = `https://www.google.com/maps/dir/?api=1&destination=${dest}&travelmode=driving`;
+    if (wps) gUrl += `&waypoints=${encodeURIComponent(wps)}`;
+
+    // Apple Maps URL
+    const aStops = bestRoute.map(s => `${s.lat},${s.lng}`).join("+to:");
+    const aUrl = `maps://?daddr=${aStops}&dirflg=d`;
+
+    setSmartRouteSteps(steps);
+    setSmartRouteTotalDistance(totalDist);
+    setSmartRouteMapsUrl(gUrl);
+    setSmartRouteAppleMapsUrl(aUrl);
+    setShowSmartRouteModal(true);
+  }, [orders, courierId]);
+
+  // Akıllı rotayı haritaya aktar
+  const openSmartRouteInMaps = useCallback(() => {
+    if (window.ReactNativeWebView) {
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        type: 'OPEN_ROUTE',
+        data: {
+          destination: {
+            lat: smartRouteSteps[smartRouteSteps.length - 1]?.lat,
+            lng: smartRouteSteps[smartRouteSteps.length - 1]?.lng
+          },
+          waypoints: smartRouteSteps.slice(0, -1).map(s => ({
+            lat: s.lat,
+            lng: s.lng,
+            address: s.label,
+          })),
+          mapsUrl: smartRouteMapsUrl,
+          appleMapsUrl: smartRouteAppleMapsUrl
+        }
+      }));
+    } else {
+      window.open(smartRouteMapsUrl, "_blank");
+    }
+    setShowSmartRouteModal(false);
+  }, [smartRouteSteps, smartRouteMapsUrl, smartRouteAppleMapsUrl]);
   // Siparişleri getir
   const fetchOrders = useCallback(async (showRefreshIndicator = false) => {
     if (showRefreshIndicator) setRefreshing(true);
@@ -663,6 +884,18 @@ export default function CourierSiparisPage({ courierId, companyId }) {
                 return null;
               })()}
 
+              {/* Akıllı Rota Oluştur Butonu */}
+              {assignedOrders.length >= 2 && (
+                <Button
+                  onClick={createSmartRoute}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700"
+                  data-testid="smart-route-btn"
+                >
+                  <Route className="w-4 h-4 mr-2" />
+                  Akıllı Rota Oluştur ({assignedOrders.length} sipariş)
+                </Button>
+              )}
+
               {assignedOrders.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <Package className="w-10 h-10 mx-auto mb-2 opacity-30" />
@@ -882,6 +1115,59 @@ export default function CourierSiparisPage({ courierId, companyId }) {
                 <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
               ) : null}
               Evet, Onayla
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Akıllı Rota Önizleme Modalı */}
+      <Dialog open={showSmartRouteModal} onOpenChange={setShowSmartRouteModal}>
+        <DialogContent className="sm:max-w-md max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-indigo-700">
+              <Route className="w-5 h-5" />
+              Akıllı Rota Önizleme
+            </DialogTitle>
+            <DialogDescription>
+              {smartRouteSteps.length} durak · ~{smartRouteTotalDistance.toFixed(1)} km
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto py-2 -mx-2 px-2">
+            <div className="relative">
+              {/* Dikey çizgi */}
+              <div className="absolute left-[18px] top-4 bottom-4 w-0.5 bg-slate-200" />
+              {smartRouteSteps.map((step, i) => (
+                <div key={i} className="flex items-start gap-3 mb-3 relative">
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 z-10 ${
+                    step.type === 'pickup' 
+                      ? 'bg-orange-100 text-orange-600 border-2 border-orange-300' 
+                      : 'bg-green-100 text-green-600 border-2 border-green-300'
+                  }`}>
+                    {step.type === 'pickup' 
+                      ? <Store className="w-4 h-4" /> 
+                      : <Package className="w-4 h-4" />
+                    }
+                  </div>
+                  <div className="pt-1.5 min-w-0">
+                    <span className={`text-[11px] font-bold uppercase tracking-wide ${
+                      step.type === 'pickup' ? 'text-orange-600' : 'text-green-600'
+                    }`}>
+                      {step.type === 'pickup' ? 'AL' : 'TESLİM ET'}
+                    </span>
+                    <p className="text-sm font-medium text-slate-800 truncate">{step.label}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="pt-3 border-t">
+            <Button
+              onClick={openSmartRouteInMaps}
+              className="w-full bg-indigo-600 hover:bg-indigo-700"
+              data-testid="smart-route-open-maps-btn"
+            >
+              <Navigation className="w-4 h-4 mr-2" />
+              Haritaya Aktar
             </Button>
           </div>
         </DialogContent>
