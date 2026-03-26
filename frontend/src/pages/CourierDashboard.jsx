@@ -712,7 +712,7 @@ export default function CourierDashboard() {
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center overflow-hidden">
                 {companyLogo ? (
-                  <img src={companyLogo} alt={companyName} className="w-11 h-11 rounded-full object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
+                  <img src={companyLogo} alt={companyName} className="w-8 h-8 rounded-full object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
                 ) : (
                   <span className="text-lg font-bold">{user.name?.charAt(0)?.toUpperCase()}</span>
                 )}
