@@ -102,6 +102,14 @@ async def _upload_backup(zip_data: bytes, r2_key: str) -> bool:
     return result.get("success", False)
 
 
+async def _get_last_backup_size(prefix: str) -> int:
+    """R2'deki son yedeğin boyutunu döndür (byte)"""
+    backups = await _list_r2_backups(f"{prefix}/")
+    if not backups:
+        return 0
+    return backups[-1].get("Size", 0)
+
+
 async def run_frequent_backup():
     """15 dakikada bir çalışan yedek (max 5 adet döngüsel)"""
     try:
@@ -113,8 +121,15 @@ async def run_frequent_backup():
         
         # Dump al
         zip_data = _run_mongodump()
-        size_mb = len(zip_data) / (1024 * 1024)
+        new_size = len(zip_data)
+        size_mb = new_size / (1024 * 1024)
         logger.info(f"[BACKUP] Dump alındı: {size_mb:.1f} MB")
+        
+        # Boyut kontrolü: son yedeğin %50'sinden küçükse anomali
+        last_size = await _get_last_backup_size(R2_BACKUP_PREFIX)
+        if last_size > 0 and new_size < (last_size * 0.5):
+            logger.warning(f"[BACKUP] ANOMALI! Yeni yedek ({new_size} byte) son yedeğin ({last_size} byte) %50'sinden küçük. DB sıfırlanmış olabilir. Yedek ATLANIYIOR.")
+            return
         
         # R2'ye yükle
         success = await _upload_backup(zip_data, r2_key)
@@ -149,8 +164,15 @@ async def run_daily_backup():
         
         # Dump al
         zip_data = _run_mongodump()
-        size_mb = len(zip_data) / (1024 * 1024)
+        new_size = len(zip_data)
+        size_mb = new_size / (1024 * 1024)
         logger.info(f"[BACKUP-GUNLUK] Dump alındı: {size_mb:.1f} MB")
+        
+        # Boyut kontrolü: son yedeğin %50'sinden küçükse anomali
+        last_size = await _get_last_backup_size(R2_DAILY_PREFIX)
+        if last_size > 0 and new_size < (last_size * 0.5):
+            logger.warning(f"[BACKUP-GUNLUK] ANOMALI! Yeni yedek ({new_size} byte) son yedeğin ({last_size} byte) %50'sinden küçük. DB sıfırlanmış olabilir. Yedek ATLANIYOR.")
+            return
         
         # R2'ye yükle
         success = await _upload_backup(zip_data, r2_key)
