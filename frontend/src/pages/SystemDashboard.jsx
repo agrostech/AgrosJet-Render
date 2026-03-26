@@ -195,8 +195,6 @@ function SirketlerPage() {
       await axios.put(`${API}/companies/${selectedCompany.id}`, {
         name: selectedCompany.name,
         logo_url: selectedCompany.logo_url,
-        logo_dark: selectedCompany.logo_dark,
-        logo_light: selectedCompany.logo_light,
         city: selectedCompany.city,
         city_lat: cityData?.lat,
         city_lng: cityData?.lng

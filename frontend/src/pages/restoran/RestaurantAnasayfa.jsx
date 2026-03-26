@@ -49,7 +49,7 @@ import { playCourierAssignmentSound, getCourierAssignmentSettings } from "@/util
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, onAssignCourier, onRefresh, restaurantId, restaurantName, permissions = {}, companyLogoLight }) {
+export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, onAssignCourier, onRefresh, restaurantId, restaurantName, permissions = {}, companyLogo }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState("pending");
@@ -272,7 +272,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
     const paperSize = localSettings.paperSize || getPrintSettings(restaurantId).paperSize || "80mm";
     const orderWithRestaurant = { ...order, restaurant_name: restaurantName };
     // Logo: relative path ise full URL yap
-    let logoUrl = companyLogoLight || "";
+    let logoUrl = companyLogo || "";
     if (logoUrl && logoUrl.startsWith("/")) {
       logoUrl = `${process.env.REACT_APP_BACKEND_URL}${logoUrl}`;
     }
