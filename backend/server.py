@@ -387,6 +387,29 @@ async def lifespan(app: FastAPI):
         replace_existing=True
     )
     
+    # --- MongoDB Yedekleme ---
+    from services.backup_service import run_frequent_backup, run_daily_backup
+    
+    # 15 dakikada bir yedek (max 5 döngüsel)
+    scheduler.add_job(
+        run_frequent_backup,
+        'interval',
+        minutes=15,
+        id="mongo_backup_frequent",
+        name="MongoDB Backup (15dk)",
+        replace_existing=True
+    )
+    
+    # 12 saatte bir günlük yedek (max 4 döngüsel)
+    scheduler.add_job(
+        run_daily_backup,
+        'interval',
+        hours=12,
+        id="mongo_backup_daily",
+        name="MongoDB Backup (12 saat)",
+        replace_existing=True
+    )
+    
     scheduler.start()
     
     # Mevcut vardiyaların job'larını yükle
