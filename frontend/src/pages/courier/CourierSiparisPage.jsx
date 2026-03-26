@@ -103,6 +103,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   const [smartRouteTotalDistance, setSmartRouteTotalDistance] = useState(0);
   const [smartRouteMapsUrl, setSmartRouteMapsUrl] = useState("");
   const [smartRouteAppleMapsUrl, setSmartRouteAppleMapsUrl] = useState("");
+  const [smartRouteUsed, setSmartRouteUsed] = useState(false);
   const wakeLockRef = useRef(null);
 
   // Wake Lock API - ekranın kapanmasını önle ve arka plan işlemlerini sürdür
@@ -474,6 +475,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
     setSmartRouteTotalDistance(totalDist);
     setSmartRouteMapsUrl(gUrl);
     setSmartRouteAppleMapsUrl(aUrl);
+    setSmartRouteUsed(true);
     setShowSmartRouteModal(true);
   }, [orders, courierId]);
 
@@ -779,8 +781,9 @@ export default function CourierSiparisPage({ courierId, companyId }) {
             </div>
           ) : (
             <>
-              {/* Toplu Yola Çıkar Butonu - Aynı restorandan onaylanmış siparişler varsa */}
+              {/* Toplu Yola Çıkar Butonu - Akıllı rota kullanıldıysa + aynı restorandan onaylanmış siparişler varsa */}
               {(() => {
+                if (!smartRouteUsed) return null;
                 const confirmedOrders = assignedOrders.filter(o => o.status === "confirmed");
                 if (confirmedOrders.length >= 2) {
                   const restaurantIds = [...new Set(confirmedOrders.map(o => o.restaurant_id))];
