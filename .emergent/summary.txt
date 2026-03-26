@@ -1,156 +1,138 @@
-<analysis>Analyse of the entire LLM message history has been completed. Here is the summary:
+<analysis>**original_problem_statement**: 
+The user requested numerous frontend and backend modifications across the application. These included: updating the Courier app delivery/payment modals to display customer names instead of order numbers; heavily modifying the Courier UI (header logo, bottom bar styling, active order count badge); standardizing the company logo fetching mechanism across all panels (Admin, Restaurant, Courier) to exclusively use Cloudflare R2; adding Doğum Tarihi (Birth Date) to the Admin Applications page; redesigning the Login page to reflect a minimalist AgrosVet aesthetic with dynamic backgrounds; removing base64 file fallbacks from MongoDB for invoices to prevent database bloat and strictly enforcing Cloudflare R2; implementing an automated MongoDB backup system to R2 (15-min and 12-hour intervals) with anomaly size checking; transitioning the Migros integration to the Live/Prod environment with hardcoded keys and URLs while stripping test UI elements; and correctly formatting incoming Migros phone numbers to the  format.
 
-**original_problem_statement:**
-The user initially reported UI layout issues and requested the removal of a tab on the Başvurular (Applications) page. This evolved into a series of feature requests and bug fixes, including:
-1.  **Phone Number Formatting:** Make phone numbers clickable  links.
-2.  **Application Notifications:** Implement a sidebar badge for new applications and real-time popover notifications via a webhook, with filtering by city and application type.
-3.  **iOS Push Notifications:** Add support for the Expo Push API for iOS devices alongside the existing Firebase (FCM) for Android.
-4.  **Courier Multi-Device & Session Management:** Resolve push notification conflicts when a courier is logged into multiple devices. The last logged-in device should receive notifications, and old sessions should be automatically logged out. This also involved fixing notification delivery race conditions and ensuring session state persists through app restarts.
-5.  **Courier Location Tracking:** Rework location tracking to be driven by the native app to remove duplicate permission prompts from the WebView.
-6.  **New Courier Notifications:** Add push notifications with emojis for order cancellations, manual un-assignments, and automatic take-backs.
-7.  **Courier UI/UX:** Add a bottom navigation bar to the courier panel.
-8.  **Migros Cancellation Issue:** Analyze and fix an issue where cancellation reasons for Migros orders were not appearing correctly. The analysis revealed the backend was parsing the wrong data field from the Migros API.
+**User's preferred language**: Turkish (Türkçe).
+*(INSTRUCT NEXT AGENT: You MUST automatically detect the user's primary language from their messages inside the trajectory tag and respond in the user's preferred language ONLY. All communications must be in Turkish.)*
 
-**User's preferred language**: Turkish
-
-**what currently exists?**
-The Başvurular page UI has been fixed, and phone numbers are now clickable links. A comprehensive notification system for new applications is fully functional, including a dynamic sidebar badge and real-time popover alerts filtered by city.
-
-The push notification backend is now platform-aware, intelligently routing notifications to Expo (for iOS) or FCM (for Android) based on a  field stored in the database, making the system more robust than its previous token-parsing approach.
-
-Courier session management has been significantly overhauled. A  stored in  ensures session persistence. An auto-logout mechanism correctly invalidates stale sessions on other devices, ensuring notifications are delivered to the correct, most recently used device.
-
-Courier location tracking is now driven by the native application; the web panel passively listens for location updates, which has eliminated the redundant permission prompts. New push notifications for various order events have been added, complete with emojis, and the courier panel UI has been improved with a bottom navigation bar.
-
-A precise analysis of the Migros cancellation issue is complete. The root cause is confirmed to be the backend parsing the wrong field (/ instead of ) from the Migros API response.
+**what currently exists?**:
+- **Courier App**: Modals now prominently display the customer name. The header layout is reorganized (Menu left, Logo center, Status right), and the bottom navigation bar features a top-border highlight for the active tab and a real-time red badge showing active order counts on the Siparişler tab.
+- **Logos**: All panels (Admin, Restoran, Courier) strictly fetch the  or  uploaded via the  panel. Logos are hosted on Cloudflare R2.
+- **Login Page**: Completely overhauled to an AgrosVet-inspired minimalist design. The left-side image dynamically changes based on the selected tab (Admin vs Restoran), and the background uses an AI-generated clean, icy blue/peach gradient.
+- **Database Storage**: Base64 file fallback methods for invoices (, , ) are completely removed to stop MongoDB bloat. Files now strictly require Cloudflare R2.
+- **Automated Backups**:  is integrated with APScheduler. It dumps the MongoDB to R2 every 15 minutes (keeping the last 5) and every 12 hours (keeping the last 4). It includes a safety lock that aborts the backup if the new dump is <50% of the previous backup's size (preventing empty DB overwrites).
+- **Migros Integration**: Fully transitioned to the live environment (). The secret key is hardcoded. Frontend webhook instructions, test, and sync buttons are completely removed from integration modals (Migros, Getir, Adisyo). Incoming  phone numbers are auto-formatted to .
 
 **Last working item**:
--   Last item agent was working: The agent sent a plan of action to the user via the  tool and is awaiting their approval before proceeding with the next set of tasks, starting with the fix for the Migros cancellation issue.
--   Status: **USER VERIFICATION PENDING**
--   Agent Testing Done: N/A
--   Which testing method agent to use? backend testing agent
--   User Testing Done: N
+- **Last item agent was working**: Auto-formatting incoming Migros phone numbers in  from  to  before inserting them into the database.
+- **Status**: USER VERIFICATION PENDING
+- **Agent Testing Done**: Y (Backend compilation and startup check).
+- **Which testing method agent to use?**: NA (Testing is already done, and the user explicitly stated Testleri bana bırak / Leave tests to me).
+- **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1:** Migros order cancellation reasons have empty labels. (P0)
+Issue 1: Update Neden AgrosJet? static text on Courier Registration & KVKK pages. (P0)
 
-    -   **Issues Detail:**
-        -   **Issue 1:** Migros order cancellation reasons are appearing in the dropdown, but their text labels are empty because the backend is parsing the wrong field from the API response.
-            -   **Attempted fixes:** None. The user requested analysis only, which is now complete.
-            -   **Next debug checklist:**
-                1.  Open .
-                2.  In the  endpoint, find the list comprehension that builds .
-                3.  Change the value for the  key from  to .
-            -   **Why fix this issue and what will be achieved with the fix?** This will display the correct cancellation reason text, making the order cancellation feature for Migros fully functional and usable.
-            -   **Status:** NOT STARTED
-            -   **Is recurring issue?** Y
-            -   **Should Test frontend/backend/both after fix?** Both
-            -   **Blocked on other issue:** None
+Issues Detail:
+- **Issue 1**: Update Neden AgrosJet? static text on Courier Registration & KVKK pages.
+   - **Attempted fixes**: The agent began searching for the text strings via grep but the user interrupted with a new request to generate a feature overview for a landing page. The text change was completely forgotten.
+   - **Next debug checklist**: Go to  and  (or wherever Neden AgrosJet? exists). Modify the generic company-focused text to be tailored for Courier registrations as requested by the user.
+   - **Why fix this issue and what will be achieved with the fix?**: The current text talks about the system from a company/admin perspective, confusing couriers signing up for the application.
+   - **Status**: NOT STARTED
+   - **Is recurring issue?**: N
+   - **Should Test frontend/backend/both after fix?**: Frontend
+   - **Blocked on other issue**: None
 
 **In progress Task List**:
--   None.
+None.
 
-**Upcoming and Future Tasks**
+**Upcoming and Future Tasks**:
+- (P1) Migros Reject Functionality.
+- (P1) VatanSMS Integration.
+- (P2) Verify Courier Rota Fallback (Pending user native app tests).
+- (P2) Migros 30-Second Rule.
+- Future Tasks: Yemeksepeti Chrome extension, Stop Count capacity logic, technical security requirements,  calculation, scheduled job refactoring, caller ID integration, Native Courier App.
 
-**Upcoming Tasks:**
-*   **(P0) Implement Fix for Migros Cancellation Labels:** Based on the latest analysis, apply the fix in .
-*   **(P0) Remove Route Creation Pin:** Automate the starting point of a route using the courier's current location instead of requiring a manual pin placement.
-*   **(P0) Verify Courier Session Fixes:** The user needs to test the comprehensive session and notification fixes with an updated native application.
-*   **(P1) Verify Courier Rota Fallback:** The user's decision on the proposed solutions for the route fallback issue is pending.
-*   **(P1) Implement VatanSMS Integration:** (Carried over)
-*   **(P1) Implement Migros Reject Functionality:** (Carried over)
-*   **(P2) Implement 30-Second Rule for Migros Cancellation:** (Carried over)
+**Completed work in this session**:
+- Replaced order number with customer name in Courier payment/delivery modals (DONE)
+- Reorganized Courier header (Menu left, Logo center, Status right) and resized icons (DONE)
+- Courier bottom bar active styling and active order count badge (DONE)
+- Standardized company logo fetching to exclusively use Cloudflare R2 across all panels (DONE)
+- Admin Applications (Başvurular) page now displays Doğum Tarihi (Birth Date) (DONE)
+- Login page redesigned to minimalist UI with dynamic tab imagery (DONE)
+- Removed all base64 file-saving fallback logic from invoice endpoints to prevent MongoDB bloat (DONE)
+- Implemented MongoDB automated backup system (15-min and 12-hour intervals) with size-anomaly prevention (DONE)
+- Migros API moved to PROD (Hardcoded key, updated URL, removed test/sync UI buttons) (DONE)
+- Removed extraneous webhook info texts from Migros, Getir, and Adisyo modals (DONE)
+- Migros incoming phone numbers formatted to  (DONE)
 
-**Future Tasks:**
-*   (Carried over) Implement a Chrome extension for Yemeksepeti, Stop Count capacity logic, technical security requirements,  calculation, scheduled job refactoring, new reports, the Restaurant Courier System, Caller ID integration, more courier permissions, API request monitor, and a Native Courier App.
+**Earlier issues found/mentioned but not fixed**:
+- **Issue 1**: Kurye Registration/KVKK text overhaul (Captured in Issue 1 above).
 
-**Completed work in this session**
--   **Courier Session & Auto-Logout Fix:** Refactored login and logout logic in  and  to correctly manage sessions using  and notify the native layer.
--   **Platform-Aware Push Notification System:** Reworked  and  to use a  DB field for routing notifications instead of parsing token strings.
--   **Courier Location Tracking Rework:** Removed  from  and implemented a listener for native app messages, solving the double permission prompt issue.
--   **New Push Notifications with Emojis:** Implemented notifications for order cancellations (❌), un-assignments (🔄), and auto-unassignments (⏰).
--   **Courier Panel UI Update:** Added a fixed bottom navigation bar in .
--   **Migros Issue Analysis:** Conclusively identified the root cause of the cancellation reason bug using user-provided network logs.
+**Known issue recurrence from previous fork**:
+- Recurrence count: 0
+- Status: RESOLVED
 
-**Earlier issues found/mentioned but not fixed**
--   **Issue 1: Route Creation Start Pin:** The user wants to automate the starting point of a route using the courier's current location instead of requiring a manual pin. The agent analyzed this and confirmed it's feasible, but implementation is pending.
-    -   **Debug checklist:** In the route creation component, use the courier's last known location ( or fetch from backend) as the starting point instead of prompting the user.
-    -   **Why to solve this issue and what will be achieved with this?** This will improve user experience by simplifying and speeding up the route creation process.
-    -   **Should Test frontend/backend/both after fix:** Frontend
-    -   **Is recurring issue?** N
-
-**Known issue recurrence from previous fork**
--   None.
-
-**Code Architecture**
+**Code Architecture**:
 
 
-**Key Technical Concepts**
--   **Native-First Communication:** Shifted from WebView-led () to Native-led location tracking. The WebView now passively listens for  messages from the native app.
--   **Platform-Aware Push Service:** The backend determines the push service (Expo vs. FCM) based on an explicit  field (android or ios) sent by the native app, which is more reliable than token parsing.
--   **State Persistence:** Critical session information () is stored in  to survive application restarts and WebView reloads, making session management robust.
--   **Single Source of Truth:** The  endpoint is now the definitive source for updating a courier's active device  and .
+**Key Technical Concepts**:
+- **Cloudflare R2 Object Storage**: The system now strictly relies on R2 for storing logos, invoices, and MongoDB backups.
+- **APScheduler**: Manages the automated 15-minute and 12-hour MongoDB database dumps.
+- **Fallback Prevention**: Explicit rejection of base64 document writing directly into MongoDB documents to protect performance and storage limits.
 
-**key DB schema**
--   **couriers:**
-    -    - Manages unique login sessions across devices.
-    -    - Stores  or  to determine which push service to use.
--   **notifications:** Used for storing application () and order-related notifications.
+**key DB schema**:
+- **companies**:
+  - : Fallback / Main company logo URL.
+  - : Precedence logo field, now strictly referencing the R2 bucket path.
 
-**All files of reference**
--   
--   
--   
--   
--   
--   
--   
+**changes in tech stack**:
+- **MongoDB to R2 Enforcement**: Fallback mechanisms that saved documents as base64 strings into MongoDB have been eliminated. R2 integration is now a hard requirement for document uploads.
 
-**Critical Info for New Agent**
--   **You MUST communicate in Turkish.**
--   The immediate priority is to **fix the Migros cancellation labels**. The analysis is complete. You need to edit  and change the parsed field from / to  after getting user approval.
--   The courier session and location system has been completely overhauled. **Do not use **. The WebView now passively listens for messages from the native app for location updates.
--   An upcoming task is to **remove the manual pin for route creation**, automating it with the courier's current location.
--   The last action was an  call. You are waiting for the user's response to proceed.
+**All files of reference**:
+-  (Header, bottom bar modifications)
+-  (Redesigned Login Page)
+-  (Removed test buttons & webhook info)
+-  (Storage utilities)
+-  (Created file for automated mongodump to R2)
+-  (Scheduled backup jobs added)
+-  &  (Migros keys hardcoded,  passed)
+-  (Phone format string mapping updated)
 
-**documents and test reports created in this job**
--   None in the last session.
+**Areas that need refactoring**:
+- While Migros Secret Key was requested to be hardcoded, this is poor security practice for production code. Consider moving  back to a secure environment variable once the immediate deployment stabilizes.
 
-**Last 10 User Messages and any pending HUMAN messages**
-10. **User confirms**  (backend-only) approach for fixing the auto-logout issue.
-9.  **User reports** auto-logout is working, but now no notifications are being sent to either device.
-8.  **User asks** for clarification on when the new push token is written during login and how the system knows whether it's for Android or iOS.
-7.  **User asks** if the agent can proceed with a solution for the timing issue.
-6.  **User asks** if it's possible to get rid of the extra location permission prompt from the WebView.
-5.  **User provides instructions** for the web team to integrate with the new native location methods.
-4.  **User requests** adding a bottom navigation bar to the courier panel.
-3.  **User provides console logs** and asks for another analysis of the Migros cancellation reason issue.
-2.  **User provides network request/response details** for the failing Migros API call.
-1.  **User asks to ** after the agent analyzes the API documentation.
--   **Pending Human Message:** The agent has sent a plan of action via  and is waiting for the user's response.
+**key api endpoints**:
+- : R2 Logo fetch endpoint.
+- : Main webhook receiving Migros orders.
 
-**Project Health Check:**
--   **Broken:**
-    -   The Migros order cancellation feature is partially broken (reasons display with empty labels).
--   **Mocked:**
-    -   External APIs (AgrosJet, Migros, etc.) are returning test environment data.
+**Critical Info for New Agent**:
+- **LANGUAGE**: The user strictly communicates in Turkish. YOU MUST RESPOND IN TURKISH.
+- **Testing**: The user explicitly instructed the agent Testleri bana bırak (Leave tests to me). Do not overly worry about automated E2E tests for UI changes unless regressions appear. Focus on rapid execution.
+- **Storage**: NEVER save files as base64 in MongoDB. The system was just cleaned of this to solve a 1GB database bloat issue. Use .
 
-**3rd Party Integrations**
--   **AgrosJet.com API:** For fetching and managing applications.
--   **Expo Push Notifications:** For sending push notifications to iOS and new Android builds.
--   **Firebase Cloud Messaging (FCM):** For sending push notifications to older Android builds.
--   **Migros, Adisyo, Getir, Trendyol:** Existing integrations for order management.
+**documents and test reports created in this job**:
+-  (Updated)
 
-**Testing status**
--   Testing agent used after significant changes: NO
--   Troubleshoot agent used after agent stuck in loop: NO
--   Test files created: []
--   Known regressions: None.
+**Last 10 User Messages and any pending HUMAN messages**:
+1. **User**: requested incoming Migros order phone numbers () to be formatted to . (Completed by agent)
+2. **User**: Requested the Courier panel header logo to be centered and the active dropdown moved to the right. (Completed by agent)
+3. **User**: Requested the removal of Adisyo webhook info texts from the integration manager. (Completed by agent)
+4. **User**: Requested the removal of Getir webhook info texts from the integration manager. (Completed by agent)
+5. **User**: Requested removal of webhook details and test environment switches for Migros on the frontend UI. (Completed by agent)
+6. **User**: Provided Migros Live/Prod environment details (URL and Secret Key) and asked to hardcode the secret key and go live. (Completed by agent)
+7. **User**: Confirmed approach B for the MongoDB backup logic (aborting backup if the new dump size is <50% of the older dump, preventing overwriting with an empty DB). (Completed by agent)
+8. **User**: Asked if the 5-cycle backup might overwrite good backups if the database gets wiped by mistake. (Agent suggested the size anomaly check).
+9. **User**: Requested changing the MongoDB backups to a 15-min cycle (keep 5) and a 12-hour daily cycle (keep 4). (Completed by agent)
+10. **User**: Asked if it's possible to automatically run  every 15 mins and send it to Cloudflare R2 to secure the database. (Agent implemented this).
 
-**Credentials to test flow:**
--   **System Admin Panel:** User: , Password: 
--   **Company Admin Panel:** User: , Password: 
--   **Courier Panel:** User/Phone: , Password: 
+**Project Health Check**:
+Healthy.
 
-**What agent forgot to execute**
--   Nothing. The agent systematically addressed a complex chain of interconnected issues, analyzed them, and implemented fixes or prepared for them based on user feedback.</analysis>
+**3rd Party Integrations**:
+- Migros, Getir, Trendyol, Adisyo, Yemeksepeti (Order integrations)
+- Cloudflare R2 (Object storage for logos, invoices, and DB backups) - requires API keys.
+- Expo / Firebase (Push Notifications)
+
+**Testing status**:
+- Testing agent used after significant changes: NO (User requested to skip testing: Testleri bana bırak).
+- Troubleshoot agent used after agent stuck in loop: NO
+- Test files created: None
+- Known regressions: None currently.
+
+**Credentials to test flow**:
+- System Admin Panel:  / 
+- Company Admin:  / 
+- Courier:  (or ) / 
+
+**What agent forgot to execute**:
+The agent completely forgot to update the Neden AgrosJet? static copy on the Registration and KVKK pages for couriers. The agent searched for the files but was interrupted by a new request from the user before applying the edits. See **Issue 1** in the Pending Issues list.</analysis>
