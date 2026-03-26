@@ -273,7 +273,8 @@ export default function CourierDashboard() {
     try {
       const res = await axios.get(`${API}/companies/${companyId}`);
       setCompanyName(res.data.name);
-      setCompanyLogo(res.data.logo_dark || res.data.logo_url || "");
+      const darkLogo = res.data.logo_dark ? `${API.replace('/api','')}${res.data.logo_dark}` : null;
+      setCompanyLogo(darkLogo || res.data.logo_url || "");
     } catch (err) {
       console.error("Şirket bilgisi alınamadı", err);
     }
