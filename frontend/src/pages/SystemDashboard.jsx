@@ -336,8 +336,8 @@ function SirketlerPage() {
               companies.map((company) => (
                 <TableRow key={company.id}>
                   <TableCell>
-                    {company.logo_url ? (
-                      <img src={company.logo_url} alt={company.name} className="h-10 w-auto object-contain" />
+                    {(company.logo_light || company.logo_url) ? (
+                      <img src={company.logo_light ? `${process.env.REACT_APP_BACKEND_URL}${company.logo_light}` : company.logo_url} alt={company.name} className="h-10 w-auto object-contain" />
                     ) : (
                       <div className="w-10 h-10 bg-slate-100 flex items-center justify-center">
                         <Building2 className="w-5 h-5 text-slate-400" />
