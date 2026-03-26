@@ -492,12 +492,6 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
               </code>
             </div>
 
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-              <p className="text-xs text-amber-800">
-                <strong>Not:</strong> Yola çıkarma durumunda Adisyo'daki ilk kurye otomatik olarak atanır. 
-                Adisyo panelinde en az 1 kurye tanımlı olmalıdır.
-              </p>
-            </div>
           </div>
           
           <DialogFooter>
