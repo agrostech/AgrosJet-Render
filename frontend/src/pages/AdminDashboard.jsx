@@ -345,7 +345,7 @@ export default function AdminDashboard() {
             // Single company - show logo and name together
             <div className="flex items-center gap-2">
               {(company?.logo_dark || company?.logo_url) && (
-                <img src={company.logo_dark ? `${API.replace('/api','')}${company.logo_dark}` : company.logo_url} alt={company.name} className="h-12 object-contain" />
+                <img src={company.logo_dark ? `${process.env.REACT_APP_BACKEND_URL}${company.logo_dark}` : company.logo_url} alt={company.name} className="h-12 object-contain" />
               )}
               <span className="font-heading text-sm font-bold truncate">{company?.name}</span>
             </div>
@@ -401,7 +401,7 @@ export default function AdminDashboard() {
             <div className="flex items-center gap-3 flex-1 min-w-0">
               {(company?.logo_dark || company?.logo_url) && (
                 <img 
-                  src={company.logo_dark ? `${API.replace('/api','')}${company.logo_dark}` : company.logo_url} 
+                  src={company.logo_dark ? `${process.env.REACT_APP_BACKEND_URL}${company.logo_dark}` : company.logo_url} 
                   alt={company.name} 
                   className="w-14 h-14 rounded object-contain bg-white/10 p-1"
                   onError={(e) => { e.target.style.display = 'none'; }}
@@ -519,10 +519,10 @@ export default function AdminDashboard() {
                 <Route path="vardiyalar" element={<VardiyaPage companyId={activeCompanyId} />} />
               )}
               {(isSuperAdmin || permissions.muhasebe) && (
-                <Route path="muhasebe" element={<MuhasebePage companyId={activeCompanyId} adminId={user.id} adminName={user.name || user.username} companyLogo={company?.logo_dark ? `${API.replace('/api','')}${company.logo_dark}` : company?.logo_url} companyName={company?.name} isSuperAdmin={isSuperAdmin} />} />
+                <Route path="muhasebe" element={<MuhasebePage companyId={activeCompanyId} adminId={user.id} adminName={user.name || user.username} companyLogo={company?.logo_dark ? `${process.env.REACT_APP_BACKEND_URL}${company.logo_dark}` : company?.logo_url} companyName={company?.name} isSuperAdmin={isSuperAdmin} />} />
               )}
               {(isSuperAdmin || permissions.raporlar) && (
-                <Route path="raporlar" element={<RaporlarPage companyId={activeCompanyId} isSuperAdmin={isSuperAdmin} companyLogo={company?.logo_dark ? `${API.replace('/api','')}${company.logo_dark}` : company?.logo_url} companyName={company?.name} />} />
+                <Route path="raporlar" element={<RaporlarPage companyId={activeCompanyId} isSuperAdmin={isSuperAdmin} companyLogo={company?.logo_dark ? `${process.env.REACT_APP_BACKEND_URL}${company.logo_dark}` : company?.logo_url} companyName={company?.name} />} />
               )}
               {(isSuperAdmin || permissions.zimmet) && (
                 <Route path="zimmet" element={<ZimmetPage />} />

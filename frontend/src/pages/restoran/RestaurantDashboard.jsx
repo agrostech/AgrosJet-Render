@@ -87,7 +87,7 @@ export default function RestaurantDashboard() {
           if (userData.company_id) {
             axios.get(`${API}/companies/${userData.company_id}`)
               .then(r => {
-                setCompanyLogo(r.data.logo_dark ? `${API}${r.data.logo_dark}` : r.data.logo_url);
+                setCompanyLogo(r.data.logo_dark ? `${process.env.REACT_APP_BACKEND_URL}${r.data.logo_dark}` : r.data.logo_url);
               })
               .catch(() => {});
           }
@@ -114,7 +114,7 @@ export default function RestaurantDashboard() {
     if (storedUser.company_id) {
       axios.get(`${API}/companies/${storedUser.company_id}`)
         .then(res => {
-          setCompanyLogo(res.data.logo_dark ? `${API}${res.data.logo_dark}` : res.data.logo_url);
+          setCompanyLogo(res.data.logo_dark ? `${process.env.REACT_APP_BACKEND_URL}${res.data.logo_dark}` : res.data.logo_url);
         })
         .catch(() => {});
     }
