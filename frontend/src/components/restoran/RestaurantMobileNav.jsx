@@ -27,12 +27,14 @@ export default function RestaurantMobileNav({
           <div className="p-4 border-b border-white/20">
             <div className="flex items-center gap-3">
               {companyLogo && (
-                <img 
-                  src={companyLogo} 
-                  alt="Logo" 
-                  className="w-14 h-14 rounded object-contain bg-white/10"
-                  onError={(e) => { e.target.style.display = 'none'; }}
-                />
+                <div className="w-[60px] h-[60px] rounded bg-white/10 flex items-center justify-center shrink-0">
+                  <img 
+                    src={companyLogo} 
+                    alt="Logo" 
+                    className="w-[50px] h-[50px] rounded object-contain"
+                    onError={(e) => { e.target.parentElement.style.display = 'none'; }}
+                  />
+                </div>
               )}
               <div className="min-w-0 flex-1">
                 <h1 className="font-heading text-base font-bold truncate">{restaurant?.name || "Restoran"}</h1>
