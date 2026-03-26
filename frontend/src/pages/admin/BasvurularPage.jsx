@@ -55,6 +55,13 @@ function formatPhone(phone) {
   return digits.startsWith("0") ? digits : "0" + digits;
 }
 
+function formatBirthDate(app) {
+  if (!app.birth_day || !app.birth_month || !app.birth_year) return "-";
+  const d = String(app.birth_day).padStart(2, "0");
+  const m = String(app.birth_month).padStart(2, "0");
+  return `${d}.${m}.${app.birth_year}`;
+}
+
 function phoneHref(phone) {
   if (!phone) return null;
   const digits = phone.replace(/\D/g, "");
@@ -296,25 +303,27 @@ function CourierTable({ applications, uniqueStatuses, adminName, onSuccess, empt
       <Table className="table-fixed w-full">
         <TableHeader>
           <TableRow className="border-b-2 border-primary">
-            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"11%"}}>Ad Soyad</TableHead>
-            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"10%"}}>Telefon</TableHead>
-            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"10%"}}>İl / İlçe</TableHead>
-            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"8%"}}>Ehliyet</TableHead>
-            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"11%"}}>Motosiklet</TableHead>
-            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"7%"}}>Günlük Saat</TableHead>
-            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"10%"}}>Deneyim</TableHead>
-            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"14%"}}>Açıklama</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"10%"}}>Ad Soyad</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"9%"}}>Telefon</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"7%"}}>D.Tarihi</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"9%"}}>İl / İlçe</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"7%"}}>Ehliyet</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"10%"}}>Motosiklet</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"6%"}}>Günlük Saat</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"9%"}}>Deneyim</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"13%"}}>Açıklama</TableHead>
             <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"9%"}}>Tarih</TableHead>
-            <TableHead className="font-bold text-xs whitespace-nowrap text-right" style={{width:"10%"}}>İşlemler</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap text-right" style={{width:"11%"}}>İşlemler</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {applications.length === 0 ? (
-            <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">{emptyMsg}</TableCell></TableRow>
+            <TableRow><TableCell colSpan={11} className="text-center text-muted-foreground py-8">{emptyMsg}</TableCell></TableRow>
           ) : applications.map(app => (
             <TableRow key={app.id} className="border-b border-border hover:bg-slate-50" data-testid={`app-row-${app.id}`}>
               <TableCell className="font-medium text-sm">{app.full_name}</TableCell>
               <TableCell className="font-mono text-sm whitespace-nowrap"><PhoneCell phone={app.phone} className="font-mono text-sm" /></TableCell>
+              <TableCell className="text-sm whitespace-nowrap">{formatBirthDate(app)}</TableCell>
               <TableCell className="text-sm whitespace-nowrap">{app.province || "-"}{app.district ? ` / ${app.district}` : ""}</TableCell>
               <TableCell className="text-sm">{(app.license_types || []).join(", ") || "-"}</TableCell>
               <TableCell className="text-sm">
@@ -411,6 +420,7 @@ function ApplicationMobileCards({ applications, activeTab, uniqueStatuses, admin
               <p className="text-[10px] text-muted-foreground leading-tight">
                 <PhoneCell phone={app.phone} className="text-[10px] text-muted-foreground" />
                 {app.province ? ` · ${app.province}` : ""}
+                {activeTab === "courier" && formatBirthDate(app) !== "-" ? ` · ${formatBirthDate(app)}` : ""}
                 {activeTab === "courier" && app.experience ? ` · ${app.experience}` : ""}
                 {activeTab === "restaurant" && app.package_count ? ` · ${app.package_count} paket` : ""}
               </p>
