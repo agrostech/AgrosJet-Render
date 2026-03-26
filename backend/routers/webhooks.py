@@ -899,16 +899,11 @@ async def migros_order_webhook(
                         }
                         break
             
-            if migros_config.get("api_key") and migros_config.get("secret_key"):
-                # is_test boolean olarak handle et (string/garbage data gelebilir)
-                is_test_val = migros_config.get("is_test", False)
-                if isinstance(is_test_val, str):
-                    is_test_val = is_test_val.lower() not in ("false", "0", "no", "")
-                
+            if migros_config.get("api_key"):
                 service = MigrosYemekService(
                     api_key=migros_config["api_key"],
-                    secret_key=migros_config["secret_key"],
-                    is_test=bool(is_test_val)
+                    secret_key=MIGROS_SECRET_KEY,
+                    is_test=False
                 )
                 
                 # Migros'a "Approved" gönder

@@ -18,6 +18,8 @@ from services.credit_service import insert_order, insert_orders
 # Türkiye timezone (UTC+3)
 TURKEY_TZ = timezone(timedelta(hours=3))
 
+MIGROS_SECRET_KEY = "oPbkAZjSO6HDD0E0wt9GR5IVQWNNgpFA"
+
 router = APIRouter(prefix="/api/orders", tags=["Sipariş Yönetimi"])
 logger = logging.getLogger(__name__)
 
@@ -278,17 +280,11 @@ async def notify_platform_status_change(order: dict, new_status: str, preparatio
                     if not migros_config.get("api_key"):
                         migros_config = restaurant.get("migros_credentials", {})
                     
-                    if migros_config.get("api_key") and migros_config.get("secret_key"):
-                        # is_test boolean olarak handle et (string/garbage data gelebilir)
-                        is_test = migros_config.get("is_test", False)
-                        if isinstance(is_test, str):
-                            # Boş string ve bilinen false değerler → False, geri kalan her şey → True
-                            is_test = is_test.lower() not in ("false", "0", "no", "")
-                        
+                    if migros_config.get("api_key"):
                         service = MigrosYemekService(
                             api_key=migros_config["api_key"],
-                            secret_key=migros_config["secret_key"],
-                            is_test=bool(is_test)
+                            secret_key=MIGROS_SECRET_KEY,
+                            is_test=False
                         )
                         
                         migros_order_id = migros_data.get("order_id")
@@ -1564,15 +1560,11 @@ async def get_cancel_reasons_by_platform(source: str, restaurant_id: Optional[st
                             break
                 
                 if migros_config.get("api_key"):
-                    is_test = migros_config.get("is_test", True)
-                    if isinstance(is_test, str):
-                        is_test = is_test.lower() not in ("false", "0", "no", "")
-                    
                     from services.migros_service import MigrosYemekService
                     service = MigrosYemekService(
                         api_key=migros_config["api_key"],
-                        secret_key=migros_config["secret_key"],
-                        is_test=bool(is_test)
+                        secret_key=MIGROS_SECRET_KEY,
+                        is_test=False
                     )
                     result = await service.get_cancel_reasons()
                     if result.get("success") is not False and result.get("data"):

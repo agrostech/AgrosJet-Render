@@ -116,19 +116,12 @@ const PLATFORM_CONFIG = {
     textClass: "text-orange-600",
     fields: [
       { key: "api_key", label: "API Key (XApiKey)", type: "password", required: true, placeholder: "Migros API Key" },
-      { key: "secret_key", label: "Secret Key", type: "password", required: true, placeholder: "Şifreleme için Secret Key (32 karakter)" },
       { key: "store_id", label: "Store ID", type: "text", required: true, placeholder: "Restoran ID (örn: 23000000101833)" },
       { key: "store_group_id", label: "Zincir ID (Store Group)", type: "text", required: false, placeholder: "Store Group ID (örn: 1054)" }
     ],
-    helpText: "API bilgilerini Migros Yemek entegrasyon ekibinden alabilirsiniz. Webhook tabanlı çalışır - siparişler otomatik olarak gelir.",
+    helpText: "API bilgilerini Migros Yemek Restoran Paneli üzerinden, Pos Entegrasyonu ekranından temin edebilirsiniz.",
     helpUrl: null,
-    isWebhook: true,
-    webhookInfo: {
-      orderEndpoint: "/api/webhooks/migros/order",
-      cancelEndpoint: "/api/webhooks/migros/cancel",
-      statusEndpoint: "/api/webhooks/migros/status",
-      note: "Bu webhook URL'lerini Migros entegrasyon ekibine iletmeniz gerekmektedir. Header olarak XApiKey gönderilmelidir."
-    }
+    isWebhook: false
   }
 };
 
