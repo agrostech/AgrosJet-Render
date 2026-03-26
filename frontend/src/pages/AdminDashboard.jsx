@@ -345,7 +345,7 @@ export default function AdminDashboard() {
             // Single company - show logo and name together
             <div className="flex items-center gap-2">
               {(company?.logo_dark || company?.logo_url) && (
-                <img src={company.logo_dark ? `${process.env.REACT_APP_BACKEND_URL}${company.logo_dark}` : company.logo_url} alt={company.name} className="h-12 object-contain" />
+                <img src={company.logo_dark ? `${process.env.REACT_APP_BACKEND_URL}${company.logo_dark}` : company.logo_url} alt={company.name} className="h-8 object-contain" />
               )}
               <span className="font-heading text-sm font-bold truncate">{company?.name}</span>
             </div>
@@ -403,7 +403,7 @@ export default function AdminDashboard() {
                 <img 
                   src={company.logo_dark ? `${process.env.REACT_APP_BACKEND_URL}${company.logo_dark}` : company.logo_url} 
                   alt={company.name} 
-                  className="w-14 h-14 rounded object-contain bg-white/10 p-1"
+                  className="w-10 h-10 rounded object-contain bg-white/10 p-1"
                   onError={(e) => { e.target.style.display = 'none'; }}
                 />
               )}
