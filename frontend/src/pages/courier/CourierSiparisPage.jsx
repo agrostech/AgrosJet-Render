@@ -316,7 +316,6 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       window.ReactNativeWebView.postMessage(JSON.stringify({
         type: 'OPEN_ROUTE',
         data: {
-          origin: { lat: startLat, lng: startLng },
           destination: {
             lat: bestRoute[bestRoute.length - 1].delivery_location.latitude,
             lng: bestRoute[bestRoute.length - 1].delivery_location.longitude
@@ -530,7 +529,17 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   // Haritada aç
   const openInMaps = (lat, lng, label) => {
     const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
-    window.open(url, "_blank");
+    if (window.ReactNativeWebView) {
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        type: 'OPEN_NAVIGATION',
+        data: {
+          destination: { lat, lng, label },
+          mapsUrl: url
+        }
+      }));
+    } else {
+      window.open(url, "_blank");
+    }
   };
 
   // Telefonu ara
