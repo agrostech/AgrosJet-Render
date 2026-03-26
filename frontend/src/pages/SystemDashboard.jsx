@@ -281,8 +281,8 @@ function SirketlerPage() {
           <div key={company.id} className="border rounded-lg p-3 bg-white">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5 min-w-0">
-                {company.logo_url ? (
-                  <img src={company.logo_url} alt={company.name} className="h-9 w-auto object-contain flex-shrink-0" />
+                {(company.logo_light || company.logo_url) ? (
+                  <img src={company.logo_light ? `${process.env.REACT_APP_BACKEND_URL}${company.logo_light}` : company.logo_url} alt={company.name} className="h-9 w-auto object-contain flex-shrink-0" />
                 ) : (
                   <div className="w-9 h-9 bg-slate-100 flex items-center justify-center rounded flex-shrink-0">
                     <Building2 className="w-4 h-4 text-slate-400" />
