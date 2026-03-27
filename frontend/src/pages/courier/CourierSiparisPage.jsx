@@ -32,6 +32,7 @@ import {
   Bike,
   BellOff,
   AlertCircle,
+  Check,
 } from "lucide-react";
 
 // Ortak utility fonksiyonları import et
@@ -98,12 +99,8 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   const [showNotReadyModal, setShowNotReadyModal] = useState(false);
   const [pendingNotReadyOrder, setPendingNotReadyOrder] = useState(null);
   const [permissions, setPermissions] = useState({ can_mark_not_ready: true });
-  const [showSmartRouteModal, setShowSmartRouteModal] = useState(false);
-  const [smartRouteSteps, setSmartRouteSteps] = useState([]);
+  const [smartRouteData, setSmartRouteData] = useState([]); // Akıllı rota adımları
   const [smartRouteTotalDistance, setSmartRouteTotalDistance] = useState(0);
-  const [smartRouteMapsUrl, setSmartRouteMapsUrl] = useState("");
-  const [smartRouteAppleMapsUrl, setSmartRouteAppleMapsUrl] = useState("");
-  const [smartRouteUsed, setSmartRouteUsed] = useState(false);
   const wakeLockRef = useRef(null);
 
   // Wake Lock API - ekranın kapanmasını önle ve arka plan işlemlerini sürdür
@@ -154,15 +151,32 @@ export default function CourierSiparisPage({ courierId, companyId }) {
     };
   }, []);
 
-  // Rota oluştur - yolda olan siparişler için teslimat rotası, modal ile göster
-  const createOptimizedRoute = useCallback(async () => {
-    const onTheWayOrders = orders.filter(o => o.status === "on_the_way");
+
+  // Akıllı Rota Oluştur - tüm aktif siparişleri birleştir (atanmış + yolda)
+  const createSmartRoute = useCallback(async () => {
+    const assignedOrs = orders.filter(o => ["assigned", "confirmed"].includes(o.status));
+    const onTheWayOrs = orders.filter(o => o.status === "on_the_way");
+    const allActive = [...assignedOrs, ...onTheWayOrs];
     
-    if (onTheWayOrders.length < 2) {
-      toast.error("Rota için en az 2 sipariş gerekli");
+    if (allActive.length < 2) {
+      toast.error("Akıllı rota için en az 2 sipariş gerekli");
       return;
     }
-    
+
+    const validAssigned = assignedOrs.filter(
+      o => o.delivery_location?.latitude && o.delivery_location?.longitude &&
+           o.restaurant_location?.latitude && o.restaurant_location?.longitude
+    );
+    const validOnTheWay = onTheWayOrs.filter(
+      o => o.delivery_location?.latitude && o.delivery_location?.longitude
+    );
+
+    if ((validAssigned.length + validOnTheWay.length) < 2) {
+      toast.error("Yeterli konum bilgisi yok");
+      return;
+    }
+
+    // Başlangıç noktası
     let startLat, startLng;
     if (lastLocationRef.current.lat && lastLocationRef.current.lng && 
         (Date.now() - lastLocationRef.current.time) < 300000) {
@@ -175,190 +189,82 @@ export default function CourierSiparisPage({ courierId, companyId }) {
         if (loc?.latitude && loc?.longitude) { startLat = loc.latitude; startLng = loc.longitude; }
       } catch (e) {}
     }
-    
     if (!startLat || !startLng) {
-      const firstOrder = onTheWayOrders[0];
-      if (firstOrder.restaurant_location?.latitude) {
-        startLat = firstOrder.restaurant_location.latitude;
-        startLng = firstOrder.restaurant_location.longitude;
-      } else { toast.error("Konum bilgisi alınamadı"); return; }
-    }
-    
-    const validOrders = onTheWayOrders.filter(
-      o => o.delivery_location?.latitude && o.delivery_location?.longitude
-    );
-    if (validOrders.length < 2) { toast.error("Yeterli konum bilgisi yok"); return; }
-    
-    const calcDist = (route, sLat, sLng) => {
-      let total = 0, pLat = sLat, pLng = sLng;
-      for (const o of route) {
-        total += calculateDistance(pLat, pLng, o.delivery_location.latitude, o.delivery_location.longitude) || 0;
-        pLat = o.delivery_location.latitude; pLng = o.delivery_location.longitude;
-      }
-      return total;
-    };
-    
-    let bestRoute;
-    if (validOrders.length <= 6) {
-      const permute = (arr) => {
-        if (arr.length <= 1) return [arr];
-        const result = [];
-        for (let i = 0; i < arr.length; i++) {
-          const rest = [...arr.slice(0, i), ...arr.slice(i + 1)];
-          for (const perm of permute(rest)) result.push([arr[i], ...perm]);
-        }
-        return result;
-      };
-      let bestDist = Infinity;
-      for (const route of permute(validOrders)) {
-        const dist = calcDist(route, startLat, startLng);
-        if (dist < bestDist) { bestDist = dist; bestRoute = route; }
-      }
-    } else {
-      const remaining = [...validOrders];
-      bestRoute = [];
-      let cLat = startLat, cLng = startLng;
-      while (remaining.length > 0) {
-        let nIdx = 0, nDist = Infinity;
-        remaining.forEach((o, idx) => {
-          const d = calculateDistance(cLat, cLng, o.delivery_location.latitude, o.delivery_location.longitude);
-          if (d !== null && d < nDist) { nDist = d; nIdx = idx; }
-        });
-        const nearest = remaining.splice(nIdx, 1)[0];
-        bestRoute.push(nearest);
-        cLat = nearest.delivery_location.latitude; cLng = nearest.delivery_location.longitude;
-      }
-      let improved = true;
-      while (improved) {
-        improved = false;
-        for (let i = 0; i < bestRoute.length - 1; i++) {
-          for (let j = i + 2; j < bestRoute.length; j++) {
-            const newRoute = [...bestRoute.slice(0, i + 1), ...bestRoute.slice(i + 1, j + 1).reverse(), ...bestRoute.slice(j + 1)];
-            if (calcDist(newRoute, startLat, startLng) < calcDist(bestRoute, startLat, startLng)) { bestRoute = newRoute; improved = true; }
-          }
-        }
-      }
+      const first = validAssigned[0] || validOnTheWay[0];
+      startLat = first.restaurant_location?.latitude || first.delivery_location.latitude;
+      startLng = first.restaurant_location?.longitude || first.delivery_location.longitude;
     }
 
-    // Modal için adımları hazırla - gecikme bilgisi ile
-    const steps = bestRoute.map((order, i) => {
-      const age = order.created_at ? Math.floor((Date.now() - new Date(order.created_at).getTime()) / 60000) : 0;
-      return {
-        step: i + 1,
-        type: 'delivery',
-        label: order.customer_name || order.delivery_address,
-        delayMin: age > 35 ? age : null,
-        lat: order.delivery_location.latitude,
-        lng: order.delivery_location.longitude,
-      };
-    });
+    // Durakları oluştur
+    const stops = [];
 
-    const totalDist = calcDist(bestRoute, startLat, startLng);
-    const dest = `${bestRoute[bestRoute.length - 1].delivery_location.latitude},${bestRoute[bestRoute.length - 1].delivery_location.longitude}`;
-    const wps = bestRoute.slice(0, -1).map(o => `${o.delivery_location.latitude},${o.delivery_location.longitude}`).join("|");
-    let gUrl = `https://www.google.com/maps/dir/?api=1&destination=${dest}&travelmode=driving`;
-    if (wps) gUrl += `&waypoints=${encodeURIComponent(wps)}`;
-    const aStops = bestRoute.map(o => `${o.delivery_location.latitude},${o.delivery_location.longitude}`).join("+to:");
-    const aUrl = `maps://?daddr=${aStops}&dirflg=d`;
-
-    setSmartRouteSteps(steps);
-    setSmartRouteTotalDistance(totalDist);
-    setSmartRouteMapsUrl(gUrl);
-    setSmartRouteAppleMapsUrl(aUrl);
-    setShowSmartRouteModal(true);
-  }, [orders, courierId]);
-
-  // Akıllı Rota Oluştur - Restoran alımları + teslimatları birlikte optimize et (PDP)
-  const createSmartRoute = useCallback(async () => {
-    const assignedOrs = orders.filter(o => ["assigned", "confirmed"].includes(o.status));
-    
-    if (assignedOrs.length < 2) {
-      toast.error("Akıllı rota için en az 2 sipariş gerekli");
-      return;
-    }
-
-    // Geçerli konum bilgisi olan siparişleri filtrele
-    const validOrders = assignedOrs.filter(
-      o => o.delivery_location?.latitude && o.delivery_location?.longitude &&
-           o.restaurant_location?.latitude && o.restaurant_location?.longitude
-    );
-
-    if (validOrders.length < 2) {
-      toast.error("Yeterli konum bilgisi yok");
-      return;
-    }
-
-    // Başlangıç noktası - kuryenin mevcut konumu
-    let startLat, startLng;
-    if (lastLocationRef.current.lat && lastLocationRef.current.lng && 
-        (Date.now() - lastLocationRef.current.time) < 300000) {
-      startLat = lastLocationRef.current.lat;
-      startLng = lastLocationRef.current.lng;
-    } else {
-      try {
-        const res = await axios.get(`${API}/couriers/${courierId}`);
-        const loc = res.data?.current_location;
-        if (loc?.latitude && loc?.longitude) {
-          startLat = loc.latitude;
-          startLng = loc.longitude;
-        }
-      } catch (e) {}
-    }
-
-    if (!startLat || !startLng) {
-      startLat = validOrders[0].restaurant_location.latitude;
-      startLng = validOrders[0].restaurant_location.longitude;
-    }
-
-    // Siparişleri restoran bazında grupla - aynı restorandan tek pickup durağı
+    // Atanmış siparişleri restoran bazında grupla
     const restaurantGroups = {};
-    validOrders.forEach((order, idx) => {
+    validAssigned.forEach((order) => {
       const rId = order.restaurant_id;
       if (!restaurantGroups[rId]) {
         restaurantGroups[rId] = {
           restaurant_name: order.restaurant_name,
+          restaurant_phone: order.restaurant_phone,
           lat: order.restaurant_location.latitude,
           lng: order.restaurant_location.longitude,
-          orderIndices: [],
+          orderIds: [],
           orderLabels: [],
         };
       }
-      restaurantGroups[rId].orderIndices.push(idx);
+      restaurantGroups[rId].orderIds.push(order.id);
       restaurantGroups[rId].orderLabels.push(order.customer_name || order.delivery_address);
     });
 
-    // Durakları oluştur: her restoran için 1 pickup + her sipariş için 1 delivery
-    const stops = [];
-    const pickupGroupMap = {}; // orderIdx -> pickupGroupId
+    const pickupGroupMap = {};
     Object.values(restaurantGroups).forEach((group, gIdx) => {
-      group.orderIndices.forEach(oIdx => { pickupGroupMap[oIdx] = gIdx; });
+      group.orderIds.forEach(oId => { pickupGroupMap[oId] = gIdx; });
       stops.push({
         type: 'pickup',
         groupId: gIdx,
-        orderIndices: group.orderIndices,
+        orderIds: group.orderIds,
         label: group.restaurant_name,
         subLabels: group.orderLabels,
+        phone: group.restaurant_phone,
         lat: group.lat,
         lng: group.lng,
       });
     });
-    validOrders.forEach((order, idx) => {
+
+    // Atanmış siparişler - delivery durakları
+    validAssigned.forEach((order) => {
       stops.push({
         type: 'delivery',
-        groupId: pickupGroupMap[idx],
-        orderIdx: idx,
+        groupId: pickupGroupMap[order.id],
+        orderIds: [order.id],
         label: order.customer_name || order.delivery_address,
+        address: order.delivery_address,
+        phone: order.customer_phone,
         lat: order.delivery_location.latitude,
         lng: order.delivery_location.longitude,
       });
     });
 
-    // Geçerlilik kontrolü: her delivery'nin restoran pickup'ı daha önce ziyaret edilmiş mi?
+    // Yolda siparişler - sadece delivery (pickup zaten yapılmış)
+    validOnTheWay.forEach((order) => {
+      stops.push({
+        type: 'delivery',
+        groupId: -1,
+        orderIds: [order.id],
+        label: order.customer_name || order.delivery_address,
+        address: order.delivery_address,
+        phone: order.customer_phone,
+        lat: order.delivery_location.latitude,
+        lng: order.delivery_location.longitude,
+      });
+    });
+
+    // Geçerlilik kontrolü
     const isValidRoute = (route) => {
       const pickedUpGroups = new Set();
       for (const stop of route) {
         if (stop.type === 'pickup') pickedUpGroups.add(stop.groupId);
-        else if (!pickedUpGroups.has(stop.groupId)) return false;
+        else if (stop.groupId >= 0 && !pickedUpGroups.has(stop.groupId)) return false;
       }
       return true;
     };
@@ -367,16 +273,14 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       let total = 0, pLat = sLat, pLng = sLng;
       for (const s of route) {
         total += calculateDistance(pLat, pLng, s.lat, s.lng) || 0;
-        pLat = s.lat;
-        pLng = s.lng;
+        pLat = s.lat; pLng = s.lng;
       }
       return total;
     };
 
     let bestRoute;
 
-    if (validOrders.length <= 4) {
-      // Brute force: tüm permütasyonlar (≤8 durak = 40320 max, kısıtla çok daha az)
+    if (stops.length <= 8) {
       const permute = (arr) => {
         if (arr.length <= 1) return [arr];
         const result = [];
@@ -386,62 +290,42 @@ export default function CourierSiparisPage({ courierId, companyId }) {
         }
         return result;
       };
-      
       let bestDist = Infinity;
       for (const route of permute(stops)) {
         if (!isValidRoute(route)) continue;
         const dist = calcRouteDist(route, startLat, startLng);
-        if (dist < bestDist) {
-          bestDist = dist;
-          bestRoute = route;
-        }
+        if (dist < bestDist) { bestDist = dist; bestRoute = route; }
       }
     } else {
-      // Nearest neighbor (kısıtlı) + 2-opt
       const remaining = [...stops];
       bestRoute = [];
       let cLat = startLat, cLng = startLng;
       const pickedUpGroups = new Set();
-
       while (remaining.length > 0) {
-        // Seçilebilir duraklar: pickup'lar her zaman, delivery'ler sadece pickup yapılmışsa
         const eligible = remaining.filter(s => 
-          s.type === 'pickup' || pickedUpGroups.has(s.groupId)
+          s.type === 'pickup' || s.groupId < 0 || pickedUpGroups.has(s.groupId)
         );
-        
-        let nearestIdx = -1, nearestDist = Infinity;
+        let nIdx = -1, nDist = Infinity;
         for (const s of eligible) {
           const rIdx = remaining.indexOf(s);
           const dist = calculateDistance(cLat, cLng, s.lat, s.lng);
-          if (dist !== null && dist < nearestDist) {
-            nearestDist = dist;
-            nearestIdx = rIdx;
-          }
+          if (dist !== null && dist < nDist) { nDist = dist; nIdx = rIdx; }
         }
-
-        if (nearestIdx === -1) break;
-        const chosen = remaining.splice(nearestIdx, 1)[0];
+        if (nIdx === -1) break;
+        const chosen = remaining.splice(nIdx, 1)[0];
         bestRoute.push(chosen);
         if (chosen.type === 'pickup') pickedUpGroups.add(chosen.groupId);
-        cLat = chosen.lat;
-        cLng = chosen.lng;
+        cLat = chosen.lat; cLng = chosen.lng;
       }
-
-      // 2-opt (kısıtlı)
       let improved = true;
       while (improved) {
         improved = false;
         for (let i = 0; i < bestRoute.length - 1; i++) {
           for (let j = i + 2; j < bestRoute.length; j++) {
-            const newRoute = [
-              ...bestRoute.slice(0, i + 1),
-              ...bestRoute.slice(i + 1, j + 1).reverse(),
-              ...bestRoute.slice(j + 1)
-            ];
+            const newRoute = [...bestRoute.slice(0, i + 1), ...bestRoute.slice(i + 1, j + 1).reverse(), ...bestRoute.slice(j + 1)];
             if (!isValidRoute(newRoute)) continue;
             if (calcRouteDist(newRoute, startLat, startLng) < calcRouteDist(bestRoute, startLat, startLng)) {
-              bestRoute = newRoute;
-              improved = true;
+              bestRoute = newRoute; improved = true;
             }
           }
         }
@@ -453,77 +337,63 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       return;
     }
 
-    // Modal için adımları hazırla - gecikme bilgisi ile
-    const steps = bestRoute.map((stop, i) => {
+    // Her adıma gecikme bilgisi ekle
+    const routeData = bestRoute.map((stop, i) => {
       let delayMin = null;
+      const stepOrders = stop.orderIds.map(id => orders.find(o => o.id === id)).filter(Boolean);
       if (stop.type === 'pickup') {
-        // Pickup gecikme: gruptaki en eski siparişin yaşı, >15dk ise gecikmiş
-        const maxAge = Math.max(...stop.orderIndices.map(oIdx => {
-          const o = validOrders[oIdx];
-          return o.created_at ? Math.floor((Date.now() - new Date(o.created_at).getTime()) / 60000) : 0;
-        }));
+        const maxAge = Math.max(...stepOrders.map(o => o.created_at ? Math.floor((Date.now() - new Date(o.created_at).getTime()) / 60000) : 0));
         if (maxAge > 15) delayMin = maxAge;
       } else {
-        // Delivery gecikme: siparişin yaşı, >35dk ise gecikmiş
-        const o = validOrders[stop.orderIdx];
-        const age = o?.created_at ? Math.floor((Date.now() - new Date(o.created_at).getTime()) / 60000) : 0;
-        if (age > 35) delayMin = age;
+        const maxAge = Math.max(...stepOrders.map(o => o.created_at ? Math.floor((Date.now() - new Date(o.created_at).getTime()) / 60000) : 0));
+        if (maxAge > 35) delayMin = maxAge;
       }
-      return {
-        step: i + 1,
-        type: stop.type,
-        label: stop.label,
-        subLabels: stop.subLabels || null,
-        delayMin,
-        lat: stop.lat,
-        lng: stop.lng,
-      };
+      return { ...stop, step: i + 1, delayMin };
     });
 
-    const totalDist = calcRouteDist(bestRoute, startLat, startLng);
-
-    // Google Maps URL
-    const dest = `${bestRoute[bestRoute.length - 1].lat},${bestRoute[bestRoute.length - 1].lng}`;
-    const wps = bestRoute.slice(0, -1).map(s => `${s.lat},${s.lng}`).join("|");
-    let gUrl = `https://www.google.com/maps/dir/?api=1&destination=${dest}&travelmode=driving`;
-    if (wps) gUrl += `&waypoints=${encodeURIComponent(wps)}`;
-
-    // Apple Maps URL
-    const aStops = bestRoute.map(s => `${s.lat},${s.lng}`).join("+to:");
-    const aUrl = `maps://?daddr=${aStops}&dirflg=d`;
-
-    setSmartRouteSteps(steps);
-    setSmartRouteTotalDistance(totalDist);
-    setSmartRouteMapsUrl(gUrl);
-    setSmartRouteAppleMapsUrl(aUrl);
-    setSmartRouteUsed(true);
-    setShowSmartRouteModal(true);
+    setSmartRouteData(routeData);
+    setSmartRouteTotalDistance(calcRouteDist(bestRoute, startLat, startLng));
+    setActiveTab("smartroute");
   }, [orders, courierId]);
 
-  // Akıllı rotayı haritaya aktar
+  // Akıllı rotada "Haritada Gör" - kalan adımlardan rota oluştur
   const openSmartRouteInMaps = useCallback(() => {
+    const remainingSteps = smartRouteData.filter(step => {
+      const stepOrders = step.orderIds.map(id => orders.find(o => o.id === id)).filter(Boolean);
+      if (step.type === 'pickup') {
+        return !stepOrders.every(o => ['on_the_way', 'delivered'].includes(o.status));
+      } else {
+        return !stepOrders.every(o => o.status === 'delivered');
+      }
+    });
+
+    if (remainingSteps.length === 0) {
+      toast.info("Tüm adımlar tamamlandı");
+      return;
+    }
+
+    const dest = `${remainingSteps[remainingSteps.length - 1].lat},${remainingSteps[remainingSteps.length - 1].lng}`;
+    const wps = remainingSteps.slice(0, -1).map(s => `${s.lat},${s.lng}`).join("|");
+    let gUrl = `https://www.google.com/maps/dir/?api=1&destination=${dest}&travelmode=driving`;
+    if (wps) gUrl += `&waypoints=${encodeURIComponent(wps)}`;
+    const aStops = remainingSteps.map(s => `${s.lat},${s.lng}`).join("+to:");
+    const aUrl = `maps://?daddr=${aStops}&dirflg=d`;
+
     if (window.ReactNativeWebView) {
       window.ReactNativeWebView.postMessage(JSON.stringify({
         type: 'OPEN_ROUTE',
         data: {
-          destination: {
-            lat: smartRouteSteps[smartRouteSteps.length - 1]?.lat,
-            lng: smartRouteSteps[smartRouteSteps.length - 1]?.lng
-          },
-          waypoints: smartRouteSteps.slice(0, -1).map(s => ({
-            lat: s.lat,
-            lng: s.lng,
-            address: s.label,
-          })),
-          mapsUrl: smartRouteMapsUrl,
-          appleMapsUrl: smartRouteAppleMapsUrl
+          destination: { lat: remainingSteps[remainingSteps.length - 1].lat, lng: remainingSteps[remainingSteps.length - 1].lng },
+          waypoints: remainingSteps.slice(0, -1).map(s => ({ lat: s.lat, lng: s.lng, address: s.label })),
+          mapsUrl: gUrl,
+          appleMapsUrl: aUrl
         }
       }));
     } else {
-      window.open(smartRouteMapsUrl, "_blank");
+      window.open(gUrl, "_blank");
     }
-    setShowSmartRouteModal(false);
-  }, [smartRouteSteps, smartRouteMapsUrl, smartRouteAppleMapsUrl]);
+  }, [smartRouteData, orders]);
+
   // Siparişleri getir
   const fetchOrders = useCallback(async (showRefreshIndicator = false) => {
     if (showRefreshIndicator) setRefreshing(true);
@@ -743,9 +613,13 @@ export default function CourierSiparisPage({ courierId, companyId }) {
     return <PageLoading />;
   }
 
-  // Siparişleri grupla
-  const assignedOrders = orders.filter((o) => ["assigned", "confirmed"].includes(o.status));
-  const onTheWayOrders = orders.filter((o) => o.status === "on_the_way");
+  // Siparişleri grupla - atanmış + yolda birlikte gösterilecek
+  const assignedOrders = orders.filter((o) => ["assigned", "confirmed", "on_the_way"].includes(o.status));
+  const smartRouteRemainingCount = smartRouteData.filter(step => {
+    const stepOrders = step.orderIds.map(id => orders.find(o => o.id === id)).filter(Boolean);
+    if (step.type === 'pickup') return !stepOrders.every(o => ['on_the_way', 'delivered'].includes(o.status));
+    return !stepOrders.every(o => o.status === 'delivered');
+  }).length;
 
   return (
     <div className="space-y-3" data-testid="courier-siparis-page">
@@ -770,20 +644,20 @@ export default function CourierSiparisPage({ courierId, companyId }) {
           )}
         </button>
         <button
-          onClick={() => setActiveTab("ontheway")}
+          onClick={() => setActiveTab("smartroute")}
           className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition-all ${
-            activeTab === "ontheway"
-              ? "bg-white dark:bg-slate-600 text-blue-700 dark:text-blue-300 shadow-md border border-blue-200 dark:border-blue-500"
+            activeTab === "smartroute"
+              ? "bg-white dark:bg-slate-600 text-indigo-700 dark:text-indigo-300 shadow-md border border-indigo-200 dark:border-indigo-500"
               : "bg-slate-200/60 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-100"
           }`}
         >
-          <Bike className="w-4 h-4" />
-          Yolda
-          {onTheWayOrders.length > 0 && (
+          <Route className="w-4 h-4" />
+          Akıllı Rota
+          {smartRouteData.length > 0 && smartRouteRemainingCount > 0 && (
             <span className={`px-1.5 py-0.5 rounded-full text-xs ${
-              activeTab === "ontheway" ? "bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-200" : "bg-slate-300 dark:bg-slate-600 text-slate-600 dark:text-slate-200"
+              activeTab === "smartroute" ? "bg-indigo-100 dark:bg-indigo-800 text-indigo-700 dark:text-indigo-200" : "bg-slate-300 dark:bg-slate-600 text-slate-600 dark:text-slate-200"
             }`}>
-              {onTheWayOrders.length}
+              {smartRouteRemainingCount}
             </span>
           )}
         </button>
@@ -802,9 +676,8 @@ export default function CourierSiparisPage({ courierId, companyId }) {
             </div>
           ) : (
             <>
-              {/* Toplu Yola Çıkar Butonu - Akıllı rota kullanıldıysa + aynı restorandan onaylanmış siparişler varsa */}
+              {/* Toplu Yola Çıkar Butonu - Aynı restorandan onaylanmış siparişler varsa */}
               {(() => {
-                if (!smartRouteUsed) return null;
                 const confirmedOrders = assignedOrders.filter(o => o.status === "confirmed");
                 if (confirmedOrders.length >= 2) {
                   const restaurantIds = [...new Set(confirmedOrders.map(o => o.restaurant_id))];
@@ -859,13 +732,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
                 </Button>
               )}
 
-              {assignedOrders.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Package className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                  <p className="text-sm">Atanmış sipariş yok</p>
-                </div>
-              ) : (
-                assignedOrders.map((order) => (
+              {assignedOrders.map((order) => (
                   order.status === "assigned" ? (
                     <NewOrderCard
                       key={order.id}
@@ -903,78 +770,188 @@ export default function CourierSiparisPage({ courierId, companyId }) {
                       loading={actionLoading === order.id}
                     />
                   )
-                ))
-              )}
+                ))}
             </>
           )}
         </div>
       )}
 
-      {/* Yoldaki Siparişler Tab */}
-      {activeTab === "ontheway" && (
-        <div className="space-y-4">
-          {onTheWayOrders.length === 0 ? (
+      {/* Akıllı Rota Tab */}
+      {activeTab === "smartroute" && (
+        <div className="space-y-3">
+          {smartRouteData.length === 0 ? (
             <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
-              <Bike className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
-              <h3 className="font-semibold text-lg mb-1">Yolda sipariş yok</h3>
-              <p className="text-sm text-muted-foreground">
-                Siparişi yola çıkardığınızda burada görünecek
+              <Route className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
+              <h3 className="font-semibold text-lg mb-1">Akıllı rota yok</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Atanmış sekmesinden "Akıllı Rota Oluştur" butonuna basın
               </p>
+              <Button
+                variant="outline"
+                onClick={() => setActiveTab("assigned")}
+              >
+                <ClipboardList className="w-4 h-4 mr-2" />
+                Atanmış Siparişlere Git
+              </Button>
             </div>
           ) : (
             <>
-              {/* Toplam Kazanç Bilgisi */}
-              <div className="bg-green-100 border border-green-300 rounded-lg p-3">
-                <div className="flex items-center justify-center gap-2 text-green-700">
-                  <Banknote className="w-5 h-5" />
-                  <span className="text-sm font-semibold">
-                    Bu {onTheWayOrders.length} siparişten {formatCurrency(onTheWayOrders.reduce((sum, o) => sum + (o.courier_fee || 0), 0))} kazanacaksınız
+              {/* Haritada Gör + Bilgi */}
+              <div className="bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-700 rounded-lg p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">
+                    {smartRouteData.length} durak · ~{smartRouteTotalDistance.toFixed(1)} km
+                  </span>
+                  <span className="text-xs text-indigo-500 dark:text-indigo-400">
+                    {smartRouteRemainingCount} kalan
                   </span>
                 </div>
+                <Button
+                  onClick={openSmartRouteInMaps}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700"
+                  data-testid="smart-route-maps-btn"
+                  disabled={smartRouteRemainingCount === 0}
+                >
+                  <Navigation className="w-4 h-4 mr-2" />
+                  Haritada Gör
+                </Button>
               </div>
 
-              {/* Rota Oluştur Butonu */}
-              {onTheWayOrders.length >= 2 && (
-                <Button
-                  onClick={createOptimizedRoute}
-                  className="w-full bg-cyan-600 hover:bg-cyan-700"
-                  data-testid="create-route-btn"
-                >
-                  <Route className="w-4 h-4 mr-2" />
-                  Rota Oluştur ({onTheWayOrders.length} sipariş)
-                </Button>
+              {/* Rota Adımları */}
+              <div className="relative">
+                {/* Dikey çizgi */}
+                <div className="absolute left-[18px] top-4 bottom-4 w-0.5 bg-slate-200 dark:bg-slate-700" />
+                
+                {smartRouteData.map((step, i) => {
+                  const stepOrders = step.orderIds.map(id => orders.find(o => o.id === id)).filter(Boolean);
+                  const isCompleted = step.type === 'pickup'
+                    ? stepOrders.every(o => ['on_the_way', 'delivered'].includes(o.status))
+                    : stepOrders.every(o => o.status === 'delivered');
+                  
+                  return (
+                    <div
+                      key={i}
+                      className={`relative flex items-start gap-3 mb-2 p-3 rounded-lg border transition-all ${
+                        isCompleted
+                          ? 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 opacity-50'
+                          : step.type === 'pickup'
+                            ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-700'
+                            : 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700'
+                      }`}
+                      data-testid={`smart-route-step-${i}`}
+                    >
+                      {/* Step icon */}
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 z-10 ${
+                        isCompleted
+                          ? 'bg-slate-200 dark:bg-slate-600 text-slate-500'
+                          : step.type === 'pickup'
+                            ? 'bg-orange-100 text-orange-600 border-2 border-orange-300'
+                            : 'bg-green-100 text-green-600 border-2 border-green-300'
+                      }`}>
+                        {isCompleted ? <Check className="w-4 h-4" /> : step.type === 'pickup' ? <Store className="w-4 h-4" /> : <Package className="w-4 h-4" />}
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[11px] font-bold uppercase tracking-wide ${
+                            isCompleted ? 'text-slate-400' : step.type === 'pickup' ? 'text-orange-600' : 'text-green-600'
+                          }`}>
+                            {step.type === 'pickup' ? 'AL' : 'TESLİM ET'}
+                          </span>
+                          {step.delayMin && !isCompleted && (
+                            <span className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded-full flex items-center gap-1">
+                              <AlertCircle className="w-3 h-3" />
+                              {step.delayMin} dk
+                            </span>
+                          )}
+                        </div>
+                        <p className={`text-sm font-medium truncate ${isCompleted ? 'text-slate-400 line-through' : 'text-slate-800 dark:text-slate-200'}`}>
+                          {step.label}
+                        </p>
+                        {step.subLabels && step.subLabels.length > 0 && (
+                          <p className="text-[11px] text-slate-500 truncate">{step.subLabels.join(', ')}</p>
+                        )}
+                        {step.address && !isCompleted && (
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">{step.address}</p>
+                        )}
+
+                        {/* Aksiyonlar */}
+                        {!isCompleted && (
+                          <div className="flex items-center gap-2 mt-2">
+                            {step.phone && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-7 px-2 text-xs"
+                                onClick={() => callPhone(step.phone)}
+                                data-testid={`smart-route-call-${i}`}
+                              >
+                                <Phone className="w-3 h-3 mr-1" />
+                                Ara
+                              </Button>
+                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 px-2 text-xs"
+                              onClick={() => openInMaps(step.lat, step.lng, step.label)}
+                              data-testid={`smart-route-nav-${i}`}
+                            >
+                              <Navigation className="w-3 h-3 mr-1" />
+                              Git
+                            </Button>
+                            
+                            {/* Aksiyon butonu */}
+                            {step.type === 'pickup' ? (
+                              <Button
+                                size="sm"
+                                className="h-7 px-3 text-xs bg-orange-600 hover:bg-orange-700 ml-auto"
+                                onClick={async () => {
+                                  for (const orderId of step.orderIds) {
+                                    await handlePickupOrder(orderId);
+                                  }
+                                }}
+                                disabled={actionLoading}
+                                data-testid={`smart-route-pickup-${i}`}
+                              >
+                                {actionLoading ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Truck className="w-3 h-3 mr-1" />}
+                                Aldım
+                              </Button>
+                            ) : (
+                              <Button
+                                size="sm"
+                                className="h-7 px-3 text-xs bg-green-600 hover:bg-green-700 ml-auto"
+                                onClick={() => handleDeliverOrder(step.orderIds[0])}
+                                disabled={actionLoading}
+                                data-testid={`smart-route-deliver-${i}`}
+                              >
+                                {actionLoading ? <RefreshCw className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3 mr-1" />}
+                                Teslim Et
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Tüm adımlar tamamlandıysa */}
+              {smartRouteRemainingCount === 0 && (
+                <div className="border-2 border-dashed border-green-300 dark:border-green-600 rounded-lg p-6 text-center">
+                  <CheckCircle className="w-10 h-10 mx-auto text-green-500 mb-2" />
+                  <h3 className="font-semibold text-green-700 dark:text-green-400 mb-1">Rota tamamlandı!</h3>
+                  <Button
+                    variant="outline"
+                    className="mt-2"
+                    onClick={() => { setSmartRouteData([]); setActiveTab("assigned"); }}
+                  >
+                    Yeni Rota Oluştur
+                  </Button>
+                </div>
               )}
-              
-              {onTheWayOrders.map((order) => (
-                <ActiveOrderCard
-                  key={order.id}
-                  order={order}
-                  onPickup={() => handlePickupOrder(order.id)}
-                  onDeliver={() => handleDeliverOrder(order.id)}
-                  onNotReady={() => {}}
-                  canMarkNotReady={permissions.can_mark_not_ready}
-                  onViewDetails={() => {
-                    setSelectedOrder(order);
-                    setShowDetailModal(true);
-                  }}
-                  onOpenMaps={() =>
-                    openInMaps(
-                      order.delivery_location?.latitude,
-                      order.delivery_location?.longitude,
-                      order.delivery_address
-                    )
-                  }
-                  onOpenRestaurantMaps={() =>
-                    openInMaps(
-                      order.restaurant_location?.latitude,
-                      order.restaurant_location?.longitude,
-                      order.restaurant_name
-                    )
-                  }
-                  onCall={() => callPhone(order.customer_phone)}
-                  loading={actionLoading === order.id}
-                />
-              ))}
             </>
           )}
         </div>
@@ -1083,71 +1060,6 @@ export default function CourierSiparisPage({ courierId, companyId }) {
         </DialogContent>
       </Dialog>
 
-      {/* Akıllı Rota Önizleme Modalı */}
-      <Dialog open={showSmartRouteModal} onOpenChange={setShowSmartRouteModal}>
-        <DialogContent className="sm:max-w-md max-h-[80vh] overflow-hidden flex flex-col">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-indigo-700">
-              <Route className="w-5 h-5" />
-              {smartRouteSteps.some(s => s.type === 'pickup') ? 'Akıllı Rota Önizleme' : 'Teslimat Rotası'}
-            </DialogTitle>
-            <DialogDescription>
-              {smartRouteSteps.length} durak · ~{smartRouteTotalDistance.toFixed(1)} km
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex-1 overflow-y-auto py-2 -mx-2 px-2">
-            <div className="relative">
-              {/* Dikey çizgi */}
-              <div className="absolute left-[18px] top-4 bottom-4 w-0.5 bg-slate-200" />
-              {smartRouteSteps.map((step, i) => (
-                <div key={i} className="flex items-start gap-3 mb-3 relative">
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 z-10 ${
-                    step.type === 'pickup' 
-                      ? 'bg-orange-100 text-orange-600 border-2 border-orange-300' 
-                      : 'bg-green-100 text-green-600 border-2 border-green-300'
-                  }`}>
-                    {step.type === 'pickup' 
-                      ? <Store className="w-4 h-4" /> 
-                      : <Package className="w-4 h-4" />
-                    }
-                  </div>
-                  <div className="pt-1.5 min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className={`text-[11px] font-bold uppercase tracking-wide ${
-                        step.type === 'pickup' ? 'text-orange-600' : 'text-green-600'
-                      }`}>
-                        {step.type === 'pickup' ? 'AL' : 'TESLİM ET'}
-                      </span>
-                      {step.delayMin && (
-                        <span className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded-full flex items-center gap-1">
-                          <AlertCircle className="w-3 h-3" />
-                          {step.delayMin} dk
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm font-medium text-slate-800 truncate">{step.label}</p>
-                    {step.subLabels && step.subLabels.length > 0 && (
-                      <p className="text-[11px] text-slate-500 truncate">
-                        {step.subLabels.join(', ')}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="pt-3 border-t">
-            <Button
-              onClick={openSmartRouteInMaps}
-              className="w-full bg-indigo-600 hover:bg-indigo-700"
-              data-testid="smart-route-open-maps-btn"
-            >
-              <Navigation className="w-4 h-4 mr-2" />
-              Haritaya Aktar
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
