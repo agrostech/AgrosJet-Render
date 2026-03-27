@@ -156,7 +156,14 @@ async def receive_application_webhook(request: Request):
     if api_key != config["api_key"]:
         raise HTTPException(status_code=401, detail="Geçersiz API anahtarı")
 
-    body = await request.json()
+    try:
+        body = await request.json()
+    except Exception:
+        # Body boş veya JSON değilse, raw body'yi logla
+        raw = await request.body()
+        logger.error(f"AgrosJet webhook: JSON parse hatası, raw body: {raw[:500]}")
+        raise HTTPException(status_code=400, detail="Geçersiz JSON body")
+    
     event = body.get("event")
     app_type = body.get("app_type")
     application = body.get("application", {})
