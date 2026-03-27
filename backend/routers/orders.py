@@ -2190,6 +2190,24 @@ async def assign_courier(company_id: str, order_id: str, data: OrderAssign):
         # Order'ı yeniden al (courier_id = None olmuş hali)
         order = await db.orders.find_one({"id": order_id, "company_id": company_id})
         logger.info(f"Kurye değişikliği: Sipariş {order_id}, {old_courier_name} -> yeni kurye atanacak")
+        
+        # Eski kuryeye bildirim gönder
+        try:
+            from services.push_notification_service import send_push_notification
+            restaurant_name = order.get("restaurant_name", "Restoran")
+            await send_push_notification(
+                courier_id=existing_courier_id,
+                title="Atama Kaldırıldı",
+                body=f"{restaurant_name} siparişi başka kuryeye aktarıldı",
+                data={
+                    "type": "ORDER_REASSIGNED",
+                    "orderId": order_id,
+                    "restaurantName": restaurant_name
+                },
+                sound="notification"
+            )
+        except Exception as e:
+            logger.error(f"Kurye değişikliği bildirimi gönderilemedi: {e}")
     
     # Restoran engel kontrolü
     restaurant_id = order.get("restaurant_id")
