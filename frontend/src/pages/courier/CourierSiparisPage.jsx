@@ -155,6 +155,19 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   }, []);
 
 
+  // Rota aktifken yeni sipariş gelirse otomatik rotaya ekle
+  useEffect(() => {
+    if (smartRouteData.length === 0) return;
+    const routeOrderIds = smartRouteData.flatMap(s => s.orderIds);
+    const newOrders = orders.filter(o => 
+      ["assigned", "confirmed", "on_the_way"].includes(o.status) && !routeOrderIds.includes(o.id)
+    );
+    if (newOrders.length > 0) {
+      addToSmartRoute();
+    }
+  }, [orders]); // eslint-disable-line react-hooks/exhaustive-deps
+
+
   // Akıllı Rota Oluştur - tüm aktif siparişleri birleştir (atanmış + yolda)
   const createSmartRoute = useCallback(async () => {
     const assignedOrs = orders.filter(o => ["assigned", "confirmed"].includes(o.status));
