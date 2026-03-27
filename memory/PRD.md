@@ -1,63 +1,80 @@
-# AgrosJet Delivery Management System - PRD
+# AgrosJet - Product Requirements Document
 
-## Problem Statement
-Teslimat yönetim sistemi: Restoran, Admin ve Kurye panelleri. Migros, Getir, Trendyol, Adisyo, Yemeksepeti entegrasyonları ile sipariş yönetimi, kurye takip, muhasebe ve raporlama.
+## Original Problem Statement
+Multi-panel delivery management system (Admin, Restaurant, Courier) with integrations for Migros, Getir, Trendyol, Adisyo, Yemeksepeti. The system handles order routing, courier management, invoicing, and real-time delivery tracking.
 
-## Architecture
-- Frontend: React + Tailwind + Shadcn UI
-- Backend: FastAPI + MongoDB
-- Push: Expo (iOS) + FCM (Android)
-- External: Migros, Getir, Trendyol, Adisyo, Yemeksepeti, SepetTakip, AgrosJet API
+## Core Architecture
+- **Frontend**: React (CRA) with Tailwind CSS + Shadcn/UI
+- **Backend**: FastAPI + MongoDB
+- **Storage**: Cloudflare R2 (logos, invoices, DB backups)
+- **Push Notifications**: Expo / Firebase
+- **Integrations**: Migros (PROD), Getir, Trendyol, Adisyo
 
-## Panels
-- **Admin Panel**: Sipariş Yönetimi (canlı harita), Vardiya, Muhasebe, Raporlar, Zimmet, Market, Akademi, Kuryeler, Restoranlar, Başvurular, Yöneticiler, Sistem
-- **Restoran Panel**: Sipariş Yönetimi, Raporlar, Muhasebe, Ürünler, Müşteriler, Entegrasyonlar, Ayarlar
-- **Kurye Panel (Rider)**: Siparişler, Muhasebe, Raporlar + Sidebar: Vardiyalar, Evraklar, Motosiklet, Akademi, JetPuan, Zimmet
+## What's Been Implemented
 
-## Completed (March 2026 - Latest Session)
-- Ödeme onay modalından sipariş no kaldırıldı, sadece müşteri ismi + tutar
-- Online teslimat onay modalında müşteri ismi gösterimi
-- Alt bar seçili sekme rengi lacivert (slate-900) + üst çizgi indicator
-- Alt bar siparişler sekmesinde aktif sipariş sayı badge'i (kırmızı)
-- Header: Logo sağda, statü dropdown ortada, menü sol
-- Header yükseklik optimize (py-0.5)
-- Sidebar header: Şirket logosu + kurye ismi + şirket adı
-- Menü ikonu boyut ayarları (!w-5 !h-5)
-- Muhasebe işlem geçmişi: text-xs + line-clamp-2
-- Başvurular sayfasına doğum tarihi sütunu eklendi (D.Tarihi - dd.mm.yyyy)
+### Courier App - Smart Route (PDP)
+- Merged "Assigned" and "On the Way" tabs into unified "Siparişlerim" view
+- List/Route toggle between manual card view and Smart Route view
+- PDP algorithm: nearest-neighbor with group constraints (deliveries after pickups)
+- Auto-adds new incoming orders to active route
+- Ghost order cleanup: cancelled/unassigned orders auto-removed from route
+- Route cards redesigned to match ActiveOrderCard styling (2024-03-27)
+- "Aldım" button renamed to "Tümünü Yola Çıkar" with cyan color
+- Total courier earnings displayed in route summary header
+- Delivery cards show "Önce restorandan al" when pickup not yet done
 
-## Completed (Previous Sessions)
-- Migros V2 iptal sebepleri, opsiyon fiyat/adet, toplam tutar, ödeme yöntemi
-- Kurye paneli: Sticky header, kompakt sipariş kartları, gecikme uyarıları, renkli ödeme badge'leri
-- Rota oluşturmada otomatik konum (lastLocationRef)
-- Platform-aware push notifications (Expo + FCM)
-- Kurye session management (push_session_id + auto-logout)
-- Native-first location tracking
-- Başvuru bildirimleri (sidebar badge + popover)
+### Maps Integration
+- Web-to-native map links use device GPS (no origin/saddr params)
+- OPEN_ROUTE and OPEN_NAVIGATION message types for native app
 
-## P0 - Critical (Next)
-1. Kurye oturum düzeltmelerinin native app ile doğrulanması
+### Push Notifications
+- Couriers notified when unassigned from an order
+- Android FCM keys pending (user handling via new native build)
 
-## P1 - Important
-1. Migros "Reddet" fonksiyonalitesi
-2. VatanSMS entegrasyonu
-3. Kurye Rota Fallback doğrulaması
+### Phone Number Formatting
+- Trendyol: strips parentheses for correct `0212...` format
+- Migros: incoming `5xx` formatted to `05xx`
 
-## P2 - Nice to Have
-1. Migros 30 saniye kuralı
+### Login Page
+- AgrosVet-inspired minimalist design with dynamic tab imagery
+
+### Database & Storage
+- Base64 fallback eliminated - strict R2 enforcement
+- Automated MongoDB backup (15-min keep 5, 12-hour keep 4) with size anomaly detection
+- Migros API on PROD with hardcoded keys
+
+### Admin Features
+- "Doğum Tarihi" on Applications page
+- Logo fetching standardized to R2
+
+## Pending Issues
+1. ~~P0: Route card design matching~~ DONE (2024-03-27)
+2. P1: "Neden AgrosJet?" text on Register/KVKK pages - courier-focused copy needed
+3. P2: Dark blue screen flash on WebView resume - CSS body background fix
+
+## Upcoming Tasks
+- P1: Migros "Reject" Functionality
+- P1: VatanSMS Integration
+- P2: Native Courier App (internal map/proximity engine)
+- P2: Migros 30-Second Rule
 
 ## Future/Backlog
 - Yemeksepeti Chrome extension
-- Stop Count capacity mantığı
-- Technical security gereksinimleri
-- restaurant_fee hesaplaması
+- "Stop Count" capacity logic
+- Technical security requirements
+- `restaurant_fee` calculation
 - Scheduled job refactoring
-- Yeni raporlar
-- Restoran Kurye Sistemi
-- Caller ID entegrasyonu
-- Native Courier App
+- Caller ID integration
+- CourierSiparisPage.jsx refactoring (~2000 lines → component breakdown)
+
+## Key Files
+- `/app/frontend/src/pages/courier/CourierSiparisPage.jsx` - Main courier order/route page
+- `/app/backend/routers/orders.py` - Order endpoints
+- `/app/backend/services/migros_service.py` - Migros integration
+- `/app/backend/services/backup_service.py` - DB backup service
+- `/app/backend/services/r2_storage.py` - Cloudflare R2 utilities
 
 ## Credentials
 - System Admin: `onurertas` / `Delivery32..`
 - Company Admin: `admin` / `123456`
-- Courier: `05550003201` / `123456`
+- Courier: `05553331122` or `05550003201` / `123456`
