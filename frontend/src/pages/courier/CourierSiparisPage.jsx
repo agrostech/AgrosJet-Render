@@ -1115,7 +1115,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
                     {smartRouteData.length} durak · {smartRouteRemainingCount} kalan
                   </span>
                   <span className="text-sm font-bold text-green-600 dark:text-green-400">
-                    {smartRouteTotalEarnings > 0 ? formatCurrency(smartRouteTotalEarnings) : ''}
+                    {formatCurrency(smartRouteTotalEarnings)}
                   </span>
                 </div>
                 <div className="flex gap-2">
