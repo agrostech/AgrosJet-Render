@@ -183,10 +183,10 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       return;
     }
     
-    // Yeni sipariş kontrolü
+    // Yeni sipariş kontrolü - sadece gördüm basılmış (confirmed) ve yolda olanlar
     const routeOrderIds = smartRouteData.flatMap(s => s.orderIds);
     const newOrders = orders.filter(o => 
-      ["assigned", "confirmed", "on_the_way"].includes(o.status) && !routeOrderIds.includes(o.id)
+      ["confirmed", "on_the_way"].includes(o.status) && !routeOrderIds.includes(o.id)
     );
     if (newOrders.length > 0) {
       addToSmartRoute();
@@ -196,7 +196,14 @@ export default function CourierSiparisPage({ courierId, companyId }) {
 
   // Akıllı Rota Oluştur - tüm aktif siparişleri birleştir (atanmış + yolda)
   const createSmartRoute = useCallback(async () => {
-    const assignedOrs = orders.filter(o => ["assigned", "confirmed"].includes(o.status));
+    // Gördüm basılmamış sipariş kontrolü
+    const unseenOrders = orders.filter(o => o.status === "assigned");
+    if (unseenOrders.length > 0) {
+      toast.warning("Önce liste görünümündeki tüm siparişleri 'Gördüm' olarak işaretleyiniz.");
+      return;
+    }
+
+    const assignedOrs = orders.filter(o => ["confirmed"].includes(o.status));
     const onTheWayOrs = orders.filter(o => o.status === "on_the_way");
     const allActive = [...assignedOrs, ...onTheWayOrs];
     
@@ -455,9 +462,9 @@ export default function CourierSiparisPage({ courierId, companyId }) {
     // Rotada olan sipariş ID'leri
     const routeOrderIds = smartRouteData.flatMap(s => s.orderIds);
     
-    // Yeni siparişler (rotada olmayanlar)
+    // Yeni siparişler (rotada olmayanlar - sadece gördüm basılmış)
     const newAssigned = orders.filter(o => 
-      ["assigned", "confirmed"].includes(o.status) && !routeOrderIds.includes(o.id) &&
+      o.status === "confirmed" && !routeOrderIds.includes(o.id) &&
       o.delivery_location?.latitude && o.restaurant_location?.latitude
     );
     const newOnTheWay = orders.filter(o => 
@@ -952,6 +959,12 @@ export default function CourierSiparisPage({ courierId, companyId }) {
         </button>
         <button
           onClick={() => {
+            const unseenOrders = assignedOrders.filter(o => o.status === "assigned");
+            if (unseenOrders.length > 0) {
+              toast.warning("Önce liste görünümündeki tüm siparişleri 'Gördüm' olarak işaretleyiniz.");
+              setViewMode("list");
+              return;
+            }
             if (smartRouteData.length === 0 && assignedOrders.length >= 2) {
               createSmartRoute();
             } else {
