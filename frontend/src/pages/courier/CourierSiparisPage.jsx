@@ -454,8 +454,26 @@ export default function CourierSiparisPage({ courierId, companyId }) {
     // Kalan adımları + yeni siparişleri birlikte durak listesine çevir
     const stops = [];
 
-    // Kalan mevcut adımları ekle (zaten doğru formatta)
-    remainingSteps.forEach(step => { stops.push({ ...step }); });
+    // Kalan mevcut adımları ekle - groupId'leri yeniden ata (tutarlılık için)
+    const existingPickupMap = {}; // orderId -> yeni groupId
+    let groupCounter = 0;
+    
+    remainingSteps.forEach(step => {
+      if (step.type === 'pickup') {
+        const newGid = groupCounter++;
+        const newStep = { ...step, groupId: newGid };
+        stops.push(newStep);
+        step.orderIds.forEach(oid => { existingPickupMap[oid] = newGid; });
+      }
+    });
+    remainingSteps.forEach(step => {
+      if (step.type === 'delivery') {
+        // Bu delivery hangi pickup grubuna ait? orderIds'den bul
+        const oid = step.orderIds[0];
+        const matchedGid = existingPickupMap[oid];
+        stops.push({ ...step, groupId: matchedGid !== undefined ? matchedGid : -1 });
+      }
+    });
 
     // Yeni atanmış siparişleri restoran bazında grupla
     const restaurantGroups = {};
@@ -481,16 +499,15 @@ export default function CourierSiparisPage({ courierId, companyId }) {
         orders.find(o => o.id === s.orderIds[0])?.restaurant_id === rId);
       
       if (existingPickup) {
-        // Mevcut pickup durağına ekle
         existingPickup.orderIds.push(...group.orderIds);
         existingPickup.subLabels = [...(existingPickup.subLabels || []), ...group.orderLabels];
+        // Yeni delivery'ler bu pickup'ın groupId'sini kullanacak
+        group._groupId = existingPickup.groupId;
       } else {
-        // Yeni pickup durağı
-        const maxGroupId = Math.max(-1, ...stops.filter(s => s.type === 'pickup').map(s => s.groupId || 0));
-        const newGroupId = maxGroupId + 1;
+        const newGid = groupCounter++;
         stops.push({
           type: 'pickup',
-          groupId: newGroupId,
+          groupId: newGid,
           orderIds: group.orderIds,
           label: group.restaurant_name,
           subLabels: group.orderLabels,
@@ -498,16 +515,14 @@ export default function CourierSiparisPage({ courierId, companyId }) {
           lat: group.lat,
           lng: group.lng,
         });
-        // Delivery durakları için groupId'yi kaydet
-        group._groupId = newGroupId;
+        group._groupId = newGid;
       }
     });
 
     // Yeni atanmış siparişlerin delivery durakları
     newAssigned.forEach((order) => {
       const rId = order.restaurant_id;
-      const existingPickup = stops.find(s => s.type === 'pickup' && s.orderIds.includes(order.id));
-      const groupId = existingPickup?.groupId ?? restaurantGroups[rId]?._groupId ?? -1;
+      const groupId = restaurantGroups[rId]?._groupId ?? -1;
       stops.push({
         type: 'delivery',
         groupId: groupId,
