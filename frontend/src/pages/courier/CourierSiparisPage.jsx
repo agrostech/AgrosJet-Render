@@ -394,6 +394,249 @@ export default function CourierSiparisPage({ courierId, companyId }) {
     }
   }, [smartRouteData, orders]);
 
+  // Rotaya yeni sipariş ekle - tamamlanan adımları koru, kalanları + yenileri optimize et
+  const addToSmartRoute = useCallback(async () => {
+    // Tamamlanan ve kalan adımları ayır
+    const completedSteps = [];
+    const remainingSteps = [];
+    
+    for (const step of smartRouteData) {
+      const stepOrders = step.orderIds.map(id => orders.find(o => o.id === id)).filter(Boolean);
+      const isCompleted = step.type === 'pickup'
+        ? stepOrders.every(o => ['on_the_way', 'delivered'].includes(o.status))
+        : stepOrders.every(o => o.status === 'delivered');
+      
+      if (isCompleted) completedSteps.push(step);
+      else remainingSteps.push(step);
+    }
+
+    // Rotada olan sipariş ID'leri
+    const routeOrderIds = smartRouteData.flatMap(s => s.orderIds);
+    
+    // Yeni siparişler (rotada olmayanlar)
+    const newAssigned = orders.filter(o => 
+      ["assigned", "confirmed"].includes(o.status) && !routeOrderIds.includes(o.id) &&
+      o.delivery_location?.latitude && o.restaurant_location?.latitude
+    );
+    const newOnTheWay = orders.filter(o => 
+      o.status === "on_the_way" && !routeOrderIds.includes(o.id) &&
+      o.delivery_location?.latitude
+    );
+
+    if (newAssigned.length === 0 && newOnTheWay.length === 0) {
+      toast.info("Eklenecek yeni sipariş yok");
+      return;
+    }
+
+    // Başlangıç noktası - son tamamlanan adımın konumu veya kurye konumu
+    let startLat, startLng;
+    if (completedSteps.length > 0) {
+      const lastCompleted = completedSteps[completedSteps.length - 1];
+      startLat = lastCompleted.lat;
+      startLng = lastCompleted.lng;
+    } else if (lastLocationRef.current.lat && lastLocationRef.current.lng && 
+        (Date.now() - lastLocationRef.current.time) < 300000) {
+      startLat = lastLocationRef.current.lat;
+      startLng = lastLocationRef.current.lng;
+    } else {
+      try {
+        const res = await axios.get(`${API}/couriers/${courierId}`);
+        const loc = res.data?.current_location;
+        if (loc?.latitude && loc?.longitude) { startLat = loc.latitude; startLng = loc.longitude; }
+      } catch (e) {}
+    }
+    if (!startLat || !startLng) {
+      const first = newAssigned[0] || newOnTheWay[0] || remainingSteps[0];
+      startLat = first.restaurant_location?.latitude || first.lat || first.delivery_location?.latitude;
+      startLng = first.restaurant_location?.longitude || first.lng || first.delivery_location?.longitude;
+    }
+
+    // Kalan adımları + yeni siparişleri birlikte durak listesine çevir
+    const stops = [];
+
+    // Kalan mevcut adımları ekle (zaten doğru formatta)
+    remainingSteps.forEach(step => { stops.push({ ...step }); });
+
+    // Yeni atanmış siparişleri restoran bazında grupla
+    const restaurantGroups = {};
+    newAssigned.forEach((order) => {
+      const rId = order.restaurant_id;
+      if (!restaurantGroups[rId]) {
+        restaurantGroups[rId] = {
+          restaurant_name: order.restaurant_name,
+          restaurant_phone: order.restaurant_phone,
+          lat: order.restaurant_location.latitude,
+          lng: order.restaurant_location.longitude,
+          orderIds: [],
+          orderLabels: [],
+        };
+      }
+      restaurantGroups[rId].orderIds.push(order.id);
+      restaurantGroups[rId].orderLabels.push(order.customer_name || order.delivery_address);
+    });
+
+    // Mevcut pickup durakları ile aynı restorandan yeni sipariş varsa birleştir
+    Object.entries(restaurantGroups).forEach(([rId, group]) => {
+      const existingPickup = stops.find(s => s.type === 'pickup' && 
+        orders.find(o => o.id === s.orderIds[0])?.restaurant_id === rId);
+      
+      if (existingPickup) {
+        // Mevcut pickup durağına ekle
+        existingPickup.orderIds.push(...group.orderIds);
+        existingPickup.subLabels = [...(existingPickup.subLabels || []), ...group.orderLabels];
+      } else {
+        // Yeni pickup durağı
+        const maxGroupId = Math.max(-1, ...stops.filter(s => s.type === 'pickup').map(s => s.groupId || 0));
+        const newGroupId = maxGroupId + 1;
+        stops.push({
+          type: 'pickup',
+          groupId: newGroupId,
+          orderIds: group.orderIds,
+          label: group.restaurant_name,
+          subLabels: group.orderLabels,
+          phone: group.restaurant_phone,
+          lat: group.lat,
+          lng: group.lng,
+        });
+        // Delivery durakları için groupId'yi kaydet
+        group._groupId = newGroupId;
+      }
+    });
+
+    // Yeni atanmış siparişlerin delivery durakları
+    newAssigned.forEach((order) => {
+      const rId = order.restaurant_id;
+      const existingPickup = stops.find(s => s.type === 'pickup' && s.orderIds.includes(order.id));
+      const groupId = existingPickup?.groupId ?? restaurantGroups[rId]?._groupId ?? -1;
+      stops.push({
+        type: 'delivery',
+        groupId: groupId,
+        orderIds: [order.id],
+        label: order.customer_name || order.delivery_address,
+        address: order.delivery_address,
+        phone: order.customer_phone,
+        lat: order.delivery_location.latitude,
+        lng: order.delivery_location.longitude,
+      });
+    });
+
+    // Yeni yolda siparişlerin delivery durakları
+    newOnTheWay.forEach((order) => {
+      stops.push({
+        type: 'delivery',
+        groupId: -1,
+        orderIds: [order.id],
+        label: order.customer_name || order.delivery_address,
+        address: order.delivery_address,
+        phone: order.customer_phone,
+        lat: order.delivery_location.latitude,
+        lng: order.delivery_location.longitude,
+      });
+    });
+
+    // Optimize et
+    const isValidRoute = (route) => {
+      const pickedUpGroups = new Set();
+      for (const stop of route) {
+        if (stop.type === 'pickup') pickedUpGroups.add(stop.groupId);
+        else if (stop.groupId >= 0 && !pickedUpGroups.has(stop.groupId)) return false;
+      }
+      return true;
+    };
+
+    const calcRouteDist = (route, sLat, sLng) => {
+      let total = 0, pLat = sLat, pLng = sLng;
+      for (const s of route) {
+        total += calculateDistance(pLat, pLng, s.lat, s.lng) || 0;
+        pLat = s.lat; pLng = s.lng;
+      }
+      return total;
+    };
+
+    let bestRoute;
+    if (stops.length <= 8) {
+      const permute = (arr) => {
+        if (arr.length <= 1) return [arr];
+        const result = [];
+        for (let i = 0; i < arr.length; i++) {
+          const rest = [...arr.slice(0, i), ...arr.slice(i + 1)];
+          for (const perm of permute(rest)) result.push([arr[i], ...perm]);
+        }
+        return result;
+      };
+      let bestDist = Infinity;
+      for (const route of permute(stops)) {
+        if (!isValidRoute(route)) continue;
+        const dist = calcRouteDist(route, startLat, startLng);
+        if (dist < bestDist) { bestDist = dist; bestRoute = route; }
+      }
+    } else {
+      const remaining = [...stops];
+      bestRoute = [];
+      let cLat = startLat, cLng = startLng;
+      const pickedUpGroups = new Set();
+      while (remaining.length > 0) {
+        const eligible = remaining.filter(s => 
+          s.type === 'pickup' || s.groupId < 0 || pickedUpGroups.has(s.groupId)
+        );
+        let nIdx = -1, nDist = Infinity;
+        for (const s of eligible) {
+          const rIdx = remaining.indexOf(s);
+          const dist = calculateDistance(cLat, cLng, s.lat, s.lng);
+          if (dist !== null && dist < nDist) { nDist = dist; nIdx = rIdx; }
+        }
+        if (nIdx === -1) break;
+        const chosen = remaining.splice(nIdx, 1)[0];
+        bestRoute.push(chosen);
+        if (chosen.type === 'pickup') pickedUpGroups.add(chosen.groupId);
+        cLat = chosen.lat; cLng = chosen.lng;
+      }
+      let improved = true;
+      while (improved) {
+        improved = false;
+        for (let i = 0; i < bestRoute.length - 1; i++) {
+          for (let j = i + 2; j < bestRoute.length; j++) {
+            const newRoute = [...bestRoute.slice(0, i + 1), ...bestRoute.slice(i + 1, j + 1).reverse(), ...bestRoute.slice(j + 1)];
+            if (!isValidRoute(newRoute)) continue;
+            if (calcRouteDist(newRoute, startLat, startLng) < calcRouteDist(bestRoute, startLat, startLng)) {
+              bestRoute = newRoute; improved = true;
+            }
+          }
+        }
+      }
+    }
+
+    if (!bestRoute || bestRoute.length === 0) {
+      toast.error("Rota güncellenemedi");
+      return;
+    }
+
+    // Gecikme bilgisi ekle
+    const optimizedSteps = bestRoute.map((stop, i) => {
+      let delayMin = null;
+      const stepOrders = stop.orderIds.map(id => orders.find(o => o.id === id)).filter(Boolean);
+      if (stop.type === 'pickup') {
+        const maxAge = Math.max(0, ...stepOrders.map(o => o.created_at ? Math.floor((Date.now() - new Date(o.created_at).getTime()) / 60000) : 0));
+        if (maxAge > 15) delayMin = maxAge;
+      } else {
+        const maxAge = Math.max(0, ...stepOrders.map(o => o.created_at ? Math.floor((Date.now() - new Date(o.created_at).getTime()) / 60000) : 0));
+        if (maxAge > 35) delayMin = maxAge;
+      }
+      return { ...stop, step: i + 1, delayMin };
+    });
+
+    // Tamamlanan adımlar + optimize edilmiş kalan adımlar
+    const finalRoute = [
+      ...completedSteps.map((s, i) => ({ ...s, step: i + 1 })),
+      ...optimizedSteps.map((s, i) => ({ ...s, step: completedSteps.length + i + 1 }))
+    ];
+
+    setSmartRouteData(finalRoute);
+    setSmartRouteTotalDistance(calcRouteDist(bestRoute, startLat, startLng));
+    setActiveTab("smartroute");
+    toast.success(`${newAssigned.length + newOnTheWay.length} yeni sipariş rotaya eklendi`);
+  }, [smartRouteData, orders, courierId]);
+
   // Siparişleri getir
   const fetchOrders = useCallback(async (showRefreshIndicator = false) => {
     if (showRefreshIndicator) setRefreshing(true);
@@ -720,17 +963,39 @@ export default function CourierSiparisPage({ courierId, companyId }) {
                 return null;
               })()}
 
-              {/* Akıllı Rota Oluştur Butonu */}
-              {assignedOrders.length >= 2 && (
-                <Button
-                  onClick={createSmartRoute}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700"
-                  data-testid="smart-route-btn"
-                >
-                  <Route className="w-4 h-4 mr-2" />
-                  Akıllı Rota Oluştur ({assignedOrders.length} sipariş)
-                </Button>
-              )}
+              {/* Akıllı Rota Oluştur / Rotaya Ekle Butonu */}
+              {(() => {
+                const routeOrderIds = smartRouteData.flatMap(s => s.orderIds);
+                const routeActive = smartRouteData.length > 0 && smartRouteRemainingCount > 0;
+                const newOrders = assignedOrders.filter(o => !routeOrderIds.includes(o.id));
+                
+                if (routeActive && newOrders.length > 0) {
+                  // Rota var + yeni sipariş geldi
+                  return (
+                    <Button
+                      onClick={addToSmartRoute}
+                      className="w-full bg-amber-600 hover:bg-amber-700"
+                      data-testid="smart-route-add-btn"
+                    >
+                      <Route className="w-4 h-4 mr-2" />
+                      Rotaya Ekle (+{newOrders.length} yeni)
+                    </Button>
+                  );
+                } else if (!routeActive && assignedOrders.length >= 2) {
+                  // Rota yok veya tamamlanmış
+                  return (
+                    <Button
+                      onClick={createSmartRoute}
+                      className="w-full bg-indigo-600 hover:bg-indigo-700"
+                      data-testid="smart-route-btn"
+                    >
+                      <Route className="w-4 h-4 mr-2" />
+                      Akıllı Rota Oluştur ({assignedOrders.length} sipariş)
+                    </Button>
+                  );
+                }
+                return null;
+              })()}
 
               {assignedOrders.map((order) => (
                   order.status === "assigned" ? (
