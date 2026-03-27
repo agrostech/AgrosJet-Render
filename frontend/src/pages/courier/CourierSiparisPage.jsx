@@ -33,6 +33,8 @@ import {
   BellOff,
   AlertCircle,
   Check,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 // Ortak utility fonksiyonları import et
@@ -95,7 +97,8 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   const [showPaymentConfirmModal, setShowPaymentConfirmModal] = useState(false);
   const [showOnlineDeliveryConfirmModal, setShowOnlineDeliveryConfirmModal] = useState(false);
   const [pendingDeliveryOrder, setPendingDeliveryOrder] = useState(null);
-  const [activeTab, setActiveTab] = useState("assigned");
+  const [viewMode, setViewMode] = useState("list"); // "list" | "route"
+  const [expandedPickups, setExpandedPickups] = useState(new Set());
   const [showNotReadyModal, setShowNotReadyModal] = useState(false);
   const [pendingNotReadyOrder, setPendingNotReadyOrder] = useState(null);
   const [permissions, setPermissions] = useState({ can_mark_not_ready: true });
@@ -353,7 +356,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
 
     setSmartRouteData(routeData);
     setSmartRouteTotalDistance(calcRouteDist(bestRoute, startLat, startLng));
-    setActiveTab("smartroute");
+    setViewMode("route");
   }, [orders, courierId]);
 
   // Akıllı rotada "Haritada Gör" - kalan adımlardan rota oluştur
@@ -648,7 +651,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
 
     setSmartRouteData(finalRoute);
     setSmartRouteTotalDistance(calcRouteDist(bestRoute, startLat, startLng));
-    setActiveTab("smartroute");
+    setViewMode("route");
     toast.success(`${newAssigned.length + newOnTheWay.length} yeni sipariş rotaya eklendi`);
   }, [smartRouteData, orders, courierId]);
 
@@ -881,39 +884,47 @@ export default function CourierSiparisPage({ courierId, companyId }) {
 
   return (
     <div className="space-y-3" data-testid="courier-siparis-page">
-      {/* Sekmeler - Her zaman göster */}
+      {/* Görünüm Toggle - Liste / Rota */}
       <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-1 gap-1">
         <button
-          onClick={() => setActiveTab("assigned")}
+          onClick={() => setViewMode("list")}
           className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition-all ${
-            activeTab === "assigned"
+            viewMode === "list"
               ? "bg-white dark:bg-slate-600 text-purple-700 dark:text-purple-300 shadow-md border border-purple-200 dark:border-purple-500"
               : "bg-slate-200/60 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-100"
           }`}
+          data-testid="view-mode-list"
         >
           <ClipboardList className="w-4 h-4" />
-          Atanmış
+          Liste
           {assignedOrders.length > 0 && (
             <span className={`px-1.5 py-0.5 rounded-full text-xs ${
-              activeTab === "assigned" ? "bg-purple-100 dark:bg-purple-800 text-purple-700 dark:text-purple-200" : "bg-slate-300 dark:bg-slate-600 text-slate-600 dark:text-slate-200"
+              viewMode === "list" ? "bg-purple-100 dark:bg-purple-800 text-purple-700 dark:text-purple-200" : "bg-slate-300 dark:bg-slate-600 text-slate-600 dark:text-slate-200"
             }`}>
               {assignedOrders.length}
             </span>
           )}
         </button>
         <button
-          onClick={() => setActiveTab("smartroute")}
+          onClick={() => {
+            if (smartRouteData.length === 0 && assignedOrders.length >= 2) {
+              createSmartRoute();
+            } else {
+              setViewMode("route");
+            }
+          }}
           className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition-all ${
-            activeTab === "smartroute"
+            viewMode === "route"
               ? "bg-white dark:bg-slate-600 text-indigo-700 dark:text-indigo-300 shadow-md border border-indigo-200 dark:border-indigo-500"
               : "bg-slate-200/60 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-100"
           }`}
+          data-testid="view-mode-route"
         >
           <Route className="w-4 h-4" />
-          Akıllı Rota
+          Rota
           {smartRouteData.length > 0 && smartRouteRemainingCount > 0 && (
             <span className={`px-1.5 py-0.5 rounded-full text-xs ${
-              activeTab === "smartroute" ? "bg-indigo-100 dark:bg-indigo-800 text-indigo-700 dark:text-indigo-200" : "bg-slate-300 dark:bg-slate-600 text-slate-600 dark:text-slate-200"
+              viewMode === "route" ? "bg-indigo-100 dark:bg-indigo-800 text-indigo-700 dark:text-indigo-200" : "bg-slate-300 dark:bg-slate-600 text-slate-600 dark:text-slate-200"
             }`}>
               {smartRouteRemainingCount}
             </span>
@@ -921,20 +932,20 @@ export default function CourierSiparisPage({ courierId, companyId }) {
         </button>
       </div>
 
-      {/* Atanmış Siparişler Tab */}
-      {activeTab === "assigned" && (
+      {/* Liste Görünümü */}
+      {viewMode === "list" && (
         <div className="space-y-4">
           {assignedOrders.length === 0 ? (
             <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
               <ClipboardList className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
-              <h3 className="font-semibold text-lg mb-1">Atanmış sipariş yok</h3>
+              <h3 className="font-semibold text-lg mb-1">Sipariş yok</h3>
               <p className="text-sm text-muted-foreground">
                 Size sipariş atandığında burada görünecek
               </p>
             </div>
           ) : (
             <>
-              {/* Toplu Yola Çıkar Butonu - Aynı restorandan onaylanmış siparişler varsa */}
+              {/* Toplu Yola Çıkar Butonu */}
               {(() => {
                 const confirmedOrders = assignedOrders.filter(o => o.status === "confirmed");
                 if (confirmedOrders.length >= 2) {
@@ -974,40 +985,6 @@ export default function CourierSiparisPage({ courierId, companyId }) {
                       </div>
                     );
                   }
-                }
-                return null;
-              })()}
-
-              {/* Akıllı Rota Oluştur / Rotaya Ekle Butonu */}
-              {(() => {
-                const routeOrderIds = smartRouteData.flatMap(s => s.orderIds);
-                const routeActive = smartRouteData.length > 0 && smartRouteRemainingCount > 0;
-                const newOrders = assignedOrders.filter(o => !routeOrderIds.includes(o.id));
-                
-                if (routeActive && newOrders.length > 0) {
-                  // Rota var + yeni sipariş geldi
-                  return (
-                    <Button
-                      onClick={addToSmartRoute}
-                      className="w-full bg-amber-600 hover:bg-amber-700"
-                      data-testid="smart-route-add-btn"
-                    >
-                      <Route className="w-4 h-4 mr-2" />
-                      Rotaya Ekle (+{newOrders.length} yeni)
-                    </Button>
-                  );
-                } else if (!routeActive && assignedOrders.length >= 2) {
-                  // Rota yok veya tamamlanmış
-                  return (
-                    <Button
-                      onClick={createSmartRoute}
-                      className="w-full bg-indigo-600 hover:bg-indigo-700"
-                      data-testid="smart-route-btn"
-                    >
-                      <Route className="w-4 h-4 mr-2" />
-                      Akıllı Rota Oluştur ({assignedOrders.length} sipariş)
-                    </Button>
-                  );
                 }
                 return null;
               })()}
@@ -1056,27 +1033,24 @@ export default function CourierSiparisPage({ courierId, companyId }) {
         </div>
       )}
 
-      {/* Akıllı Rota Tab */}
-      {activeTab === "smartroute" && (
+      {/* Rota Görünümü */}
+      {viewMode === "route" && (
         <div className="space-y-3">
           {smartRouteData.length === 0 ? (
             <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
               <Route className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
-              <h3 className="font-semibold text-lg mb-1">Akıllı rota yok</h3>
+              <h3 className="font-semibold text-lg mb-1">Rota oluşturuluyor...</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Atanmış sekmesinden "Akıllı Rota Oluştur" butonuna basın
+                En az 2 sipariş gerekli
               </p>
-              <Button
-                variant="outline"
-                onClick={() => setActiveTab("assigned")}
-              >
+              <Button variant="outline" onClick={() => setViewMode("list")}>
                 <ClipboardList className="w-4 h-4 mr-2" />
-                Atanmış Siparişlere Git
+                Listeye Dön
               </Button>
             </div>
           ) : (
             <>
-              {/* Haritada Gör + Bilgi */}
+              {/* Haritada Gör + Rotaya Ekle */}
               <div className="bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-700 rounded-lg p-3">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">
@@ -1086,133 +1060,195 @@ export default function CourierSiparisPage({ courierId, companyId }) {
                     {smartRouteRemainingCount} kalan
                   </span>
                 </div>
-                <Button
-                  onClick={openSmartRouteInMaps}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700"
-                  data-testid="smart-route-maps-btn"
-                  disabled={smartRouteRemainingCount === 0}
-                >
-                  <Navigation className="w-4 h-4 mr-2" />
-                  Haritada Gör
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={openSmartRouteInMaps}
+                    className="flex-1 bg-indigo-600 hover:bg-indigo-700"
+                    data-testid="smart-route-maps-btn"
+                    disabled={smartRouteRemainingCount === 0}
+                  >
+                    <Navigation className="w-4 h-4 mr-2" />
+                    Haritada Gör
+                  </Button>
+                  {(() => {
+                    const routeOrderIds = smartRouteData.flatMap(s => s.orderIds);
+                    const newOrders = assignedOrders.filter(o => !routeOrderIds.includes(o.id));
+                    if (newOrders.length > 0) {
+                      return (
+                        <Button
+                          onClick={addToSmartRoute}
+                          className="bg-amber-600 hover:bg-amber-700"
+                          data-testid="smart-route-add-btn"
+                        >
+                          <Route className="w-4 h-4 mr-1" />
+                          +{newOrders.length}
+                        </Button>
+                      );
+                    }
+                    return null;
+                  })()}
+                </div>
               </div>
 
               {/* Rota Adımları */}
-              <div className="relative">
-                {/* Dikey çizgi */}
-                <div className="absolute left-[18px] top-4 bottom-4 w-0.5 bg-slate-200 dark:bg-slate-700" />
-                
+              <div className="space-y-2">
                 {smartRouteData.map((step, i) => {
                   const stepOrders = step.orderIds.map(id => orders.find(o => o.id === id)).filter(Boolean);
                   const isCompleted = step.type === 'pickup'
                     ? stepOrders.every(o => ['on_the_way', 'delivered'].includes(o.status))
                     : stepOrders.every(o => o.status === 'delivered');
+                  const isPickupExpanded = expandedPickups.has(i);
                   
                   return (
                     <div
                       key={i}
-                      className={`relative flex items-start gap-3 mb-2 p-3 rounded-lg border transition-all ${
+                      className={`rounded-lg border transition-all ${
                         isCompleted
-                          ? 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 opacity-50'
+                          ? 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 opacity-40'
                           : step.type === 'pickup'
                             ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-700'
                             : 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700'
                       }`}
                       data-testid={`smart-route-step-${i}`}
                     >
-                      {/* Step icon */}
-                      <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 z-10 ${
-                        isCompleted
-                          ? 'bg-slate-200 dark:bg-slate-600 text-slate-500'
-                          : step.type === 'pickup'
-                            ? 'bg-orange-100 text-orange-600 border-2 border-orange-300'
-                            : 'bg-green-100 text-green-600 border-2 border-green-300'
-                      }`}>
-                        {isCompleted ? <Check className="w-4 h-4" /> : step.type === 'pickup' ? <Store className="w-4 h-4" /> : <Package className="w-4 h-4" />}
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className={`text-[11px] font-bold uppercase tracking-wide ${
-                            isCompleted ? 'text-slate-400' : step.type === 'pickup' ? 'text-orange-600' : 'text-green-600'
-                          }`}>
-                            {step.type === 'pickup' ? 'AL' : 'TESLİM ET'}
-                          </span>
-                          {step.delayMin && !isCompleted && (
-                            <span className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded-full flex items-center gap-1">
-                              <AlertCircle className="w-3 h-3" />
-                              {step.delayMin} dk
-                            </span>
-                          )}
+                      {/* Ana içerik */}
+                      <div className="flex items-start gap-3 p-3">
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
+                          isCompleted
+                            ? 'bg-slate-200 dark:bg-slate-600 text-slate-500'
+                            : step.type === 'pickup'
+                              ? 'bg-orange-100 text-orange-600 border-2 border-orange-300'
+                              : 'bg-green-100 text-green-600 border-2 border-green-300'
+                        }`}>
+                          {isCompleted ? <Check className="w-4 h-4" /> : step.type === 'pickup' ? <Store className="w-4 h-4" /> : <Package className="w-4 h-4" />}
                         </div>
-                        <p className={`text-sm font-medium truncate ${isCompleted ? 'text-slate-400 line-through' : 'text-slate-800 dark:text-slate-200'}`}>
-                          {step.label}
-                        </p>
-                        {step.subLabels && step.subLabels.length > 0 && (
-                          <p className="text-[11px] text-slate-500 truncate">{step.subLabels.join(', ')}</p>
-                        )}
-                        {step.address && !isCompleted && (
-                          <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">{step.address}</p>
-                        )}
 
-                        {/* Aksiyonlar */}
-                        {!isCompleted && (
-                          <div className="flex items-center gap-2 mt-2">
-                            {step.phone && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-7 px-2 text-xs"
-                                onClick={() => callPhone(step.phone)}
-                                data-testid={`smart-route-call-${i}`}
-                              >
-                                <Phone className="w-3 h-3 mr-1" />
-                                Ara
-                              </Button>
-                            )}
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-7 px-2 text-xs"
-                              onClick={() => openInMaps(step.lat, step.lng, step.label)}
-                              data-testid={`smart-route-nav-${i}`}
-                            >
-                              <Navigation className="w-3 h-3 mr-1" />
-                              Git
-                            </Button>
-                            
-                            {/* Aksiyon butonu */}
-                            {step.type === 'pickup' ? (
-                              <Button
-                                size="sm"
-                                className="h-7 px-3 text-xs bg-orange-600 hover:bg-orange-700 ml-auto"
-                                onClick={async () => {
-                                  for (const orderId of step.orderIds) {
-                                    await handlePickupOrder(orderId);
-                                  }
-                                }}
-                                disabled={actionLoading}
-                                data-testid={`smart-route-pickup-${i}`}
-                              >
-                                {actionLoading ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Truck className="w-3 h-3 mr-1" />}
-                                Aldım
-                              </Button>
-                            ) : (
-                              <Button
-                                size="sm"
-                                className="h-7 px-3 text-xs bg-green-600 hover:bg-green-700 ml-auto"
-                                onClick={() => handleDeliverOrder(step.orderIds[0])}
-                                disabled={actionLoading}
-                                data-testid={`smart-route-deliver-${i}`}
-                              >
-                                {actionLoading ? <RefreshCw className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3 mr-1" />}
-                                Teslim Et
-                              </Button>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className={`text-[11px] font-bold uppercase tracking-wide ${
+                              isCompleted ? 'text-slate-400' : step.type === 'pickup' ? 'text-orange-600' : 'text-green-600'
+                            }`}>
+                              {step.type === 'pickup' ? 'AL' : 'TESLİM ET'}
+                            </span>
+                            {step.delayMin && !isCompleted && (
+                              <span className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded-full flex items-center gap-1">
+                                <AlertCircle className="w-3 h-3" />
+                                {step.delayMin} dk
+                              </span>
                             )}
                           </div>
-                        )}
+                          <p className={`text-sm font-medium ${isCompleted ? 'text-slate-400 line-through' : 'text-slate-800 dark:text-slate-200'}`}>
+                            {step.label}
+                          </p>
+
+                          {/* DELIVERY: Tüm detaylar direkt göster */}
+                          {step.type === 'delivery' && !isCompleted && stepOrders[0] && (
+                            <div className="mt-1.5 space-y-1">
+                              <p className="text-[12px] text-slate-600 dark:text-slate-400">{step.address}</p>
+                              <div className="flex items-center gap-2 text-[12px]">
+                                <span className={`font-semibold ${stepOrders[0].payment_type === 'online' ? 'text-blue-600' : 'text-amber-600'}`}>
+                                  {stepOrders[0].payment_type === 'online' ? 'Online Ödendi' : stepOrders[0].payment_type === 'credit_card' ? 'Kapıda Kart' : 'Kapıda Nakit'}
+                                </span>
+                                <span className="font-bold text-slate-700 dark:text-slate-300">{formatCurrency(stepOrders[0].total_amount || stepOrders[0].amount || 0)}</span>
+                              </div>
+                              {stepOrders[0].items && stepOrders[0].items.length > 0 && (
+                                <p className="text-[11px] text-slate-500 truncate">
+                                  {stepOrders[0].items.map(item => `${item.quantity || 1}x ${item.name}`).join(', ')}
+                                </p>
+                              )}
+                              {stepOrders[0].customer_note && (
+                                <p className="text-[11px] text-amber-700 bg-amber-50 rounded px-1.5 py-0.5 truncate">
+                                  Not: {stepOrders[0].customer_note}
+                                </p>
+                              )}
+                            </div>
+                          )}
+
+                          {/* PICKUP: Özet + expand butonu */}
+                          {step.type === 'pickup' && !isCompleted && (
+                            <>
+                              {step.subLabels && step.subLabels.length > 0 && (
+                                <p className="text-[11px] text-slate-500">{step.subLabels.join(', ')}</p>
+                              )}
+                              {stepOrders.length > 0 && (
+                                <button
+                                  className="text-[11px] text-orange-600 font-medium mt-1 flex items-center gap-1"
+                                  onClick={() => {
+                                    const next = new Set(expandedPickups);
+                                    if (next.has(i)) next.delete(i);
+                                    else next.add(i);
+                                    setExpandedPickups(next);
+                                  }}
+                                  data-testid={`smart-route-expand-${i}`}
+                                >
+                                  {isPickupExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                  {isPickupExpanded ? 'Detayları gizle' : `${stepOrders.length} sipariş detayı`}
+                                </button>
+                              )}
+                            </>
+                          )}
+
+                          {/* Aksiyonlar */}
+                          {!isCompleted && (
+                            <div className="flex items-center gap-2 mt-2">
+                              {step.phone && (
+                                <Button variant="outline" size="sm" className="h-7 px-2 text-xs"
+                                  onClick={() => callPhone(step.phone)} data-testid={`smart-route-call-${i}`}>
+                                  <Phone className="w-3 h-3 mr-1" /> Ara
+                                </Button>
+                              )}
+                              <Button variant="outline" size="sm" className="h-7 px-2 text-xs"
+                                onClick={() => openInMaps(step.lat, step.lng, step.label)} data-testid={`smart-route-nav-${i}`}>
+                                <Navigation className="w-3 h-3 mr-1" /> Git
+                              </Button>
+                              {step.type === 'pickup' ? (
+                                <Button size="sm" className="h-7 px-3 text-xs bg-orange-600 hover:bg-orange-700 ml-auto"
+                                  onClick={async () => { for (const oid of step.orderIds) await handlePickupOrder(oid); }}
+                                  disabled={actionLoading} data-testid={`smart-route-pickup-${i}`}>
+                                  {actionLoading ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Truck className="w-3 h-3 mr-1" />}
+                                  Aldım
+                                </Button>
+                              ) : (
+                                <Button size="sm" className="h-7 px-3 text-xs bg-green-600 hover:bg-green-700 ml-auto"
+                                  onClick={() => handleDeliverOrder(step.orderIds[0])}
+                                  disabled={actionLoading} data-testid={`smart-route-deliver-${i}`}>
+                                  {actionLoading ? <RefreshCw className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3 mr-1" />}
+                                  Teslim Et
+                                </Button>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
+
+                      {/* PICKUP Expand: Sipariş detayları */}
+                      {step.type === 'pickup' && isPickupExpanded && !isCompleted && (
+                        <div className="border-t border-orange-200 dark:border-orange-700 px-3 pb-3 pt-2 space-y-2">
+                          {stepOrders.map((order, oIdx) => (
+                            <div key={order.id} className="bg-white dark:bg-slate-800 rounded-md p-2.5 border border-orange-100 dark:border-orange-800">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{order.customer_name || order.delivery_address}</span>
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                                  order.payment_type === 'online' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'
+                                }`}>
+                                  {order.payment_type === 'online' ? 'Online' : order.payment_type === 'credit_card' ? 'Kart' : 'Nakit'}
+                                  {' '}{formatCurrency(order.total_amount || order.amount || 0)}
+                                </span>
+                              </div>
+                              {order.items && order.items.length > 0 && (
+                                <p className="text-[11px] text-slate-500 mt-1 truncate">
+                                  {order.items.map(item => `${item.quantity || 1}x ${item.name}`).join(', ')}
+                                </p>
+                              )}
+                              {order.customer_note && (
+                                <p className="text-[11px] text-amber-700 bg-amber-50 rounded px-1.5 py-0.5 mt-1 truncate">
+                                  Not: {order.customer_note}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -1223,12 +1259,9 @@ export default function CourierSiparisPage({ courierId, companyId }) {
                 <div className="border-2 border-dashed border-green-300 dark:border-green-600 rounded-lg p-6 text-center">
                   <CheckCircle className="w-10 h-10 mx-auto text-green-500 mb-2" />
                   <h3 className="font-semibold text-green-700 dark:text-green-400 mb-1">Rota tamamlandı!</h3>
-                  <Button
-                    variant="outline"
-                    className="mt-2"
-                    onClick={() => { setSmartRouteData([]); setActiveTab("assigned"); }}
-                  >
-                    Yeni Rota Oluştur
+                  <Button variant="outline" className="mt-2"
+                    onClick={() => { setSmartRouteData([]); setViewMode("list"); }}>
+                    Listeye Dön
                   </Button>
                 </div>
               )}
