@@ -83,6 +83,21 @@ async def get_courier_by_id(courier_id: str):
     return courier
 
 
+@router.get("/couriers/{courier_id}/companies")
+async def get_courier_companies(courier_id: str):
+    """Kuryenin bağlı olduğu şirketleri döndür"""
+    relations = await db.company_couriers.find(
+        {"courier_id": courier_id, "status": {"$in": ["approved", "active"]}, "is_active": {"$ne": False}},
+        {"_id": 0}
+    ).to_list(100)
+    companies = []
+    for rel in relations:
+        company = await db.companies.find_one({"id": rel["company_id"]}, {"_id": 0})
+        if company:
+            companies.append({"company_id": rel["company_id"], "name": company.get("name", ""), "logo_dark": company.get("logo_dark", "")})
+    return {"companies": companies}
+
+
 @router.delete("/couriers/{courier_id}/permanent")
 async def delete_courier_permanently(courier_id: str):
     """Permanently delete a courier account and all related data"""

@@ -534,10 +534,41 @@ export default function CourierDashboard() {
     }
     setUser(parsed);
     
-    // Fetch additional data
-    if (parsed.company_id) {
-      fetchCompanyInfo(parsed.company_id);
-    }
+    // company_id yoksa kurye bilgilerinden çek
+    const ensureCompanyId = async (courierData) => {
+      if (courierData.company_id) {
+        fetchCompanyInfo(courierData.company_id);
+        return;
+      }
+      // company_id yok - API'den kurye bilgisi al
+      try {
+        const res = await axios.get(`${API}/couriers/${courierData.id}`);
+        const cid = res.data.company_id;
+        if (cid) {
+          // localStorage güncelle
+          const updated = { ...courierData, company_id: cid };
+          localStorage.setItem("user", JSON.stringify(updated));
+          setUser(updated);
+          fetchCompanyInfo(cid);
+          return;
+        }
+        // Hala yoksa company_couriers'dan çek
+        const relRes = await axios.get(`${API}/couriers/${courierData.id}/companies`);
+        const companies = relRes.data.companies || relRes.data || [];
+        if (companies.length > 0) {
+          const firstId = companies[0].company_id || companies[0].id;
+          if (firstId) {
+            const updated = { ...courierData, company_id: firstId };
+            localStorage.setItem("user", JSON.stringify(updated));
+            setUser(updated);
+            fetchCompanyInfo(firstId);
+          }
+        }
+      } catch (err) {
+        console.error("company_id çözümlenemedi", err);
+      }
+    };
+    ensureCompanyId(parsed);
     if (parsed.id) {
       checkDocumentStatus(parsed.id);
       checkMaintenanceNotifications(parsed.id);
