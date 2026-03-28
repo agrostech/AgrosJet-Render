@@ -41,7 +41,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin = false, adminStatus = "offline", linkedCourierStatus = "offline" }) {
+export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin = false, adminStatus = "offline", linkedCourierStatus = "offline", permissions = {} }) {
   const { theme } = useTheme();
   const [orders, setOrders] = useState([]);
   const [couriers, setCouriers] = useState([]);
@@ -837,24 +837,28 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
             <ListChecks className="w-3.5 h-3.5" />
             Aktif
           </button>
-          <button
-            onClick={() => setMainTab("delivered")}
-            className={`flex-1 px-3 py-2 text-xs font-medium transition-colors border-l flex items-center justify-center gap-1 ${
-              mainTab === "delivered" ? "bg-slate-200 dark:bg-slate-600 text-slate-900 dark:text-slate-100" : "bg-background hover:bg-muted text-muted-foreground"
-            }`}
-          >
-            <CheckCircle className="w-3.5 h-3.5" />
-            Teslim
-          </button>
-          <button
-            onClick={() => setMainTab("cancelled")}
-            className={`flex-1 px-3 py-2 text-xs font-medium transition-colors border-l flex items-center justify-center gap-1 ${
-              mainTab === "cancelled" ? "bg-slate-200 dark:bg-slate-600 text-slate-900 dark:text-slate-100" : "bg-background hover:bg-muted text-muted-foreground"
-            }`}
-          >
-            <ClipboardX className="w-3.5 h-3.5" />
-            İptal
-          </button>
+          {(isSuperAdmin || permissions.siparis_gecmis !== false) && (
+            <button
+              onClick={() => setMainTab("delivered")}
+              className={`flex-1 px-3 py-2 text-xs font-medium transition-colors border-l flex items-center justify-center gap-1 ${
+                mainTab === "delivered" ? "bg-slate-200 dark:bg-slate-600 text-slate-900 dark:text-slate-100" : "bg-background hover:bg-muted text-muted-foreground"
+              }`}
+            >
+              <CheckCircle className="w-3.5 h-3.5" />
+              Teslim
+            </button>
+          )}
+          {(isSuperAdmin || permissions.siparis_iptal !== false) && (
+            <button
+              onClick={() => setMainTab("cancelled")}
+              className={`flex-1 px-3 py-2 text-xs font-medium transition-colors border-l flex items-center justify-center gap-1 ${
+                mainTab === "cancelled" ? "bg-slate-200 dark:bg-slate-600 text-slate-900 dark:text-slate-100" : "bg-background hover:bg-muted text-muted-foreground"
+              }`}
+            >
+              <ClipboardX className="w-3.5 h-3.5" />
+              İptal
+            </button>
+          )}
         </div>
         
         {/* İstatistikler kaldırıldı - filtre butonlarında zaten mevcut */}

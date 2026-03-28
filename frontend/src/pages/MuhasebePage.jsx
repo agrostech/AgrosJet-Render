@@ -27,12 +27,37 @@ const TABS = [
 
 const TAB_KEYS = TABS.map(t => t.key);
 
-export default function MuhasebePage({ companyId, adminId, adminName, companyLogo, companyName, isSuperAdmin }) {
+export default function MuhasebePage({ companyId, adminId, adminName, companyLogo, companyName, isSuperAdmin, permissions = {} }) {
   const [searchParams, setSearchParams] = useSearchParams();
   
-  // URL'den tab değerini al, geçerli değilse "kuryeler" kullan
+  // Muhasebe alt sekme izin haritası
+  const SUB_PERM_MAP = {
+    "kuryeler": "muhasebe_kuryeler",
+    "isletmeler": "muhasebe_isletmeler",
+    "cariler": "muhasebe_cariler",
+    "kurye-mutabakat": "muhasebe_kurye_mutabakat",
+    "restoran-mutabakat": "muhasebe_restoran_mutabakat",
+    "yonetici-mutabakat": "muhasebe_yonetici_mutabakat",
+    "haftalik-hakedis": "muhasebe_haftalik_hakedis",
+    "kurye-faturalari": "muhasebe_kurye_faturalari",
+    "isletme-faturalari": "muhasebe_isletme_faturalari",
+    "hareketler": "muhasebe_hareketler",
+  };
+
+  // İzine göre filtrelenmiş tab'lar
+  const FILTERED_TABS = TABS.filter(tab => {
+    if (isSuperAdmin) return true;
+    if (tab.superAdminOnly) return false;
+    const permKey = SUB_PERM_MAP[tab.key];
+    if (!permKey) return true;
+    return permissions[permKey] !== false;
+  });
+
+  const FILTERED_TAB_KEYS = FILTERED_TABS.map(t => t.key);
+
+  // URL'den tab değerini al, geçerli değilse ilk izinli tab'ı kullan
   const tabFromUrl = searchParams.get("tab");
-  const initialTab = TAB_KEYS.includes(tabFromUrl) ? tabFromUrl : "kuryeler";
+  const initialTab = FILTERED_TAB_KEYS.includes(tabFromUrl) ? tabFromUrl : (FILTERED_TAB_KEYS[0] || "kuryeler");
   const [activeTab, setActiveTab] = useState(initialTab);
   const transactionRef = useRef(null);
   const tabsContainerRef = useRef(null);
@@ -103,7 +128,7 @@ export default function MuhasebePage({ companyId, adminId, adminName, companyLog
           className="overflow-x-auto scrollbar-hide scroll-smooth"
         >
           <div className="flex gap-1 border-b-2 border-slate-200 min-w-max">
-            {TABS.filter(tab => !tab.superAdminOnly || isSuperAdmin).map((tab) => (
+            {FILTERED_TABS.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => handleTabChange(tab.key)}

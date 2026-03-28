@@ -27,7 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
-import { Trash2, Pencil, Shield, Clock, Calculator, Package, Users, ShoppingBag, GraduationCap, SlidersHorizontal, Link2, Unlink, FileText, BarChart3 } from "lucide-react";
+import { Trash2, Pencil, Shield, Clock, Calculator, Package, Users, ShoppingBag, GraduationCap, SlidersHorizontal, Link2, Unlink, FileText, BarChart3, ChevronDown, ChevronUp, ClipboardList, Wallet, Bike, Store, UserCog, FileSpreadsheet, Receipt, History } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -35,7 +35,21 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 // İzin tanımları
 const PERMISSION_ITEMS = [
   { key: "vardiya", label: "Vardiyalar", icon: Clock },
-  { key: "muhasebe", label: "Muhasebe", icon: Calculator },
+  { 
+    key: "muhasebe", label: "Muhasebe", icon: Calculator,
+    subItems: [
+      { key: "muhasebe_kuryeler", label: "Kuryeler", icon: Users },
+      { key: "muhasebe_isletmeler", label: "Restoranlar", icon: Store },
+      { key: "muhasebe_cariler", label: "Cariler", icon: Wallet },
+      { key: "muhasebe_kurye_mutabakat", label: "Kurye Mütabakat", icon: Bike },
+      { key: "muhasebe_restoran_mutabakat", label: "Restoran Mütabakat", icon: Store },
+      { key: "muhasebe_yonetici_mutabakat", label: "Yönetici Mütabakat", icon: UserCog },
+      { key: "muhasebe_haftalik_hakedis", label: "Haftalık Hakediş", icon: FileSpreadsheet },
+      { key: "muhasebe_kurye_faturalari", label: "Kurye Faturaları", icon: Receipt },
+      { key: "muhasebe_isletme_faturalari", label: "Restoran Faturaları", icon: Receipt },
+      { key: "muhasebe_hareketler", label: "Hareketler", icon: History },
+    ]
+  },
   { key: "raporlar", label: "Raporlar", icon: BarChart3 },
   { key: "zimmet", label: "Zimmet", icon: Package },
   { key: "kuryeler", label: "Kuryeler", icon: Users },
@@ -43,6 +57,12 @@ const PERMISSION_ITEMS = [
   { key: "akademi", label: "Akademi", icon: GraduationCap },
   { key: "basvurular", label: "Başvurular", icon: FileText },
   { key: "sistem", label: "Sistem Ayarları", icon: SlidersHorizontal },
+];
+
+// Sipariş alt izinleri (ana sekmede değil, ayrı kontrol)
+const SIPARIS_SUB_ITEMS = [
+  { key: "siparis_gecmis", label: "Geçmiş Siparişler", icon: ClipboardList },
+  { key: "siparis_iptal", label: "İptal Siparişler", icon: ClipboardList },
 ];
 
 export default function YoneticilerPage({ companyId }) {
@@ -56,6 +76,7 @@ export default function YoneticilerPage({ companyId }) {
   const [selectedAdmin, setSelectedAdmin] = useState(null);
   const [permissionsData, setPermissionsData] = useState({});
   const [permLoading, setPermLoading] = useState(false);
+  const [expandedPerms, setExpandedPerms] = useState(new Set());
   const [newAdmin, setNewAdmin] = useState({ name: "", username: "", password: "" });
   const [editData, setEditData] = useState({ name: "", username: "", password: "" });
   const [editLoading, setEditLoading] = useState(false);
@@ -219,10 +240,32 @@ export default function YoneticilerPage({ companyId }) {
   };
 
   const togglePermission = (key) => {
-    setPermissionsData(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
+    setPermissionsData(prev => {
+      const next = { ...prev, [key]: !prev[key] };
+      // Ana sekme kapatıldığında alt sekmeleri de kapat
+      const mainItem = PERMISSION_ITEMS.find(p => p.key === key);
+      if (mainItem?.subItems && !next[key]) {
+        mainItem.subItems.forEach(sub => { next[sub.key] = false; });
+      }
+      // Ana sekme açıldığında alt sekmeleri de aç
+      if (mainItem?.subItems && next[key]) {
+        mainItem.subItems.forEach(sub => { next[sub.key] = true; });
+      }
+      return next;
+    });
+  };
+
+  const toggleSubPermission = (key) => {
+    setPermissionsData(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const toggleExpandPerm = (key) => {
+    setExpandedPerms(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
   };
 
   const enabledCount = PERMISSION_ITEMS.filter(p => permissionsData[p.key]).length;
@@ -363,27 +406,78 @@ export default function YoneticilerPage({ companyId }) {
               <div className="space-y-2">
                 {PERMISSION_ITEMS.map((item) => {
                   const Icon = item.icon;
+                  const hasSubItems = item.subItems && item.subItems.length > 0;
+                  const isExpanded = expandedPerms.has(item.key);
+                  const isActive = permissionsData[item.key];
                   return (
-                    <div 
-                      key={item.key} 
-                      className="flex items-center justify-between p-3 rounded-lg border hover:bg-slate-50 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-md flex items-center justify-center ${permissionsData[item.key] ? 'bg-primary/10' : 'bg-slate-100'}`}>
-                          <Icon className={`w-4 h-4 ${permissionsData[item.key] ? 'text-primary' : 'text-slate-400'}`} />
+                    <div key={item.key}>
+                      <div className="flex items-center justify-between p-3 rounded-lg border hover:bg-slate-50 transition-colors">
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <div className={`w-8 h-8 rounded-md flex items-center justify-center ${isActive ? 'bg-primary/10' : 'bg-slate-100'}`}>
+                            <Icon className={`w-4 h-4 ${isActive ? 'text-primary' : 'text-slate-400'}`} />
+                          </div>
+                          <span className={`font-medium ${!isActive && 'text-muted-foreground'}`}>
+                            {item.label}
+                          </span>
+                          {hasSubItems && isActive && (
+                            <button onClick={() => toggleExpandPerm(item.key)} className="ml-auto mr-2 p-1 rounded hover:bg-slate-200 transition-colors" data-testid={`perm-expand-${item.key}`}>
+                              {isExpanded ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+                            </button>
+                          )}
                         </div>
-                        <span className={`font-medium ${!permissionsData[item.key] && 'text-muted-foreground'}`}>
-                          {item.label}
-                        </span>
+                        <Switch
+                          checked={isActive || false}
+                          onCheckedChange={() => togglePermission(item.key)}
+                          data-testid={`perm-switch-${item.key}`}
+                        />
                       </div>
-                      <Switch
-                        checked={permissionsData[item.key] || false}
-                        onCheckedChange={() => togglePermission(item.key)}
-                        data-testid={`perm-switch-${item.key}`}
-                      />
+                      {hasSubItems && isActive && isExpanded && (
+                        <div className="ml-6 mt-1 space-y-1 border-l-2 border-primary/20 pl-3">
+                          {item.subItems.map((sub) => {
+                            const SubIcon = sub.icon;
+                            return (
+                              <div key={sub.key} className="flex items-center justify-between py-2 px-2 rounded hover:bg-slate-50 transition-colors">
+                                <div className="flex items-center gap-2">
+                                  <SubIcon className={`w-3.5 h-3.5 ${permissionsData[sub.key] ? 'text-primary' : 'text-slate-300'}`} />
+                                  <span className={`text-sm ${permissionsData[sub.key] ? 'text-slate-700' : 'text-slate-400'}`}>{sub.label}</span>
+                                </div>
+                                <Switch
+                                  checked={permissionsData[sub.key] || false}
+                                  onCheckedChange={() => toggleSubPermission(sub.key)}
+                                  className="scale-75"
+                                  data-testid={`perm-switch-${sub.key}`}
+                                />
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
+
+                {/* Sipariş alt izinleri */}
+                <div className="pt-2 border-t mt-2">
+                  <p className="text-xs text-muted-foreground font-semibold mb-2 px-3">Sipariş Yönetimi Alt Sayfaları</p>
+                  {SIPARIS_SUB_ITEMS.map((sub) => {
+                    const SubIcon = sub.icon;
+                    return (
+                      <div key={sub.key} className="flex items-center justify-between p-3 rounded-lg border hover:bg-slate-50 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-md flex items-center justify-center ${permissionsData[sub.key] ? 'bg-primary/10' : 'bg-slate-100'}`}>
+                            <SubIcon className={`w-4 h-4 ${permissionsData[sub.key] ? 'text-primary' : 'text-slate-400'}`} />
+                          </div>
+                          <span className={`font-medium ${!permissionsData[sub.key] && 'text-muted-foreground'}`}>{sub.label}</span>
+                        </div>
+                        <Switch
+                          checked={permissionsData[sub.key] || false}
+                          onCheckedChange={() => toggleSubPermission(sub.key)}
+                          data-testid={`perm-switch-${sub.key}`}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
               
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-700">

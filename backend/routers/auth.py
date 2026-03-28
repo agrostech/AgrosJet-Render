@@ -487,34 +487,38 @@ async def login_admin(request: Request, data: AdminLogin):
         companies_cursor = db.companies.find({"id": {"$in": company_ids}}, {"_id": 0, "id": 1, "name": 1, "logo_url": 1, "logo_light": 1, "logo_dark": 1, "city": 1})
         accessible_companies = await companies_cursor.to_list(100)
     
-    # Simple permission keys
-    simple_keys = {"vardiya", "muhasebe", "zimmet", "kuryeler", "market", "akademi", "sistem", "raporlar", "basvurular"}
+    # Determine super admin status: either is_super_admin flag or role is superadmin/systemadmin
+    is_super = admin.get("is_super_admin", False) or admin.get("role") in ("superadmin", "systemadmin")
+    is_system = admin.get("is_system_admin", False) or admin.get("role") == "systemadmin"
     
-    # Get permissions and check if they use the new simple format
-    db_permissions = admin.get("permissions", {})
-    has_simple_format = any(key in db_permissions for key in simple_keys)
+    # Permission key tanımları
+    main_keys = {"vardiya", "muhasebe", "zimmet", "kuryeler", "market", "akademi", "sistem", "raporlar", "basvurular"}
+    sub_keys = {
+        "muhasebe_kuryeler", "muhasebe_isletmeler", "muhasebe_cariler",
+        "muhasebe_kurye_mutabakat", "muhasebe_restoran_mutabakat", "muhasebe_yonetici_mutabakat",
+        "muhasebe_haftalik_hakedis", "muhasebe_kurye_faturalari", "muhasebe_isletme_faturalari",
+        "muhasebe_hareketler",
+        "siparis_gecmis", "siparis_iptal"
+    }
+    simple_keys = main_keys | sub_keys
     
-    if has_simple_format:
-        # Extract only simple keys from permissions
-        permissions = {k: db_permissions.get(k, False) for k in simple_keys}
+    # Superadmin her zaman tüm izinlere sahip
+    if is_super:
+        permissions = {k: True for k in simple_keys}
     else:
-        # No simple format found, assign defaults
-        if admin["role"] == "superadmin":
-            permissions = {
-                "vardiya": True, "muhasebe": True, "zimmet": True,
-                "kuryeler": True, "market": True, "akademi": True, "sistem": True,
-                "raporlar": True, "basvurular": True
-            }
+        # Get permissions and check if they use the new simple format
+        db_permissions = admin.get("permissions", {})
+        has_simple_format = any(key in db_permissions for key in main_keys)
+        
+        if has_simple_format:
+            # Extract all keys from permissions - sub keys default to True (geriye uyumluluk)
+            permissions = {k: db_permissions.get(k, True if k in sub_keys else False) for k in simple_keys}
         else:
-            permissions = {
-                "vardiya": True, "muhasebe": True, "zimmet": True,
-                "kuryeler": True, "market": True, "akademi": True, "sistem": False,
-                "raporlar": False, "basvurular": False
-            }
-    
-    # Determine super admin status: either is_super_admin flag or role is superadmin
-    is_super = admin.get("is_super_admin", False) or admin.get("role") == "superadmin"
-    is_system = admin.get("is_system_admin", False)
+            # No simple format found, assign defaults
+            permissions = {k: True for k in simple_keys}
+            permissions["sistem"] = False
+            permissions["raporlar"] = False
+            permissions["basvurular"] = False
     
     return {
         "id": admin["id"],

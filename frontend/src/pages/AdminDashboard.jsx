@@ -507,10 +507,14 @@ export default function AdminDashboard() {
           <div className="p-4 md:p-6 min-h-[calc(100vh-80px)]">
             <Routes>
               {/* Sipariş Yönetimi varsayılan sayfa */}
-              <Route index element={<SiparisYonetimiPage companyId={activeCompanyId} adminName={user.name || user.username} isSuperAdmin={isSuperAdmin} adminStatus={adminStatus} linkedCourierStatus={linkedCourierStatus} />} />
-              <Route path="siparis-yonetimi" element={<SiparisYonetimiPage companyId={activeCompanyId} adminName={user.name || user.username} isSuperAdmin={isSuperAdmin} adminStatus={adminStatus} linkedCourierStatus={linkedCourierStatus} />} />
-              <Route path="gecmis-siparisler" element={<GecmisSiparislerPage companyId={activeCompanyId} isSuperAdmin={isSuperAdmin} adminName={user.name || user.username} />} />
-              <Route path="iptal-siparisler" element={<IptalSiparislerPage companyId={activeCompanyId} isSuperAdmin={isSuperAdmin} />} />
+              <Route index element={<SiparisYonetimiPage companyId={activeCompanyId} adminName={user.name || user.username} isSuperAdmin={isSuperAdmin} adminStatus={adminStatus} linkedCourierStatus={linkedCourierStatus} permissions={permissions} />} />
+              <Route path="siparis-yonetimi" element={<SiparisYonetimiPage companyId={activeCompanyId} adminName={user.name || user.username} isSuperAdmin={isSuperAdmin} adminStatus={adminStatus} linkedCourierStatus={linkedCourierStatus} permissions={permissions} />} />
+              {(isSuperAdmin || permissions.siparis_gecmis !== false) && (
+                <Route path="gecmis-siparisler" element={<GecmisSiparislerPage companyId={activeCompanyId} isSuperAdmin={isSuperAdmin} adminName={user.name || user.username} />} />
+              )}
+              {(isSuperAdmin || permissions.siparis_iptal !== false) && (
+                <Route path="iptal-siparisler" element={<IptalSiparislerPage companyId={activeCompanyId} isSuperAdmin={isSuperAdmin} />} />
+              )}
               <Route path="restoranlar" element={<RestoranlarPage companyId={activeCompanyId} />} />
               {(isSuperAdmin || permissions.basvurular) && (
                 <Route path="basvurular" element={<BasvurularPage companyId={activeCompanyId} adminName={user.name || user.username} companyCity={company?.city} />} />
@@ -519,7 +523,7 @@ export default function AdminDashboard() {
                 <Route path="vardiyalar" element={<VardiyaPage companyId={activeCompanyId} />} />
               )}
               {(isSuperAdmin || permissions.muhasebe) && (
-                <Route path="muhasebe" element={<MuhasebePage companyId={activeCompanyId} adminId={user.id} adminName={user.name || user.username} companyLogo={company?.logo_dark ? `${process.env.REACT_APP_BACKEND_URL}${company.logo_dark}` : company?.logo_url} companyName={company?.name} isSuperAdmin={isSuperAdmin} />} />
+                <Route path="muhasebe" element={<MuhasebePage companyId={activeCompanyId} adminId={user.id} adminName={user.name || user.username} companyLogo={company?.logo_dark ? `${process.env.REACT_APP_BACKEND_URL}${company.logo_dark}` : company?.logo_url} companyName={company?.name} isSuperAdmin={isSuperAdmin} permissions={permissions} />} />
               )}
               {(isSuperAdmin || permissions.raporlar) && (
                 <Route path="raporlar" element={<RaporlarPage companyId={activeCompanyId} isSuperAdmin={isSuperAdmin} companyLogo={company?.logo_dark ? `${process.env.REACT_APP_BACKEND_URL}${company.logo_dark}` : company?.logo_url} companyName={company?.name} />} />
