@@ -462,10 +462,8 @@ async def health_check():
         "version": "1.0.0"
     }
 
-# Helper functions
-def hash_password(password: str) -> str:
-    import hashlib
-    return hashlib.sha256(password.encode()).hexdigest()
+# Helper functions - use bcrypt from helpers
+from utils.helpers import hash_password as _hash_pw, verify_password as _verify_pw
 
 # Initialize system admin on startup
 @app.on_event("startup")
@@ -475,23 +473,23 @@ async def startup_event():
         system_admin = {
             "id": str(uuid.uuid4()),
             "name": "Sistem Yöneticisi",
-            "username": "ShiftJet",
-            "password": hash_password("Delivery32.."),
+            "username": "onurertas",
+            "password": _hash_pw("Delivery32.."),
             "role": "systemadmin",
             "permissions": {},
             "company_id": None,
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         await db.admins.insert_one(system_admin)
-        logging.info("System admin created: ShiftJet / Delivery32..")
+        logging.info("System admin created")
     else:
-        # Update existing systemadmin credentials if different
-        if existing.get("username") != "ShiftJet":
+        # Mevcut hash SHA-256 ise bcrypt'e yükselt
+        if not existing.get("password", "").startswith("$2b$"):
             await db.admins.update_one(
                 {"role": "systemadmin"},
-                {"$set": {"username": "ShiftJet", "password": hash_password("Delivery32..")}}
+                {"$set": {"password": _hash_pw("Delivery32..")}}
             )
-            logging.info("System admin updated: ShiftJet / Delivery32..")
+            logging.info("System admin password upgraded to bcrypt")
 
 # Include all routers
 from routers.auth import router as auth_router

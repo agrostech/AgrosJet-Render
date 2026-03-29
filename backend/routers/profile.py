@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import Optional
 
 from utils.database import db
-from utils.helpers import hash_password
+from utils.helpers import hash_password, verify_password
 
 from utils.jwt_utils import require_auth
 router = APIRouter(prefix="/api", tags=["Profile"], dependencies=[Depends(require_auth)])
@@ -26,8 +26,15 @@ async def update_own_profile(admin_id: str, data: ProfileUpdate):
         raise HTTPException(status_code=404, detail="Yönetici bulunamadı")
     
     # Mevcut şifre doğrulaması
-    if admin["password"] != hash_password(data.current_password):
+    if not verify_password(data.current_password, admin.get("password", "")):
         raise HTTPException(status_code=401, detail="Mevcut şifre yanlış")
+    
+    # SHA-256'dan bcrypt'e otomatik yükseltme (eski hash ise)
+    if not admin["password"].startswith("$2b$"):
+        await db.admins.update_one(
+            {"id": admin_id},
+            {"$set": {"password": hash_password(data.current_password)}}
+        )
     
     update_data = {}
     requires_relogin = False

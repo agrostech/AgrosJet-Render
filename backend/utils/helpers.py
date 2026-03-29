@@ -1,11 +1,32 @@
 import hashlib
+import bcrypt
 from datetime import datetime, timezone, timedelta
 
 # Türkiye timezone (UTC+3)
 TURKEY_TZ = timezone(timedelta(hours=3))
 
+
 def hash_password(password: str) -> str:
-    return hashlib.sha256(password.encode()).hexdigest()
+    """Şifreyi bcrypt ile hashle (yeni şifreler için)"""
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """
+    Şifreyi doğrula - bcrypt ve eski SHA-256 destekli.
+    bcrypt hash'i $2b$ ile başlar, SHA-256 64 hex karakter.
+    """
+    if not hashed_password:
+        return False
+    # bcrypt hash kontrolü
+    if hashed_password.startswith("$2b$") or hashed_password.startswith("$2a$"):
+        try:
+            return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
+        except Exception:
+            return False
+    # Eski SHA-256 hash kontrolü (geçiş dönemi)
+    sha256_hash = hashlib.sha256(plain_password.encode()).hexdigest()
+    return hashed_password == sha256_hash
 
 def format_name(name: str) -> str:
     """Format name with Turkish locale - capitalize each word"""

@@ -7,7 +7,7 @@ import secrets
 import pytz
 
 from utils.database import db
-from utils.helpers import hash_password, format_name, get_turkey_now
+from utils.helpers import hash_password, verify_password, format_name, get_turkey_now
 from utils.rate_limit import limiter
 from utils.jwt_utils import create_token, require_super_or_system
 
@@ -236,8 +236,15 @@ async def login_courier(request: Request, data: CourierLogin):
         phone = "0" + phone
     
     courier = await db.couriers.find_one({"phone": phone}, {"_id": 0})
-    if not courier or courier["password"] != hash_password(data.password):
+    if not courier or not verify_password(data.password, courier.get("password", "")):
         raise HTTPException(status_code=401, detail="Geçersiz telefon veya şifre")
+    
+    # SHA-256'dan bcrypt'e otomatik yükseltme
+    if not courier["password"].startswith("$2b$"):
+        await db.couriers.update_one(
+            {"phone": phone},
+            {"$set": {"password": hash_password(data.password)}}
+        )
     
     # Kurye tablosundaki pasif kontrolü
     if courier.get("is_active") == False:
@@ -467,8 +474,15 @@ async def reset_password(request: Request, data: ResetPassword):
 @limiter.limit("5/minute")
 async def login_admin(request: Request, data: AdminLogin):
     admin = await db.admins.find_one({"username": data.username}, {"_id": 0})
-    if not admin or admin["password"] != hash_password(data.password):
+    if not admin or not verify_password(data.password, admin.get("password", "")):
         raise HTTPException(status_code=401, detail="Geçersiz kullanıcı adı veya şifre")
+    
+    # SHA-256'dan bcrypt'e otomatik yükseltme
+    if not admin["password"].startswith("$2b$"):
+        await db.admins.update_one(
+            {"username": data.username},
+            {"$set": {"password": hash_password(data.password)}}
+        )
     
     # Get company_ids array (for multi-company access)
     company_ids = admin.get("company_ids", [])
@@ -636,7 +650,7 @@ async def delete_courier_account(data: CourierDeleteAccount):
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
     
     # Şifre doğrula
-    if courier.get("password") != hash_password(data.password):
+    if not verify_password(data.password, courier.get("password", "")):
         raise HTTPException(status_code=401, detail="Geçersiz şifre")
     
     courier_id = courier["id"]

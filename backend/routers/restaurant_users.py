@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 import uuid
 
 from utils.database import db
-from utils.helpers import hash_password, get_turkey_now
+from utils.helpers import hash_password, verify_password, get_turkey_now
 from utils.rate_limit import limiter
 from utils.jwt_utils import create_token, require_auth
 
@@ -47,8 +47,15 @@ async def login_restaurant_user(request: Request, data: RestaurantUserLogin):
         {"_id": 0}
     )
     
-    if not user or user.get("password_hash") != hash_password(data.password):
+    if not user or not verify_password(data.password, user.get("password_hash", "")):
         raise HTTPException(status_code=401, detail="Geçersiz kullanıcı adı veya şifre")
+    
+    # SHA-256'dan bcrypt'e otomatik yükseltme
+    if not user.get("password_hash", "").startswith("$2b$"):
+        await db.restaurant_users.update_one(
+            {"username": data.username.lower()},
+            {"$set": {"password_hash": hash_password(data.password)}}
+        )
     
     if not user.get("is_active", True):
         raise HTTPException(status_code=403, detail="Hesabınız pasif durumda")
