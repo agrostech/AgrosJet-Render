@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from utils.jwt_utils import require_admin
+from utils.jwt_utils import require_admin, require_auth
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime, timezone, timedelta
@@ -13,7 +13,7 @@ TURKEY_TZ = timezone(timedelta(hours=3))
 def get_turkey_now():
     return datetime.now(TURKEY_TZ).isoformat()
 
-router = APIRouter(prefix="/api/motorcycles", tags=["motorcycles"], dependencies=[Depends(require_admin)])
+router = APIRouter(prefix="/api/motorcycles", tags=["motorcycles"], dependencies=[Depends(require_auth)])
 
 mongo_url = os.environ.get("MONGO_URL")
 client = MongoClient(mongo_url)

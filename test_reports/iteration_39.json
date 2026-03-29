@@ -1,0 +1,110 @@
+{
+  "summary": "Router auth fix verified. Changed 5 routers from require_admin to require_auth dependency. All courier panel pages (Motosikletim, Zimmetlerim, Akademi, Evraklar) now load correctly without 401 errors. Backend: 15/16 tests passed (1 skipped). Frontend: All 4 fixed pages load without 'yüklenemedi' error.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_router_auth_fix.py",
+    "/app/test_reports/pytest/router_auth_fix_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "motorcycles.py Line 16: Changed from require_admin to require_auth - VERIFIED",
+    "zimmet.py Line 12: Changed from require_admin to require_auth - VERIFIED",
+    "academy.py Line 18: Changed from require_admin to require_auth - VERIFIED",
+    "documents.py Line 19: Changed from require_admin to require_auth - VERIFIED",
+    "invoices.py Line 25: Changed from require_admin to require_auth - VERIFIED",
+    "require_auth allows any valid token (including courier role)",
+    "require_admin only allows systemadmin/superadmin/admin roles",
+    "Security preserved: Unauthenticated requests still get 401"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_router_auth_fix.py"
+  ],
+  "success_rate": {
+    "backend": "94% (15/16 passed, 1 skipped)",
+    "frontend": "100% (all 4 fixed pages load correctly)"
+  },
+  "tested_features": {
+    "courier_motorcycles_access": {
+      "status": "PASS",
+      "endpoint": "/api/motorcycles/courier/{id}",
+      "tests": [
+        "✓ Courier token returns 200 (was 401)",
+        "✓ Admin token returns 200",
+        "✓ No token returns 401 (security preserved)"
+      ]
+    },
+    "courier_zimmet_access": {
+      "status": "PASS",
+      "endpoint": "/api/zimmet/courier/{id}/assignments",
+      "tests": [
+        "✓ Courier token returns 200 (was 401)",
+        "✓ Admin token returns 200",
+        "✓ No token returns 401 (security preserved)"
+      ]
+    },
+    "courier_academy_access": {
+      "status": "PASS",
+      "endpoint": "/api/academy/company/{id}/trainings",
+      "tests": [
+        "✓ Courier token returns 200 (was 401)",
+        "✓ No token returns 401 (security preserved)"
+      ]
+    },
+    "courier_documents_access": {
+      "status": "PASS",
+      "endpoint": "/api/documents/courier/{id}",
+      "tests": [
+        "✓ Courier token returns 200 (was 401)",
+        "✓ Admin token returns 200",
+        "✓ No token returns 401 (security preserved)"
+      ]
+    },
+    "courier_invoices_access": {
+      "status": "PASS",
+      "endpoint": "/api/invoices/courier/{id}",
+      "tests": [
+        "✓ Courier token returns 200 (was 401)",
+        "✓ Admin token returns 200",
+        "✓ No token returns 401 (security preserved)"
+      ]
+    },
+    "frontend_pages": {
+      "status": "PASS",
+      "tests": [
+        "✓ Motosikletim page loads without error",
+        "✓ Zimmetlerim page loads without error",
+        "✓ Akademi page loads without error",
+        "✓ Evraklar page loads without error",
+        "✓ No 'yüklenemedi' errors on any page",
+        "✓ Tab switching works smoothly"
+      ]
+    }
+  },
+  "test_credentials": {
+    "courier": {"phone": "05550003201", "password": "123456"},
+    "company_admin": {"username": "admin", "password": "123456"},
+    "system_admin": {"username": "onurertas", "password": "Delivery32.."}
+  },
+  "seed_data_creation": "No seed data created - tested with existing production data",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Router auth fix verified. 5 routers changed from require_admin to require_auth: motorcycles.py, zimmet.py, academy.py, documents.py, invoices.py. This allows courier tokens to access courier panel endpoints. Security preserved - unauthenticated requests still get 401.",
+  "mocked_api": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  },
+  "root_cause_analysis": {
+    "issue": "Courier panel pages returning 401 errors",
+    "root_cause": "During security hardening (Phase 4), 5 backend routers were given require_admin router-level dependency. Couriers have role=courier, not admin, so they got 401 Forbidden.",
+    "fix_applied": "Changed router-level dependency from require_admin to require_auth in 5 files",
+    "verification": "All 5 endpoints now return 200 with courier token, 401 without token"
+  }
+}

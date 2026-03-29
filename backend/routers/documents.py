@@ -15,8 +15,8 @@ from services.r2_storage import (
     delete_file_from_r2
 )
 
-from utils.jwt_utils import require_admin
-router = APIRouter(prefix="/api/documents", tags=["Documents"], dependencies=[Depends(require_admin)])
+from utils.jwt_utils import require_admin, require_auth
+router = APIRouter(prefix="/api/documents", tags=["Documents"], dependencies=[Depends(require_auth)])
 
 # Legacy local upload dir (for backward compatibility)
 UPLOAD_DIR = "/app/uploads/documents"
