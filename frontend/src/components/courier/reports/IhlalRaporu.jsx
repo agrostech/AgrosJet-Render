@@ -6,6 +6,13 @@ import { PageLoading } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
+// Türkiye saatini al (UTC+3) - tarayıcı timezone'undan bağımsız
+const getTurkeyNow = () => {
+  const now = new Date();
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  return new Date(utc + (3 * 3600000));
+};
+
 const formatDate = (dateStr) => {
   if (!dateStr) return "-";
   const date = new Date(dateStr);
@@ -39,7 +46,7 @@ const COURIER_VIOLATION_TYPES = [
 
 const getWeekRange = (openingTime = "06:00") => {
   const [hours, minutes] = openingTime.split(":").map(Number);
-  const now = new Date();
+  const now = getTurkeyNow();
   const dayOfWeek = now.getDay();
   const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
   

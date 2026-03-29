@@ -1028,6 +1028,12 @@ function YoneticilerPage() {
       });
       // Update companies
       await axios.put(`${API}/auth/admin/${selectedAdmin.id}/companies`, selectedAdmin.company_ids);
+      // Update default company
+      if (selectedAdmin.default_company_id && selectedAdmin.company_ids.includes(selectedAdmin.default_company_id)) {
+        await axios.put(`${API}/auth/admin/${selectedAdmin.id}/default-company`, {
+          default_company_id: selectedAdmin.default_company_id
+        });
+      }
       toast.success("Yönetici güncellendi");
       setShowEditModal(false);
       fetchData();
@@ -1086,6 +1092,7 @@ function YoneticilerPage() {
     setSelectedAdmin({
       ...admin,
       company_ids: admin.company_ids || (admin.company_id ? [admin.company_id] : []),
+      default_company_id: admin.default_company_id || admin.company_id || "",
       newPassword: ""
     });
     setShowEditModal(true);
@@ -1350,6 +1357,25 @@ function YoneticilerPage() {
                   ))}
                 </div>
               </div>
+              {selectedAdmin.company_ids?.length > 1 && (
+                <div>
+                  <Label className="text-sm font-semibold">Varsayılan Şirket</Label>
+                  <p className="text-xs text-muted-foreground mb-2">Giriş yapınca ilk açılacak şirket</p>
+                  <select
+                    value={selectedAdmin.default_company_id || ""}
+                    onChange={(e) => setSelectedAdmin({ ...selectedAdmin, default_company_id: e.target.value })}
+                    className="w-full h-10 border-2 rounded-md px-3 text-sm bg-white"
+                    data-testid="default-company-select"
+                  >
+                    {selectedAdmin.company_ids.map(cid => {
+                      const comp = companies.find(c => c.id === cid);
+                      return comp ? (
+                        <option key={cid} value={cid}>{comp.name}</option>
+                      ) : null;
+                    })}
+                  </select>
+                </div>
+              )}
               <Button type="submit" className="w-full h-12 font-semibold" disabled={saving}>
                 {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Kaydediliyor...</> : "Kaydet"}
               </Button>

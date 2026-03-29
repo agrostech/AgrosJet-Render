@@ -475,8 +475,10 @@ async def login_admin(request: Request, data: AdminLogin):
     if not company_ids and admin.get("company_id"):
         company_ids = [admin["company_id"]]
     
-    # Get primary company (first in list or single company_id)
-    primary_company_id = company_ids[0] if company_ids else admin.get("company_id")
+    # Get primary company (default_company_id > first in list > single company_id)
+    primary_company_id = admin.get("default_company_id")
+    if not primary_company_id or primary_company_id not in company_ids:
+        primary_company_id = company_ids[0] if company_ids else admin.get("company_id")
     
     company = None
     if primary_company_id:
@@ -551,17 +553,46 @@ async def update_admin_companies(admin_id: str, company_ids: list[str]):
         if not company:
             raise HTTPException(status_code=400, detail=f"Şirket bulunamadı: {cid}")
     
-    # Update admin with new company_ids
-    primary_company_id = company_ids[0] if company_ids else None
+    # Keep default_company_id if still valid, otherwise reset to first
+    current_default = admin.get("default_company_id")
+    primary_company_id = current_default if current_default in company_ids else (company_ids[0] if company_ids else None)
+    
     await db.admins.update_one(
         {"id": admin_id},
         {"$set": {
             "company_ids": company_ids,
-            "company_id": primary_company_id
+            "company_id": primary_company_id,
+            "default_company_id": primary_company_id
         }}
     )
     
     return {"message": "Şirketler güncellendi", "company_ids": company_ids}
+
+
+@router.put("/admin/{admin_id}/default-company")
+async def update_admin_default_company(admin_id: str, data: dict):
+    """Update the default company for an admin"""
+    default_company_id = data.get("default_company_id")
+    if not default_company_id:
+        raise HTTPException(status_code=400, detail="default_company_id gerekli")
+    
+    admin = await db.admins.find_one({"id": admin_id}, {"_id": 0})
+    if not admin:
+        raise HTTPException(status_code=404, detail="Admin bulunamadı")
+    
+    company_ids = admin.get("company_ids", [])
+    if default_company_id not in company_ids:
+        raise HTTPException(status_code=400, detail="Bu şirket adminin erişim listesinde değil")
+    
+    await db.admins.update_one(
+        {"id": admin_id},
+        {"$set": {
+            "default_company_id": default_company_id,
+            "company_id": default_company_id
+        }}
+    )
+    
+    return {"message": "Varsayılan şirket güncellendi"}
 
 
 @router.get("/check-permissions/{admin_id}")
