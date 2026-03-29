@@ -60,9 +60,9 @@ Multi-panel delivery management system (Admin, Restaurant, Courier) with integra
 None active.
 
 ## Upcoming Tasks
-- bcrypt password hashing migration ✅ DONE (2026-03-29)
-- File upload size limits (P1)
-- General rate limiting for non-login endpoints (P1)
+- ~~bcrypt password hashing migration~~ ✅ DONE (2026-03-29)
+- ~~File upload size limits~~ ✅ DONE (2026-03-29)
+- ~~General rate limiting~~ ✅ DONE (2026-03-29)
 - Yemeksepeti Chrome extension (P2)
 - "Stop Count" kapasite mantığı (P2)
 - Caller ID entegrasyonu (P2)
@@ -83,6 +83,37 @@ None active.
 - `routers/admins.py` - New admin creation
 - `services/courier_service.py` - Courier password update
 - `server.py` - System admin seeder
+
+## Security - File Upload Limits (2026-03-29)
+### Limits
+| Tür | Limit | Dosyalar |
+|-----|-------|----------|
+| Logo | 5MB | companies.py |
+| Fatura/Belge | 10MB | invoices.py, issued_invoices.py, restaurant_invoices.py, restaurant_panel_invoices.py, business_invoices.py, documents.py |
+| Chat dosyası | 10MB | chat.py |
+| Akademi görsel | 10MB | academy.py |
+| Akademi video | 100MB | academy.py |
+| Excel | 5MB | bulk_hakedis.py, daily_reports.py |
+| DB Yedek | 500MB | backup.py |
+
+### Implementation
+- Tüm upload endpoint'lerinde `await file.read()` sonrası `len(content)` kontrolü
+- Aşıldığında HTTP 413 (Payload Too Large) döner
+
+## Security - Rate Limiting (2026-03-29)
+### Global Middleware
+- Custom `GlobalRateLimitMiddleware` in `server.py`
+- **200 istek/dakika/IP** tüm endpoint'lere uygulanır
+- In-memory tracking, 5 dakikada bir stale IP temizliği
+- Aşıldığında HTTP 429 döner
+
+### Endpoint-spesifik (slowapi)
+- Login: 5/dakika
+- E-posta doğrulama: 10/dakika
+- Şifre sıfırlama: 3/dakika
+
+### Muaf Path'ler (Webhook/3.parti)
+- `/api/getir/`, `/api/migros/`, `/api/sepettakip/`, `/api/adisyo/`, `/api/webhooks/`, `/api/external/`
 
 ## Key Files
 - `/app/backend/utils/jwt_utils.py` - JWT token creation, validation, FastAPI dependencies
