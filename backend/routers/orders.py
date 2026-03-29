@@ -1780,6 +1780,21 @@ async def get_orders_unified(
                     if not order.get("courier_name"):
                         order["courier_name"] = courier.get("name")
     
+    # Restoran telefon bilgisini zenginleştir (eksikse)
+    rest_ids_missing_phone = list(set(
+        o.get("restaurant_id") for o in orders
+        if o.get("restaurant_id") and not o.get("restaurant_phone")
+    ))
+    if rest_ids_missing_phone:
+        rests = await db.restaurants.find(
+            {"id": {"$in": rest_ids_missing_phone}},
+            {"_id": 0, "id": 1, "phone": 1}
+        ).to_list(500)
+        rest_phone_map = {r["id"]: r.get("phone") for r in rests}
+        for order in orders:
+            if not order.get("restaurant_phone") and order.get("restaurant_id"):
+                order["restaurant_phone"] = rest_phone_map.get(order["restaurant_id"])
+    
     return {
         "success": True,
         "orders": orders,

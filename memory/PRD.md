@@ -50,8 +50,7 @@ Multi-panel delivery management system (Admin, Restaurant, Courier) with integra
 - Migros API on PROD
 
 ## Pending Issues
-1. P1: "Neden AgrosJet?" text on Register/KVKK pages (carried over x3)
-2. P2: Webhook setup ping fails for agrosjet.net
+None active.
 
 ## Upcoming Tasks
 - P1: Migros "Reject" Functionality
