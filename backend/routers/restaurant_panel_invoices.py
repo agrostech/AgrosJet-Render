@@ -166,7 +166,7 @@ async def upload_restaurant_invoice(
     # Dosya kontrolü
     contents = await file.read()
     if len(contents) > 10 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="Dosya boyutu 10MB'ı geçemez")
+        raise HTTPException(status_code=413, detail="Dosya boyutu 10MB'ı geçemez")
     
     allowed_extensions = ["pdf"]
     ext = file.filename.split(".")[-1].lower() if "." in file.filename else ""

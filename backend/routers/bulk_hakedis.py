@@ -78,6 +78,11 @@ async def parse_excel(company_id: str, file: UploadFile = File(...)):
     
     # Read Excel file
     contents = await file.read()
+    
+    # Boyut kontrolü - Excel max 5MB
+    if len(contents) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Excel dosyası 5MB'ı geçemez")
+    
     wb = openpyxl.load_workbook(io.BytesIO(contents))
     ws = wb.active
     

@@ -273,6 +273,11 @@ async def upload_chat_file(
     
     # Save file
     content = await file.read()
+    
+    # Boyut kontrolü - Chat dosyası max 10MB
+    if len(content) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Dosya boyutu 10MB'ı geçemez")
+    
     with open(file_path, "wb") as f:
         f.write(content)
     

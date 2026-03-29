@@ -175,6 +175,11 @@ async def upload_company_logo(
     
     ext = os.path.splitext(file.filename or "logo.png")[1] or ".png"
     content = await file.read()
+    
+    # Boyut kontrolü - Logo max 5MB
+    if len(content) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Logo dosyası 5MB'ı geçemez")
+    
     content_type = file.content_type or "image/png"
     
     r2_key = f"logos/{company_id}/{logo_type}{ext}"

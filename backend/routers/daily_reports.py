@@ -271,6 +271,10 @@ async def upload_excel(
     
     content = await file.read()
     
+    # Boyut kontrolü - Excel max 5MB
+    if len(content) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Excel dosyası 5MB'ı geçemez")
+    
     try:
         parsed_data = await parse_excel_file(content)
     except Exception as e:

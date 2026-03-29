@@ -196,6 +196,11 @@ async def import_company_data(
     try:
         # ZIP dosyasını oku
         content = await file.read()
+        
+        # Boyut kontrolü - Yedek dosyası max 500MB
+        if len(content) > 500 * 1024 * 1024:
+            raise HTTPException(status_code=413, detail="Yedek dosyası 500MB'ı geçemez")
+        
         zip_buffer = io.BytesIO(content)
         
         with zipfile.ZipFile(zip_buffer, 'r') as zip_file:

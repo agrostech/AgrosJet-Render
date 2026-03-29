@@ -98,13 +98,17 @@ async def create_training(
                 detail=f"Desteklenmeyen dosya formatı. İzin verilen: {', '.join(ALLOWED_VIDEO_EXTENSIONS)}"
             )
         
-        # Save video
+        # Save video - önce boyut kontrolü (max 100MB)
+        video_content = await video.read()
+        if len(video_content) > 100 * 1024 * 1024:
+            raise HTTPException(status_code=413, detail="Video dosyası 100MB'ı geçemez")
+        
         video_filename = f"{training_id}{file_ext}"
         video_path = os.path.join(UPLOAD_DIR, video_filename)
         
         try:
             with open(video_path, "wb") as buffer:
-                shutil.copyfileobj(video.file, buffer)
+                buffer.write(video_content)
         except Exception:
             raise HTTPException(status_code=500, detail="Video yüklenemedi")
     
@@ -238,6 +242,10 @@ async def upload_training_image(
     
     # Read content
     content = await image.read()
+    
+    # Boyut kontrolü - Eğitim görseli max 10MB
+    if len(content) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Görsel dosyası 10MB'ı geçemez")
     
     # Determine content type
     content_types = {

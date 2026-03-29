@@ -208,6 +208,10 @@ async def upload_document(
     # Read file content
     content = await file.read()
     
+    # Boyut kontrolü - Belge max 10MB
+    if len(content) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Dosya boyutu 10MB'ı geçemez")
+    
     # Determine content type
     content_type_map = {
         '.jpg': 'image/jpeg',

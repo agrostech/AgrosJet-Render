@@ -746,7 +746,7 @@ async def upload_invoice(
     # Dosya boyutu kontrolü (10MB)
     content = await file.read()
     if len(content) > 10 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="Dosya boyutu 10MB'ı aşamaz")
+        raise HTTPException(status_code=413, detail="Dosya boyutu 10MB'ı aşamaz")
     
     # Dosya uzantısı
     extension = file.filename.split(".")[-1].lower() if file.filename and "." in file.filename else "pdf"

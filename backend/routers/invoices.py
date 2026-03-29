@@ -133,6 +133,10 @@ async def upload_invoice(
     # Read file content
     content = await file.read()
     
+    # Boyut kontrolü - Fatura max 10MB
+    if len(content) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Dosya boyutu 10MB'ı geçemez")
+    
     # Determine content type
     content_types = {
         '.pdf': 'application/pdf',
@@ -606,6 +610,10 @@ async def upload_invoice_by_admin(
     
     # Read file content
     content = await file.read()
+    
+    # Boyut kontrolü - Fatura max 10MB
+    if len(content) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Dosya boyutu 10MB'ı geçemez")
     
     # Determine content type
     content_types = {

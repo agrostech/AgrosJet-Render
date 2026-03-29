@@ -338,7 +338,7 @@ async def upload_invoice(
     # Read file content
     content = await file.read()
     if len(content) > 10 * 1024 * 1024:  # 10MB limit
-        raise HTTPException(status_code=400, detail="Dosya boyutu 10MB'dan büyük olamaz")
+        raise HTTPException(status_code=413, detail="Dosya boyutu 10MB'dan büyük olamaz")
     
     # Upload to R2
     file_extension = file.filename.split('.')[-1].lower()
