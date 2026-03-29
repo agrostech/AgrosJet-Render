@@ -6,28 +6,31 @@ import { PageLoading } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-const getTodayRange = (openingTime = "06:00") => {
-  const [hours, minutes] = openingTime.split(":").map(Number);
+const getTodayRange = (openingTime = "06:00", closingTime = "06:00") => {
+  const [oH, oM] = openingTime.split(":").map(Number);
+  const [cH, cM] = closingTime.split(":").map(Number);
   const now = new Date();
   const todayStart = new Date(now);
-  todayStart.setHours(hours, minutes, 0, 0);
+  todayStart.setHours(oH, oM, 0, 0);
   if (now < todayStart) todayStart.setDate(todayStart.getDate() - 1);
   const todayEnd = new Date(todayStart);
   todayEnd.setDate(todayStart.getDate() + 1);
+  todayEnd.setHours(cH, cM, 0, 0);
   return { start: todayStart, end: todayEnd };
 };
 
-const getWeekRange = (openingTime = "06:00") => {
-  const [hours, minutes] = openingTime.split(":").map(Number);
+const getWeekRange = (openingTime = "06:00", closingTime = "06:00") => {
+  const [oH, oM] = openingTime.split(":").map(Number);
+  const [cH, cM] = closingTime.split(":").map(Number);
   const now = new Date();
   const dayOfWeek = now.getDay();
   const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
   const monday = new Date(now);
   monday.setDate(now.getDate() + diffToMonday);
-  monday.setHours(hours, minutes, 0, 0);
+  monday.setHours(oH, oM, 0, 0);
   const nextMonday = new Date(monday);
   nextMonday.setDate(monday.getDate() + 7);
-  nextMonday.setHours(hours, minutes, 0, 0);
+  nextMonday.setHours(cH, cM, 0, 0);
   return { start: monday, end: nextMonday };
 };
 
@@ -62,12 +65,12 @@ export default function PerformansRaporu({ courierId, companyId }) {
   const [stats, setStats] = useState(null);
   const [period, setPeriod] = useState("bugun");
 
-  const fetchStats = async (companyOpeningTime, selectedPeriod) => {
+  const fetchStats = async (companyOpeningTime, companyClosingTime, selectedPeriod) => {
     setLoading(true);
     try {
       const range = selectedPeriod === "bugun"
-        ? getTodayRange(companyOpeningTime)
-        : getWeekRange(companyOpeningTime);
+        ? getTodayRange(companyOpeningTime, companyClosingTime)
+        : getWeekRange(companyOpeningTime, companyClosingTime);
 
       const startFmt = fmt(range.start);
       const endFmt = fmt(range.end);
@@ -142,6 +145,7 @@ export default function PerformansRaporu({ courierId, companyId }) {
   };
 
   const [openingTime, setOpeningTime] = useState("06:00");
+  const [closingTime, setClosingTime] = useState("06:00");
 
   useEffect(() => {
     const init = async () => {
@@ -149,10 +153,12 @@ export default function PerformansRaporu({ courierId, companyId }) {
       try {
         const res = await axios.get(`${API}/companies/${companyId}/work-hours`);
         const ot = res.data.opening_time || "06:00";
+        const ct = res.data.closing_time || "06:00";
         setOpeningTime(ot);
-        await fetchStats(ot, period);
+        setClosingTime(ct);
+        await fetchStats(ot, ct, period);
       } catch {
-        await fetchStats("06:00", period);
+        await fetchStats("06:00", "06:00", period);
       }
     };
     init();
@@ -160,7 +166,7 @@ export default function PerformansRaporu({ courierId, companyId }) {
 
   const handlePeriodChange = (newPeriod) => {
     setPeriod(newPeriod);
-    fetchStats(openingTime, newPeriod);
+    fetchStats(openingTime, closingTime, newPeriod);
   };
 
   if (loading) return <PageLoading />;
