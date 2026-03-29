@@ -739,7 +739,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       requestWakeLock();
       
       // Her 2 saniyede bir siparişleri güncelle
-      const interval = setInterval(() => fetchOrders(false), 2000);
+      const interval = setInterval(() => fetchOrders(false), 10000);
       
       // Sayfa tekrar görünür olduğunda hemen fetch yap (arka plandan dönünce)
       const handleVisibilityChange = async () => {

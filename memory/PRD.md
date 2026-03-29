@@ -113,7 +113,7 @@ Güvenlik güncellemesinde (Phase 4) toplam 9 router `require_admin` ile korunmu
 Hem admin hem kurye token'ları bu endpoint'lere erişebilir. Token olmadan 401 korunur.
 ### Global Middleware
 - Custom `GlobalRateLimitMiddleware` in `server.py`
-- **200 istek/dakika/IP** tüm endpoint'lere uygulanır
+- **1000 istek/dakika/IP** tüm endpoint'lere uygulanır (DDoS koruması + kurye polling uyumlu)
 - In-memory tracking, 5 dakikada bir stale IP temizliği
 - Aşıldığında HTTP 429 döner
 

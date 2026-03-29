@@ -104,6 +104,7 @@ export default function CourierDashboard() {
   // Refs for background task management
   const wakeLockRef = useRef(null);
   const lastLocationRef = useRef({ lat: 0, lng: 0, time: 0 });
+  const pollingIntervalRef = useRef(null);
 
   // Wake Lock API - ekranın kapanmasını önle
   const requestWakeLock = useCallback(async () => {
@@ -482,6 +483,44 @@ export default function CourierDashboard() {
   }, [navigate]);
 
   useEffect(() => {
+    // Önceki interval'ı temizle (her re-run'da)
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+
+    // Polling başlatma fonksiyonu
+    const startPolling = (courierId, companyId) => {
+      pollingIntervalRef.current = setInterval(() => {
+        checkCourierStatus(courierId, companyId);
+        fetchAvailabilityStatus(courierId, false);
+        fetchBreakStatus(courierId);
+        fetchCourierBreakInfo(courierId);
+      }, 10000);
+    };
+
+    // İlk veri yükleme fonksiyonu
+    const loadInitialData = (courierData) => {
+      if (courierData.company_id) {
+        fetchCompanyInfo(courierData.company_id);
+      }
+      checkDocumentStatus(courierData.id);
+      checkMaintenanceNotifications(courierData.id);
+      fetchAvailabilityStatus(courierData.id, true);
+      fetchBreakStatus(courierData.id);
+      fetchCourierBreakInfo(courierData.id);
+      checkCourierStatus(courierData.id, courierData.company_id);
+      
+      // Aktif sipariş sayısını çek
+      axios.get(`${API}/orders/v2/list`, {
+        params: { panel: 'courier', courier_id: courierData.id, status: 'active', limit: 50 }
+      }).then(res => {
+        setActiveOrderCount((res.data.orders || []).length);
+      }).catch(() => {});
+
+      startPolling(courierData.id, courierData.company_id);
+    };
+
     // URL'den gelen courierId varsa (/kurye/:courierId), direkt API'den kurye bilgisini al
     if (urlCourierId) {
       const fetchCourierById = async () => {
@@ -513,33 +552,35 @@ export default function CourierDashboard() {
           };
           setUser(courierData);
           localStorage.setItem("user", JSON.stringify(courierData));
-          
-          // Fetch additional data
-          if (courierData.company_id) {
-            fetchCompanyInfo(courierData.company_id);
-          }
-          checkDocumentStatus(courierData.id);
-          checkMaintenanceNotifications(courierData.id);
-          fetchAvailabilityStatus(courierData.id, true);
-          fetchBreakStatus(courierData.id);
-          fetchCourierBreakInfo(courierData.id);
-          checkCourierStatus(courierData.id, courierData.company_id);
-          
-          const intervalId = setInterval(() => {
-            checkCourierStatus(courierData.id, courierData.company_id);
-            fetchAvailabilityStatus(courierData.id, false);
-            fetchBreakStatus(courierData.id);
-            fetchCourierBreakInfo(courierData.id);
-          }, 10000);
-          
-          return () => clearInterval(intervalId);
+          loadInitialData(courierData);
         } catch (err) {
           console.error("Kurye bilgisi alınamadı:", err);
-          navigate("/courier-login");
+          // Fallback: localStorage'dan oku (429/500/network hatalarında döngü önlenir)
+          const stored = localStorage.getItem("user");
+          if (stored) {
+            try {
+              const parsed = JSON.parse(stored);
+              if (parsed.role === "courier" && parsed.id) {
+                setUser(parsed);
+                loadInitialData(parsed);
+                return;
+              }
+            } catch (e) { /* parse hatası */ }
+          }
+          // Sadece 401'de login'e yönlendir (localStorage da temizle — döngü olmaz)
+          if (err.response?.status === 401) {
+            localStorage.removeItem("user");
+            navigate("/courier-login");
+          }
         }
       };
       fetchCourierById();
-      return;
+      return () => {
+        if (pollingIntervalRef.current) {
+          clearInterval(pollingIntervalRef.current);
+          pollingIntervalRef.current = null;
+        }
+      };
     }
     
     // Normal akış - localStorage'dan oku
@@ -593,34 +634,27 @@ export default function CourierDashboard() {
     if (parsed.id) {
       checkDocumentStatus(parsed.id);
       checkMaintenanceNotifications(parsed.id);
-      fetchAvailabilityStatus(parsed.id, true); // İlk yükleme - native'e bildir
+      fetchAvailabilityStatus(parsed.id, true);
       fetchBreakStatus(parsed.id);
       fetchCourierBreakInfo(parsed.id);
-      
-      // Aktif sipariş sayısını çek
-      const fetchActiveOrderCount = () => {
-        axios.get(`${API}/orders/v2/list`, {
-          params: { panel: 'courier', courier_id: parsed.id, status: 'active', limit: 50 }
-        }).then(res => {
-          setActiveOrderCount((res.data.orders || []).length);
-        }).catch(() => {});
-      };
-      fetchActiveOrderCount();
-
-      // İlk kontrol
       checkCourierStatus(parsed.id, parsed.company_id);
-      
-      // Her 10 saniyede bir durumu kontrol et (mola onayı için hızlı güncelleme)
-      const intervalId = setInterval(() => {
-        checkCourierStatus(parsed.id, parsed.company_id);
-        fetchAvailabilityStatus(parsed.id, false);
-        fetchBreakStatus(parsed.id);
-        fetchCourierBreakInfo(parsed.id);
-        fetchActiveOrderCount();
-      }, 10000);
-      
-      return () => clearInterval(intervalId);
+
+      // Aktif sipariş sayısını çek
+      axios.get(`${API}/orders/v2/list`, {
+        params: { panel: 'courier', courier_id: parsed.id, status: 'active', limit: 50 }
+      }).then(res => {
+        setActiveOrderCount((res.data.orders || []).length);
+      }).catch(() => {});
+
+      startPolling(parsed.id, parsed.company_id);
     }
+
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    };
   }, [urlCourierId, navigate, fetchCompanyInfo, checkDocumentStatus, checkMaintenanceNotifications, checkCourierStatus, fetchAvailabilityStatus, fetchBreakStatus, fetchCourierBreakInfo]);
 
   const handleLogout = async () => {

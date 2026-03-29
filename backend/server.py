@@ -691,8 +691,8 @@ async def proxy_image(url: str):
 
 app.include_router(api_router)
 
-# Global Rate Limit Middleware (200 istek/dakika/IP)
-app.add_middleware(GlobalRateLimitMiddleware, max_requests=200, window=60)
+# Global Rate Limit Middleware (1000 istek/dakika/IP)
+app.add_middleware(GlobalRateLimitMiddleware, max_requests=1000, window=60)
 
 cors_origins = os.environ.get('CORS_ORIGINS', '').split(',')
 cors_origins = [o.strip() for o in cors_origins if o.strip()]
