@@ -4,7 +4,7 @@ Kontör (Credits) Yönetimi Router
 - Ortak havuz mantığı (aynı superadmin'e bağlı şirketler)
 - İşlem geçmişi
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime, timezone
@@ -12,8 +12,9 @@ import uuid
 
 from utils.database import db
 from utils.helpers import get_turkey_now
+from utils.jwt_utils import require_admin
 
-router = APIRouter(prefix="/api/credits", tags=["Credits"])
+router = APIRouter(prefix="/api/credits", tags=["Credits"], dependencies=[Depends(require_admin)])
 
 
 # --- Pydantic Models ---

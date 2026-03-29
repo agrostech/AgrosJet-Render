@@ -5,7 +5,7 @@ Haftalık Hakediş Toplu İşlem API
 - Son hafta geri alma
 - Otomatik işleme ayarları
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime, timezone, timedelta
@@ -14,8 +14,9 @@ import re
 
 from utils.database import db
 from utils.helpers import ensure_turkey_timezone, get_turkey_now, TURKEY_TZ
+from utils.jwt_utils import require_admin
 
-router = APIRouter(prefix="/api/weekly-hakedis", tags=["Haftalık Hakediş"])
+router = APIRouter(prefix="/api/weekly-hakedis", tags=["Haftalık Hakediş"], dependencies=[Depends(require_admin)])
 
 
 class WeekInfo(BaseModel):

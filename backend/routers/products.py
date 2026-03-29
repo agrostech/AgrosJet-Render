@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Optional
 import httpx
@@ -8,8 +8,9 @@ from datetime import datetime, timezone
 import uuid
 
 from utils.helpers import get_turkey_now
+from utils.jwt_utils import require_admin
 
-router = APIRouter(prefix="/api/products", tags=["Products"])
+router = APIRouter(prefix="/api/products", tags=["Products"], dependencies=[Depends(require_admin)])
 
 # Database reference (will be set from server.py)
 db = None

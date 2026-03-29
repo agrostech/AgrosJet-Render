@@ -2,7 +2,7 @@
 Email Settings Router
 SMTP configuration for email notifications
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime, timezone
@@ -10,8 +10,9 @@ import uuid
 
 from utils.database import db
 from utils.helpers import get_turkey_now, ensure_turkey_timezone, TURKEY_TZ
+from utils.jwt_utils import require_admin
 
-router = APIRouter(prefix="/api/email", tags=["Email Settings"])
+router = APIRouter(prefix="/api/email", tags=["Email Settings"], dependencies=[Depends(require_admin)])
 
 
 # --- Pydantic Models ---

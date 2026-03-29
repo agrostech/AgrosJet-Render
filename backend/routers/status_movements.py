@@ -3,13 +3,14 @@ Durum Hareketleri API
 - Kurye ve Admin durum değişiklik loglarını getir
 - Belirli bir iş günü için filtreleme (şirket açılış-kapanış saatlerine göre)
 """
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends
 from typing import Optional
 from datetime import datetime, timezone, timedelta
 
 from utils.database import db
+from utils.jwt_utils import require_admin
 
-router = APIRouter(prefix="/api/status-movements", tags=["Durum Hareketleri"])
+router = APIRouter(prefix="/api/status-movements", tags=["Durum Hareketleri"], dependencies=[Depends(require_admin)])
 
 
 async def get_company_opening_time(company_id: str) -> str:

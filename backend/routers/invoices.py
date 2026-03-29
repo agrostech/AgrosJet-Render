@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
 from fastapi.responses import FileResponse, StreamingResponse, Response
 from datetime import datetime, timezone, timedelta
 from pydantic import BaseModel
@@ -21,7 +21,8 @@ from services.r2_storage import (
     check_file_exists
 )
 
-router = APIRouter(prefix="/api/invoices", tags=["Invoices"])
+from utils.jwt_utils import require_admin
+router = APIRouter(prefix="/api/invoices", tags=["Invoices"], dependencies=[Depends(require_admin)])
 
 # Legacy local upload dir (for backward compatibility)
 UPLOAD_DIR = "/app/uploads/invoices"

@@ -2,7 +2,7 @@
 İşletme Faturaları (Alınan Faturalar) API
 Restoran Raporu Excel'inden işletme fatura tutarlarını import eder
 """
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
 from datetime import datetime, timezone, timedelta
 from typing import Optional
 import uuid
@@ -13,8 +13,9 @@ from io import BytesIO
 from utils.database import db
 from utils.helpers import get_turkey_now, ensure_turkey_timezone, TURKEY_TZ
 from services.r2_storage import upload_file_to_r2
+from utils.jwt_utils import require_admin
 
-router = APIRouter(prefix="/api/business-invoices", tags=["İşletme Faturaları"])
+router = APIRouter(prefix="/api/business-invoices", tags=["İşletme Faturaları"], dependencies=[Depends(require_admin)])
 
 
 # =====================================================

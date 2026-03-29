@@ -1,13 +1,14 @@
 """
 Finans API - Kurye ve Restoran finans logları
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from typing import Optional
 from datetime import datetime, timezone
 
 from utils.database import db
+from utils.jwt_utils import require_admin
 
-router = APIRouter(prefix="/api", tags=["Finance"])
+router = APIRouter(prefix="/api", tags=["Finance"], dependencies=[Depends(require_admin)])
 
 
 # --- Kurye Finans Logları ---

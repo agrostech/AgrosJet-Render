@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
 from fastapi.responses import StreamingResponse, Response
 from datetime import datetime, timezone
 import uuid
@@ -15,7 +15,8 @@ from services.r2_storage import (
     delete_file_from_r2
 )
 
-router = APIRouter(prefix="/api/documents", tags=["Documents"])
+from utils.jwt_utils import require_admin
+router = APIRouter(prefix="/api/documents", tags=["Documents"], dependencies=[Depends(require_admin)])
 
 # Legacy local upload dir (for backward compatibility)
 UPLOAD_DIR = "/app/uploads/documents"

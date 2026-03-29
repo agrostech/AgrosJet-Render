@@ -21,7 +21,7 @@ DB Schema (restaurants collection):
     ]
 }
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 from typing import Optional, List, Any
 from datetime import datetime, timezone
@@ -40,8 +40,9 @@ from services.getir_service import (
 from services.yemeksepeti_service import test_yemeksepeti_connection
 from services.adisyo_service import test_adisyo_connection
 from services.migros_service import MigrosYemekService
+from utils.jwt_utils import require_admin
 
-router = APIRouter(prefix="/api/integration-stores", tags=["Entegrasyon Mağazaları"])
+router = APIRouter(prefix="/api/integration-stores", tags=["Entegrasyon Mağazaları"], dependencies=[Depends(require_admin)])
 
 
 async def test_migros_connection(credentials: dict) -> dict:

@@ -4,7 +4,7 @@ Otomatik Atama API Router
 Panel ayarları ve manuel tetikleme endpoint'leri.
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional
 
@@ -15,7 +15,8 @@ from services.auto_dispatch import (
     DEFAULT_SETTINGS,
 )
 
-router = APIRouter(prefix="/api/auto-dispatch", tags=["Auto Dispatch"])
+from utils.jwt_utils import require_admin
+router = APIRouter(prefix="/api/auto-dispatch", tags=["Auto Dispatch"], dependencies=[Depends(require_admin)])
 
 
 class DispatchSettingsUpdate(BaseModel):

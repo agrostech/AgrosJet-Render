@@ -2,12 +2,13 @@
 Veritabanı Görüntüleyici API
 Sadece admin kullanımı için
 """
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends
 from typing import Optional
 from utils.database import db
+from utils.jwt_utils import require_system_admin
 import os
 
-router = APIRouter(prefix="/api/database", tags=["Database Viewer"])
+router = APIRouter(prefix="/api/database", tags=["Database Viewer"], dependencies=[Depends(require_system_admin)])
 
 
 @router.get("/info")

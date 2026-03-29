@@ -1,14 +1,15 @@
 """
 Haftalık Hakediş API - Kuryelerin teslim edilen siparişlerden toplam hakedişlerini hesaplar
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime, timezone
 from utils.database import db
 from utils.helpers import ensure_turkey_timezone, get_turkey_now
+from utils.jwt_utils import require_admin
 
-router = APIRouter(prefix="/api/hakedis", tags=["Hakediş"])
+router = APIRouter(prefix="/api/hakedis", tags=["Hakediş"], dependencies=[Depends(require_admin)])
 
 
 class HakedisFilter(BaseModel):

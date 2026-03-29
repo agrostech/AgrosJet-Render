@@ -4,7 +4,7 @@ Günlük Mütabakat Router
 - Sipariş verileri ile karşılaştırma
 - Fark işleme (bakiyeye ekleme)
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional, List, Dict
 from datetime import datetime, timezone, timedelta
@@ -12,8 +12,9 @@ import uuid
 
 from utils.database import db
 from utils.helpers import get_turkey_now, ensure_turkey_timezone, TURKEY_TZ
+from utils.jwt_utils import require_admin
 
-router = APIRouter(prefix="/api/daily-mutabakat", tags=["Günlük Mütabakat"])
+router = APIRouter(prefix="/api/daily-mutabakat", tags=["Günlük Mütabakat"], dependencies=[Depends(require_admin)])
 
 
 # ============ MODELS ============

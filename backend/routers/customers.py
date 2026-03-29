@@ -4,7 +4,7 @@ Müşteri Yönetimi API
 - CRUD işlemleri
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime, timezone, timedelta
@@ -12,9 +12,10 @@ import uuid
 import logging
 
 from utils.database import db
+from utils.jwt_utils import require_admin
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/api/customers", tags=["customers"])
+router = APIRouter(prefix="/api/customers", tags=["customers"], dependencies=[Depends(require_admin)])
 
 TURKEY_TZ = timezone(timedelta(hours=3))
 

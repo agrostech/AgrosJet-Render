@@ -1,14 +1,15 @@
 """
 Restaurant Groups - Restoran Grupları Yönetimi
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime, timezone
 import uuid
 from utils.database import db
+from utils.jwt_utils import require_admin
 
-router = APIRouter(prefix="/api/restaurant-groups", tags=["Restaurant Groups"])
+router = APIRouter(prefix="/api/restaurant-groups", tags=["Restaurant Groups"], dependencies=[Depends(require_admin)])
 
 # Models
 class RestaurantGroupCreate(BaseModel):

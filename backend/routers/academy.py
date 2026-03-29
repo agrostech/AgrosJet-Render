@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Header
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Header, Depends
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime, timezone
@@ -14,7 +14,8 @@ from services.r2_storage import (
     delete_file_from_r2
 )
 
-router = APIRouter(prefix="/api/academy", tags=["Academy"])
+from utils.jwt_utils import require_admin
+router = APIRouter(prefix="/api/academy", tags=["Academy"], dependencies=[Depends(require_admin)])
 
 # Legacy upload directories (for backward compatibility)
 UPLOAD_DIR = "/app/uploads/academy"

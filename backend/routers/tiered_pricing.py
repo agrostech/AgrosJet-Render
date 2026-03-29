@@ -4,7 +4,7 @@ Kademeli Ücretlendirme API Router
 Şirket genelinde kurye ücretlendirme ayarları için endpoint'ler.
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional, List
 
@@ -13,7 +13,8 @@ from services.tiered_pricing_service import (
     update_company_tiered_pricing
 )
 
-router = APIRouter(prefix="/api/tiered-pricing", tags=["Tiered Pricing"])
+from utils.jwt_utils import require_admin
+router = APIRouter(prefix="/api/tiered-pricing", tags=["Tiered Pricing"], dependencies=[Depends(require_admin)])
 
 
 class TieredPricingUpdate(BaseModel):

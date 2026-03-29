@@ -11,7 +11,7 @@ Vardiya bazlı ayarlar:
 - Eş zamanlı mola kişi limiti (her vardiya için ayrı)
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional, List, Dict
 from datetime import datetime, timedelta
@@ -20,8 +20,9 @@ import logging
 
 from utils.database import db
 from utils.helpers import get_turkey_now, TURKEY_TZ
+from utils.jwt_utils import require_admin
 
-router = APIRouter(prefix="/api", tags=["Break System"])
+router = APIRouter(prefix="/api", tags=["Break System"], dependencies=[Depends(require_admin)])
 logger = logging.getLogger("break_system")
 
 

@@ -2,7 +2,7 @@
 Başvurular Router
 AgrosJet.com'dan gelen kurye, restoran ve şirket başvurularını yönetir.
 """
-from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi import APIRouter, HTTPException, Query, Request, Depends
 from pydantic import BaseModel
 from typing import Optional
 import logging
@@ -20,7 +20,8 @@ from services.agrosjet_service import (
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/applications", tags=["Applications"])
+from utils.jwt_utils import require_admin
+router = APIRouter(prefix="/api/applications", tags=["Applications"], dependencies=[Depends(require_admin)])
 
 
 # --- Models ---
@@ -114,7 +115,7 @@ async def update_status(app_type: str, app_id: str, data: StatusUpdateRequest):
 
 
 # --- Webhook Endpoint ---
-webhook_router = APIRouter(prefix="/api/webhook", tags=["Webhooks - Applications"])
+webhook_router = APIRouter(prefix="/api/webhook", tags=["Webhooks - Applications"], dependencies=[Depends(require_admin)])
 
 
 async def _create_basvuru_notification(app_type: str, application: dict, message: str):

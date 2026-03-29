@@ -4,7 +4,7 @@ Yönetici Mütabakat API Router
 - Sıfırlama işlemleri
 - Detaylı raporlama
 """
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime, timezone
@@ -12,8 +12,9 @@ import uuid
 
 from utils.database import db
 from utils.helpers import get_turkey_now, ensure_turkey_timezone, TURKEY_TZ
+from utils.jwt_utils import require_admin
 
-router = APIRouter(prefix="/api/admin-mutabakat", tags=["Yönetici Mütabakat"])
+router = APIRouter(prefix="/api/admin-mutabakat", tags=["Yönetici Mütabakat"], dependencies=[Depends(require_admin)])
 
 
 class ResetRequest(BaseModel):

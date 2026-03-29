@@ -2,7 +2,7 @@
 Excel Karşılaştırma ve Rapor Router
 Nakit ve Kredi Kartı Excel dosyalarını yükleyip tahsilatlarla karşılaştırır
 """
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
 from pydantic import BaseModel
 from typing import Optional, List, Dict
 from datetime import datetime, timezone, timedelta
@@ -11,8 +11,9 @@ import io
 
 from utils.database import db
 from utils.helpers import get_turkey_now, ensure_turkey_timezone, TURKEY_TZ
+from utils.jwt_utils import require_admin
 
-router = APIRouter(prefix="/api/daily-reports", tags=["Günlük Raporlar"])
+router = APIRouter(prefix="/api/daily-reports", tags=["Günlük Raporlar"], dependencies=[Depends(require_admin)])
 
 
 # ============ HELPERS ============
