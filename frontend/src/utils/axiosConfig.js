@@ -1,12 +1,21 @@
 /**
- * Simple Axios Configuration
- * No permission headers, no complex error handling
+ * Axios Configuration
+ * Her istekte JWT token'ı Authorization header'ında gönderir
  */
 import axios from 'axios';
 
-// Create axios instance with base URL
-const axiosInstance = axios.create({
-  baseURL: process.env.REACT_APP_BACKEND_URL,
+// Her istekten önce token ekle
+axios.interceptors.request.use((config) => {
+  const stored = localStorage.getItem("user");
+  if (stored) {
+    try {
+      const user = JSON.parse(stored);
+      if (user?.token) {
+        config.headers.Authorization = `Bearer ${user.token}`;
+      }
+    } catch {}
+  }
+  return config;
 });
 
-export default axiosInstance;
+export default axios;

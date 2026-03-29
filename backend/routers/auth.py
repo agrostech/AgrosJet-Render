@@ -9,6 +9,7 @@ import pytz
 from utils.database import db
 from utils.helpers import hash_password, format_name, get_turkey_now
 from utils.rate_limit import limiter
+from utils.jwt_utils import create_token
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
@@ -292,7 +293,8 @@ async def login_courier(request: Request, data: CourierLogin):
         "role": "courier",
         "company_id": companies[0]["id"] if companies else None,
         "companies": companies,
-        "push_session_id": push_session_id
+        "push_session_id": push_session_id,
+        "token": create_token(courier["id"], "courier", {"company_id": companies[0]["id"] if companies else None})
     }
 
 
@@ -524,11 +526,13 @@ async def login_admin(request: Request, data: AdminLogin):
             permissions["raporlar"] = False
             permissions["basvurular"] = False
     
+    resolved_role = "systemadmin" if is_system else ("superadmin" if is_super else admin["role"])
+    
     return {
         "id": admin["id"],
         "name": admin["name"],
         "username": admin["username"],
-        "role": "systemadmin" if is_system else ("superadmin" if is_super else admin["role"]),
+        "role": resolved_role,
         "is_super_admin": is_super,
         "is_system_admin": is_system,
         "permissions": permissions,
@@ -537,7 +541,8 @@ async def login_admin(request: Request, data: AdminLogin):
         "company_ids": company_ids,
         "company": company,
         "accessible_companies": accessible_companies,
-        "email": admin.get("email")
+        "email": admin.get("email"),
+        "token": create_token(admin["id"], resolved_role, {"company_id": primary_company_id, "is_system": is_system, "is_super": is_super})
     }
 
 

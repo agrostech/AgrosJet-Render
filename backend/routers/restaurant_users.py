@@ -11,6 +11,7 @@ import uuid
 from utils.database import db
 from utils.helpers import hash_password, get_turkey_now
 from utils.rate_limit import limiter
+from utils.jwt_utils import create_token
 
 router = APIRouter(prefix="/api/restaurant-users", tags=["Restaurant Users"])
 
@@ -75,7 +76,8 @@ async def login_restaurant_user(request: Request, data: RestaurantUserLogin):
         "restaurant_id": user["restaurant_id"],
         "restaurant_name": restaurant["name"],
         "company_id": restaurant["company_id"],
-        "company_name": company["name"] if company else None
+        "company_name": company["name"] if company else None,
+        "token": create_token(user["id"], "restaurant", {"restaurant_id": user["restaurant_id"], "company_id": restaurant["company_id"]})
     }
 
 
