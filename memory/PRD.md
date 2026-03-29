@@ -81,6 +81,28 @@ Bu router JWT gerektirmez. Courier ID'nin DB'de var olup olmadığı kontrol edi
 - `routers/couriers.py` — Eski konum endpoint'i kaldırıldı
 - `server.py` — Yeni router eklendi
 
+## Polling Optimizasyonu (2026-03-29)
+### Sorun
+Kurye paneli 10sn'de bir 4 ayrı API çağrısı yapıyordu (checkCourierStatus, fetchAvailabilityStatus, fetchBreakStatus, fetchCourierBreakInfo). Bu, kurye başına 26 istek/dk demek. 30+ kuryede rate limit aşılıyordu.
+### Çözüm
+Yeni birleşik `GET /api/couriers/{courier_id}/poll` endpoint'i oluşturuldu. Tek istekte:
+- `availability_status` (aktif/molada/çevrimdışı)
+- `break_status` (limit, kullanılan, kalan, molada mı)
+- `should_logout` (pasif mi, başka cihaz mı)
+- `resend_token` (push token yenilenmeli mi)
+
+Sonuç: **4 istek → 1 istek** = %75 azalma. Kurye başına 26 → 8 istek/dk.
+### Kapasite Etkisi
+| Senaryo | Önce | Sonra |
+|---------|------|-------|
+| 30 kurye | 1041/dk (🔴 limit) | ~297/dk (✅ rahat) |
+| 50 kurye | 1717/dk (🔴 ciddi) | ~477/dk (✅ rahat) |
+### Dosyalar
+- `routers/couriers.py` — Yeni `/poll` endpoint'i
+- `CourierDashboard.jsx` — startPolling + loadInitialData yeniden yazıldı
+### Dikkat
+Mevcut tekil endpoint'lere (GET /couriers/{id}, GET /couriers/{id}/break-status, GET /auth/courier/{id}/check-status) DOKUNULMADI. Admin panel ve diğer bileşenler bunları kullanmaya devam eder.
+
 ## Security - Password Hashing (2026-03-29)
 ### Implementation
 - Migrated from SHA-256 (hashlib) to bcrypt
