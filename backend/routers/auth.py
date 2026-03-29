@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime, timezone, timedelta
@@ -9,7 +9,7 @@ import pytz
 from utils.database import db
 from utils.helpers import hash_password, format_name, get_turkey_now
 from utils.rate_limit import limiter
-from utils.jwt_utils import create_token
+from utils.jwt_utils import create_token, require_super_or_system
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
@@ -547,7 +547,7 @@ async def login_admin(request: Request, data: AdminLogin):
 
 
 @router.put("/admin/{admin_id}/companies")
-async def update_admin_companies(admin_id: str, company_ids: list[str]):
+async def update_admin_companies(admin_id: str, company_ids: list[str], auth: dict = Depends(require_super_or_system)):
     """Update the list of companies an admin can access (superadmin only)"""
     admin = await db.admins.find_one({"id": admin_id}, {"_id": 0})
     if not admin:
@@ -576,7 +576,7 @@ async def update_admin_companies(admin_id: str, company_ids: list[str]):
 
 
 @router.put("/admin/{admin_id}/default-company")
-async def update_admin_default_company(admin_id: str, data: dict):
+async def update_admin_default_company(admin_id: str, data: dict, auth: dict = Depends(require_super_or_system)):
     """Update the default company for an admin"""
     default_company_id = data.get("default_company_id")
     if not default_company_id:

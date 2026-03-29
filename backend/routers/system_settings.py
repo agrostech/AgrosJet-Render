@@ -3,13 +3,14 @@ Sistem Ayarları Router
 Cloudflare R2, SMTP ve diğer sistem ayarlarını yönetir.
 Sadece System Admin (ShiftJet) erişebilir.
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime, timezone
 
 from utils.database import db
 from utils.helpers import get_turkey_now, ensure_turkey_timezone, TURKEY_TZ
+from utils.jwt_utils import require_system_admin
 
 router = APIRouter(prefix="/api/system-settings", tags=["System Settings"])
 
@@ -50,7 +51,7 @@ class CloudflareR2SettingsUpdate(BaseModel):
 
 
 @router.get("/cloudflare-r2")
-async def get_cloudflare_settings():
+async def get_cloudflare_settings(auth: dict = Depends(require_system_admin)):
     """
     Cloudflare R2 ayarlarını getir.
     Secret key maskelenir.
@@ -84,7 +85,7 @@ async def get_cloudflare_settings():
 
 
 @router.post("/cloudflare-r2")
-async def save_cloudflare_settings(data: CloudflareR2Settings):
+async def save_cloudflare_settings(data: CloudflareR2Settings, auth: dict = Depends(require_system_admin)):
     """
     Cloudflare R2 ayarlarını kaydet.
     """
@@ -107,7 +108,7 @@ async def save_cloudflare_settings(data: CloudflareR2Settings):
 
 
 @router.put("/cloudflare-r2")
-async def update_cloudflare_settings(data: CloudflareR2SettingsUpdate):
+async def update_cloudflare_settings(data: CloudflareR2SettingsUpdate, auth: dict = Depends(require_system_admin)):
     """
     Cloudflare R2 ayarlarını güncelle (sadece değişen alanlar).
     """
@@ -135,7 +136,7 @@ async def update_cloudflare_settings(data: CloudflareR2SettingsUpdate):
 
 
 @router.post("/cloudflare-r2/test")
-async def test_cloudflare_connection():
+async def test_cloudflare_connection(auth: dict = Depends(require_system_admin)):
     """
     Cloudflare R2 bağlantısını test et.
     """
@@ -202,7 +203,7 @@ async def test_cloudflare_connection():
 # ==================== SMTP AYARLARI ====================
 
 @router.get("/smtp")
-async def get_smtp_settings():
+async def get_smtp_settings(auth: dict = Depends(require_system_admin)):
     """
     Sistem SMTP ayarlarını getir.
     Şifre maskelenir.
@@ -242,7 +243,7 @@ async def get_smtp_settings():
 
 
 @router.post("/smtp")
-async def save_smtp_settings(data: SMTPSettings):
+async def save_smtp_settings(data: SMTPSettings, auth: dict = Depends(require_system_admin)):
     """
     Sistem SMTP ayarlarını kaydet.
     """
@@ -268,7 +269,7 @@ async def save_smtp_settings(data: SMTPSettings):
 
 
 @router.put("/smtp")
-async def update_smtp_settings(data: SMTPSettingsUpdate):
+async def update_smtp_settings(data: SMTPSettingsUpdate, auth: dict = Depends(require_system_admin)):
     """
     Sistem SMTP ayarlarını güncelle (sadece değişen alanlar).
     """
@@ -302,7 +303,7 @@ async def update_smtp_settings(data: SMTPSettingsUpdate):
 
 
 @router.post("/smtp/test")
-async def test_smtp_connection(test_email: str = None):
+async def test_smtp_connection(test_email: str = None, auth: dict = Depends(require_system_admin)):
     """
     SMTP bağlantısını test et.
     """
@@ -387,7 +388,7 @@ class AgrosJetSettingsUpdate(BaseModel):
 
 
 @router.get("/agrosjet")
-async def get_agrosjet_settings():
+async def get_agrosjet_settings(auth: dict = Depends(require_system_admin)):
     """AgrosJet entegrasyon ayarlarını getir."""
     settings = await db.system_settings.find_one(
         {"type": "agrosjet"},
@@ -413,7 +414,7 @@ async def get_agrosjet_settings():
 
 
 @router.post("/agrosjet")
-async def save_agrosjet_settings(data: AgrosJetSettings):
+async def save_agrosjet_settings(data: AgrosJetSettings, auth: dict = Depends(require_system_admin)):
     """AgrosJet entegrasyon ayarlarını kaydet."""
     settings = {
         "type": "agrosjet",
@@ -432,7 +433,7 @@ async def save_agrosjet_settings(data: AgrosJetSettings):
 
 
 @router.put("/agrosjet")
-async def update_agrosjet_settings(data: AgrosJetSettingsUpdate):
+async def update_agrosjet_settings(data: AgrosJetSettingsUpdate, auth: dict = Depends(require_system_admin)):
     """AgrosJet ayarlarını güncelle (sadece değişen alanlar)."""
     existing = await db.system_settings.find_one({"type": "agrosjet"})
     if not existing:
@@ -457,7 +458,7 @@ async def update_agrosjet_settings(data: AgrosJetSettingsUpdate):
 
 
 @router.post("/agrosjet/test")
-async def test_agrosjet_connection():
+async def test_agrosjet_connection(auth: dict = Depends(require_system_admin)):
     """AgrosJet bağlantısını test et."""
     try:
         from services.agrosjet_service import ping

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, ConfigDict
 from typing import List, Optional, Dict
 from datetime import datetime, timezone, timedelta
@@ -6,6 +6,7 @@ import uuid
 
 from utils.database import db
 from utils.helpers import hash_password, format_name, get_turkey_now, TURKEY_TZ
+from utils.jwt_utils import require_super_or_system
 
 router = APIRouter(prefix="/api", tags=["Admins"])
 
@@ -86,7 +87,7 @@ class AdminResponse(BaseModel):
 
 # --- Admin Management ---
 @router.get("/admins/all")
-async def get_all_admins():
+async def get_all_admins(auth: dict = Depends(require_super_or_system)):
     """Tüm adminleri getir (systemadmin hariç) - Sistem paneli için"""
     admins = await db.admins.find(
         {"role": {"$ne": "systemadmin"}}, 
@@ -119,7 +120,7 @@ async def get_all_admins():
 
 
 @router.get("/admins")
-async def get_admins(company_id: Optional[str] = None):
+async def get_admins(company_id: Optional[str] = None, auth: dict = Depends(require_super_or_system)):
     if company_id:
         query = {"company_id": company_id}
     else:
@@ -154,7 +155,7 @@ async def get_admins(company_id: Optional[str] = None):
 
 
 @router.post("/admins")
-async def create_admin(data: AdminCreate):
+async def create_admin(data: AdminCreate, auth: dict = Depends(require_super_or_system)):
     existing = await db.admins.find_one({"username": data.username})
     if existing:
         raise HTTPException(status_code=400, detail="Bu kullanıcı adı zaten kullanılıyor")
@@ -186,7 +187,7 @@ async def create_admin(data: AdminCreate):
 
 
 @router.post("/admins/superadmin")
-async def create_superadmin(data: SuperAdminCreate):
+async def create_superadmin(data: SuperAdminCreate, auth: dict = Depends(require_super_or_system)):
     existing_super = await db.admins.find_one({"company_id": data.company_id, "role": "superadmin"})
     if existing_super:
         raise HTTPException(status_code=400, detail="Bu şirketin zaten bir süper admini var")
@@ -211,7 +212,7 @@ async def create_superadmin(data: SuperAdminCreate):
 
 
 @router.put("/admins/{admin_id}/permissions")
-async def update_admin_permissions(admin_id: str, data: PermissionsUpdate):
+async def update_admin_permissions(admin_id: str, data: PermissionsUpdate, auth: dict = Depends(require_super_or_system)):
     """Admin izinlerini güncelle"""
     admin = await db.admins.find_one({"id": admin_id})
     if not admin:
@@ -235,7 +236,7 @@ async def update_admin_permissions(admin_id: str, data: PermissionsUpdate):
 
 
 @router.delete("/admins/{admin_id}")
-async def delete_admin(admin_id: str):
+async def delete_admin(admin_id: str, auth: dict = Depends(require_super_or_system)):
     admin = await db.admins.find_one({"id": admin_id})
     if not admin:
         raise HTTPException(status_code=404, detail="Yönetici bulunamadı")
@@ -246,7 +247,7 @@ async def delete_admin(admin_id: str):
 
 
 @router.put("/admins/{admin_id}")
-async def update_admin(admin_id: str, data: AdminUpdate):
+async def update_admin(admin_id: str, data: AdminUpdate, auth: dict = Depends(require_super_or_system)):
     admin = await db.admins.find_one({"id": admin_id})
     if not admin:
         raise HTTPException(status_code=404, detail="Yönetici bulunamadı")
@@ -305,7 +306,7 @@ async def update_admin(admin_id: str, data: AdminUpdate):
 
 # --- Admin Aktiflik Yönetimi ---
 @router.post("/admins/{admin_id}/toggle-status")
-async def toggle_admin_status(admin_id: str):
+async def toggle_admin_status(admin_id: str, auth: dict = Depends(require_super_or_system)):
     """
     Admin aktif/pasif durumunu değiştir.
     Admin aktif olursa bağlı kurye pasif olur ve vice versa.

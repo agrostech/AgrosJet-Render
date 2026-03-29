@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Header, UploadFile, File
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Header, UploadFile, File, Depends
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import Optional
@@ -16,6 +16,7 @@ from email import encoders
 from utils.database import db
 from utils.helpers import get_turkey_now, ensure_turkey_timezone, TURKEY_TZ
 from services.r2_storage import upload_file_to_r2, get_r2_settings
+from utils.jwt_utils import require_super_or_system
 
 router = APIRouter(prefix="/api/backup", tags=["Backup"])
 
@@ -149,7 +150,8 @@ async def create_backup_zip(company_id: str) -> io.BytesIO:
 
 @router.get("/company/{company_id}/export")
 async def export_company_data(
-    company_id: str
+    company_id: str,
+    auth: dict = Depends(require_super_or_system)
 ):
     """Export all company data as a ZIP file"""
     # Verify company exists
@@ -172,6 +174,7 @@ async def export_company_data(
 async def import_company_data(
     company_id: str,
     file: UploadFile = File(...),
+    auth: dict = Depends(require_super_or_system),
     replace_existing: bool = False
 ):
     """Import company data from a backup ZIP file
@@ -324,7 +327,8 @@ async def import_company_data(
 # --- Scheduled Backup Settings ---
 @router.get("/company/{company_id}/schedule")
 async def get_backup_schedule(
-    company_id: str
+    company_id: str,
+    auth: dict = Depends(require_super_or_system)
 ):
     """Get backup schedule settings"""
     settings = await db.backup_settings.find_one({"company_id": company_id}, {"_id": 0})
@@ -336,7 +340,8 @@ async def get_backup_schedule(
 @router.post("/company/{company_id}/schedule")
 async def set_backup_schedule(
     company_id: str, 
-    data: BackupSchedule
+    data: BackupSchedule,
+    auth: dict = Depends(require_super_or_system)
 ):
     """Set backup schedule settings"""
     if data.hour < 0 or data.hour > 23:
@@ -449,7 +454,8 @@ async def send_backup_email(email: str, company_name: str, zip_buffer: io.BytesI
 @router.post("/company/{company_id}/send-now")
 async def send_backup_now(
     company_id: str, 
-    background_tasks: BackgroundTasks
+    background_tasks: BackgroundTasks,
+    auth: dict = Depends(require_super_or_system)
 ):
     """Manually trigger backup email and R2 upload"""
     company = await db.companies.find_one({"id": company_id})
@@ -543,7 +549,7 @@ async def run_scheduled_backups():
 
 
 @router.post("/test-mongodump")
-async def test_mongodump():
+async def test_mongodump(auth: dict = Depends(require_super_or_system)):
     """R2'ye test mongo dump yüklemesi yap"""
     from services.backup_service import _run_mongodump, _upload_backup, _list_r2_backups, R2_BACKUP_PREFIX
     from services.r2_storage import get_r2_settings
@@ -604,7 +610,7 @@ async def test_mongodump():
 
 
 @router.get("/r2-backup-status")
-async def get_r2_backup_status():
+async def get_r2_backup_status(auth: dict = Depends(require_super_or_system)):
     """R2'deki yedeklerin durumunu getir"""
     from services.backup_service import _list_r2_backups, R2_BACKUP_PREFIX, R2_DAILY_PREFIX
     
