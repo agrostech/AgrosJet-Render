@@ -23,9 +23,9 @@ from services.accounting_service import (
     calculate_balance_breakdown,
     parse_custom_date
 )
-from utils.jwt_utils import require_admin
+from utils.jwt_utils import require_admin, require_auth
 
-router = APIRouter(prefix="/api", tags=["Muhasebe"], dependencies=[Depends(require_admin)])
+router = APIRouter(prefix="/api", tags=["Muhasebe"], dependencies=[Depends(require_auth)])
 
 
 # --- Helper Function ---

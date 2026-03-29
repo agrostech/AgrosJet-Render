@@ -7,9 +7,9 @@ from typing import Optional
 from datetime import datetime, timezone
 from utils.database import db
 from utils.helpers import ensure_turkey_timezone, get_turkey_now
-from utils.jwt_utils import require_admin
+from utils.jwt_utils import require_admin, require_auth
 
-router = APIRouter(prefix="/api/hakedis", tags=["Hakediş"], dependencies=[Depends(require_admin)])
+router = APIRouter(prefix="/api/hakedis", tags=["Hakediş"], dependencies=[Depends(require_auth)])
 
 
 class HakedisFilter(BaseModel):

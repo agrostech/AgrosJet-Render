@@ -6,9 +6,9 @@ import uuid
 
 from utils.database import db
 from utils.helpers import get_turkey_now, ensure_turkey_timezone, TURKEY_TZ
-from utils.jwt_utils import require_admin
+from utils.jwt_utils import require_admin, require_auth
 
-router = APIRouter(prefix="/api", tags=["Shifts"], dependencies=[Depends(require_admin)])
+router = APIRouter(prefix="/api", tags=["Shifts"], dependencies=[Depends(require_auth)])
 
 class ShiftCreate(BaseModel):
     name: str
