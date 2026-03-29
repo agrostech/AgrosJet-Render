@@ -167,6 +167,9 @@ async def add_courier_to_company(company_id: str, phone: str):
         "created_at": get_turkey_now()
     }
     await db.company_couriers.insert_one(relation)
+    # Kurye dökümanında company_id yoksa set et
+    if not courier.get("company_id"):
+        await db.couriers.update_one({"id": courier["id"]}, {"$set": {"company_id": company_id}})
     return {"message": "Kurye şirkete eklendi", "courier_name": courier["name"]}, None
 
 

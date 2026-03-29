@@ -482,11 +482,24 @@ export default function CourierDashboard() {
       const fetchCourierById = async () => {
         try {
           const res = await axios.get(`${API}/couriers/${urlCourierId}`);
+          let companyId = res.data.company_id;
+          
+          // company_id hala yoksa company_couriers endpoint'inden çöz
+          if (!companyId) {
+            try {
+              const relRes = await axios.get(`${API}/couriers/${urlCourierId}/companies`);
+              const companies = relRes.data.companies || [];
+              if (companies.length > 0) {
+                companyId = companies[0].company_id || companies[0].id;
+              }
+            } catch (e) { /* sessiz */ }
+          }
+          
           const courierData = {
             id: res.data.id,
             name: res.data.name,
             phone: res.data.phone,
-            company_id: res.data.company_id,
+            company_id: companyId || null,
             role: "courier"
           };
           setUser(courierData);
@@ -498,15 +511,14 @@ export default function CourierDashboard() {
           }
           checkDocumentStatus(courierData.id);
           checkMaintenanceNotifications(courierData.id);
-          fetchAvailabilityStatus(courierData.id, true); // İlk yükleme - native'e bildir
+          fetchAvailabilityStatus(courierData.id, true);
           fetchBreakStatus(courierData.id);
           fetchCourierBreakInfo(courierData.id);
           checkCourierStatus(courierData.id, courierData.company_id);
           
-          // Her 10 saniyede bir durumu kontrol et (mola onayı için hızlı güncelleme)
           const intervalId = setInterval(() => {
             checkCourierStatus(courierData.id, courierData.company_id);
-            fetchAvailabilityStatus(courierData.id, false); // Polling - sadece değişiklikte bildir
+            fetchAvailabilityStatus(courierData.id, false);
             fetchBreakStatus(courierData.id);
             fetchCourierBreakInfo(courierData.id);
           }, 10000);

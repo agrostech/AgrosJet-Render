@@ -80,6 +80,14 @@ async def get_courier_by_id(courier_id: str):
     # Set default availability if not present
     if "availability_status" not in courier:
         courier["availability_status"] = "offline"
+    # company_id yoksa company_couriers junction tablosundan çöz
+    if not courier.get("company_id"):
+        rel = await db.company_couriers.find_one(
+            {"courier_id": courier_id, "status": {"$in": ["approved", "active"]}, "is_active": {"$ne": False}},
+            {"_id": 0, "company_id": 1}
+        )
+        if rel:
+            courier["company_id"] = rel["company_id"]
     return courier
 
 

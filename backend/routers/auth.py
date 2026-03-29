@@ -290,6 +290,7 @@ async def login_courier(request: Request, data: CourierLogin):
         "name": courier["name"],
         "phone": courier["phone"],
         "role": "courier",
+        "company_id": companies[0]["id"] if companies else None,
         "companies": companies,
         "push_session_id": push_session_id
     }

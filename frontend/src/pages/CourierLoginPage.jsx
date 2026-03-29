@@ -81,7 +81,7 @@ export default function CourierLoginPage() {
   const saveSession = (data, remember) => {
     const sessionData = {
       ...data,
-      company_id: data.companies?.[0]?.id || null,
+      company_id: data.company_id || data.companies?.[0]?.id || null,
       rememberMe: remember,
       expiresAt: remember ? null : Date.now() + (60 * 60 * 1000)
     };
