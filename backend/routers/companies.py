@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 from datetime import datetime, timezone
@@ -8,7 +8,7 @@ import os
 
 from utils.database import db
 from utils.helpers import get_turkey_now, ensure_turkey_timezone, TURKEY_TZ
-from services.r2_storage import upload_file_to_r2, generate_presigned_url
+from services.r2_storage import upload_file_to_r2, download_file_from_r2
 
 router = APIRouter(prefix="/api", tags=["Companies"])
 
@@ -190,7 +190,7 @@ async def upload_company_logo(
 
 @router.get("/companies/logo/{filename}")
 async def get_company_logo(filename: str):
-    """Logo dosyasını serve et - önce R2, fallback local"""
+    """Logo dosyasını serve et - R2'den indirip doğrudan stream et"""
     # R2'den çek: filename = "{company_id}_{type}" formatında
     parts = filename.replace(".png", "").replace(".jpg", "").replace(".jpeg", "").replace(".webp", "").rsplit("_", 1)
     if len(parts) == 2:
@@ -199,10 +199,17 @@ async def get_company_logo(filename: str):
         if company:
             r2_key = company.get(f"logo_{logo_type}_r2_key")
             if r2_key:
-                presigned = generate_presigned_url(r2_key)
-                if presigned:
-                    from fastapi.responses import RedirectResponse
-                    return RedirectResponse(url=presigned)
+                content = await download_file_from_r2(r2_key)
+                if content:
+                    # Uzantıdan content type belirle
+                    ext = os.path.splitext(r2_key)[1].lower()
+                    ct_map = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp", ".svg": "image/svg+xml"}
+                    content_type = ct_map.get(ext, "image/png")
+                    return Response(
+                        content=content,
+                        media_type=content_type,
+                        headers={"Cache-Control": "public, max-age=86400"}
+                    )
     
     # Fallback: local file
     for ext in [".png", ".jpg", ".jpeg", ".webp", ""]:
