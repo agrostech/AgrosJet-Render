@@ -525,7 +525,7 @@ async def login_admin(request: Request, data: AdminLogin):
         "id": admin["id"],
         "name": admin["name"],
         "username": admin["username"],
-        "role": "superadmin" if is_super else admin["role"],
+        "role": "systemadmin" if is_system else ("superadmin" if is_super else admin["role"]),
         "is_super_admin": is_super,
         "is_system_admin": is_system,
         "permissions": permissions,

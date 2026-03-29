@@ -12,6 +12,12 @@ Multi-panel delivery management system (Admin, Restaurant, Courier) with integra
 
 ## What's Been Implemented
 
+### System Admin Role Fix (2026-03-29)
+- Fixed auth.py role override bug: systemadmin role was being overwritten to "superadmin"
+- Root cause: `is_super` check included "systemadmin" role, then line 528 returned "superadmin" for all super users
+- Fix: Priority chain `systemadmin > superadmin > admin["role"]` in login response
+- Result: `onurertas` now correctly routes to `/system` panel
+
 ### Courier Login company_id Fix (2026-03-29)
 - Backend `get_courier_by_id` resolves company_id from company_couriers junction table
 - Login endpoint returns top-level company_id in response
@@ -32,11 +38,11 @@ Multi-panel delivery management system (Admin, Restaurant, Courier) with integra
 - Superadmin/Systemadmin always gets all permissions = True
 
 ### Courier App - Smart Route (PDP) (2026-03-27)
-- Merged Assigned/On-the-way into unified "Siparişlerim" with List/Route toggle
+- Merged Assigned/On-the-way into unified "Siparislerim" with List/Route toggle
 - PDP algorithm with nearest-neighbor + group constraints
 - Route cards redesigned to match ActiveOrderCard styling
-- "Tümünü Yola Çıkar" button (cyan), total earnings in route header
-- "Gördüm" check: Rota tab blocked if assigned (unseen) orders exist
+- "Tumunu Yola Cikar" button (cyan), total earnings in route header
+- "Gordum" check: Rota tab blocked if assigned (unseen) orders exist
 
 ### Database & Storage
 - Base64 fallback eliminated, strict R2 enforcement
@@ -69,11 +75,11 @@ vardiya, muhasebe, zimmet, kuryeler, market, akademi, sistem, raporlar, basvurul
 ### Muhasebe sub-tabs:
 muhasebe_kuryeler, muhasebe_isletmeler, muhasebe_cariler, muhasebe_kurye_mutabakat, muhasebe_restoran_mutabakat, muhasebe_yonetici_mutabakat, muhasebe_haftalik_hakedis, muhasebe_kurye_faturalari, muhasebe_isletme_faturalari, muhasebe_hareketler
 
-### Sipariş sub-tabs:
+### Siparis sub-tabs:
 siparis_gecmis, siparis_iptal
 
 ## Key Files
-- `/app/backend/routers/auth.py` - Login + permission system
+- `/app/backend/routers/auth.py` - Login + permission system + role fix
 - `/app/backend/routers/couriers.py` - Courier endpoints (company_id fix)
 - `/app/backend/routers/companies.py` - Logo serve (direct stream fix)
 - `/app/backend/services/courier_service.py` - add_courier_to_company (company_id write)
