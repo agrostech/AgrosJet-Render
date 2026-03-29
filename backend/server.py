@@ -638,10 +638,14 @@ async def proxy_image(url: str):
 
 app.include_router(api_router)
 
+cors_origins = os.environ.get('CORS_ORIGINS', '').split(',')
+cors_origins = [o.strip() for o in cors_origins if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=cors_origins,
+    allow_origin_regex=r"https://.*\.preview\.emergentagent\.com",
     allow_methods=["*"],
     allow_headers=["*"],
 )
