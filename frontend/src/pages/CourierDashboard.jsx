@@ -503,27 +503,129 @@ export default function CourierDashboard() {
       pollingIntervalRef.current = null;
     }
 
-    // Polling başlatma fonksiyonu
+    // Polling başlatma fonksiyonu - TEK endpoint ile 4 isteği birleştirir
     const startPolling = (courierId, companyId) => {
-      pollingIntervalRef.current = setInterval(() => {
-        checkCourierStatus(courierId, companyId);
-        fetchAvailabilityStatus(courierId, false);
-        fetchBreakStatus(courierId);
-        fetchCourierBreakInfo(courierId);
+      pollingIntervalRef.current = setInterval(async () => {
+        try {
+          const sessionId = localStorage.getItem("push_session_id") || "";
+          const params = new URLSearchParams();
+          if (companyId) params.append("company_id", companyId);
+          if (sessionId) params.append("session_id", sessionId);
+          const qs = params.toString() ? `?${params.toString()}` : "";
+
+          const res = await axios.get(`${API}/couriers/${courierId}/poll${qs}`);
+          const data = res.data;
+
+          // --- should_logout kontrolü ---
+          if (data.should_logout) {
+            if (window.AgrosJetNative) {
+              try { window.AgrosJetNative.notifyLogout(); } catch(e) {}
+            }
+            if (window.ReactNativeWebView) {
+              try { window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOGOUT' })); } catch(e) {}
+            }
+            localStorage.removeItem("user");
+            localStorage.removeItem("push_session_id");
+            localStorage.removeItem("push_token");
+            navigate("/courier-login", { state: { message: data.reason || "Hesabınız pasif durumda" } });
+            return;
+          }
+          if (data.resend_token) {
+            if (window.ReactNativeWebView) {
+              window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'REQUEST_PUSH_TOKEN' }));
+            }
+            if (window.AgrosJetNative?.getPushToken) {
+              window.AgrosJetNative.getPushToken();
+            }
+          }
+
+          // --- availability_status güncelle ---
+          const newStatus = data.availability_status || "offline";
+          setAvailabilityStatus(prevStatus => {
+            if (prevStatus !== newStatus) {
+              setTimeout(() => {
+                const statusMap = { 'active': 'aktif', 'on_break': 'molada', 'offline': 'çevrimdışı' };
+                const nativeStatus = statusMap[newStatus] || 'çevrimdışı';
+                if (window.AgrosJetNative && typeof window.AgrosJetNative.statusChange === 'function') {
+                  try { window.AgrosJetNative.statusChange(nativeStatus); } catch (e) {}
+                }
+              }, 100);
+            }
+            return newStatus;
+          });
+
+          // --- break_status güncelle ---
+          if (data.break_status) {
+            setBreakStatus(data.break_status);
+            setCourierBreakInfo({
+              dailyLimit: data.break_status.daily_break_limit || 30,
+              usedTime: data.break_status.used_break_time || 0
+            });
+          }
+        } catch (err) {
+          // 401'de login'e yönlendir, diğer hatalarda sessiz kal
+          if (err.response?.status === 401) {
+            localStorage.removeItem("user");
+            navigate("/courier-login");
+          }
+        }
       }, 10000);
     };
 
     // İlk veri yükleme fonksiyonu
-    const loadInitialData = (courierData) => {
+    const loadInitialData = async (courierData) => {
       if (courierData.company_id) {
         fetchCompanyInfo(courierData.company_id);
       }
       checkDocumentStatus(courierData.id);
       checkMaintenanceNotifications(courierData.id);
-      fetchAvailabilityStatus(courierData.id, true);
-      fetchBreakStatus(courierData.id);
-      fetchCourierBreakInfo(courierData.id);
-      checkCourierStatus(courierData.id, courierData.company_id);
+
+      // İlk yükleme: birleşik poll endpoint'i ile tek istekte al
+      try {
+        const sessionId = localStorage.getItem("push_session_id") || "";
+        const params = new URLSearchParams();
+        if (courierData.company_id) params.append("company_id", courierData.company_id);
+        if (sessionId) params.append("session_id", sessionId);
+        const qs = params.toString() ? `?${params.toString()}` : "";
+        const res = await axios.get(`${API}/couriers/${courierData.id}/poll${qs}`);
+        const data = res.data;
+
+        // availability
+        const newStatus = data.availability_status || "offline";
+        setAvailabilityStatus(newStatus);
+        // İlk yüklemede native'e bildir
+        setTimeout(() => {
+          const statusMap = { 'active': 'aktif', 'on_break': 'molada', 'offline': 'çevrimdışı' };
+          const nativeStatus = statusMap[newStatus] || 'çevrimdışı';
+          if (window.AgrosJetNative && typeof window.AgrosJetNative.statusChange === 'function') {
+            try { window.AgrosJetNative.statusChange(nativeStatus); } catch (e) {}
+          }
+        }, 100);
+
+        // break status
+        if (data.break_status) {
+          setBreakStatus(data.break_status);
+          setCourierBreakInfo({
+            dailyLimit: data.break_status.daily_break_limit || 30,
+            usedTime: data.break_status.used_break_time || 0
+          });
+        }
+
+        // logout kontrolü
+        if (data.should_logout) {
+          if (window.AgrosJetNative) { try { window.AgrosJetNative.notifyLogout(); } catch(e) {} }
+          if (window.ReactNativeWebView) { try { window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOGOUT' })); } catch(e) {} }
+          localStorage.removeItem("user");
+          navigate("/courier-login", { state: { message: data.reason || "Hesabınız pasif durumda" } });
+          return;
+        }
+      } catch (err) {
+        // Poll başarısız olursa fallback: tekil istekler
+        fetchAvailabilityStatus(courierData.id, true);
+        fetchBreakStatus(courierData.id);
+        fetchCourierBreakInfo(courierData.id);
+        checkCourierStatus(courierData.id, courierData.company_id);
+      }
       
       // Aktif sipariş sayısını çek
       axios.get(`${API}/orders/v2/list`, {
@@ -646,21 +748,7 @@ export default function CourierDashboard() {
     };
     ensureCompanyId(parsed);
     if (parsed.id) {
-      checkDocumentStatus(parsed.id);
-      checkMaintenanceNotifications(parsed.id);
-      fetchAvailabilityStatus(parsed.id, true);
-      fetchBreakStatus(parsed.id);
-      fetchCourierBreakInfo(parsed.id);
-      checkCourierStatus(parsed.id, parsed.company_id);
-
-      // Aktif sipariş sayısını çek
-      axios.get(`${API}/orders/v2/list`, {
-        params: { panel: 'courier', courier_id: parsed.id, status: 'active', limit: 50 }
-      }).then(res => {
-        setActiveOrderCount((res.data.orders || []).length);
-      }).catch(() => {});
-
-      startPolling(parsed.id, parsed.company_id);
+      loadInitialData(parsed);
     }
 
     return () => {
@@ -669,7 +757,7 @@ export default function CourierDashboard() {
         pollingIntervalRef.current = null;
       }
     };
-  }, [urlCourierId, navigate, fetchCompanyInfo, checkDocumentStatus, checkMaintenanceNotifications, checkCourierStatus, fetchAvailabilityStatus, fetchBreakStatus, fetchCourierBreakInfo]);
+  }, [urlCourierId, navigate, fetchCompanyInfo, checkDocumentStatus, checkMaintenanceNotifications]);
 
   const handleLogout = async () => {
     // Sadece explicit logout'ta token temizle (kendi session'ı ise)

@@ -835,6 +835,82 @@ async def get_courier_break_status(courier_id: str):
 # Native app arka planda doğrudan backend'e istek attığı için JWT bypass gerekiyor.
 
 
+# --- Kurye Polling (Birleşik Endpoint) ---
+@router.get("/couriers/{courier_id}/poll")
+async def courier_poll(courier_id: str, company_id: str = None, session_id: str = None):
+    """
+    Kurye paneli polling - 4 ayrı isteği tek endpoint'te birleştirir.
+    Döndürdüğü veriler:
+    - availability_status (aktif/molada/çevrimdışı)
+    - break_status (mola limiti, kullanılan süre, kalan süre)
+    - should_logout (pasif mi, başka cihazdan giriş mi)
+    - resend_token (push token yeniden gönderilmeli mi)
+    """
+    from datetime import datetime, timezone
+
+    # 1. Kurye bilgilerini tek sorguda al
+    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0})
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+
+    # --- availability_status ---
+    availability_status = courier.get("availability_status", "offline")
+
+    # --- break_status ---
+    daily_break_limit = courier.get("daily_break_limit", 30)
+    used_break_time = courier.get("used_break_time", 0)
+
+    if courier.get("availability_status") == "on_break" and courier.get("break_start_time"):
+        try:
+            now = datetime.now(TURKEY_TZ)
+            start_time = datetime.fromisoformat(courier["break_start_time"].replace('Z', '+00:00'))
+            current_break_minutes = int((now - start_time).total_seconds() / 60)
+            used_break_time += current_break_minutes
+        except Exception:
+            pass
+
+    remaining_break_time = max(0, daily_break_limit - used_break_time)
+
+    # --- check-status (should_logout) ---
+    should_logout = False
+    logout_reason = None
+    resend_token = False
+
+    if company_id:
+        relations = await db.company_couriers.find(
+            {"courier_id": courier_id, "company_id": company_id},
+            {"_id": 0, "is_active": 1, "forced_logout_at": 1}
+        ).to_list(10)
+
+        for rel in relations:
+            if rel.get("is_active") is False:
+                should_logout = True
+                logout_reason = "Hesabınız pasif durumda"
+                break
+
+    if not should_logout and session_id:
+        db_session = courier.get("push_session_id", "")
+        db_token = courier.get("fcm_token", "")
+        if db_session and db_session != session_id:
+            should_logout = True
+            logout_reason = "Başka bir cihazdan giriş yapıldı"
+        elif not db_session or not db_token:
+            resend_token = True
+
+    return {
+        "availability_status": availability_status,
+        "break_status": {
+            "daily_break_limit": daily_break_limit,
+            "used_break_time": used_break_time,
+            "remaining_break_time": remaining_break_time,
+            "is_on_break": courier.get("availability_status") == "on_break"
+        },
+        "should_logout": should_logout,
+        "reason": logout_reason,
+        "resend_token": resend_token
+    }
+
+
 @router.get("/companies/{company_id}/couriers/with-availability")
 async def get_couriers_with_availability(company_id: str):
     """Get couriers grouped by availability status"""
