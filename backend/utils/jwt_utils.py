@@ -71,3 +71,8 @@ async def require_super_or_system(request: Request) -> dict:
     if role not in ("systemadmin", "superadmin") and not is_super:
         raise HTTPException(status_code=403, detail="Bu işlem için üst düzey yönetici yetkisi gerekli")
     return payload
+
+
+async def require_auth(request: Request) -> dict:
+    """Herhangi bir geçerli token yeterli — sadece giriş yapmış mı kontrolü"""
+    return _extract_token(request)

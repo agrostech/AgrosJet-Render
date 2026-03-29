@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
@@ -9,6 +9,7 @@ import os
 from utils.database import db
 from utils.helpers import get_turkey_now, ensure_turkey_timezone, TURKEY_TZ
 from services.r2_storage import upload_file_to_r2, download_file_from_r2
+from utils.jwt_utils import require_auth
 
 router = APIRouter(prefix="/api", tags=["Companies"])
 
@@ -69,7 +70,7 @@ class CompanyResponse(BaseModel):
 
 # --- Company Routes ---
 @router.get("/companies")
-async def get_companies():
+async def get_companies(auth: dict = Depends(require_auth)):
     companies = await db.companies.find({}, {"_id": 0}).to_list(100)
     for company in companies:
         if company.get("created_at"):
@@ -78,7 +79,7 @@ async def get_companies():
 
 
 @router.get("/companies/{company_id}")
-async def get_company(company_id: str):
+async def get_company(company_id: str, auth: dict = Depends(require_auth)):
     company = await db.companies.find_one({"id": company_id}, {"_id": 0})
     if not company:
         raise HTTPException(status_code=404, detail="Şirket bulunamadı")
@@ -88,7 +89,7 @@ async def get_company(company_id: str):
 
 
 @router.get("/companies/{company_id}/work-hours")
-async def get_company_work_hours(company_id: str):
+async def get_company_work_hours(company_id: str, auth: dict = Depends(require_auth)):
     """Şirketin çalışma saatlerini getir"""
     company = await db.companies.find_one(
         {"id": company_id}, 
@@ -103,7 +104,7 @@ async def get_company_work_hours(company_id: str):
 
 
 @router.post("/companies")
-async def create_company(data: CompanyCreate):
+async def create_company(data: CompanyCreate, auth: dict = Depends(require_auth)):
     company = {
         "id": str(uuid.uuid4()),
         "name": data.name,
@@ -122,7 +123,7 @@ async def create_company(data: CompanyCreate):
 
 
 @router.put("/companies/{company_id}")
-async def update_company(company_id: str, data: CompanyUpdate):
+async def update_company(company_id: str, data: CompanyUpdate, auth: dict = Depends(require_auth)):
     update_data = {}
     if data.name is not None:
         update_data["name"] = data.name
@@ -161,7 +162,8 @@ async def update_company(company_id: str, data: CompanyUpdate):
 async def upload_company_logo(
     company_id: str,
     logo_type: str = Form(...),
-    file: UploadFile = File(...)
+    file: UploadFile = File(...),
+    auth: dict = Depends(require_auth)
 ):
     """Logo yükle. logo_type: 'dark' veya 'light'"""
     if logo_type not in ("dark", "light"):
@@ -226,7 +228,7 @@ async def get_company_logo(filename: str):
 
 
 @router.delete("/companies/{company_id}")
-async def delete_company(company_id: str):
+async def delete_company(company_id: str, auth: dict = Depends(require_auth)):
     await db.companies.delete_one({"id": company_id})
     await db.company_couriers.delete_many({"company_id": company_id})
     await db.admins.delete_many({"company_id": company_id})
@@ -240,7 +242,7 @@ class WorkingHoursUpdate(BaseModel):
 
 
 @router.get("/companies/{company_id}/working-hours")
-async def get_working_hours(company_id: str):
+async def get_working_hours(company_id: str, auth: dict = Depends(require_auth)):
     """Get company working hours"""
     company = await db.companies.find_one({"id": company_id}, {"_id": 0, "opening_time": 1, "closing_time": 1})
     if not company:
@@ -252,7 +254,7 @@ async def get_working_hours(company_id: str):
 
 
 @router.put("/companies/{company_id}/working-hours")
-async def update_working_hours(company_id: str, data: WorkingHoursUpdate):
+async def update_working_hours(company_id: str, data: WorkingHoursUpdate, auth: dict = Depends(require_auth)):
     """Update company working hours"""
     result = await db.companies.update_one(
         {"id": company_id},
@@ -273,7 +275,7 @@ class ShiftToleranceUpdate(BaseModel):
 
 
 @router.get("/companies/{company_id}/shift-tolerance")
-async def get_shift_tolerance(company_id: str):
+async def get_shift_tolerance(company_id: str, auth: dict = Depends(require_auth)):
     """Şirket vardiya tolerans ayarını getir"""
     company = await db.companies.find_one({"id": company_id}, {"_id": 0, "id": 1, "shift_tolerance_minutes": 1})
     if not company:
@@ -284,7 +286,7 @@ async def get_shift_tolerance(company_id: str):
 
 
 @router.put("/companies/{company_id}/shift-tolerance")
-async def update_shift_tolerance(company_id: str, data: ShiftToleranceUpdate):
+async def update_shift_tolerance(company_id: str, data: ShiftToleranceUpdate, auth: dict = Depends(require_auth)):
     """Şirket vardiya tolerans ayarını güncelle (dakika cinsinden)"""
     if data.shift_tolerance_minutes < 0 or data.shift_tolerance_minutes > 30:
         raise HTTPException(status_code=400, detail="Tolerans 0-30 dakika arasında olmalı")

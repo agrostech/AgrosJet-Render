@@ -1,11 +1,12 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional
 
 from utils.database import db
 from utils.helpers import hash_password
 
-router = APIRouter(prefix="/api", tags=["Profile"])
+from utils.jwt_utils import require_auth
+router = APIRouter(prefix="/api", tags=["Profile"], dependencies=[Depends(require_auth)])
 
 
 # --- Pydantic Models ---

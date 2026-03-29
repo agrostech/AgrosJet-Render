@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Header
+from fastapi import APIRouter, HTTPException, Header, Depends
 from pydantic import BaseModel, ConfigDict
 from typing import Optional, List
 import uuid
@@ -6,7 +6,8 @@ from services import courier_service
 from utils.database import db
 from utils.helpers import get_turkey_now, ensure_turkey_timezone, TURKEY_TZ
 
-router = APIRouter(prefix="/api", tags=["Couriers"])
+from utils.jwt_utils import require_auth
+router = APIRouter(prefix="/api", tags=["Couriers"], dependencies=[Depends(require_auth)])
 
 
 # --- Pydantic Models ---

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Header
+from fastapi import APIRouter, HTTPException, Header, Depends
 from typing import Optional
 from datetime import datetime, timezone, timedelta
 import uuid
@@ -26,7 +26,8 @@ from services.jetpuan_service import (
     enrich_products_with_category_names
 )
 
-router = APIRouter(prefix="/api/jetpuan", tags=["JetPuan Market"])
+from utils.jwt_utils import require_auth
+router = APIRouter(prefix="/api/jetpuan", tags=["JetPuan Market"], dependencies=[Depends(require_auth)])
 
 
 # ============ SETTINGS ============

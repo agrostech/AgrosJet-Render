@@ -4,7 +4,7 @@ Kurye Durum Log Sistemi
 - Aktif süre hesaplama
 - Saatlik kazanç hesaplama
 """
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime, timezone, timedelta
@@ -13,7 +13,8 @@ import uuid
 from utils.database import db
 from utils.helpers import get_turkey_now, ensure_turkey_timezone, TURKEY_TZ
 
-router = APIRouter(prefix="/api/courier-status-logs", tags=["Kurye Durum Logları"])
+from utils.jwt_utils import require_auth
+router = APIRouter(prefix="/api/courier-status-logs", tags=["Kurye Durum Logları"], dependencies=[Depends(require_auth)])
 
 
 class StatusLogEntry(BaseModel):

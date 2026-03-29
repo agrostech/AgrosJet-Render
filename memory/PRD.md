@@ -10,82 +10,67 @@ Multi-panel delivery management system (Admin, Restaurant, Courier) with integra
 - **Push Notifications**: Expo / Firebase
 - **Integrations**: Migros (PROD), Getir, Trendyol, Adisyo
 
+## Security - JWT Auth System (2026-03-29)
+### Implementation
+- JWT tokens generated on all 3 login endpoints (admin, courier, restaurant)
+- Frontend axios interceptor sends `Authorization: Bearer <token>` on every request
+- Token stored in localStorage alongside user session data
+
+### Protection Levels
+| Level | Dependency | Used For |
+|-------|-----------|----------|
+| `require_system_admin` | systemadmin only | System settings, DB viewer |
+| `require_super_or_system` | superadmin + systemadmin | Admin CRUD, backup, company assignment |
+| `require_admin` | admin + superadmin + systemadmin | All admin panel operations |
+| `require_auth` | Any valid token | Shared endpoints (orders, couriers, restaurants) |
+
+### Coverage
+- **531 endpoints protected** (JWT required)
+- **68 endpoints open** (webhooks with own API key auth)
+- **~5 endpoints intentionally open** (login, logo serve, impersonate verify)
+
 ## What's Been Implemented
 
+### JWT Auth Middleware (2026-03-29)
+- Phase 1: Token generation + frontend interceptor
+- Phase 2: Critical endpoints (system_settings, admins, backup) 
+- Phase 3: Admin-only routers (34 files, ~268 endpoints)
+- Phase 4: Shared routers (orders, couriers, companies, restaurants, etc.)
+- Fixed CourierDashboard overwriting localStorage without token
+
 ### System Admin Role Fix (2026-03-29)
-- Fixed auth.py role override bug: systemadmin role was being overwritten to "superadmin"
-- Root cause: `is_super` check included "systemadmin" role, then line 528 returned "superadmin" for all super users
-- Fix: Priority chain `systemadmin > superadmin > admin["role"]` in login response
-- Result: `onurertas` now correctly routes to `/system` panel
+- Fixed auth.py role override: systemadmin → superadmin bug
+- Priority chain: systemadmin > superadmin > admin["role"]
 
-### Courier Login company_id Fix (2026-03-29)
-- Backend `get_courier_by_id` resolves company_id from company_couriers junction table
-- Login endpoint returns top-level company_id in response
-- CourierDashboard.jsx `/kurye/:id` path has fallback to /companies endpoint
-- CourierLoginPage.jsx uses data.company_id || data.companies?.[0]?.id
-- add_courier_to_company now also sets company_id on courier document
+### Courier Reports Fix (2026-03-29)
+- Performansım: default tab, first position, Bugün/Bu Hafta selector
+- İhlallerim: entity_id param fix, added violation types
+- UTC/Turkey timezone fix using getTurkeyNow()
 
-### Logo Serve Fix (2026-03-29)
-- Replaced presigned URL RedirectResponse with direct byte streaming via Response()
-- R2 file downloaded and served with proper content-type headers
-- Eliminates presigned URL expiration causing logos to disappear
-- Cache-Control: public, max-age=86400 set (may be overridden by infra)
-
-### Permission System (2026-03-28)
-- Sub-tab level permissions for admin panel
-- 21 permission keys total: 9 main tabs + 10 muhasebe sub-tabs + 2 siparis sub-tabs
-- Main tab toggle auto-enables/disables all sub-tabs
-- Superadmin/Systemadmin always gets all permissions = True
-
-### Courier App - Smart Route (PDP) (2026-03-27)
-- Merged Assigned/On-the-way into unified "Siparislerim" with List/Route toggle
-- PDP algorithm with nearest-neighbor + group constraints
-- Route cards redesigned to match ActiveOrderCard styling
-- "Tumunu Yola Cikar" button (cyan), total earnings in route header
-- "Gordum" check: Rota tab blocked if assigned (unseen) orders exist
-
-### Database & Storage
-- Base64 fallback eliminated, strict R2 enforcement
-- Automated MongoDB backup (15-min/12-hour) with size anomaly detection
-- Migros API on PROD
+### Other Fixes (2026-03-29)
+- Restaurant phone enrichment in orders/v2/list
+- Scroll reset on page navigation
+- CompanySwitcher logo display (logo_dark > logo_light > logo_url)
+- Raporlar sub-tab permissions in admin panel
+- Default company selection for multi-company admins
+- Google Places autocomplete on restaurant address form
+- MongoDB backup test button in System panel
 
 ## Pending Issues
 None active.
 
 ## Upcoming Tasks
-- P1: Migros "Reject" Functionality
-- P1: VatanSMS Integration
-- P2: Native Courier App improvements
-- P2: Migros 30-Second Rule
-
-## Future/Backlog
-- Yemeksepeti Chrome extension
-- "Stop Count" capacity logic
-- Technical security requirements
-- restaurant_fee calculation
-- Scheduled job refactoring
-- Caller ID integration
-- CourierSiparisPage.jsx refactoring (~2000 lines)
-
-## Permission Keys Reference
-### Main tabs:
-vardiya, muhasebe, zimmet, kuryeler, market, akademi, sistem, raporlar, basvurular
-
-### Muhasebe sub-tabs:
-muhasebe_kuryeler, muhasebe_isletmeler, muhasebe_cariler, muhasebe_kurye_mutabakat, muhasebe_restoran_mutabakat, muhasebe_yonetici_mutabakat, muhasebe_haftalik_hakedis, muhasebe_kurye_faturalari, muhasebe_isletme_faturalari, muhasebe_hareketler
-
-### Siparis sub-tabs:
-siparis_gecmis, siparis_iptal
+- CORS restriction (allow only agrosjet.net + preview URLs)
+- bcrypt password hashing migration
+- Role-based access control (endpoint-level)
+- File upload size limits
+- General rate limiting
 
 ## Key Files
-- `/app/backend/routers/auth.py` - Login + permission system + role fix
-- `/app/backend/routers/couriers.py` - Courier endpoints (company_id fix)
-- `/app/backend/routers/companies.py` - Logo serve (direct stream fix)
-- `/app/backend/services/courier_service.py` - add_courier_to_company (company_id write)
-- `/app/frontend/src/pages/CourierDashboard.jsx` - company_id fallback
-- `/app/frontend/src/pages/CourierLoginPage.jsx` - company_id priority
-- `/app/frontend/src/pages/admin/YoneticilerPage.jsx` - Admin permission UI
-- `/app/frontend/src/pages/courier/CourierSiparisPage.jsx` - Courier route view
+- `/app/backend/utils/jwt_utils.py` - JWT token creation, validation, FastAPI dependencies
+- `/app/backend/routers/auth.py` - Login endpoints + token generation
+- `/app/frontend/src/utils/axiosConfig.js` - Axios interceptor for auth headers
+- `/app/frontend/src/pages/CourierDashboard.jsx` - Token preservation in localStorage
 
 ## Credentials
 - System Admin: `onurertas` / `Delivery32..`

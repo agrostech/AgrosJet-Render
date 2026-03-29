@@ -3,7 +3,7 @@ Chat/Messaging System Router
 Supports: Admin-Courier, Admin-Admin, Courier-Courier messaging
 Features: Text, Images, Files, Group chats, Real-time notifications
 """
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, WebSocket, WebSocketDisconnect, Depends
 from pydantic import BaseModel
 from typing import Optional, List, Dict
 from datetime import datetime, timezone
@@ -14,7 +14,8 @@ import base64
 from utils.database import db
 from utils.helpers import get_turkey_now, ensure_turkey_timezone, TURKEY_TZ
 
-router = APIRouter(prefix="/api/chat", tags=["Chat"])
+from utils.jwt_utils import require_auth
+router = APIRouter(prefix="/api/chat", tags=["Chat"], dependencies=[Depends(require_auth)])
 
 # Active WebSocket connections
 active_connections: Dict[str, List[WebSocket]] = {}

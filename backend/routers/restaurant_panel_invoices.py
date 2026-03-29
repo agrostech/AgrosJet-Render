@@ -4,7 +4,7 @@ Restoran Faturaları API (Restoran Paneli için)
 - Alınan faturalar: Yöneticinin kestiği, restoran tarafından görüntülenen faturalar
 Cloudflare R2 entegrasyonu ile dosya depolama
 """
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
 from typing import Optional, List
 from datetime import datetime, timezone, timedelta
 import uuid
@@ -18,7 +18,8 @@ from services.r2_storage import (
     delete_file_from_r2
 )
 
-router = APIRouter(prefix="/api/restaurant-panel-invoices", tags=["Restoran Panel Faturaları"])
+from utils.jwt_utils import require_auth
+router = APIRouter(prefix="/api/restaurant-panel-invoices", tags=["Restoran Panel Faturaları"], dependencies=[Depends(require_auth)])
 
 # R2 klasör prefix'i
 R2_RESTAURANT_INVOICE_PREFIX = "RESTORAN_FATURALARI"

@@ -500,12 +500,16 @@ export default function CourierDashboard() {
             } catch (e) { /* sessiz */ }
           }
           
+          const existingUser = JSON.parse(localStorage.getItem("user") || "{}");
           const courierData = {
             id: res.data.id,
             name: res.data.name,
             phone: res.data.phone,
             company_id: companyId || null,
-            role: "courier"
+            role: "courier",
+            token: existingUser.token || null,
+            rememberMe: existingUser.rememberMe,
+            expiresAt: existingUser.expiresAt
           };
           setUser(courierData);
           localStorage.setItem("user", JSON.stringify(courierData));

@@ -2,7 +2,7 @@
 Restaurant Users API
 Restoran kullanıcı yönetimi ve auth
 """
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime, timezone
@@ -11,7 +11,7 @@ import uuid
 from utils.database import db
 from utils.helpers import hash_password, get_turkey_now
 from utils.rate_limit import limiter
-from utils.jwt_utils import create_token
+from utils.jwt_utils import create_token, require_auth
 
 router = APIRouter(prefix="/api/restaurant-users", tags=["Restaurant Users"])
 
@@ -83,7 +83,7 @@ async def login_restaurant_user(request: Request, data: RestaurantUserLogin):
 
 # --- Admin Impersonate ---
 @router.post("/admin-impersonate/{restaurant_id}")
-async def admin_impersonate_restaurant(restaurant_id: str, request: Request):
+async def admin_impersonate_restaurant(restaurant_id: str, request: Request, auth: dict = Depends(require_auth)):
     """Admin olarak restoran paneline geçici erişim tokeni oluştur"""
     body = await request.json()
     admin_id = body.get("admin_id")
@@ -166,7 +166,7 @@ async def verify_impersonate_token(token: str):
 
 # --- Company Impersonation (System Admin → Company Admin Panel) ---
 @router.post("/company-impersonate/{company_id}")
-async def company_impersonate(company_id: str, request: Request):
+async def company_impersonate(company_id: str, request: Request, auth: dict = Depends(require_auth)):
     """System admin olarak şirket admin paneline geçici erişim tokeni oluştur"""
     body = await request.json()
     admin_id = body.get("admin_id")
@@ -248,7 +248,7 @@ async def verify_company_impersonate_token(token: str):
 
 # --- CRUD ---
 @router.get("/restaurant/{restaurant_id}")
-async def get_restaurant_users(restaurant_id: str):
+async def get_restaurant_users(restaurant_id: str, auth: dict = Depends(require_auth)):
     """Restoranın tüm kullanıcılarını listele"""
     users = await db.restaurant_users.find(
         {"restaurant_id": restaurant_id},
@@ -259,7 +259,7 @@ async def get_restaurant_users(restaurant_id: str):
 
 
 @router.post("")
-async def create_restaurant_user(data: RestaurantUserCreate):
+async def create_restaurant_user(data: RestaurantUserCreate, auth: dict = Depends(require_auth)):
     """Yeni restoran kullanıcısı oluştur"""
     # Username'i normalize et
     username = data.username.lower().strip()
@@ -299,7 +299,7 @@ async def create_restaurant_user(data: RestaurantUserCreate):
 
 
 @router.put("/{user_id}")
-async def update_restaurant_user(user_id: str, data: RestaurantUserUpdate):
+async def update_restaurant_user(user_id: str, data: RestaurantUserUpdate, auth: dict = Depends(require_auth)):
     """Restoran kullanıcısını güncelle"""
     user = await db.restaurant_users.find_one({"id": user_id})
     if not user:
@@ -330,7 +330,7 @@ async def update_restaurant_user(user_id: str, data: RestaurantUserUpdate):
 
 
 @router.delete("/{user_id}")
-async def delete_restaurant_user(user_id: str):
+async def delete_restaurant_user(user_id: str, auth: dict = Depends(require_auth)):
     """Restoran kullanıcısını sil"""
     result = await db.restaurant_users.delete_one({"id": user_id})
     

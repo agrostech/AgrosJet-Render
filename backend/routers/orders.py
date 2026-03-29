@@ -2,7 +2,7 @@
 Sipariş Yönetimi API
 Mock data ile başlangıç - Adisyo entegrasyonu sonra eklenecek
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime, timezone, timedelta
@@ -20,7 +20,8 @@ TURKEY_TZ = timezone(timedelta(hours=3))
 
 MIGROS_SECRET_KEY = "oPbkAZjSO6HDD0E0wt9GR5IVQWNNgpFA"
 
-router = APIRouter(prefix="/api/orders", tags=["Sipariş Yönetimi"])
+from utils.jwt_utils import require_auth
+router = APIRouter(prefix="/api/orders", tags=["Sipariş Yönetimi"], dependencies=[Depends(require_auth)])
 logger = logging.getLogger(__name__)
 
 

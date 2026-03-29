@@ -2,7 +2,7 @@
 Restoran Entegrasyonları API
 Platform entegrasyonları yönetimi (Adisyo, Yemeksepeti, Trendyol, Getir, Migros)
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime, timezone
@@ -37,7 +37,8 @@ from services.yemeksepeti_service import (
     generate_webhook_url
 )
 
-router = APIRouter(prefix="/api/restaurant-integrations", tags=["Restoran Entegrasyonları"])
+from utils.jwt_utils import require_auth
+router = APIRouter(prefix="/api/restaurant-integrations", tags=["Restoran Entegrasyonları"], dependencies=[Depends(require_auth)])
 
 
 # --- Pydantic Models ---
