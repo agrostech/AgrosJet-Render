@@ -6,7 +6,6 @@ import { PageLoading } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-// Tarih formatla
 const formatDate = (dateStr) => {
   if (!dateStr) return "-";
   const date = new Date(dateStr);
@@ -19,24 +18,25 @@ const formatDate = (dateStr) => {
   });
 };
 
-// İhlal tipi çevir
 const getViolationLabel = (type) => {
   const labels = {
     "break_overtime": "Mola aşımı",
     "shift_started_not_active": "Vardiyaya geç giriş",
-    "offline_before_shift_end": "Vardiyadan erken çıkış"
+    "offline_before_shift_end": "Vardiyadan erken çıkış",
+    "package_not_confirmed": "Paketi onaylamadı",
+    "still_active_after_shift_end": "Vardiya sonrası aktif kaldı"
   };
-  return labels[type] || null;
+  return labels[type] || type;
 };
 
-// Kuryeye gösterilecek ihlal tipleri
 const COURIER_VIOLATION_TYPES = [
   "break_overtime",
-  "shift_started_not_active", 
-  "offline_before_shift_end"
+  "shift_started_not_active",
+  "offline_before_shift_end",
+  "package_not_confirmed",
+  "still_active_after_shift_end"
 ];
 
-// Bu haftanın pazartesi ve gelecek pazartesi tarihlerini al (şirket açılış saatiyle)
 const getWeekRange = (openingTime = "06:00") => {
   const [hours, minutes] = openingTime.split(":").map(Number);
   const now = new Date();
@@ -57,7 +57,6 @@ const getWeekRange = (openingTime = "06:00") => {
 export default function IhlalRaporu({ courierId, companyId }) {
   const [loading, setLoading] = useState(true);
   const [violations, setViolations] = useState([]);
-  const [openingTime, setOpeningTime] = useState("06:00");
 
   const fetchViolations = async (companyOpeningTime) => {
     setLoading(true);
@@ -66,13 +65,12 @@ export default function IhlalRaporu({ courierId, companyId }) {
       
       const res = await axios.get(`${API}/shift-violations/${companyId}`, {
         params: {
-          courier_id: courierId,
+          entity_id: courierId,
           start_date: `${monday.getFullYear()}-${String(monday.getMonth()+1).padStart(2,'0')}-${String(monday.getDate()).padStart(2,'0')}`,
           end_date: `${nextMonday.getFullYear()}-${String(nextMonday.getMonth()+1).padStart(2,'0')}-${String(nextMonday.getDate()).padStart(2,'0')}`,
           limit: 100
         }
       });
-      // Sadece kuryeye gösterilecek ihlal tiplerini filtrele
       const allViolations = res.data.violations || [];
       const filteredViolations = allViolations.filter(v => 
         COURIER_VIOLATION_TYPES.includes(v.violation_type)
@@ -90,11 +88,9 @@ export default function IhlalRaporu({ courierId, companyId }) {
     const init = async () => {
       if (!courierId || !companyId) return;
       
-      // Şirket açılış saatini al
       try {
         const res = await axios.get(`${API}/companies/${companyId}/work-hours`);
         const companyOpeningTime = res.data.opening_time || "06:00";
-        setOpeningTime(companyOpeningTime);
         await fetchViolations(companyOpeningTime);
       } catch (err) {
         console.error("Şirket bilgisi alınamadı:", err);
@@ -111,12 +107,10 @@ export default function IhlalRaporu({ courierId, companyId }) {
 
   return (
     <div className="space-y-4">
-      {/* Başlık */}
       <div className="text-center">
         <h3 className="text-lg font-semibold text-slate-800">Bu Haftaki İhlallerin</h3>
       </div>
 
-      {/* Özet */}
       <Card className={violations.length === 0 ? "bg-green-50 border-green-200" : "bg-orange-50 border-orange-200"}>
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
@@ -127,13 +121,12 @@ export default function IhlalRaporu({ courierId, companyId }) {
               </span>
             </div>
             <span className={`text-2xl font-bold ${violations.length === 0 ? 'text-green-600' : 'text-orange-600'}`}>
-              {violations.length === 0 ? '✓' : violations.length}
+              {violations.length === 0 ? '\u2713' : violations.length}
             </span>
           </div>
         </CardContent>
       </Card>
 
-      {/* İhlal Listesi */}
       {violations.length > 0 && (
         <div className="space-y-2">
           {violations.map((v, idx) => (
@@ -155,6 +148,7 @@ export default function IhlalRaporu({ courierId, companyId }) {
                       <p className="text-xs text-slate-600 mt-2 bg-slate-100 rounded p-2">
                         {v.details.shift_start_time && `Vardiya: ${v.details.shift_start_time} - ${v.details.shift_end_time}`}
                         {v.details.tolerance_minutes && ` (Tolerans: ${v.details.tolerance_minutes}dk)`}
+                        {v.details.description && v.details.description}
                       </p>
                     )}
                   </div>

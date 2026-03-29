@@ -1,14 +1,26 @@
 import { useState } from "react";
-import { FileText, TrendingUp, AlertTriangle, BarChart3 } from "lucide-react";
+import { BarChart3, FileText, TrendingUp, AlertTriangle } from "lucide-react";
 import { OdemeRaporu, KazancRaporu, IhlalRaporu, PerformansRaporu } from "@/components/courier/reports";
 
 export default function CourierRaporlarPage({ courierId, companyId }) {
-  const [activeTab, setActiveTab] = useState("odeme");
+  const [activeTab, setActiveTab] = useState("performans");
 
   return (
     <div className="space-y-4">
       {/* Sekmeler - 2x2 Grid */}
       <div className="grid grid-cols-2 gap-1.5 bg-slate-100 rounded-lg p-1.5">
+        <button
+          onClick={() => setActiveTab("performans")}
+          className={`flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition-all ${
+            activeTab === "performans"
+              ? "bg-white text-blue-700 shadow-md border border-blue-200"
+              : "text-slate-500 hover:text-slate-700"
+          }`}
+          data-testid="tab-performans-raporu"
+        >
+          <BarChart3 className="w-4 h-4" />
+          Performansım
+        </button>
         <button
           onClick={() => setActiveTab("odeme")}
           className={`flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition-all ${
@@ -43,27 +55,15 @@ export default function CourierRaporlarPage({ courierId, companyId }) {
           data-testid="tab-ihlal-raporu"
         >
           <AlertTriangle className="w-4 h-4" />
-          İhlal Raporu
-        </button>
-        <button
-          onClick={() => setActiveTab("performans")}
-          className={`flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition-all ${
-            activeTab === "performans"
-              ? "bg-white text-blue-700 shadow-md border border-blue-200"
-              : "text-slate-500 hover:text-slate-700"
-          }`}
-          data-testid="tab-performans-raporu"
-        >
-          <BarChart3 className="w-4 h-4" />
-          Performansım
+          İhlallerim
         </button>
       </div>
 
       {/* Tab Content */}
+      {activeTab === "performans" && <PerformansRaporu courierId={courierId} companyId={companyId} />}
       {activeTab === "odeme" && <OdemeRaporu courierId={courierId} companyId={companyId} />}
       {activeTab === "kazanc" && <KazancRaporu courierId={courierId} companyId={companyId} />}
       {activeTab === "ihlal" && <IhlalRaporu courierId={courierId} companyId={companyId} />}
-      {activeTab === "performans" && <PerformansRaporu courierId={courierId} companyId={companyId} />}
     </div>
   );
 }

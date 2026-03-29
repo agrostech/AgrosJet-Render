@@ -6,49 +6,40 @@ import { PageLoading } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-// Bu haftanın pazartesi ve gelecek pazartesi tarihlerini al (şirket açılış saatiyle)
+const getTodayRange = (openingTime = "06:00") => {
+  const [hours, minutes] = openingTime.split(":").map(Number);
+  const now = new Date();
+  const todayStart = new Date(now);
+  todayStart.setHours(hours, minutes, 0, 0);
+  if (now < todayStart) todayStart.setDate(todayStart.getDate() - 1);
+  const todayEnd = new Date(todayStart);
+  todayEnd.setDate(todayStart.getDate() + 1);
+  return { start: todayStart, end: todayEnd };
+};
+
 const getWeekRange = (openingTime = "06:00") => {
   const [hours, minutes] = openingTime.split(":").map(Number);
   const now = new Date();
   const dayOfWeek = now.getDay();
   const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-  
   const monday = new Date(now);
   monday.setDate(now.getDate() + diffToMonday);
   monday.setHours(hours, minutes, 0, 0);
-  
   const nextMonday = new Date(monday);
   nextMonday.setDate(monday.getDate() + 7);
   nextMonday.setHours(hours, minutes, 0, 0);
-  
-  // Local time formatında döndür (YYYY-MM-DDTHH:mm)
-  const formatLocalDateTime = (date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hour = String(date.getHours()).padStart(2, '0');
-    const min = String(date.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hour}:${min}`;
-  };
-  
-  const formatDate = (date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-  
-  return { 
-    monday, 
-    nextMonday,
-    startDateTime: formatLocalDateTime(monday),
-    endDateTime: formatLocalDateTime(nextMonday),
-    startDate: formatDate(monday),
-    endDate: formatDate(nextMonday)
-  };
+  return { start: monday, end: nextMonday };
 };
 
-// Para formatla
+const fmt = (d) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const h = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  return { dateTime: `${y}-${m}-${day}T${h}:${min}`, date: `${y}-${m}-${day}` };
+};
+
 const formatMoney = (amount) => {
   return new Intl.NumberFormat("tr-TR", {
     style: "currency",
@@ -57,7 +48,6 @@ const formatMoney = (amount) => {
   }).format(amount || 0);
 };
 
-// Süre formatla (dakika -> saat dakika)
 const formatDuration = (totalMinutes) => {
   if (!totalMinutes || totalMinutes <= 0) return "0 dk";
   const hours = Math.floor(totalMinutes / 60);
@@ -70,84 +60,64 @@ const formatDuration = (totalMinutes) => {
 export default function PerformansRaporu({ courierId, companyId }) {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
+  const [period, setPeriod] = useState("bugun");
 
-  const fetchStats = async (companyOpeningTime) => {
+  const fetchStats = async (companyOpeningTime, selectedPeriod) => {
     setLoading(true);
     try {
-      const { startDateTime, endDateTime, startDate, endDate } = getWeekRange(companyOpeningTime);
+      const range = selectedPeriod === "bugun"
+        ? getTodayRange(companyOpeningTime)
+        : getWeekRange(companyOpeningTime);
 
-      // Şirketteki tüm kuryeleri al
+      const startFmt = fmt(range.start);
+      const endFmt = fmt(range.end);
+
       const couriersRes = await axios.get(`${API}/companies/${companyId}/couriers`);
       const allCouriers = couriersRes.data || [];
 
-      // Tüm kuryeler için verileri topla
       const courierStats = await Promise.all(
         allCouriers.map(async (courier) => {
           try {
-            // Kazanç ve teslimat verileri
             const earningsRes = await axios.get(`${API}/reports/courier/earnings`, {
               params: {
                 courier_id: courier.id,
-                start_datetime: startDateTime,
-                end_datetime: endDateTime
+                start_datetime: startFmt.dateTime,
+                end_datetime: endFmt.dateTime
               }
             });
 
-            // Çalışma süresi verileri
             const workHoursRes = await axios.get(`${API}/courier-status-logs/${companyId}/courier/${courier.id}/weekly-stats`, {
-              params: { start_date: startDate, end_date: endDate }
+              params: { start_date: startFmt.date, end_date: endFmt.date }
             });
 
             const orders = earningsRes.data.orders || [];
             const totalDeliveries = orders.length;
             const totalEarnings = earningsRes.data.total_earnings || 0;
             
-            // Ortalama teslimat süresi (yola çıkıştan teslime)
             const ordersWithDeliveryTime = orders.filter(o => o.delivery_duration_minutes > 0);
             const avgDeliveryTime = ordersWithDeliveryTime.length > 0
               ? ordersWithDeliveryTime.reduce((sum, o) => sum + o.delivery_duration_minutes, 0) / ordersWithDeliveryTime.length
               : 0;
 
-            // Toplam çalışma süresi (dakika)
             const totalWorkMinutes = workHoursRes.data?.total_active_minutes || 0;
 
-            return {
-              id: courier.id,
-              name: courier.name,
-              totalDeliveries,
-              totalEarnings,
-              avgDeliveryTime,
-              totalWorkMinutes
-            };
-          } catch (err) {
-            return {
-              id: courier.id,
-              name: courier.name,
-              totalDeliveries: 0,
-              totalEarnings: 0,
-              avgDeliveryTime: 0,
-              totalWorkMinutes: 0
-            };
+            return { id: courier.id, name: courier.name, totalDeliveries, totalEarnings, avgDeliveryTime, totalWorkMinutes };
+          } catch {
+            return { id: courier.id, name: courier.name, totalDeliveries: 0, totalEarnings: 0, avgDeliveryTime: 0, totalWorkMinutes: 0 };
           }
         })
       );
 
-      // Mevcut kuryenin verileri
       const currentCourier = courierStats.find(c => c.id === courierId) || {
-        totalDeliveries: 0,
-        totalEarnings: 0,
-        avgDeliveryTime: 0,
-        totalWorkMinutes: 0
+        totalDeliveries: 0, totalEarnings: 0, avgDeliveryTime: 0, totalWorkMinutes: 0
       };
 
-      // Şampiyonları bul
       const deliveryChampion = courierStats.reduce((max, c) => 
         c.totalDeliveries > max.totalDeliveries ? c : max, courierStats[0]);
       
       const workHoursChampion = courierStats.reduce((max, c) => 
         c.totalWorkMinutes > max.totalWorkMinutes ? c : max, courierStats[0]);
       
-      // Ortalama teslimat süresinde en düşük olan şampiyon (0 olanları hariç tut)
       const couriersWithDeliveryTime = courierStats.filter(c => c.avgDeliveryTime > 0);
       const deliveryTimeChampion = couriersWithDeliveryTime.length > 0
         ? couriersWithDeliveryTime.reduce((min, c) => 
@@ -171,39 +141,71 @@ export default function PerformansRaporu({ courierId, companyId }) {
     }
   };
 
+  const [openingTime, setOpeningTime] = useState("06:00");
+
   useEffect(() => {
     const init = async () => {
       if (!courierId || !companyId) return;
-      
       try {
         const res = await axios.get(`${API}/companies/${companyId}/work-hours`);
-        const companyOpeningTime = res.data.opening_time || "06:00";
-        await fetchStats(companyOpeningTime);
-      } catch (err) {
-        console.error("Şirket bilgisi alınamadı:", err);
-        await fetchStats("06:00");
+        const ot = res.data.opening_time || "06:00";
+        setOpeningTime(ot);
+        await fetchStats(ot, period);
+      } catch {
+        await fetchStats("06:00", period);
       }
     };
-    
     init();
   }, [courierId, companyId]);
 
-  if (loading) {
-    return <PageLoading />;
-  }
+  const handlePeriodChange = (newPeriod) => {
+    setPeriod(newPeriod);
+    fetchStats(openingTime, newPeriod);
+  };
+
+  if (loading) return <PageLoading />;
+
+  const periodLabel = period === "bugun" ? "Bugün" : "Bu Hafta";
+  const leaderLabel = period === "bugun" ? "Gün lideri" : "Hafta lideri";
 
   if (!stats) {
     return (
       <div className="text-center py-8 text-muted-foreground">
         <Package className="w-12 h-12 mx-auto mb-3 opacity-30" />
         <p className="font-medium">Performans verisi yok</p>
-        <p className="text-sm">Bu hafta henüz veri oluşmamış</p>
+        <p className="text-sm">{periodLabel} henüz veri oluşmamış</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
+      {/* Period Selector */}
+      <div className="flex bg-slate-100 rounded-lg p-1 gap-1">
+        <button
+          onClick={() => handlePeriodChange("bugun")}
+          data-testid="period-bugun"
+          className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
+            period === "bugun"
+              ? "bg-white text-blue-700 shadow-sm"
+              : "text-slate-500 hover:text-slate-700"
+          }`}
+        >
+          Bugün
+        </button>
+        <button
+          onClick={() => handlePeriodChange("hafta")}
+          data-testid="period-hafta"
+          className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
+            period === "hafta"
+              ? "bg-white text-blue-700 shadow-sm"
+              : "text-slate-500 hover:text-slate-700"
+          }`}
+        >
+          Bu Hafta
+        </button>
+      </div>
+
       <Card className="border">
         <CardContent className="p-0">
           {/* Toplam Teslimat */}
@@ -219,7 +221,7 @@ export default function PerformansRaporu({ courierId, companyId }) {
             </div>
             {stats.deliveryChampion && stats.deliveryChampion.totalDeliveries > 0 && (
               <p className="text-[10px] text-muted-foreground text-right max-w-[140px]">
-                Hafta lideri: {stats.deliveryChampion.name} ({stats.deliveryChampion.totalDeliveries})
+                {leaderLabel}: {stats.deliveryChampion.name} ({stats.deliveryChampion.totalDeliveries})
               </p>
             )}
           </div>
@@ -239,7 +241,7 @@ export default function PerformansRaporu({ courierId, companyId }) {
             </div>
             {stats.workHoursChampion && stats.workHoursChampion.totalWorkMinutes > 0 && (
               <p className="text-[10px] text-muted-foreground text-right max-w-[140px]">
-                Hafta lideri: {stats.workHoursChampion.name} ({formatDuration(stats.workHoursChampion.totalWorkMinutes)})
+                {leaderLabel}: {stats.workHoursChampion.name} ({formatDuration(stats.workHoursChampion.totalWorkMinutes)})
               </p>
             )}
           </div>
@@ -261,20 +263,20 @@ export default function PerformansRaporu({ courierId, companyId }) {
             </div>
             {stats.deliveryTimeChampion && stats.deliveryTimeChampion.avgDeliveryTime > 0 && (
               <p className="text-[10px] text-muted-foreground text-right max-w-[140px]">
-                Hafta lideri: {stats.deliveryTimeChampion.name} ({Math.round(stats.deliveryTimeChampion.avgDeliveryTime)} dk)
+                {leaderLabel}: {stats.deliveryTimeChampion.name} ({Math.round(stats.deliveryTimeChampion.avgDeliveryTime)} dk)
               </p>
             )}
           </div>
 
           <div className="border-t border-slate-100" />
 
-          {/* Haftalık Kazanç */}
+          {/* Kazanç */}
           <div className="flex items-center gap-3 px-4 py-3">
             <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
               <Banknote className="w-4 h-4 text-green-600" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Haftalık Kazanç</p>
+              <p className="text-xs text-muted-foreground">{periodLabel} Kazanç</p>
               <p className="text-lg font-bold">{formatMoney(stats.totalEarnings)}</p>
             </div>
           </div>
