@@ -67,6 +67,7 @@ export default function CourierVardiyalarPage({ courierId, companyId }) {
   const [terminationInfo, setTerminationInfo] = useState(null);
 
   useEffect(() => {
+    if (!companyId || !courierId) return;
     const fetchData = async () => {
       try {
         const [shiftsRes, assignmentsRes, leavesRes] = await Promise.all([
@@ -112,6 +113,10 @@ export default function CourierVardiyalarPage({ courierId, companyId }) {
   const today = new Date();
   const dayIndex = today.getDay();
   const currentDayKey = DAYS[(dayIndex + 6) % 7].key; // Convert Sunday=0 to Monday=0
+
+  if (!companyId) {
+    return <div className="flex items-center justify-center py-12 text-sm text-muted-foreground">Şirket bilgisi yükleniyor...</div>;
+  }
 
   if (loading) {
     return <PageLoading />;
