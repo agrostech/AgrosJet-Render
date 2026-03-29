@@ -130,7 +130,7 @@ export default function CourierDashboard() {
   }, []);
 
   // Native'den gelen konum güncellemelerini backend'e gönder
-  const sendLocationToBackend = useCallback(async (latitude, longitude, accuracy, speed) => {
+  const sendLocationToBackend = useCallback(async (latitude, longitude, accuracy, speed, batteryLevel, batteryState) => {
     const courierId = user?.id;
     if (!courierId) return;
 
@@ -138,6 +138,8 @@ export default function CourierDashboard() {
       const payload = { latitude, longitude };
       if (accuracy != null) payload.accuracy = accuracy;
       if (speed != null && speed >= 0) payload.speed = speed;
+      if (batteryLevel != null) payload.batteryLevel = batteryLevel;
+      if (batteryState) payload.batteryState = batteryState;
 
       // Push token ve platform bilgisini de gönder
       const pushToken = localStorage.getItem("push_token") || "";
@@ -158,10 +160,10 @@ export default function CourierDashboard() {
       try {
         const msg = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
         if (msg?.type === 'LOCATION_UPDATE' && msg?.data) {
-          const { latitude, longitude, accuracy, speed } = msg.data;
+          const { latitude, longitude, accuracy, speed, batteryLevel, batteryState } = msg.data;
           if (latitude && longitude) {
             lastLocationRef.current = { lat: latitude, lng: longitude, time: Date.now() };
-            sendLocationToBackend(latitude, longitude, accuracy, speed);
+            sendLocationToBackend(latitude, longitude, accuracy, speed, batteryLevel, batteryState);
           }
         }
       } catch (e) {}
@@ -174,9 +176,21 @@ export default function CourierDashboard() {
     window.addEventListener('message', handleLocationMessage);
     window.addEventListener('nativeMessage', handleLocationCustomEvent);
 
+    // Native app'e periyodik konum isteği gönder (her 30 saniyede)
+    const locationRequestInterval = setInterval(() => {
+      if (window.AgrosJetNative?.requestLocation) {
+        try { window.AgrosJetNative.requestLocation(); } catch (e) {}
+      } else if (window.ReactNativeWebView?.postMessage) {
+        try {
+          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'REQUEST_LOCATION' }));
+        } catch (e) {}
+      }
+    }, 30000);
+
     return () => {
       window.removeEventListener('message', handleLocationMessage);
       window.removeEventListener('nativeMessage', handleLocationCustomEvent);
+      clearInterval(locationRequestInterval);
     };
   }, [sendLocationToBackend]);
 
