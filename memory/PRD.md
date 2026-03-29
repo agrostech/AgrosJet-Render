@@ -100,7 +100,20 @@ None active.
 - Tüm upload endpoint'lerinde `await file.read()` sonrası `len(content)` kontrolü
 - Aşıldığında HTTP 413 (Payload Too Large) döner
 
-## Security - Rate Limiting (2026-03-29)
+## Security - Router Auth Fix (2026-03-29)
+### Issue
+Güvenlik güncellemesinde (Phase 4) 5 router `require_admin` ile korunmuş ancak kurye panelinden erişim gereken endpoint'ler vardı. Kuryeler `role: "courier"` ile geldiğinden 401 alıyorlardı.
+
+### Fix
+5 router'ın seviye bağımlılığı `require_admin` → `require_auth` olarak değiştirildi:
+- `motorcycles.py` — Kurye motosiklet yönetimi
+- `zimmet.py` — Kurye zimmet görüntüleme
+- `academy.py` — Kurye eğitim erişimi
+- `documents.py` — Kurye belge yükleme
+- `invoices.py` — Kurye fatura görüntüleme
+
+### Result
+Hem admin hem kurye token'ları bu endpoint'lere erişebilir. Token olmadan 401 korunur.
 ### Global Middleware
 - Custom `GlobalRateLimitMiddleware` in `server.py`
 - **200 istek/dakika/IP** tüm endpoint'lere uygulanır
