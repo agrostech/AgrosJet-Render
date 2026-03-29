@@ -8,6 +8,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 
+const BACKEND = process.env.REACT_APP_BACKEND_URL;
+
+const getLogoSrc = (company) => {
+  if (company?.logo_dark) return `${BACKEND}${company.logo_dark}`;
+  if (company?.logo_light) return `${BACKEND}${company.logo_light}`;
+  if (company?.logo_url) return company.logo_url;
+  return null;
+};
+
 export default function CompanySwitcher({ 
   companies = [], 
   currentCompanyId, 
@@ -16,7 +25,6 @@ export default function CompanySwitcher({
 }) {
   const [open, setOpen] = useState(false);
 
-  // Don't render if user has only one or no companies
   if (!companies || companies.length <= 1) {
     return null;
   }
@@ -30,6 +38,8 @@ export default function CompanySwitcher({
     setOpen(false);
   };
 
+  const currentLogo = getLogoSrc(currentCompany);
+
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
@@ -40,10 +50,10 @@ export default function CompanySwitcher({
           }`}
           data-testid="company-switcher"
         >
-          {currentCompany?.logo_url ? (
+          {currentLogo ? (
             <img 
-              src={currentCompany.logo_url} 
-              alt={currentCompany.name}
+              src={currentLogo} 
+              alt={currentCompany?.name}
               className="w-6 h-6 rounded object-contain flex-shrink-0"
             />
           ) : (
@@ -69,31 +79,34 @@ export default function CompanySwitcher({
         <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
           Şirket Değiştir
         </div>
-        {companies.map((company) => (
-          <DropdownMenuItem
-            key={company.id}
-            onClick={() => handleSwitch(company.id)}
-            className="cursor-pointer"
-          >
-            <div className="flex items-center gap-2 w-full">
-              {company.logo_url ? (
-                <img 
-                  src={company.logo_url} 
-                  alt={company.name}
-                  className="w-6 h-6 rounded object-contain flex-shrink-0"
-                />
-              ) : (
-                <div className="w-6 h-6 rounded bg-slate-100 flex items-center justify-center flex-shrink-0">
-                  <Building2 className="w-3.5 h-3.5 text-slate-500" />
-                </div>
-              )}
-              <span className="flex-1 truncate">{company.name}</span>
-              {company.id === currentCompanyId && (
-                <Check className="w-4 h-4 text-primary" />
-              )}
-            </div>
-          </DropdownMenuItem>
-        ))}
+        {companies.map((company) => {
+          const logo = getLogoSrc(company);
+          return (
+            <DropdownMenuItem
+              key={company.id}
+              onClick={() => handleSwitch(company.id)}
+              className="cursor-pointer"
+            >
+              <div className="flex items-center gap-2 w-full">
+                {logo ? (
+                  <img 
+                    src={logo} 
+                    alt={company.name}
+                    className="w-6 h-6 rounded object-contain flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-6 h-6 rounded bg-slate-100 flex items-center justify-center flex-shrink-0">
+                    <Building2 className="w-3.5 h-3.5 text-slate-500" />
+                  </div>
+                )}
+                <span className="flex-1 truncate">{company.name}</span>
+                {company.id === currentCompanyId && (
+                  <Check className="w-4 h-4 text-primary" />
+                )}
+              </div>
+            </DropdownMenuItem>
+          );
+        })}
       </DropdownMenuContent>
     </DropdownMenu>
   );
