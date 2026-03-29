@@ -102,15 +102,12 @@ None active.
 
 ## Security - Router Auth Fix (2026-03-29)
 ### Issue
-Güvenlik güncellemesinde (Phase 4) 5 router `require_admin` ile korunmuş ancak kurye panelinden erişim gereken endpoint'ler vardı. Kuryeler `role: "courier"` ile geldiğinden 401 alıyorlardı.
+Güvenlik güncellemesinde (Phase 4) toplam 9 router `require_admin` ile korunmuş ancak kurye panelinden erişim gereken endpoint'ler vardı. Kuryeler `role: "courier"` ile geldiğinden 401/403 alıyorlardı.
 
-### Fix
-5 router'ın seviye bağımlılığı `require_admin` → `require_auth` olarak değiştirildi:
-- `motorcycles.py` — Kurye motosiklet yönetimi
-- `zimmet.py` — Kurye zimmet görüntüleme
-- `academy.py` — Kurye eğitim erişimi
-- `documents.py` — Kurye belge yükleme
-- `invoices.py` — Kurye fatura görüntüleme
+### Fix — Toplu 9 Router
+`require_admin` → `require_auth` olarak değiştirildi:
+- `motorcycles.py`, `zimmet.py`, `academy.py`, `documents.py`, `invoices.py` (ilk batch)
+- `shifts.py`, `accounting.py`, `hakedis.py`, `break_system.py` (ikinci batch)
 
 ### Result
 Hem admin hem kurye token'ları bu endpoint'lere erişebilir. Token olmadan 401 korunur.
