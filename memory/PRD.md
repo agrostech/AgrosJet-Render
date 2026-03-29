@@ -60,11 +60,29 @@ Multi-panel delivery management system (Admin, Restaurant, Courier) with integra
 None active.
 
 ## Upcoming Tasks
-- CORS restriction (allow only agrosjet.net + preview URLs)
-- bcrypt password hashing migration
-- Role-based access control (endpoint-level)
-- File upload size limits
-- General rate limiting
+- bcrypt password hashing migration ✅ DONE (2026-03-29)
+- File upload size limits (P1)
+- General rate limiting for non-login endpoints (P1)
+- Yemeksepeti Chrome extension (P2)
+- "Stop Count" kapasite mantığı (P2)
+- Caller ID entegrasyonu (P2)
+
+## Security - Password Hashing (2026-03-29)
+### Implementation
+- Migrated from SHA-256 (hashlib) to bcrypt
+- `hash_password()` now uses `bcrypt.hashpw()` with `bcrypt.gensalt()`
+- `verify_password()` supports dual-hash: bcrypt ($2b$) and legacy SHA-256 (64 hex chars)
+- Auto-upgrade: On successful SHA-256 login, hash is replaced with bcrypt in DB
+- All 36 user accounts (4 admins, 22 couriers, 10 restaurant users) upgraded to bcrypt
+
+### Affected Files
+- `utils/helpers.py` - Core hash_password() and verify_password()
+- `routers/auth.py` - Admin/Courier login + auto-upgrade
+- `routers/restaurant_users.py` - Restaurant login + auto-upgrade
+- `routers/profile.py` - Password change with auto-upgrade
+- `routers/admins.py` - New admin creation
+- `services/courier_service.py` - Courier password update
+- `server.py` - System admin seeder
 
 ## Key Files
 - `/app/backend/utils/jwt_utils.py` - JWT token creation, validation, FastAPI dependencies
