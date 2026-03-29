@@ -4,7 +4,7 @@ import RaporlarTab from "@/pages/muhasebe/RaporlarTab";
 
 const BASE_URL = process.env.REACT_APP_BACKEND_URL;
 
-export default function RaporlarPage({ companyId, isSuperAdmin, companyLogo, companyName }) {
+export default function RaporlarPage({ companyId, isSuperAdmin, companyLogo, companyName, permissions = {} }) {
   const [logo, setLogo] = useState(companyLogo || "");
   const [name, setName] = useState(companyName || "");
 
@@ -29,7 +29,7 @@ export default function RaporlarPage({ companyId, isSuperAdmin, companyLogo, com
   return (
     <div data-testid="raporlar-page">
       <h2 className="font-heading text-lg sm:text-xl font-bold tracking-tight mb-3 sm:mb-4">Raporlar</h2>
-      <RaporlarTab companyId={companyId} isSuperAdmin={isSuperAdmin} companyLogo={logo} companyName={name} />
+      <RaporlarTab companyId={companyId} isSuperAdmin={isSuperAdmin} companyLogo={logo} companyName={name} permissions={permissions} />
     </div>
   );
 }

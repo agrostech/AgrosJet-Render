@@ -501,7 +501,8 @@ async def login_admin(request: Request, data: AdminLogin):
         "muhasebe_kurye_mutabakat", "muhasebe_restoran_mutabakat", "muhasebe_yonetici_mutabakat",
         "muhasebe_haftalik_hakedis", "muhasebe_kurye_faturalari", "muhasebe_isletme_faturalari",
         "muhasebe_hareketler",
-        "siparis_gecmis", "siparis_iptal"
+        "siparis_gecmis", "siparis_iptal",
+        "raporlar_kurye", "raporlar_restoran", "raporlar_ciro", "raporlar_kar_zarar", "raporlar_performans"
     }
     simple_keys = main_keys | sub_keys
     

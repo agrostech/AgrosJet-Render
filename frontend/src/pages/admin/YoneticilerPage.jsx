@@ -50,7 +50,16 @@ const PERMISSION_ITEMS = [
       { key: "muhasebe_hareketler", label: "Hareketler", icon: History },
     ]
   },
-  { key: "raporlar", label: "Raporlar", icon: BarChart3 },
+  { 
+    key: "raporlar", label: "Raporlar", icon: BarChart3,
+    subItems: [
+      { key: "raporlar_kurye", label: "Kurye Raporları", icon: Bike },
+      { key: "raporlar_restoran", label: "Restoran Raporları", icon: Store },
+      { key: "raporlar_ciro", label: "Ciro Raporu", icon: Receipt },
+      { key: "raporlar_kar_zarar", label: "Kar/Zarar Raporu", icon: BarChart3 },
+      { key: "raporlar_performans", label: "Performans Raporu", icon: Users },
+    ]
+  },
   { key: "zimmet", label: "Zimmet", icon: Package },
   { key: "kuryeler", label: "Kuryeler", icon: Users },
   { key: "market", label: "Market", icon: ShoppingBag },

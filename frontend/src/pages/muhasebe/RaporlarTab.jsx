@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Users, Store, TrendingUp, BarChart3, Receipt } from "lucide-react";
 import KuryeRaporlari from "@/components/admin/reports/KuryeRaporlari";
 import RestoranRaporlari from "@/components/admin/reports/RestoranRaporlari";
@@ -7,22 +7,30 @@ import PerformansRaporu from "@/components/admin/reports/PerformansRaporu";
 import CiroRaporu from "@/components/admin/reports/CiroRaporu";
 
 const SUB_TABS = [
-  { key: "kurye", label: "Kurye", icon: Users },
-  { key: "restoran", label: "Restoran", icon: Store },
-  { key: "ciro", label: "Ciro", icon: Receipt },
-  { key: "kar-zarar", label: "Kar/Zarar", icon: TrendingUp },
-  { key: "performans", label: "Performans", icon: BarChart3 },
+  { key: "kurye", label: "Kurye", icon: Users, permKey: "raporlar_kurye" },
+  { key: "restoran", label: "Restoran", icon: Store, permKey: "raporlar_restoran" },
+  { key: "ciro", label: "Ciro", icon: Receipt, permKey: "raporlar_ciro" },
+  { key: "kar-zarar", label: "Kar/Zarar", icon: TrendingUp, permKey: "raporlar_kar_zarar" },
+  { key: "performans", label: "Performans", icon: BarChart3, permKey: "raporlar_performans" },
 ];
 
-export default function RaporlarTab({ companyId, isSuperAdmin, companyLogo, companyName }) {
-  const [activeSubTab, setActiveSubTab] = useState("kurye");
+export default function RaporlarTab({ companyId, isSuperAdmin, companyLogo, companyName, permissions = {} }) {
+  const visibleTabs = useMemo(() => {
+    if (isSuperAdmin) return SUB_TABS;
+    return SUB_TABS.filter(tab => permissions[tab.permKey] !== false);
+  }, [isSuperAdmin, permissions]);
+
+  const [activeSubTab, setActiveSubTab] = useState(() => visibleTabs[0]?.key || "kurye");
+
+  if (visibleTabs.length === 0) {
+    return <div className="text-center py-8 text-muted-foreground">Bu sayfaya erişim izniniz yok</div>;
+  }
 
   return (
     <div>
-      {/* Mobilde yatay kaydırılabilir, masaüstünde normal */}
       <div className="overflow-x-auto scrollbar-hide scroll-smooth mb-4">
         <div className="flex gap-1 border-b-2 border-slate-200 min-w-max">
-          {SUB_TABS.map((tab) => (
+          {visibleTabs.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveSubTab(tab.key)}

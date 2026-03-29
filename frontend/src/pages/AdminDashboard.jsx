@@ -526,7 +526,7 @@ export default function AdminDashboard() {
                 <Route path="muhasebe" element={<MuhasebePage companyId={activeCompanyId} adminId={user.id} adminName={user.name || user.username} companyLogo={company?.logo_dark ? `${process.env.REACT_APP_BACKEND_URL}${company.logo_dark}` : company?.logo_url} companyName={company?.name} isSuperAdmin={isSuperAdmin} permissions={permissions} />} />
               )}
               {(isSuperAdmin || permissions.raporlar) && (
-                <Route path="raporlar" element={<RaporlarPage companyId={activeCompanyId} isSuperAdmin={isSuperAdmin} companyLogo={company?.logo_dark ? `${process.env.REACT_APP_BACKEND_URL}${company.logo_dark}` : company?.logo_url} companyName={company?.name} />} />
+                <Route path="raporlar" element={<RaporlarPage companyId={activeCompanyId} isSuperAdmin={isSuperAdmin} companyLogo={company?.logo_dark ? `${process.env.REACT_APP_BACKEND_URL}${company.logo_dark}` : company?.logo_url} companyName={company?.name} permissions={permissions} />} />
               )}
               {(isSuperAdmin || permissions.zimmet) && (
                 <Route path="zimmet" element={<ZimmetPage />} />
