@@ -539,3 +539,88 @@ async def run_scheduled_backups():
                 
     except Exception as e:
         print(f"Scheduled backup error: {e}")
+
+
+
+@router.post("/test-mongodump")
+async def test_mongodump():
+    """R2'ye test mongo dump yüklemesi yap"""
+    from services.backup_service import _run_mongodump, _upload_backup, _list_r2_backups, R2_BACKUP_PREFIX
+    from services.r2_storage import get_r2_settings
+    
+    result = {
+        "r2_connected": False,
+        "mongodump_ok": False,
+        "upload_ok": False,
+        "dump_size_mb": 0,
+        "existing_backups": 0,
+        "error": None
+    }
+    
+    # 1. R2 bağlantı kontrolü
+    try:
+        settings = await get_r2_settings()
+        if not settings.get("account_id") or not settings.get("access_key_id"):
+            result["error"] = "R2 ayarları yapılandırılmamış"
+            return result
+        result["r2_connected"] = True
+    except Exception as e:
+        result["error"] = f"R2 bağlantı hatası: {str(e)}"
+        return result
+    
+    # 2. mongodump test
+    try:
+        zip_data = _run_mongodump()
+        result["mongodump_ok"] = True
+        result["dump_size_mb"] = round(len(zip_data) / 1024 / 1024, 2)
+    except Exception as e:
+        result["error"] = f"mongodump hatası: {str(e)}"
+        return result
+    
+    # 3. R2 upload test
+    try:
+        from datetime import datetime, timezone, timedelta
+        now = datetime.now(timezone(timedelta(hours=3)))
+        test_key = f"{R2_BACKUP_PREFIX}/test_{now.strftime('%Y%m%d_%H%M%S')}.zip"
+        success = await _upload_backup(zip_data, test_key)
+        result["upload_ok"] = success
+        if not success:
+            result["error"] = "R2 yükleme başarısız"
+    except Exception as e:
+        result["error"] = f"R2 yükleme hatası: {str(e)}"
+        return result
+    
+    # 4. Mevcut yedek sayısı
+    try:
+        backups = await _list_r2_backups(f"{R2_BACKUP_PREFIX}/")
+        result["existing_backups"] = len(backups)
+        if backups:
+            result["last_backup"] = backups[-1].get("Key", "")
+            result["last_backup_size_mb"] = round(backups[-1].get("Size", 0) / 1024 / 1024, 2)
+    except:
+        pass
+    
+    return result
+
+
+@router.get("/r2-backup-status")
+async def get_r2_backup_status():
+    """R2'deki yedeklerin durumunu getir"""
+    from services.backup_service import _list_r2_backups, R2_BACKUP_PREFIX, R2_DAILY_PREFIX
+    
+    frequent = await _list_r2_backups(f"{R2_BACKUP_PREFIX}/")
+    daily = await _list_r2_backups(f"{R2_DAILY_PREFIX}/")
+    
+    def format_backup(b):
+        return {
+            "key": b.get("Key", ""),
+            "size_mb": round(b.get("Size", 0) / 1024 / 1024, 2),
+            "last_modified": b.get("LastModified", "").isoformat() if hasattr(b.get("LastModified", ""), "isoformat") else str(b.get("LastModified", ""))
+        }
+    
+    return {
+        "frequent_backups": [format_backup(b) for b in frequent],
+        "daily_backups": [format_backup(b) for b in daily],
+        "frequent_count": len(frequent),
+        "daily_count": len(daily)
+    }

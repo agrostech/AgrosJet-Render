@@ -108,6 +108,8 @@ export default function RestoranlarPage({ companyId }) {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markerRef = useRef(null);
+  const addressInputRef = useRef(null);
+  const autocompleteRef = useRef(null);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -425,7 +427,52 @@ export default function RestoranlarPage({ companyId }) {
     if (markerRef.current) {
       markerRef.current = null;
     }
+    if (autocompleteRef.current) {
+      window.google?.maps?.event?.clearInstanceListeners(autocompleteRef.current);
+      autocompleteRef.current = null;
+    }
   };
+
+  // Haritada pin'i verilen koordinata taşı
+  const moveMapTo = (lat, lng) => {
+    const map = mapInstanceRef.current;
+    if (!map || !window.L) return;
+    map.setView([lat, lng], 16);
+    if (markerRef.current) {
+      markerRef.current.setLatLng([lat, lng]);
+    } else {
+      markerRef.current = window.L.marker([lat, lng], { draggable: true }).addTo(map);
+      markerRef.current.on('dragend', (ev) => {
+        const pos = ev.target.getLatLng();
+        setFormData(prev => ({ ...prev, latitude: pos.lat.toFixed(6), longitude: pos.lng.toFixed(6) }));
+      });
+    }
+    setFormData(prev => ({ ...prev, latitude: lat.toFixed(6), longitude: lng.toFixed(6) }));
+  };
+
+  // Google Places Autocomplete başlat
+  const initAutocomplete = useCallback(() => {
+    setTimeout(() => {
+      if (!addressInputRef.current || !window.google?.maps?.places) return;
+      if (autocompleteRef.current) {
+        window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
+      }
+      const ac = new window.google.maps.places.Autocomplete(addressInputRef.current, {
+        componentRestrictions: { country: "tr" },
+        fields: ["formatted_address", "geometry"],
+        types: ["geocode", "establishment"]
+      });
+      ac.addListener("place_changed", () => {
+        const place = ac.getPlace();
+        if (!place.geometry) return;
+        const lat = place.geometry.location.lat();
+        const lng = place.geometry.location.lng();
+        setFormData(prev => ({ ...prev, address: place.formatted_address || prev.address }));
+        moveMapTo(lat, lng);
+      });
+      autocompleteRef.current = ac;
+    }, 200);
+  }, []);
 
   const resetForm = () => {
     setFormData({
@@ -596,19 +643,21 @@ export default function RestoranlarPage({ companyId }) {
     setShowEditModal(true);
     setTimeout(() => {
       initLocationPicker(restaurant.latitude, restaurant.longitude);
+      initAutocomplete();
     }, 200);
   };
 
   useEffect(() => {
     if (showAddModal) {
       initLocationPicker();
+      initAutocomplete();
     }
     return () => {
       if (!showAddModal && !showEditModal) {
         cleanupMap();
       }
     };
-  }, [showAddModal, initLocationPicker]);
+  }, [showAddModal, initLocationPicker, initAutocomplete]);
 
   return (
     <div data-testid="restoranlar-page">
@@ -911,9 +960,11 @@ export default function RestoranlarPage({ companyId }) {
             <div>
               <Label>Adres</Label>
               <Input
+                ref={addressInputRef}
                 value={formData.address}
                 onChange={(e) => setFormData({...formData, address: e.target.value})}
-                placeholder="Tam adres"
+                placeholder="Adres yazın, otomatik tamamlanacak..."
+                data-testid="restaurant-address-input"
               />
             </div>
             
@@ -970,8 +1021,11 @@ export default function RestoranlarPage({ companyId }) {
             <div>
               <Label>Adres</Label>
               <Input
+                ref={addressInputRef}
                 value={formData.address}
                 onChange={(e) => setFormData({...formData, address: e.target.value})}
+                placeholder="Adres yazın, otomatik tamamlanacak..."
+                data-testid="restaurant-address-input-edit"
               />
             </div>
             

@@ -1631,6 +1631,22 @@ function SistemAyarlariPage() {
     bucket_name: "shiftjet"
   });
 
+  const [dumpTesting, setDumpTesting] = useState(false);
+  const [dumpResult, setDumpResult] = useState(null);
+  
+  const handleDumpTest = async () => {
+    setDumpTesting(true);
+    setDumpResult(null);
+    try {
+      const res = await axios.post(`${API}/backup/test-mongodump`);
+      setDumpResult(res.data);
+    } catch (err) {
+      setDumpResult({ error: err.response?.data?.detail || "Bağlantı hatası" });
+    } finally {
+      setDumpTesting(false);
+    }
+  };
+
   // SMTP settings
   const [smtpSaving, setSmtpSaving] = useState(false);
   const [smtpTesting, setSmtpTesting] = useState(false);
@@ -1934,6 +1950,45 @@ function SistemAyarlariPage() {
               </Button>
             )}
           </div>
+
+          {/* Mongo Dump Test */}
+          {settings.configured && (
+            <div className="pt-4 border-t space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-sm">MongoDB Yedek Testi</p>
+                  <p className="text-xs text-muted-foreground">Veritabanını yedekle ve R2'ye yükle</p>
+                </div>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={handleDumpTest} 
+                  disabled={dumpTesting}
+                  className="font-semibold border-2"
+                  data-testid="mongo-dump-test-btn"
+                >
+                  {dumpTesting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Test Ediliyor...</> : "Mongo Dump Test"}
+                </Button>
+              </div>
+              {dumpResult && (
+                <div className={`p-3 rounded-lg border text-sm space-y-1 ${dumpResult.error ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}`}>
+                  {dumpResult.error ? (
+                    <p className="text-red-700 font-medium">{dumpResult.error}</p>
+                  ) : (
+                    <>
+                      <p className="font-medium text-green-700">Yedek başarılı!</p>
+                      <p className="text-xs text-slate-600">R2 bağlantısı: {dumpResult.r2_connected ? "OK" : "HATA"}</p>
+                      <p className="text-xs text-slate-600">Mongodump: {dumpResult.mongodump_ok ? "OK" : "HATA"}</p>
+                      <p className="text-xs text-slate-600">R2 yükleme: {dumpResult.upload_ok ? "OK" : "HATA"}</p>
+                      <p className="text-xs text-slate-600">Dump boyutu: {dumpResult.dump_size_mb} MB</p>
+                      <p className="text-xs text-slate-600">R2'deki toplam yedek: {dumpResult.existing_backups}</p>
+                      {dumpResult.last_backup && <p className="text-xs text-slate-600">Son yedek: {dumpResult.last_backup}</p>}
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </form>
       </div>
 
