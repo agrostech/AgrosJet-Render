@@ -442,6 +442,61 @@ async def rate_limit_handler(request, exc):
 
 app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
 
+# Global Rate Limit Middleware - tüm endpoint'ler için IP bazlı limit
+import time
+from collections import defaultdict
+from starlette.middleware.base import BaseHTTPMiddleware
+
+RATE_LIMIT_EXEMPT_PREFIXES = (
+    "/api/getir/", "/api/migros/", "/api/sepettakip/",
+    "/api/adisyo/", "/api/webhooks/", "/api/external/"
+)
+
+class GlobalRateLimitMiddleware(BaseHTTPMiddleware):
+    """IP bazlı global hız sınırlama - 200 istek/dakika"""
+    
+    def __init__(self, app, max_requests: int = 200, window: int = 60):
+        super().__init__(app)
+        self.max_requests = max_requests
+        self.window = window
+        self.requests: dict = defaultdict(list)
+        self._last_cleanup = time.time()
+    
+    async def dispatch(self, request, call_next):
+        path = request.url.path
+        
+        # Webhook path'leri muaf
+        if path.startswith(RATE_LIMIT_EXEMPT_PREFIXES):
+            return await call_next(request)
+        
+        # Client IP
+        forwarded = request.headers.get("x-forwarded-for")
+        client_ip = forwarded.split(",")[0].strip() if forwarded else (
+            request.client.host if request.client else "unknown"
+        )
+        
+        now = time.time()
+        window_start = now - self.window
+        
+        # Bu IP'nin eski isteklerini temizle
+        self.requests[client_ip] = [t for t in self.requests[client_ip] if t > window_start]
+        
+        # 5 dakikada bir tüm stale IP'leri temizle (bellek sızıntısı önlemi)
+        if now - self._last_cleanup > 300:
+            stale_ips = [ip for ip, times in self.requests.items() if not times or times[-1] < window_start]
+            for ip in stale_ips:
+                del self.requests[ip]
+            self._last_cleanup = now
+        
+        if len(self.requests[client_ip]) >= self.max_requests:
+            return JSONResponse(
+                status_code=429,
+                content={"detail": "Çok fazla istek gönderdiniz. Lütfen 1 dakika sonra tekrar deneyiniz."}
+            )
+        
+        self.requests[client_ip].append(now)
+        return await call_next(request)
+
 api_router = APIRouter(prefix="/api")
 
 # Health check endpoint
@@ -636,9 +691,13 @@ async def proxy_image(url: str):
 
 app.include_router(api_router)
 
+# Global Rate Limit Middleware (200 istek/dakika/IP)
+app.add_middleware(GlobalRateLimitMiddleware, max_requests=200, window=60)
+
 cors_origins = os.environ.get('CORS_ORIGINS', '').split(',')
 cors_origins = [o.strip() for o in cors_origins if o.strip()]
 
+# CORS - en dıştaki middleware
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
