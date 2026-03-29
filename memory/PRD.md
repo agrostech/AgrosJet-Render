@@ -63,9 +63,23 @@ None active.
 - ~~bcrypt password hashing migration~~ ✅ DONE (2026-03-29)
 - ~~File upload size limits~~ ✅ DONE (2026-03-29)
 - ~~General rate limiting~~ ✅ DONE (2026-03-29)
+- ~~Native App konum/batarya JWT bypass~~ ✅ DONE (2026-03-29)
+- Webhook setup agrosjet.net ping hatası (P2)
 - Yemeksepeti Chrome extension (P2)
 - "Stop Count" kapasite mantığı (P2)
 - Caller ID entegrasyonu (P2)
+
+## Native App JWT Bypass (2026-03-29)
+### Sorun
+Native app (Android/iOS) arka plan konum servisinden doğrudan backend API'ye istek atıyor.
+WebView'daki axios interceptor'dan geçmediği için JWT token içermiyor → 401 Unauthorized.
+### Çözüm
+`PUT /api/couriers/{courier_id}/location` endpoint'i ayrı bir router'a (`courier_native.py`) taşındı.
+Bu router JWT gerektirmez. Courier ID'nin DB'de var olup olmadığı kontrol edilir (404 koruması).
+### Dosyalar
+- `routers/courier_native.py` — JWT gerektirmeyen konum endpoint'i
+- `routers/couriers.py` — Eski konum endpoint'i kaldırıldı
+- `server.py` — Yeni router eklendi
 
 ## Security - Password Hashing (2026-03-29)
 ### Implementation
