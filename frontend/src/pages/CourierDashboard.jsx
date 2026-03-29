@@ -68,6 +68,11 @@ export default function CourierDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
   const { courierId: urlCourierId } = useParams(); // URL'den courier ID al (/kurye/:courierId)
+
+  // Sayfa geçişlerinde scroll'u sıfırla
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
   const { theme, toggleTheme } = useTheme();
   const [user, setUser] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
