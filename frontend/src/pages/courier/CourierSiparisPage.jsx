@@ -979,7 +979,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
           data-testid="view-mode-route"
         >
           <Route className="w-4 h-4" />
-          Rota
+          AgrosAI Rota
           {smartRouteData.length > 0 && smartRouteRemainingCount > 0 && (
             <span className={`px-1.5 py-0.5 rounded-full text-xs ${
               viewMode === "route" ? "bg-indigo-100 dark:bg-indigo-800 text-indigo-700 dark:text-indigo-200" : "bg-slate-300 dark:bg-slate-600 text-slate-600 dark:text-slate-200"
