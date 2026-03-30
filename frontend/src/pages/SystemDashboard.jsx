@@ -22,8 +22,10 @@ import {
 } from "@/components/ui/table";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Menu, X, LogOut, Building2, Trash2, Plus, Edit, Users, Settings, Cloud, CheckCircle, XCircle, Loader2, Eye, EyeOff, UserCog, MapPin, Coins, Mail, Upload, MinusCircle, PlusCircle, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
+import { Menu, X, LogOut, Building2, Trash2, Plus, Edit, Users, Settings, Cloud, CheckCircle, XCircle, Loader2, Eye, EyeOff, UserCog, MapPin, Coins, Mail, Upload, MinusCircle, PlusCircle, ExternalLink, ChevronLeft, ChevronRight, Activity } from "lucide-react";
 import { PageLoading, LoadingSpinner } from "@/components/ui/loading-spinner";
+
+import LoadTestPanel from "@/components/system/LoadTestPanel";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -2285,6 +2287,7 @@ export default function SystemDashboard() {
     { path: "/system/yoneticiler", label: "Yöneticiler", icon: UserCog },
     { path: "/system/kuryeler", label: "Kuryeler", icon: Users },
     { path: "/system/ayarlar", label: "Ayarlar", icon: Settings },
+    { path: "/system/yuktest", label: "Yük Testi", icon: Activity },
   ];
 
   return (
@@ -2367,6 +2370,7 @@ export default function SystemDashboard() {
               <Route path="yoneticiler" element={<YoneticilerPage />} />
               <Route path="kuryeler" element={<KuryelerPage />} />
               <Route path="ayarlar" element={<SistemAyarlariPage />} />
+              <Route path="yuktest" element={<LoadTestPanel />} />
             </Routes>
           </div>
           

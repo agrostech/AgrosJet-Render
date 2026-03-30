@@ -449,7 +449,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 RATE_LIMIT_EXEMPT_PREFIXES = (
     "/api/getir/", "/api/migros/", "/api/sepettakip/",
-    "/api/adisyo/", "/api/webhooks/", "/api/external/"
+    "/api/adisyo/", "/api/webhooks/", "/api/external/",
+    "/api/load-test/"
 )
 
 class GlobalRateLimitMiddleware(BaseHTTPMiddleware):
@@ -474,6 +475,10 @@ class GlobalRateLimitMiddleware(BaseHTTPMiddleware):
         client_ip = forwarded.split(",")[0].strip() if forwarded else (
             request.client.host if request.client else "unknown"
         )
+        
+        # Localhost muaf (yük testi internal istekleri)
+        if client_ip in ("127.0.0.1", "::1", "localhost"):
+            return await call_next(request)
         
         now = time.time()
         window_start = now - self.window
@@ -603,6 +608,7 @@ from routers.credits import router as credits_router
 from routers.break_system import router as break_system_router
 from routers.applications import router as applications_router, webhook_router as applications_webhook_router
 from routers.courier_native import router as courier_native_router
+from routers.load_test import router as load_test_router
 
 # Set db for products router
 set_products_db(db)
@@ -666,6 +672,7 @@ app.include_router(break_system_router)
 app.include_router(applications_router)
 app.include_router(applications_webhook_router)
 app.include_router(courier_native_router)
+app.include_router(load_test_router)
 
 # Health check
 @api_router.get("/")
