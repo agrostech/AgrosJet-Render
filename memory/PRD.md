@@ -75,6 +75,16 @@ Multi-panel delivery management system (Admin, Restaurant, Courier) with integra
 - Logo yönetimi sadece /system master panelden yapılabilir
 - Kullanılmayan state, ref, import ve fonksiyonlar temizlendi (handleLogoUpload, logoUploading, darkFileRef, lightFileRef)
 
+## Load Test Connection Fix (2026-03-30)
+### Sorun
+Yük testi tüm isteklerde "All connection attempts failed" hatası veriyordu. `INTERNAL_URL` sabit olarak `http://localhost:8001/api` şeklinde kodlanmıştı. Railway'de backend farklı PORT'ta çalıştığı için bağlantı kurulamıyordu.
+### Çözüm
+- `INTERNAL_URL` dinamik hale getirildi: `os.environ.get("PORT", "8001")` ile port alınıyor
+- `127.0.0.1` kullanımına geçildi (localhost DNS çözümlemesi sorunlarını önler)
+- httpx timeout 15s→30s, connection limits eklendi (max_connections=10, max_keepalive=5)
+### Dosyalar
+- `services/load_test_service.py` — INTERNAL_URL dinamik port, timeout/limit iyileştirmeleri
+
 ## Upcoming Tasks
 - ~~bcrypt password hashing migration~~ ✅ DONE (2026-03-29)
 - ~~File upload size limits~~ ✅ DONE (2026-03-29)

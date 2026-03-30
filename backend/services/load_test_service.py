@@ -7,6 +7,7 @@ import asyncio
 import time
 import uuid
 import random
+import os
 import httpx
 from datetime import datetime
 from collections import defaultdict
@@ -15,7 +16,8 @@ from utils.helpers import get_turkey_now, hash_password
 from utils.jwt_utils import create_token
 
 LOADTEST_FLAG = "_loadtest"
-INTERNAL_URL = "http://localhost:8001/api"
+_PORT = os.environ.get("PORT", "8001")
+INTERNAL_URL = f"http://127.0.0.1:{_PORT}/api"
 
 
 class LoadTestMetrics:
@@ -320,7 +322,7 @@ class LoadTestRunner:
         order_index = 0
         order_phase = 0  # 0: picked_up, 1: delivered, 2: yeni sipariş cycle
 
-        async with httpx.AsyncClient(timeout=15) as client:
+        async with httpx.AsyncClient(timeout=30, limits=httpx.Limits(max_connections=10, max_keepalive_connections=5)) as client:
             while not self._stop_event.is_set():
                 now = time.time()
 
@@ -404,7 +406,7 @@ class LoadTestRunner:
     async def _admin_worker(self):
         """Admin panel simülasyonu: kurye listesi + sipariş listesi polling"""
         headers = {"Authorization": f"Bearer {self.admin_token}", "Content-Type": "application/json"}
-        async with httpx.AsyncClient(timeout=15) as client:
+        async with httpx.AsyncClient(timeout=30, limits=httpx.Limits(max_connections=10, max_keepalive_connections=5)) as client:
             while not self._stop_event.is_set():
                 # Kurye konumları (her 10sn)
                 await self._timed_request(
