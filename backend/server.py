@@ -450,7 +450,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 RATE_LIMIT_EXEMPT_PREFIXES = (
     "/api/getir/", "/api/migros/", "/api/sepettakip/",
     "/api/adisyo/", "/api/webhooks/", "/api/external/",
-    "/api/load-test/"
+    "/api/load-test/", "/load-test/"
 )
 
 class GlobalRateLimitMiddleware(BaseHTTPMiddleware):
