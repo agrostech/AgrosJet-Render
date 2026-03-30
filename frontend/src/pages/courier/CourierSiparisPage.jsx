@@ -35,6 +35,7 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
+  Sparkles,
 } from "lucide-react";
 
 // Ortak utility fonksiyonları import et
@@ -979,6 +980,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
           data-testid="view-mode-route"
         >
           <Route className="w-4 h-4" />
+          <Sparkles className="w-3.5 h-3.5 text-amber-500" />
           AgrosAI Rota
           {smartRouteData.length > 0 && smartRouteRemainingCount > 0 && (
             <span className={`px-1.5 py-0.5 rounded-full text-xs ${
@@ -1096,7 +1098,10 @@ export default function CourierSiparisPage({ courierId, companyId }) {
         <div className="space-y-3">
           {smartRouteData.length === 0 ? (
             <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
-              <Route className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
+              <div className="relative w-12 h-12 mx-auto mb-3">
+                <Route className="w-12 h-12 text-muted-foreground/50" />
+                <Sparkles className="w-5 h-5 text-amber-500 absolute -top-1 -right-1" />
+              </div>
               <h3 className="font-semibold text-lg mb-1">AgrosAI Rota</h3>
               <p className="text-sm text-muted-foreground mb-4">
                 Akıllı rota için en az 2 sipariş gerekli
