@@ -29,41 +29,23 @@ def _get_turkey_now():
 
 
 def _run_mongodump() -> bytes:
-    """mongodump çalıştır ve zip olarak döndür"""
-    dump_path = os.path.join(BACKUP_DIR, "dump")
-    
-    # Temizle
-    if os.path.exists(dump_path):
-        shutil.rmtree(dump_path)
-    os.makedirs(dump_path, exist_ok=True)
-    
-    # mongodump
-    cmd = [
-        "mongodump",
-        "--uri", MONGO_URL,
-        "--db", DB_NAME,
-        "--out", dump_path
-    ]
-    
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
-    if result.returncode != 0:
-        logger.error(f"mongodump failed: {result.stderr}")
-        raise Exception(f"mongodump failed: {result.stderr}")
-    
-    # Zip olarak sıkıştır
+    """pymongo ile veritabanı yedeği al ve zip olarak döndür (mongodump binary gerektirmez)"""
+    import json
+    from bson import json_util
+    import pymongo
+
+    client = pymongo.MongoClient(MONGO_URL)
+    database = client[DB_NAME]
+    collection_names = database.list_collection_names()
+
     zip_buffer = BytesIO()
-    db_dump_path = os.path.join(dump_path, DB_NAME)
-    
     with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
-        for root, dirs, files in os.walk(db_dump_path):
-            for file in files:
-                file_path = os.path.join(root, file)
-                arcname = os.path.relpath(file_path, db_dump_path)
-                zf.write(file_path, arcname)
-    
-    # Temizle
-    shutil.rmtree(dump_path, ignore_errors=True)
-    
+        for col_name in collection_names:
+            docs = list(database[col_name].find())
+            json_data = json_util.dumps(docs, ensure_ascii=False, indent=0)
+            zf.writestr(f"{col_name}.json", json_data)
+
+    client.close()
     zip_buffer.seek(0)
     return zip_buffer.read()
 
