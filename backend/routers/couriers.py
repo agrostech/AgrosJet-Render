@@ -1339,7 +1339,7 @@ async def bulk_update_courier_settings(company_id: str, updates: List[dict]):
             if not courier:
                 continue
             
-            current_methods = courier.get("allowed_payment_methods", ["cash", "card", "online", "meal_card", "online_meal_card"])
+            current_methods = courier.get("allowed_payment_methods") or ["cash", "card", "online", "meal_card", "online_meal_card"]
             
             if value:
                 # Ekle

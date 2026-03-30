@@ -103,6 +103,23 @@ Sonuç: **4 istek → 1 istek** = %75 azalma. Kurye başına 26 → 8 istek/dk.
 ### Dikkat
 Mevcut tekil endpoint'lere (GET /couriers/{id}, GET /couriers/{id}/break-status, GET /auth/courier/{id}/check-status) DOKUNULMADI. Admin panel ve diğer bileşenler bunları kullanmaya devam eder.
 
+## Admin Panel Kurye Liste/Matrix Senkronizasyon Düzeltmesi (2026-03-30)
+### Sorun
+Şirkete kurye eklendiğinde: Kurye matrix görünümüne geliyordu ama liste görünümüne gelmiyordu. İkinci ve sonraki kuryeler için sorun devam ediyordu. Matrix butonları (ödeme yöntemi toggle, max paket vs.) çalışmıyordu.
+### Kök Neden
+1. `useKuryeler.addCourier()` fonksiyonu `fetchCouriers()`'u await etmeden çağırıyordu → Liste henüz yenilenmeden modal kapanıyordu
+2. `CourierMatrixView` bağımsız veri kaynağı kullanıyordu → Kurye ekleme sadece liste verisini yeniliyordu, matrix'i değil
+3. `allowed_payment_methods` alanı DB'de null olduğunda ödeme toggle'ı başarısız oluyordu
+### Çözüm
+1. `addCourier()` ve `addGhostCourier()` artık `await fetchCouriers()` ile liste yenilemesini bekliyor
+2. `CourierMatrixView`'a `refreshTrigger` prop'u eklendi — kurye ekleme/silme/deaktif/aktif işlemlerinde matrix de yenileniyor
+3. `allowed_payment_methods` null kontrolü düzeltildi (`or` ile varsayılan değer atanıyor)
+### Dosyalar
+- `hooks/useKuryeler.js` — await fetchCouriers
+- `pages/admin/KuryelerPage.jsx` — matrixRefreshTrigger state
+- `components/admin/CourierMatrixView.jsx` — refreshTrigger prop
+- `routers/couriers.py` — null payment methods fix
+
 ## Security - Password Hashing (2026-03-29)
 ### Implementation
 - Migrated from SHA-256 (hashlib) to bcrypt
