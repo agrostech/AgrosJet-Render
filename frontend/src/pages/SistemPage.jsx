@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { SlidersHorizontal, Save, Mail, AlertCircle, Eye, EyeOff, ChevronDown, ChevronUp, Building2, Clock, Zap, Upload, X, Loader2 } from "lucide-react";
+import { SlidersHorizontal, Save, Mail, AlertCircle, Eye, EyeOff, ChevronDown, ChevronUp, Building2, Clock, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,8 +16,6 @@ export default function SistemPage({ companyId }) {
   const [companyInfo, setCompanyInfo] = useState({
     name: "",
     logo_url: "",
-    logo_dark: "",
-    logo_light: "",
     tckn_vkn: "",
     address: "",
     tax_office: "",
@@ -25,9 +23,6 @@ export default function SistemPage({ companyId }) {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [logoUploading, setLogoUploading] = useState({ dark: false, light: false });
-  const darkFileRef = useRef(null);
-  const lightFileRef = useRef(null);
   const [companyExpanded, setCompanyExpanded] = useState(false);
   const [emailExpanded, setEmailExpanded] = useState(false);
 
@@ -137,8 +132,6 @@ export default function SistemPage({ companyId }) {
       setCompanyInfo({
         name: res.data.name || "",
         logo_url: res.data.logo_url || "",
-        logo_dark: res.data.logo_dark || "",
-        logo_light: res.data.logo_light || "",
         tckn_vkn: res.data.tckn_vkn || "",
         address: res.data.address || "",
         tax_office: res.data.tax_office || "",
@@ -151,22 +144,6 @@ export default function SistemPage({ companyId }) {
     }
   };
 
-  const handleLogoUpload = async (type, file) => {
-    if (!file || !companyId) return;
-    setLogoUploading(prev => ({ ...prev, [type]: true }));
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("logo_type", type);
-      const res = await axios.post(`${API}/companies/${companyId}/logo`, formData);
-      setCompanyInfo(prev => ({ ...prev, [`logo_${type}`]: res.data.path }));
-      toast.success(`${type === "dark" ? "Koyu arkaplan" : "Beyaz arkaplan"} logosu yüklendi`);
-    } catch {
-      toast.error("Logo yüklenemedi");
-    } finally {
-      setLogoUploading(prev => ({ ...prev, [type]: false }));
-    }
-  };
 
 
   const fetchEmailSettings = async () => {
@@ -326,50 +303,6 @@ export default function SistemPage({ companyId }) {
                   onChange={(e) => setCompanyInfo({...companyInfo, name: e.target.value})}
                   className="mt-1 h-10 md:h-11 border-2 text-sm"
                 />
-              </div>
-              <div>
-                <Label className="text-xs md:text-sm font-semibold">Logo (Koyu Arkaplan)</Label>
-                <p className="text-xs text-muted-foreground mb-1">Koyu arka planlarda kullanılır</p>
-                <input type="file" ref={darkFileRef} accept="image/*" className="hidden" onChange={(e) => { if (e.target.files[0]) handleLogoUpload("dark", e.target.files[0]); }} />
-                <div className="flex items-center gap-2 mt-1">
-                  {companyInfo.logo_dark ? (
-                    <div className="flex items-center gap-2 flex-1">
-                      <div className="w-20 h-10 bg-slate-800 rounded flex items-center justify-center p-1">
-                        <img src={`${process.env.REACT_APP_BACKEND_URL}${companyInfo.logo_dark}`} alt="Dark logo" className="max-w-full max-h-full object-contain" />
-                      </div>
-                      <Button type="button" size="sm" variant="outline" className="h-8 text-xs" onClick={() => darkFileRef.current?.click()} disabled={logoUploading.dark}>
-                        {logoUploading.dark ? <Loader2 className="w-3 h-3 animate-spin" /> : "Değiştir"}
-                      </Button>
-                    </div>
-                  ) : (
-                    <Button type="button" size="sm" variant="outline" className="h-9 border-dashed w-full" onClick={() => darkFileRef.current?.click()} disabled={logoUploading.dark}>
-                      {logoUploading.dark ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Upload className="w-4 h-4 mr-1" />}
-                      Logo Yükle
-                    </Button>
-                  )}
-                </div>
-              </div>
-              <div>
-                <Label className="text-xs md:text-sm font-semibold">Logo (Beyaz Arkaplan)</Label>
-                <p className="text-xs text-muted-foreground mb-1">Beyaz arka planlarda kullanılır</p>
-                <input type="file" ref={lightFileRef} accept="image/*" className="hidden" onChange={(e) => { if (e.target.files[0]) handleLogoUpload("light", e.target.files[0]); }} />
-                <div className="flex items-center gap-2 mt-1">
-                  {companyInfo.logo_light ? (
-                    <div className="flex items-center gap-2 flex-1">
-                      <div className="w-20 h-10 bg-white border rounded flex items-center justify-center p-1">
-                        <img src={`${process.env.REACT_APP_BACKEND_URL}${companyInfo.logo_light}`} alt="Light logo" className="max-w-full max-h-full object-contain" />
-                      </div>
-                      <Button type="button" size="sm" variant="outline" className="h-8 text-xs" onClick={() => lightFileRef.current?.click()} disabled={logoUploading.light}>
-                        {logoUploading.light ? <Loader2 className="w-3 h-3 animate-spin" /> : "Değiştir"}
-                      </Button>
-                    </div>
-                  ) : (
-                    <Button type="button" size="sm" variant="outline" className="h-9 border-dashed w-full" onClick={() => lightFileRef.current?.click()} disabled={logoUploading.light}>
-                      {logoUploading.light ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Upload className="w-4 h-4 mr-1" />}
-                      Logo Yükle
-                    </Button>
-                  )}
-                </div>
               </div>
               <div>
                 <Label className="text-xs md:text-sm font-semibold">TCKN / VKN</Label>
@@ -695,8 +628,8 @@ export default function SistemPage({ companyId }) {
                           </svg>
                         </div>
                         <div className="min-w-0">
-                          <p className="font-medium text-sm">Ayni Bina Optimizasyonu</p>
-                          <p className="text-xs text-muted-foreground">Yakin teslimatlar icin kapasite artisi</p>
+                          <p className="font-medium text-sm">Aynı Bina Optimizasyonu</p>
+                          <p className="text-xs text-muted-foreground">Yakın teslimatlar için kapasite artışı</p>
                         </div>
                       </div>
                       
@@ -790,8 +723,8 @@ export default function SistemPage({ companyId }) {
                             </svg>
                           </div>
                           <div className="min-w-0">
-                            <p className="font-medium text-sm">Onaylanmayan Paket Iptali</p>
-                            <p className="text-xs text-muted-foreground">Suresinde onaylanmayan atamalari iptal et</p>
+                            <p className="font-medium text-sm">Onaylanmayan Paket İptali</p>
+                            <p className="text-xs text-muted-foreground">Süresinde onaylanmayan atamaları iptal et</p>
                           </div>
                         </div>
                         <Switch 

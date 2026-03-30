@@ -21,7 +21,7 @@ export function CourierCards({
   onPermissions
 }) {
   const emptyMessage = filterQuery 
-    ? "Arama sonucu bulunamadi" 
+    ? "Arama sonucu bulunamadı" 
     : activeTab === "active" 
       ? "Aktif kurye bulunmuyor" 
       : "Pasif kurye bulunmuyor";
@@ -57,13 +57,13 @@ export function CourierCards({
           {/* Satir 2: Ayar ikonlari */}
           <div className="flex items-center gap-0.5 mt-1.5 pt-1.5 border-t border-slate-100">
             {onPricing && (
-              <button onClick={() => onPricing(c)} className="h-7 px-1.5 flex items-center gap-1 rounded hover:bg-emerald-50 text-[10px] text-emerald-600" title="Ucretlendirme">
-                <DollarSign className="w-3.5 h-3.5" /> Ucret
+              <button onClick={() => onPricing(c)} className="h-7 px-1.5 flex items-center gap-1 rounded hover:bg-emerald-50 text-[10px] text-emerald-600" title="Ücretlendirme">
+                <DollarSign className="w-3.5 h-3.5" /> Ücret
               </button>
             )}
             {onPaymentMethods && (
-              <button onClick={() => onPaymentMethods(c)} className="h-7 px-1.5 flex items-center gap-1 rounded hover:bg-blue-50 text-[10px] text-blue-600" title="Odeme Yontemleri">
-                <CreditCard className="w-3.5 h-3.5" /> Odeme
+              <button onClick={() => onPaymentMethods(c)} className="h-7 px-1.5 flex items-center gap-1 rounded hover:bg-blue-50 text-[10px] text-blue-600" title="Ödeme Yöntemleri">
+                <CreditCard className="w-3.5 h-3.5" /> Ödeme
               </button>
             )}
             {onMaxPackages && (
@@ -85,7 +85,7 @@ export function CourierCards({
             <button onClick={() => onDetail(c)} className="h-7 w-7 flex items-center justify-center rounded hover:bg-slate-100" title="Detay">
               <Eye className="w-3.5 h-3.5 text-slate-500" />
             </button>
-            <button onClick={() => onEdit(c)} className="h-7 w-7 flex items-center justify-center rounded hover:bg-slate-100" title="Duzenle">
+            <button onClick={() => onEdit(c)} className="h-7 w-7 flex items-center justify-center rounded hover:bg-slate-100" title="Düzenle">
               <Edit2 className="w-3.5 h-3.5 text-slate-500" />
             </button>
           </div>
@@ -94,14 +94,14 @@ export function CourierCards({
           <div className="flex gap-1 mt-1 pt-1 border-t border-slate-100">
             {c.is_ghost && onMerge && (
               <Button size="sm" variant="ghost" onClick={() => onMerge(c)} className="flex-1 h-6 text-[10px] px-1.5 text-purple-600 hover:bg-purple-50">
-                <Merge className="w-3 h-3 mr-0.5" /> Birlestir
+                <Merge className="w-3 h-3 mr-0.5" /> Birleştir
               </Button>
             )}
             {activeTab === "active" ? (
               <>
                 {c.termination_start_date ? (
                   <Button size="sm" variant="ghost" onClick={() => onCancelTermination(c.id)} className="flex-1 h-6 text-[10px] px-1.5 text-orange-600 hover:bg-orange-50">
-                    <XCircle className="w-3 h-3 mr-0.5" /> Fesih Iptal
+                    <XCircle className="w-3 h-3 mr-0.5" /> Fesih İptal
                   </Button>
                 ) : (
                   <Button size="sm" variant="ghost" onClick={() => onStartTermination(c.id)} className="flex-1 h-6 text-[10px] px-1.5 text-orange-600 hover:bg-orange-50">
@@ -118,7 +118,7 @@ export function CourierCards({
               </Button>
             )}
             <Button size="sm" variant="ghost" onClick={() => onRemove(c.id)} className="flex-1 h-6 text-[10px] px-1.5 text-red-500 hover:bg-red-50">
-              <Trash2 className="w-3 h-3 mr-0.5" /> Cikar
+              <Trash2 className="w-3 h-3 mr-0.5" /> Çıkar
             </Button>
           </div>
         </div>
