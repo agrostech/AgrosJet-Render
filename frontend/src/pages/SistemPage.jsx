@@ -498,12 +498,12 @@ export default function SistemPage({ companyId }) {
           ) : (
             <div className="p-4 md:p-6 space-y-6">
               {/* Ana Toggle */}
-              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl border border-slate-200">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-white shadow-sm flex items-center justify-center">
-                    <Zap className="w-5 h-5 text-orange-500" />
+              <div className="flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl border border-slate-200">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0">
+                    <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="font-semibold text-sm">Otomatik Atama</p>
                     <p className="text-xs text-muted-foreground">Her 10 saniyede kontrol edilir</p>
                   </div>
@@ -520,8 +520,8 @@ export default function SistemPage({ companyId }) {
                   {/* BÖLÜM 1: Temel Ayarlar */}
                   <div className="space-y-4">
                     <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Temel Ayarlar</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="p-4 bg-white rounded-xl border border-slate-200 space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="p-3 sm:p-4 bg-white rounded-xl border border-slate-200 space-y-3">
                         <div className="flex items-center gap-2">
                           <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
                             <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -544,9 +544,9 @@ export default function SistemPage({ companyId }) {
                         </p>
                       </div>
 
-                      <div className="p-4 bg-white rounded-xl border border-slate-200 space-y-3">
+                      <div className="p-3 sm:p-4 bg-white rounded-xl border border-slate-200 space-y-3">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
+                          <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
                             <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
@@ -574,18 +574,18 @@ export default function SistemPage({ companyId }) {
                     <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Rota Optimizasyonu</h4>
                     
                     {/* Açı Kontrolü */}
-                    <div className="p-4 bg-white rounded-xl border border-slate-200 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                    <div className="p-3 sm:p-4 bg-white rounded-xl border border-slate-200 space-y-4">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
                             <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                             </svg>
                           </div>
-                          <div>
+                        <div className="min-w-0">
                             <p className="font-medium text-sm">Açı Kontrolü</p>
                             <p className="text-xs text-muted-foreground">Farklı yönlerdeki paketleri ayır</p>
-                          </div>
+                        </div>
                         </div>
                         <Switch 
                           checked={autoDispatchSettings.angle_check_enabled}
@@ -594,7 +594,7 @@ export default function SistemPage({ companyId }) {
                       </div>
                       
                       {autoDispatchSettings.angle_check_enabled && (
-                        <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-slate-100">
                           <div className="space-y-2">
                             <Label className="text-xs text-slate-600">Maks. Açı Farkı (°)</Label>
                             <Input
@@ -619,7 +619,7 @@ export default function SistemPage({ companyId }) {
                               className="h-9"
                             />
                           </div>
-                          <p className="col-span-2 text-xs text-blue-600 bg-blue-50 rounded-lg px-3 py-2">
+                          <p className="sm:col-span-2 text-xs text-blue-600 bg-blue-50 rounded-lg px-3 py-2">
                             💡 {autoDispatchSettings.angle_skip_distance}m içindeki paketler için açı kontrolü atlanır
                           </p>
                         </div>
@@ -627,15 +627,15 @@ export default function SistemPage({ companyId }) {
                     </div>
 
                     {/* Detour Kontrolü */}
-                    <div className="p-4 bg-white rounded-xl border border-slate-200 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
+                    <div className="p-3 sm:p-4 bg-white rounded-xl border border-slate-200 space-y-4">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
                             <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                             </svg>
                           </div>
-                          <div>
+                          <div className="min-w-0">
                             <p className="font-medium text-sm">Rota Sapması Kontrolü</p>
                             <p className="text-xs text-muted-foreground">Fazla sapma olan paketleri ayır</p>
                           </div>
@@ -647,7 +647,7 @@ export default function SistemPage({ companyId }) {
                       </div>
                       
                       {autoDispatchSettings.detour_check_enabled && (
-                        <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-slate-100">
                           <div className="space-y-2">
                             <Label className="text-xs text-slate-600">Maks. Sapma (m)</Label>
                             <Input
@@ -672,7 +672,7 @@ export default function SistemPage({ companyId }) {
                               className="h-9"
                             />
                           </div>
-                          <p className="col-span-2 text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2">
+                          <p className="sm:col-span-2 text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2">
                             💡 {autoDispatchSettings.max_detour < 0 
                               ? `En az ${Math.abs(autoDispatchSettings.max_detour)}m tasarruf yoksa paketler ayrı gönderilir.`
                               : `${autoDispatchSettings.max_detour}m'ye kadar ekstra sapma kabul edilir.`} {autoDispatchSettings.detour_skip_distance}m içindeki paketler için kontrol atlanır.
@@ -687,20 +687,20 @@ export default function SistemPage({ companyId }) {
                     <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Kapasite Yönetimi</h4>
                     
                     {/* Aynı Konum */}
-                    <div className="p-4 bg-white rounded-xl border border-slate-200 space-y-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
-                          <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="p-3 sm:p-4 bg-white rounded-xl border border-slate-200 space-y-4">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                           </svg>
                         </div>
-                        <div>
-                          <p className="font-medium text-sm">Aynı Bina Optimizasyonu</p>
-                          <p className="text-xs text-muted-foreground">Yakın teslimatlar için kapasite artışı</p>
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm">Ayni Bina Optimizasyonu</p>
+                          <p className="text-xs text-muted-foreground">Yakin teslimatlar icin kapasite artisi</p>
                         </div>
                       </div>
                       
-                      <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-slate-100">
                         <div className="space-y-2">
                           <Label className="text-xs text-slate-600">Yakınlık Mesafesi (m)</Label>
                           <Input
@@ -725,7 +725,7 @@ export default function SistemPage({ companyId }) {
                             className="h-9"
                           />
                         </div>
-                        <p className="col-span-2 text-xs text-purple-600 bg-purple-50 rounded-lg px-3 py-2">
+                        <p className="sm:col-span-2 text-xs text-purple-600 bg-purple-50 rounded-lg px-3 py-2">
                           💡 {autoDispatchSettings.same_location_radius}m içindeki siparişler aynı bina sayılır, {autoDispatchSettings.same_location_max_packages} pakete kadar alınabilir
                         </p>
                       </div>
@@ -736,15 +736,15 @@ export default function SistemPage({ companyId }) {
                   <div className="space-y-4">
                     <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Adalet Sistemi</h4>
                     
-                    <div className="p-4 bg-white rounded-xl border border-slate-200 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center">
-                            <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="p-3 sm:p-4 bg-white rounded-xl border border-slate-200 space-y-4">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
+                            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
                             </svg>
                           </div>
-                          <div>
+                          <div className="min-w-0">
                             <p className="font-medium text-sm">Kurye Dengesi</p>
                             <p className="text-xs text-muted-foreground">Az sipariş alan kuryeyi tercih et</p>
                           </div>
@@ -781,17 +781,17 @@ export default function SistemPage({ companyId }) {
                   <div className="space-y-4">
                     <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Otomatik İptal</h4>
                     
-                    <div className="p-4 bg-white rounded-xl border border-slate-200 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
-                            <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="p-3 sm:p-4 bg-white rounded-xl border border-slate-200 space-y-4">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
+                            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                           </div>
-                          <div>
-                            <p className="font-medium text-sm">Onaylanmayan Paket İptali</p>
-                            <p className="text-xs text-muted-foreground">Süresinde onaylanmayan atamaları iptal et</p>
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm">Onaylanmayan Paket Iptali</p>
+                            <p className="text-xs text-muted-foreground">Suresinde onaylanmayan atamalari iptal et</p>
                           </div>
                         </div>
                         <Switch 
@@ -825,7 +825,7 @@ export default function SistemPage({ companyId }) {
                 </div>
               )}
 
-              <div className="flex gap-3 pt-2">
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <Button 
                   type="button"
                   variant="outline"
