@@ -25,7 +25,7 @@ import {
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-export default function CourierMatrixView({ companyId, onCourierClick }) {
+export default function CourierMatrixView({ companyId, onCourierClick, refreshTrigger }) {
   const [data, setData] = useState({ couriers: [] });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -36,7 +36,7 @@ export default function CourierMatrixView({ companyId, onCourierClick }) {
     if (companyId) {
       fetchMatrix();
     }
-  }, [companyId]);
+  }, [companyId, refreshTrigger]);
 
   const fetchMatrix = async () => {
     setLoading(true);

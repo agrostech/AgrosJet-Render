@@ -91,6 +91,9 @@ export default function KuryelerPage({ companyId }) {
   // Confirm Modal State
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmConfig, setConfirmConfig] = useState({ title: "", description: "", onConfirm: () => {} });
+  
+  // Matrix refresh trigger - kurye eklenince/silinince matrix'i de yeniler
+  const [matrixRefreshTrigger, setMatrixRefreshTrigger] = useState(0);
 
   const couriers = activeTab === "active" ? activeCouriers : inactiveCouriers;
   
@@ -114,6 +117,7 @@ export default function KuryelerPage({ companyId }) {
       onConfirm: async () => {
         try {
           await removeCourier(courierId);
+          setMatrixRefreshTrigger(prev => prev + 1);
         } catch (err) {
           if (!err.handled) {
             toast.error(err.response?.data?.detail || "İşlem başarısız");
@@ -168,6 +172,7 @@ export default function KuryelerPage({ companyId }) {
       onConfirm: async () => {
         try {
           await deactivateCourier(courierId);
+          setMatrixRefreshTrigger(prev => prev + 1);
         } catch (err) {
           if (!err.handled) {
             toast.error(err.response?.data?.detail || "İşlem başarısız");
@@ -182,6 +187,7 @@ export default function KuryelerPage({ companyId }) {
   const handleActivate = async (courierId) => {
     try {
       await activateCourier(courierId);
+      setMatrixRefreshTrigger(prev => prev + 1);
     } catch (err) {
       if (!err.handled) {
         toast.error(err.response?.data?.detail || "İşlem başarısız");
@@ -478,6 +484,7 @@ export default function KuryelerPage({ companyId }) {
       {viewMode === "matrix" ? (
         <CourierMatrixView 
           companyId={companyId} 
+          refreshTrigger={matrixRefreshTrigger}
           onCourierClick={(courier) => { setSelectedCourier(courier); setShowDetailModal(true); }}
         />
       ) : (
@@ -531,8 +538,14 @@ export default function KuryelerPage({ companyId }) {
         open={showAddModal}
         onOpenChange={setShowAddModal}
         onSearch={searchCourier}
-        onAdd={addCourier}
-        onAddGhost={addGhostCourier}
+        onAdd={async (phone) => {
+          await addCourier(phone);
+          setMatrixRefreshTrigger(prev => prev + 1);
+        }}
+        onAddGhost={async (name) => {
+          await addGhostCourier(name);
+          setMatrixRefreshTrigger(prev => prev + 1);
+        }}
       />
 
       <CourierEditModal

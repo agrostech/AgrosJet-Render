@@ -53,13 +53,13 @@ export function useKuryeler(companyId) {
   const addCourier = async (phone) => {
     await axios.post(`${API}/companies/${companyId}/couriers`, { phone });
     toast.success("Kurye şirkete eklendi");
-    fetchCouriers();
+    await fetchCouriers();
   };
 
   const addGhostCourier = async (name) => {
     await axios.post(`${API}/companies/${companyId}/couriers/ghost`, { name });
     toast.success("Hayalet kurye oluşturuldu");
-    fetchCouriers();
+    await fetchCouriers();
   };
 
   const mergeCouriers = async (ghostCourierId, realCourierId) => {
