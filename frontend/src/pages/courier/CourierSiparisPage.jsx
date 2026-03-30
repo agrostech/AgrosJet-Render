@@ -1097,9 +1097,9 @@ export default function CourierSiparisPage({ courierId, companyId }) {
           {smartRouteData.length === 0 ? (
             <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
               <Route className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
-              <h3 className="font-semibold text-lg mb-1">Rota oluşturuluyor...</h3>
+              <h3 className="font-semibold text-lg mb-1">AgrosAI Rota</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                En az 2 sipariş gerekli
+                Akıllı rota için en az 2 sipariş gerekli
               </p>
               <Button variant="outline" onClick={() => setViewMode("list")}>
                 <ClipboardList className="w-4 h-4 mr-2" />
