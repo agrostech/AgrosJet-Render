@@ -85,6 +85,27 @@ Yük testi tüm isteklerde "All connection attempts failed" hatası veriyordu. `
 ### Dosyalar
 - `services/load_test_service.py` — INTERNAL_URL dinamik port, timeout/limit iyileştirmeleri
 
+## CourierCards Button Overflow Fix (2026-03-31)
+- Eye/Edit butonlari 2. satirdan 1. satira (kurye adi yanina) tasinarak mobil tasma sorunu cozuldu
+- CourierCards.jsx: Row 1 = isim + goz/kalem, Row 2 = ayar ikonlari (Ucret, Odeme, Paket, Mola, Yetki), Row 3 = aksiyon butonlari
+
+## VardiyaIhlalleriSection Rewrite (2026-03-31)
+- Hafta secici: Pazartesi 00:00 - Pazar 23:59 yerine Pazartesi acilis saati - Pazartesi kapanis saati
+- Gun secici eklendi: Pzt-Paz butonlari, secildiginde o gun acilis -> ertesi gun kapanis saati filtreler
+- Sirket calisma saatleri GET /api/companies/{id}/work-hours'dan cekilir (default 09:00-22:00)
+- Mobil responsive iyilestirmeleri: flex-wrap, truncate, uygun boyutlar
+
+## Report Card Wrapper Fix (2026-03-31)
+- CiroRaporu, KarZararRaporu, PerformansRaporu: Card/CardContent wrapper eklendi
+- Tum rapor sekmeleri artik tutarli beyaz cerceve/dolgu gorunumune sahip
+
+## Issue 2 Analysis - Test Sirket Ihlal Kaydi (2026-03-31)
+Railway production DB analiz sonucu:
+- Test Sirket kuryeleri (Onur Ertas, Zerrin Ertas) company_id: None
+- Burdur kuryeleri: hepsi dogru company_id'ye sahip -> ihlaller calisiyor
+- Kok neden: Kurye aktif oldugunda company_id=None -> ihlal kontrolu atlaniyor
+- Cozum onerisi: update_courier_availability'de company_couriers junction tablosundan fallback
+
 ## Upcoming Tasks
 - ~~bcrypt password hashing migration~~ ✅ DONE (2026-03-29)
 - ~~File upload size limits~~ ✅ DONE (2026-03-29)
