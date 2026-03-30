@@ -31,7 +31,9 @@ const getViolationLabel = (type) => {
     "shift_started_not_active": "Vardiyaya geç giriş",
     "offline_before_shift_end": "Vardiyadan erken çıkış",
     "package_not_confirmed": "Paketi onaylamadı",
-    "still_active_after_shift_end": "Vardiya sonrası aktif kaldı"
+    "still_active_after_shift_end": "Vardiya sonrası aktif kaldı",
+    "active_without_shift": "Vardiyasız çevrimiçi",
+    "break_limit_exceeded": "Mola limiti aşımı"
   };
   return labels[type] || type;
 };
@@ -41,7 +43,9 @@ const COURIER_VIOLATION_TYPES = [
   "shift_started_not_active",
   "offline_before_shift_end",
   "package_not_confirmed",
-  "still_active_after_shift_end"
+  "still_active_after_shift_end",
+  "active_without_shift",
+  "break_limit_exceeded"
 ];
 
 const getWeekRange = (openingTime = "06:00") => {
