@@ -57,7 +57,23 @@ Multi-panel delivery management system (Admin, Restaurant, Courier) with integra
 - MongoDB backup test button in System panel
 
 ## Pending Issues
-None active.
+- (P1) "Neden AgrosJet?" statik metin güncellemesi (Kurye kayıt sayfaları)
+- (P2) Webhook setup agrosjet.net ping hatası
+
+## Turkish Character & Logo Visibility Fix (2026-03-30)
+### CourierCards.jsx Türkçe Karakter Düzeltmeleri
+- "Ucret" → "Ücret", "Odeme" → "Ödeme", "Duzenle" → "Düzenle"
+- "Birlestir" → "Birleştir", "Fesih Iptal" → "Fesih İptal", "Cikar" → "Çıkar"
+- "bulunamadi" → "bulunamadı"
+### SistemPage.jsx Türkçe Karakter Düzeltmeleri
+- "Ayni Bina Optimizasyonu" → "Aynı Bina Optimizasyonu"
+- "Yakin teslimatlar icin kapasite artisi" → "Yakın teslimatlar için kapasite artışı"
+- "Onaylanmayan Paket Iptali" → "Onaylanmayan Paket İptali"
+- "Suresinde onaylanmayan atamalari iptal et" → "Süresinde onaylanmayan atamaları iptal et"
+### Admin Panel Logo Bölümü Kaldırma
+- "Logo (Koyu Arkaplan)" ve "Logo (Beyaz Arkaplan)" yükleme alanları Admin panel Sistem Ayarları'ndan kaldırıldı
+- Logo yönetimi sadece /system master panelden yapılabilir
+- Kullanılmayan state, ref, import ve fonksiyonlar temizlendi (handleLogoUpload, logoUploading, darkFileRef, lightFileRef)
 
 ## Upcoming Tasks
 - ~~bcrypt password hashing migration~~ ✅ DONE (2026-03-29)
