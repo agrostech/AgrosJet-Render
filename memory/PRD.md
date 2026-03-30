@@ -120,6 +120,37 @@ Mevcut tekil endpoint'lere (GET /couriers/{id}, GET /couriers/{id}/break-status,
 - `components/admin/CourierMatrixView.jsx` — refreshTrigger prop
 - `routers/couriers.py` — null payment methods fix
 
+## Yük Testi (Load Test) Sistemi (2026-03-30)
+### Genel
+System Admin paneline gömülü yük testi aracı. Gerçek HTTP çağrıları ile kurye-sipariş döngüsünü simüle eder.
+### Konfigürasyon
+- Kurye sayısı: 50, 100, 200, 500
+- Süre: 30, 60, 120, 180 saniye
+- Her kuryeye 3 aktif sipariş
+### Simülasyon İçeriği
+- Kurye poll (her 10sn) — `GET /api/couriers/{id}/poll`
+- Konum güncelleme (her 30sn) — `PUT /api/couriers/{id}/location`
+- Sipariş onaylama → Yola çıkma → Teslim etme → Reset döngüsü (her 20sn)
+- Sipariş listesi polling (her 15sn)
+- Admin panel polling (kurye haritası + sipariş listesi)
+### Veri Güvenliği
+- Tüm geçici veriler `_loadtest: True` flag'i ile işaretlenir
+- Test bitince otomatik temizlik
+- Manuel "Temizle" butonu (crash durumları için)
+### Metrikler
+- Toplam/başarılı/başarısız/rate limited istek sayıları
+- RPS (istek/saniye)
+- Endpoint bazlı avg/P95/P99 yanıt süreleri
+- RPS zaman serisi grafiği
+- Kapasite tahmini
+### Dosyalar
+- `backend/services/load_test_service.py` — LoadTestRunner (singleton)
+- `backend/routers/load_test.py` — API endpoint'leri
+- `frontend/src/components/system/LoadTestPanel.jsx` — UI bileşeni
+### Rate Limiting
+- Load test endpoint'leri (`/api/load-test/*`) rate limiter'dan muaf
+- Localhost (127.0.0.1) istekleri rate limiter'dan muaf (internal test trafiği)
+
 ## Security - Password Hashing (2026-03-29)
 ### Implementation
 - Migrated from SHA-256 (hashlib) to bcrypt
