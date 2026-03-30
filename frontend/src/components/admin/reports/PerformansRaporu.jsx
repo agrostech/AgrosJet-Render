@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import axios from "axios";
 import { toast } from "sonner";
+import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, Users, Briefcase, Building2, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
@@ -166,7 +167,8 @@ export default function PerformansRaporu({ companyId, companyLogo, companyName }
           <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
         </div>
       ) : data ? (
-        <div className="space-y-6 sm:space-y-8">
+        <Card>
+          <CardContent className="p-2.5 sm:p-3 space-y-6 sm:space-y-8">
           {/* PDF butonu */}
           <div className="flex justify-end">
             <Button
@@ -245,7 +247,8 @@ export default function PerformansRaporu({ companyId, companyLogo, companyName }
             <SectionHeader icon={Briefcase} title="Yönetici Performansı" />
             <PerformanceTable data={data.admins} average={null} />
           </div>
-        </div>
+          </CardContent>
+        </Card>
       ) : null}
     </div>
   );

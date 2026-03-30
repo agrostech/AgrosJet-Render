@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import axios from "axios";
 import { toast } from "sonner";
+import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, Store, Banknote, CreditCard, Wallet, Globe, ShoppingBag, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ReportDateFilter from "./ReportDateFilter";
@@ -97,7 +98,8 @@ export default function CiroRaporu({ companyId, companyLogo, companyName }) {
           <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
         </div>
       ) : data ? (
-        <div className="space-y-3 sm:space-y-4">
+        <Card>
+          <CardContent className="p-2.5 sm:p-3 space-y-3 sm:space-y-4">
           {/* PDF butonu */}
           <div className="flex justify-end">
             <Button
@@ -219,7 +221,8 @@ export default function CiroRaporu({ companyId, companyLogo, companyName }) {
               {data.restaurants.filter((r) => r.order_count === 0).length} restoranda bu tarih aralığında sipariş bulunmuyor.
             </p>
           )}
-        </div>
+          </CardContent>
+        </Card>
       ) : null}
     </div>
   );

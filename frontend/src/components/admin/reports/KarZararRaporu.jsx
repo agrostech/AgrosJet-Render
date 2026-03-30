@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import axios from "axios";
 import { toast } from "sonner";
+import { Card, CardContent } from "@/components/ui/card";
 import { 
   TrendingUp, TrendingDown, Truck, Minus, Loader2,
   Users, Briefcase, Package, FileDown
@@ -45,7 +46,8 @@ export default function KarZararRaporu({ companyId, companyLogo, companyName }) 
           <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
         </div>
       ) : data ? (
-        <div className="space-y-3 sm:space-y-4">
+        <Card>
+          <CardContent className="p-2.5 sm:p-3 space-y-3 sm:space-y-4">
           {/* PDF butonu */}
           <div className="flex justify-end">
             <Button
@@ -197,7 +199,8 @@ export default function KarZararRaporu({ companyId, companyLogo, companyName }) 
               </p>
             </div>
           </div>
-        </div>
+          </CardContent>
+        </Card>
       ) : null}
     </div>
   );

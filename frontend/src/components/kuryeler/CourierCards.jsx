@@ -42,7 +42,7 @@ export function CourierCards({
           data-testid={`courier-card-${c.id}`}
           className={`border rounded-lg px-2.5 py-2 bg-white dark:bg-card ${c.termination_start_date ? 'border-orange-300 bg-orange-50 dark:border-orange-700 dark:bg-orange-950/30' : ''} ${c.is_ghost ? 'border-purple-300 bg-purple-50/50 dark:border-purple-700 dark:bg-purple-950/30' : ''}`}
         >
-          {/* Satir 1: Kurye bilgileri */}
+          {/* Satir 1: Kurye bilgileri + detay/düzenle */}
           <div className="flex items-start gap-2">
             {c.is_ghost && <Ghost className="w-3.5 h-3.5 text-purple-500 flex-shrink-0 mt-0.5" />}
             <div className="min-w-0 flex-1">
@@ -52,10 +52,18 @@ export function CourierCards({
                 {c.termination_start_date && <span className="ml-1 text-orange-600 font-semibold">{c.termination_remaining_days}g</span>}
               </p>
             </div>
+            <div className="flex items-center gap-0.5 flex-shrink-0">
+              <button onClick={() => onDetail(c)} className="h-7 w-7 flex items-center justify-center rounded hover:bg-slate-100" title="Detay" data-testid={`courier-detail-${c.id}`}>
+                <Eye className="w-3.5 h-3.5 text-slate-500" />
+              </button>
+              <button onClick={() => onEdit(c)} className="h-7 w-7 flex items-center justify-center rounded hover:bg-slate-100" title="Düzenle" data-testid={`courier-edit-${c.id}`}>
+                <Edit2 className="w-3.5 h-3.5 text-slate-500" />
+              </button>
+            </div>
           </div>
 
           {/* Satir 2: Ayar ikonlari */}
-          <div className="flex items-center gap-0.5 mt-1.5 pt-1.5 border-t border-slate-100">
+          <div className="flex items-center gap-0.5 mt-1.5 pt-1.5 border-t border-slate-100 flex-wrap">
             {onPricing && (
               <button onClick={() => onPricing(c)} className="h-7 px-1.5 flex items-center gap-1 rounded hover:bg-emerald-50 text-[10px] text-emerald-600" title="Ücretlendirme">
                 <DollarSign className="w-3.5 h-3.5" /> Ücret
@@ -81,13 +89,6 @@ export function CourierCards({
                 <Shield className="w-3.5 h-3.5" /> Yetki
               </button>
             )}
-            <div className="flex-1" />
-            <button onClick={() => onDetail(c)} className="h-7 w-7 flex items-center justify-center rounded hover:bg-slate-100" title="Detay">
-              <Eye className="w-3.5 h-3.5 text-slate-500" />
-            </button>
-            <button onClick={() => onEdit(c)} className="h-7 w-7 flex items-center justify-center rounded hover:bg-slate-100" title="Düzenle">
-              <Edit2 className="w-3.5 h-3.5 text-slate-500" />
-            </button>
           </div>
 
           {/* Satir 3: Aksiyon butonlari */}

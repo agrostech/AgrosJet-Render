@@ -1,0 +1,67 @@
+{
+  "summary": "Frontend-only testing of 4 bug fixes. Verified: 1) CourierCards.jsx code review confirms eye/edit buttons are in first row (lines 55-62). 2) VardiyaIhlalleriSection week selector shows Monday-to-Monday format (30.03.26 - 06.04.26) - VERIFIED via UI. 3) Day selector buttons (Pzt-Paz) visible and clickable - VERIFIED. 4) Week navigation works correctly with 'Bu Hafta' button appearing when not on current week - VERIFIED. 5) Mobile responsive - no overflow (358px width in 390px viewport) - VERIFIED. 6) Report pages Card wrapper - CODE REVIEW VERIFIED (CiroRaporu, KarZararRaporu, PerformansRaporu all use Card/CardContent).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "CourierCards.jsx: Eye (detail) and Edit buttons correctly placed in first row (lines 55-62) with data-testid attributes",
+    "VardiyaIhlalleriSection.jsx: Week range correctly calculates Monday-to-Monday using getWeekRange() function (lines 44-57)",
+    "VardiyaIhlalleriSection.jsx: Day selector buttons implemented with DAY_LABELS array and data-testid='day-selector' (lines 285-300)",
+    "VardiyaIhlalleriSection.jsx: Mobile responsive with proper flex-wrap and gap classes",
+    "CiroRaporu.jsx: Card/CardContent wrapper at lines 101-225",
+    "KarZararRaporu.jsx: Card/CardContent wrapper at lines 49-203",
+    "PerformansRaporu.jsx: Card/CardContent wrapper at lines 169-251",
+    "Note: Admin user (admin/123456) does not have 'raporlar' permission - Raporlar page not accessible in sidebar. Card wrapper verified via code review only."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend only test)",
+    "frontend": "100%"
+  },
+  "test_credentials": {
+    "admin": {"username": "admin", "password": "123456"}
+  },
+  "seed_data_creation": "No seed data created",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Test company (admin/123456) has 0 couriers, so CourierCards mobile view shows empty state. Admin user does not have 'raporlar' permission - cannot access /admin/raporlar page via UI. VardiyaIhlalleriSection fully tested and working correctly with Monday-to-Monday week format.",
+  "verified_fixes": {
+    "courier_cards_button_position": {
+      "issue": "Eye/Edit buttons were on 2nd row causing overflow on mobile",
+      "fix": "Buttons moved to 1st row next to courier name",
+      "status": "VERIFIED via code review - buttons at lines 55-62 in first row div"
+    },
+    "vardiya_ihlalleri_week_selector": {
+      "issue": "Week selector showed Monday-Sunday midnight instead of Monday-Monday with company hours",
+      "fix": "Complete rewrite with getWeekRange() using company opening/closing times",
+      "status": "VERIFIED via UI - shows '30.03.26 - 06.04.26' (Monday to next Monday)"
+    },
+    "vardiya_ihlalleri_day_selector": {
+      "issue": "Day selector buttons not visible",
+      "fix": "Added day selector with Pzt-Paz buttons",
+      "status": "VERIFIED via UI - 7 day buttons visible and clickable"
+    },
+    "vardiya_ihlalleri_mobile": {
+      "issue": "Mobile view had overflow issues",
+      "fix": "Mobile responsive fixes with proper flex-wrap",
+      "status": "VERIFIED via UI - section width 358px fits in 390px viewport"
+    },
+    "report_pages_card_wrapper": {
+      "issue": "Ciro, Kar/Zarar, Performans reports missing Card wrapper",
+      "fix": "Added Card/CardContent wrapper to all three components",
+      "status": "VERIFIED via code review - all three files have Card/CardContent imports and usage"
+    }
+  },
+  "mocked_api": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  }
+}
