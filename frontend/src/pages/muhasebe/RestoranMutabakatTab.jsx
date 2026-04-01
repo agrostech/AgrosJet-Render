@@ -310,7 +310,7 @@ export default function RestoranMutabakatTab({ companyId }) {
       {/* Header Card */}
       <Card className="border bg-white shadow-sm">
         <CardContent className="py-3 px-4">
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <WeekSelector
               weeks={weeks}
               selectedWeek={selectedWeek}
@@ -323,33 +323,33 @@ export default function RestoranMutabakatTab({ companyId }) {
               size="sm"
               onClick={() => fetchWeekData(selectedWeek)}
               disabled={dataLoading}
-              className="h-9"
+              className="h-8 sm:h-9"
             >
               <RefreshCw className={`w-4 h-4 ${dataLoading ? 'animate-spin' : ''}`} />
             </Button>
             
             <div className="flex-1" />
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
               {canRevert && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setShowRevertModal(true)}
-                  className="h-9 text-amber-600 border-amber-300 hover:bg-amber-50"
+                  className="h-8 sm:h-9 text-xs sm:text-sm text-amber-600 border-amber-300 hover:bg-amber-50"
                 >
-                  <Undo2 className="w-4 h-4 mr-2" />
-                  Geri Al ({selectedProcessed.length})
+                  <Undo2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Geri Al</span> ({selectedProcessed.length})
                 </Button>
               )}
               
               <Button
                 onClick={() => setShowApplyModal(true)}
                 disabled={selectedUnprocessed.length === 0 || dataLoading}
-                className="h-9"
+                className="h-8 sm:h-9 text-xs sm:text-sm"
               >
-                <Plus className="w-4 h-4 mr-2" />
-                Mütabakatı Onayla ({selectedUnprocessed.length})
+                <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Mütabakatı Onayla</span><span className="sm:hidden">Onayla</span> ({selectedUnprocessed.length})
               </Button>
               
               {restaurants.length > 0 && (
@@ -357,10 +357,10 @@ export default function RestoranMutabakatTab({ companyId }) {
                   variant="outline" 
                   size="sm"
                   onClick={handleExportCSV}
-                  className="h-9"
+                  className="h-8 sm:h-9"
                 >
-                  <Download className="w-4 h-4 mr-2" />
-                  CSV
+                  <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">CSV</span>
                 </Button>
               )}
             </div>
@@ -464,7 +464,8 @@ export default function RestoranMutabakatTab({ companyId }) {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="overflow-x-auto">
+              {/* Desktop Table */}
+              <div className="overflow-x-auto hidden md:block">
                 <table className="w-full text-sm">
                   <thead className="bg-slate-50 border-b">
                     <tr>
@@ -547,6 +548,60 @@ export default function RestoranMutabakatTab({ companyId }) {
                     })}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden divide-y divide-slate-100">
+                {restaurants.map((r) => {
+                  const isSelected = selectedIds.includes(r.restaurant_id);
+                  const canSelect = !r.is_processed;
+                  return (
+                    <div key={r.restaurant_id} className={`p-3 ${r.is_processed ? 'bg-green-50/50' : ''}`}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Checkbox checked={isSelected} onCheckedChange={() => handleToggleSelect(r.restaurant_id)} disabled={!canSelect && !r.is_processed} />
+                        <span className="font-semibold text-sm flex-1 truncate">{r.restaurant_name}</span>
+                        {r.is_processed ? (
+                          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 flex-shrink-0">İşlendi</span>
+                        ) : (
+                          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 flex-shrink-0">Bekliyor</span>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-3 gap-1.5 text-[10px] mb-1.5">
+                        <div className="bg-slate-50 rounded p-1.5 text-center">
+                          <p className="text-muted-foreground">Sipariş</p>
+                          <p className="font-semibold">{r.order_count}</p>
+                        </div>
+                        <div className="bg-slate-50 rounded p-1.5 text-center">
+                          <p className="text-muted-foreground">Taşıma</p>
+                          <p className="font-semibold">{formatMoney(r.total_delivery)}</p>
+                        </div>
+                        <div className="bg-slate-50 rounded p-1.5 text-center">
+                          <p className="text-muted-foreground">POS Kom.</p>
+                          <p className="font-semibold">{formatMoney(r.pos_commission)}</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-1.5 text-[10px] mb-1.5">
+                        <div className="bg-green-50 rounded p-1.5 text-center">
+                          <p className="text-green-600">Nakit</p>
+                          <p className="font-semibold text-green-700">{formatMoney(r.cash_amount)}</p>
+                        </div>
+                        <div className="bg-blue-50 rounded p-1.5 text-center">
+                          <p className="text-blue-600">Kart</p>
+                          <p className="font-semibold text-blue-700">{formatMoney(r.card_amount)}</p>
+                        </div>
+                        <div className="bg-purple-50 rounded p-1.5 text-center">
+                          <p className="text-purple-600">Y.Kartı</p>
+                          <p className="font-semibold text-purple-700">{formatMoney(r.meal_card_amount || 0)}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-end">
+                        <span className={`font-mono font-bold text-sm ${r.net_amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          Net: {formatMoney(Math.abs(r.net_amount))}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>

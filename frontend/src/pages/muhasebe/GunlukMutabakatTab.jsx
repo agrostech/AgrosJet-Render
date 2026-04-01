@@ -320,7 +320,7 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
         const processedCard = processedCouriers.reduce((sum, c) => sum + (c.order_data.card_total || 0), 0);
         
         return (
-          <div className="grid grid-cols-5 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
             <Card className="border bg-white shadow-sm">
               <CardContent className="p-3 text-center">
                 <Users className="w-4 h-4 mx-auto mb-1 text-slate-500" />
@@ -377,7 +377,9 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
               Bu tarih için kurye bulunamadı
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <>
+            {/* Desktop Table */}
+            <div className="overflow-x-auto hidden md:block">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-slate-100">
@@ -656,6 +658,90 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                 </tbody>
               </table>
             </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden divide-y divide-slate-100">
+              {filteredCouriers.map((courier) => {
+                const cashDiff = (courier.daily_collections?.cash_collected || 0) - (courier.cash_total || 0);
+                const cardDiff = (courier.daily_collections?.card_collected || 0) - (courier.card_total || 0);
+                const totalDiff = cashDiff + cardDiff;
+                const isProcessed = courier.is_processed;
+                const hasOrders = (courier.order_count || 0) > 0;
+                const isSaving = savingCouriers.has(courier.id);
+                const isReverting = revertingCouriers.has(courier.id);
+
+                return (
+                  <div key={courier.id} className={`p-3 ${isProcessed ? 'bg-green-50/50' : ''}`}>
+                    {/* Kurye Adı + Sipariş */}
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <button onClick={() => handleShowOrders(courier)} className="font-semibold text-sm text-primary hover:underline truncate" data-testid={`mobile-courier-name-${courier.id}`}>
+                          {courier.name}
+                        </button>
+                        <span className="text-[10px] text-muted-foreground flex-shrink-0">{courier.order_count || 0} sip.</span>
+                      </div>
+                      {isProcessed ? (
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded text-green-700 bg-green-100">
+                            <CheckCircle2 className="w-3 h-3" /> Tamam
+                          </span>
+                          {isSuperAdmin && (
+                            <Button variant="ghost" size="sm" onClick={() => handleRevertSingleCourier(courier)} disabled={isReverting} className="h-6 w-6 p-0 text-red-600 hover:bg-red-50">
+                              {isReverting ? <Loader2 className="w-3 h-3 animate-spin" /> : <RotateCcw className="w-3 h-3" />}
+                            </Button>
+                          )}
+                        </div>
+                      ) : hasOrders ? (
+                        <Button variant="default" size="sm" onClick={() => handleSaveSingleCourier(courier)} disabled={isSaving} className="h-7 px-2 text-[10px] flex-shrink-0" data-testid={`mobile-save-btn-${courier.id}`}>
+                          {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <><Save className="w-3 h-3 mr-1" />Kaydet</>}
+                        </Button>
+                      ) : null}
+                    </div>
+
+                    {/* Satış Özeti */}
+                    <div className="grid grid-cols-3 gap-1.5 text-[10px] mb-2">
+                      <div className="bg-slate-50 rounded p-1.5 text-center">
+                        <p className="text-muted-foreground">Nakit</p>
+                        <p className="font-semibold">{formatMoney(courier.cash_total || 0)}</p>
+                      </div>
+                      <div className="bg-slate-50 rounded p-1.5 text-center">
+                        <p className="text-muted-foreground">Kart</p>
+                        <p className="font-semibold">{formatMoney(courier.card_total || 0)}</p>
+                      </div>
+                      <div className="bg-slate-50 rounded p-1.5 text-center">
+                        <p className="text-muted-foreground">Toplam</p>
+                        <p className="font-bold">{formatMoney((courier.cash_total || 0) + (courier.card_total || 0))}</p>
+                      </div>
+                    </div>
+
+                    {/* Tahsilat Inputları */}
+                    {!isProcessed && hasOrders && (
+                      <div className="grid grid-cols-2 gap-1.5 mb-2">
+                        <div>
+                          <label className="text-[10px] text-muted-foreground">Nakit Tahsilat</label>
+                          <Input type="number" min="0" step="0.01" value={getCollectionValue(courier, 'cash_collected') || ''} onChange={(e) => handleInputChange(courier.id, 'cash_collected', e.target.value)} className="h-7 text-xs" placeholder="0" />
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-muted-foreground">Kart Tahsilat</label>
+                          <Input type="number" min="0" step="0.01" value={getCollectionValue(courier, 'card_collected') || ''} onChange={(e) => handleInputChange(courier.id, 'card_collected', e.target.value)} className="h-7 text-xs" placeholder="0" />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Fark Gösterimi */}
+                    {(courier.has_collection || isProcessed) && (
+                      <div className="flex items-center gap-3 text-[10px]">
+                        <span className="text-muted-foreground">Fark:</span>
+                        <span className={`font-mono font-medium ${totalDiff > 0 ? 'text-red-600' : totalDiff < 0 ? 'text-blue-600' : 'text-green-600'}`}>
+                          {totalDiff !== 0 ? formatMoney(totalDiff) : '✓ Eşleşti'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            </>
           )}
         </CardContent>
       </Card>

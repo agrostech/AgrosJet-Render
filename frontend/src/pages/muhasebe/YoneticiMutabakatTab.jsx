@@ -264,6 +264,9 @@ export default function YoneticiMutabakatTab({ companyId, currentUser }) {
               <p>Henüz tahsilat kaydı yok</p>
             </div>
           ) : (
+            <>
+            {/* Desktop Table */}
+            <div className="hidden md:block">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -369,6 +372,48 @@ export default function YoneticiMutabakatTab({ companyId, currentUser }) {
                 ))}
               </TableBody>
             </Table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden divide-y divide-slate-100">
+              {filteredAdmins.map((admin) => (
+                <div key={admin.admin_id} className="p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-semibold text-sm">{admin.admin_name}</span>
+                        {admin.role === 'superadmin' && <Badge variant="secondary" className="text-[9px] px-1 py-0">SA</Badge>}
+                        {!admin.has_linked_courier && <Badge variant="destructive" className="text-[9px] px-1 py-0">Bağsız</Badge>}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">{admin.courier_count} kuryeden {admin.collection_count} tahsilat</p>
+                    </div>
+                    <div className="flex items-center gap-0.5 flex-shrink-0">
+                      <Button variant="ghost" size="sm" onClick={() => fetchAdminDetails(admin)} className="h-7 w-7 p-0"><ChevronRight className="w-4 h-4" /></Button>
+                      {admin.last_reset && <Button variant="ghost" size="sm" onClick={() => fetchHistory(admin)} className="h-7 w-7 p-0"><History className="w-4 h-4" /></Button>}
+                      {isSuperAdmin && admin.total_balance > 0 && <Button variant="ghost" size="sm" onClick={() => openResetModal(admin)} className="h-7 w-7 p-0 text-amber-600"><RotateCcw className="w-4 h-4" /></Button>}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1.5 text-[10px]">
+                    <div className="bg-green-50 rounded p-1.5 text-center">
+                      <p className="text-green-600">Nakit</p>
+                      <p className="font-semibold text-green-700">{formatCurrency(admin.total_cash)}</p>
+                    </div>
+                    <div className="bg-blue-50 rounded p-1.5 text-center">
+                      <p className="text-blue-600">Kart</p>
+                      <p className="font-semibold text-blue-700">{formatCurrency(admin.total_card)}</p>
+                    </div>
+                    <div className="bg-slate-100 rounded p-1.5 text-center">
+                      <p className="text-slate-600">Toplam</p>
+                      <p className="font-bold">{formatCurrency(admin.total_balance)}</p>
+                    </div>
+                  </div>
+                  {admin.last_reset && (
+                    <p className="text-[10px] text-muted-foreground mt-1.5">Son sıfırlama: {formatDate(admin.last_reset)}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+            </>
           )}
         </CardContent>
       </Card>

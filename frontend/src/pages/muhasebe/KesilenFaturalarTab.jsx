@@ -137,7 +137,7 @@ function RestaurantsTable({ restaurants, onUpload, onView, onDelete, uploading }
         className="hidden"
       />
       
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto hidden md:block">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b-2 border-border bg-slate-50/50">
@@ -213,6 +213,57 @@ function RestaurantsTable({ restaurants, onUpload, onView, onDelete, uploading }
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="md:hidden divide-y divide-slate-100">
+        {restaurants.length === 0 ? (
+          <div className="p-8 text-center text-muted-foreground">
+            <Package className="w-12 h-12 mx-auto mb-2 opacity-20" />
+            Bu hafta sipariş yok
+          </div>
+        ) : restaurants.map((r) => (
+          <div key={r.restaurant_id} className={`p-3 ${r.invoice_uploaded ? 'bg-green-50/30' : ''}`}>
+            <div className="flex items-center justify-between mb-2">
+              <p className="font-semibold text-sm truncate flex-1">{r.restaurant_name}</p>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                {r.invoice_uploaded ? (
+                  <>
+                    <Button size="sm" variant="ghost" onClick={() => onView(r.invoice_id)} className="h-7 w-7 p-0" title="Görüntüle">
+                      <Eye className="w-3.5 h-3.5 text-green-600" />
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => onDelete(r.invoice_id)} className="h-7 w-7 p-0 text-red-500" title="Sil">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </>
+                ) : (
+                  <Button size="sm" variant="outline" onClick={() => handleFileSelect(r.restaurant_id)} disabled={uploading} className="h-7 px-2 text-[10px]">
+                    {uploading && uploadingRestaurantId === r.restaurant_id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3 mr-1" />}
+                    Yükle
+                  </Button>
+                )}
+              </div>
+            </div>
+            <div className="grid grid-cols-4 gap-1 text-[10px]">
+              <div className="bg-slate-50 rounded p-1.5 text-center">
+                <p className="text-muted-foreground">Sipariş</p>
+                <p className="font-semibold">{r.order_count}</p>
+              </div>
+              <div className="bg-blue-50 rounded p-1.5 text-center">
+                <p className="text-blue-600">Taşıma</p>
+                <p className="font-semibold text-blue-700">{formatMoney(r.total_delivery_fee)}</p>
+              </div>
+              <div className="bg-orange-50 rounded p-1.5 text-center">
+                <p className="text-orange-600">KDV</p>
+                <p className="font-semibold text-orange-700">{formatMoney(r.kdv)}</p>
+              </div>
+              <div className="bg-slate-100 rounded p-1.5 text-center">
+                <p className="text-slate-600">Toplam</p>
+                <p className="font-bold">{formatMoney(r.total_with_kdv)}</p>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
