@@ -199,31 +199,15 @@ export default function AdminDashboard() {
     }
     setActiveCompanyId(parsed.company_id);
     
-    // İzin güncelleme kontrolü (sadece admin için, superadmin hariç)
-    const checkPermissionUpdate = async () => {
-      if (parsed.role === "superadmin") return;
-      
-      try {
-        const savedTimestamp = parsed.permissions_updated_at;
-        // Timestamp yoksa kontrol yapma (henüz izin güncellenmemiş)
-        if (!savedTimestamp) return;
-        
-        const encodedTimestamp = encodeURIComponent(savedTimestamp);
-        const res = await axios.get(`${API}/auth/check-permissions/${parsed.id}?timestamp=${encodedTimestamp}`);
-        
-        if (res.data.updated) {
-          toast.warning("İzinleriniz güncellendi. Yeniden giriş yapmanız gerekiyor.");
-          localStorage.removeItem("user");
-          setTimeout(() => navigate("/login"), 1500);
-        }
-      } catch (err) {
-        console.error("Permission check error:", err);
+    // İzin güncelleme kontrolü: Axios response interceptor
+    const permInterceptor = axios.interceptors.response.use((response) => {
+      if (response.headers?.["x-permissions-updated"] === "true") {
+        toast.warning("İzinleriniz güncellendi. Yeniden giriş yapmanız gerekiyor.");
+        localStorage.removeItem("user");
+        setTimeout(() => navigate("/login"), 1500);
       }
-    };
-    
-    // İlk kontrol ve her 10 saniyede bir kontrol
-    checkPermissionUpdate();
-    const permInterval = setInterval(checkPermissionUpdate, 5000);
+      return response;
+    });
     
     // Fetch badges initially and every 30 seconds
     fetchBadges();
@@ -238,7 +222,7 @@ export default function AdminDashboard() {
     window.addEventListener('refreshBadges', handleBadgeRefresh);
     
     return () => {
-      clearInterval(permInterval);
+      axios.interceptors.response.eject(permInterceptor);
       clearInterval(badgeInterval);
       clearInterval(creditInterval);
       window.removeEventListener('refreshBadges', handleBadgeRefresh);

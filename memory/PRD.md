@@ -106,6 +106,24 @@ Railway production DB analiz sonucu:
 - Kok neden: Kurye aktif oldugunda company_id=None -> ihlal kontrolu atlaniyor
 - Cozum onerisi: update_courier_availability'de company_couriers junction tablosundan fallback
 
+## Permission System Fix (2026-04-01)
+### Backend valid_keys Tamamlandi
+- Eksik izin anahtarlari eklendi: raporlar, basvurular, siparis_gecmis, siparis_iptal
+- Muhasebe alt izinleri: muhasebe_kuryeler, muhasebe_isletmeler, muhasebe_cariler, muhasebe_kurye_mutabakat, muhasebe_restoran_mutabakat, muhasebe_yonetici_mutabakat, muhasebe_haftalik_hakedis, muhasebe_kurye_faturalari, muhasebe_isletme_faturalari, muhasebe_hareketler
+- Raporlar alt izinleri: raporlar_kurye, raporlar_restoran, raporlar_ciro, raporlar_kar_zarar, raporlar_performans
+### 5sn Polling Kaldirildi - Event-Driven Yaklasim
+- Eski: Her 5 saniyede check-permissions endpoint'i cagriliyor (gereksiz yuk)
+- Yeni: Backend PermissionCheckMiddleware + in-memory invalidation cache
+  - Superadmin yetki guncellediginde admin_id cache'e eklenir
+  - Admin'in bir sonraki API isteginde X-Permissions-Updated header doner
+  - Frontend axios interceptor bu header'i okuyup otomatik logout yapar
+  - Sifir ekstra istek, tek seferlik bildirim
+### Dosyalar
+- backend/utils/permission_cache.py (YENi)
+- backend/server.py: PermissionCheckMiddleware + CORS expose_headers
+- backend/routers/admins.py: valid_keys genisletildi + invalidate_admin cagrisi
+- frontend/AdminDashboard.jsx: 5sn polling -> axios response interceptor
+
 ## Upcoming Tasks
 - ~~bcrypt password hashing migration~~ ✅ DONE (2026-03-29)
 - ~~File upload size limits~~ ✅ DONE (2026-03-29)

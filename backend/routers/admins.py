@@ -221,10 +221,26 @@ async def update_admin_permissions(admin_id: str, data: PermissionsUpdate, auth:
         raise HTTPException(status_code=400, detail="Sadece admin izinleri güncellenebilir")
     
     # Sadece geçerli izin anahtarlarını kabul et
-    valid_keys = {"vardiya", "muhasebe", "zimmet", "kuryeler", "market", "akademi", "sistem"}
+    valid_keys = {
+        # Ana sekmeler
+        "vardiya", "muhasebe", "raporlar", "zimmet", "kuryeler",
+        "market", "akademi", "basvurular", "sistem",
+        # Sipariş alt izinleri
+        "siparis_gecmis", "siparis_iptal",
+        # Muhasebe alt izinleri
+        "muhasebe_kuryeler", "muhasebe_isletmeler", "muhasebe_cariler",
+        "muhasebe_kurye_mutabakat", "muhasebe_restoran_mutabakat",
+        "muhasebe_yonetici_mutabakat", "muhasebe_haftalik_hakedis",
+        "muhasebe_kurye_faturalari", "muhasebe_isletme_faturalari",
+        "muhasebe_hareketler",
+        # Raporlar alt izinleri
+        "raporlar_kurye", "raporlar_restoran", "raporlar_ciro",
+        "raporlar_kar_zarar", "raporlar_performans",
+    }
     filtered_permissions = {k: v for k, v in data.permissions.items() if k in valid_keys}
     
-    # İzin güncellendiğinde timestamp kaydet (otomatik çıkış için)
+    # İzin güncellendiğinde timestamp kaydet ve cache'i invalidate et
+    from utils.permission_cache import invalidate_admin
     await db.admins.update_one(
         {"id": admin_id},
         {"$set": {
@@ -232,6 +248,7 @@ async def update_admin_permissions(admin_id: str, data: PermissionsUpdate, auth:
             "permissions_updated_at": get_turkey_now()
         }}
     )
+    invalidate_admin(admin_id)
     return {"message": "İzinler güncellendi"}
 
 

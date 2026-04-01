@@ -446,6 +446,8 @@ app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
 import time
 from collections import defaultdict
 from starlette.middleware.base import BaseHTTPMiddleware
+from utils.permission_cache import check_and_clear
+from utils.jwt_utils import decode_token
 
 RATE_LIMIT_EXEMPT_PREFIXES = (
     "/api/getir/", "/api/migros/", "/api/sepettakip/",
@@ -501,6 +503,19 @@ class GlobalRateLimitMiddleware(BaseHTTPMiddleware):
         
         self.requests[client_ip].append(now)
         return await call_next(request)
+
+
+class PermissionCheckMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            payload = decode_token(auth_header[7:])
+            if payload and payload.get("role") in ("admin", "superadmin"):
+                admin_id = payload.get("sub")
+                if admin_id and check_and_clear(admin_id):
+                    response.headers["X-Permissions-Updated"] = "true"
+        return response
 
 api_router = APIRouter(prefix="/api")
 
@@ -703,6 +718,9 @@ app.include_router(api_router)
 # Global Rate Limit Middleware (1000 istek/dakika/IP)
 app.add_middleware(GlobalRateLimitMiddleware, max_requests=1000, window=60)
 
+# Permission Check Middleware
+app.add_middleware(PermissionCheckMiddleware)
+
 cors_origins = os.environ.get('CORS_ORIGINS', '').split(',')
 cors_origins = [o.strip() for o in cors_origins if o.strip()]
 
@@ -714,6 +732,7 @@ app.add_middleware(
     allow_origin_regex=r"https://.*\.preview\.emergentagent\.com",
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Permissions-Updated"],
 )
 
 logging.basicConfig(
