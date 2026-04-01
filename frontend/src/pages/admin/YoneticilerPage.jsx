@@ -62,6 +62,7 @@ const PERMISSION_ITEMS = [
   },
   { key: "zimmet", label: "Zimmet", icon: Package },
   { key: "kuryeler", label: "Kuryeler", icon: Users },
+  { key: "restoranlar", label: "Restoranlar", icon: Store },
   { key: "market", label: "Market", icon: ShoppingBag },
   { key: "akademi", label: "Akademi", icon: GraduationCap },
   { key: "basvurular", label: "Başvurular", icon: FileText },

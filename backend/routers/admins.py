@@ -20,6 +20,7 @@ def get_default_permissions() -> Dict[str, bool]:
         "raporlar": True,
         "zimmet": True,
         "kuryeler": True,
+        "restoranlar": True,
         "market": True,
         "akademi": True,
         "basvurular": True,
@@ -231,7 +232,7 @@ async def update_admin_permissions(admin_id: str, data: PermissionsUpdate, auth:
     valid_keys = {
         # Ana sekmeler
         "vardiya", "muhasebe", "raporlar", "zimmet", "kuryeler",
-        "market", "akademi", "basvurular", "sistem",
+        "restoranlar", "market", "akademi", "basvurular", "sistem",
         # Sipariş alt izinleri
         "siparis_gecmis", "siparis_iptal",
         # Muhasebe alt izinleri
