@@ -661,24 +661,24 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
 
             {/* Mobile Card View */}
             <div className="md:hidden divide-y divide-slate-100">
-              {filteredCouriers.map((courier) => {
-                const cashDiff = (courier.daily_collections?.cash_collected || 0) - (courier.cash_total || 0);
-                const cardDiff = (courier.daily_collections?.card_collected || 0) - (courier.card_total || 0);
-                const totalDiff = cashDiff + cardDiff;
+              {couriers.map((courier) => {
                 const isProcessed = courier.is_processed;
-                const hasOrders = (courier.order_count || 0) > 0;
-                const isSaving = savingCouriers.has(courier.id);
-                const isReverting = revertingCouriers.has(courier.id);
+                const hasOrders = courier.order_data.order_count > 0;
+                const isSaving = savingCourierId === courier.id;
+                const isReverting = revertingCourierId === courier.id;
+                const cashDiff = courier.differences?.cash || 0;
+                const cardDiff = courier.differences?.card || 0;
+                const totalDiff = cashDiff + cardDiff;
 
                 return (
-                  <div key={courier.id} className={`p-3 ${isProcessed ? 'bg-green-50/50' : ''}`}>
-                    {/* Kurye Adı + Sipariş */}
+                  <div key={courier.id} className={`p-3 ${isProcessed ? 'bg-green-50/50' : !hasOrders ? 'opacity-50' : ''}`} data-testid={`mobile-courier-${courier.id}`}>
+                    {/* Kurye Adı + İşlem */}
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <button onClick={() => handleShowOrders(courier)} className="font-semibold text-sm text-primary hover:underline truncate" data-testid={`mobile-courier-name-${courier.id}`}>
+                        <button onClick={() => hasOrders && fetchCourierOrders(courier)} className={`font-semibold text-sm truncate ${hasOrders ? 'text-primary hover:underline' : 'text-slate-500'}`} data-testid={`mobile-courier-name-${courier.id}`}>
                           {courier.name}
                         </button>
-                        <span className="text-[10px] text-muted-foreground flex-shrink-0">{courier.order_count || 0} sip.</span>
+                        <span className="text-[10px] text-muted-foreground flex-shrink-0">{courier.order_data.order_count} sip.</span>
                       </div>
                       {isProcessed ? (
                         <div className="flex items-center gap-1 flex-shrink-0">
@@ -698,33 +698,53 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                       ) : null}
                     </div>
 
-                    {/* Satış Özeti */}
+                    {/* Sipariş Özeti */}
                     <div className="grid grid-cols-3 gap-1.5 text-[10px] mb-2">
-                      <div className="bg-slate-50 rounded p-1.5 text-center">
-                        <p className="text-muted-foreground">Nakit</p>
-                        <p className="font-semibold">{formatMoney(courier.cash_total || 0)}</p>
+                      <div className="bg-emerald-50 rounded p-1.5 text-center">
+                        <p className="text-emerald-600">Nakit</p>
+                        <p className="font-semibold">{formatMoney(courier.order_data.cash_total)}</p>
                       </div>
-                      <div className="bg-slate-50 rounded p-1.5 text-center">
-                        <p className="text-muted-foreground">Kart</p>
-                        <p className="font-semibold">{formatMoney(courier.card_total || 0)}</p>
+                      <div className="bg-blue-50 rounded p-1.5 text-center">
+                        <p className="text-blue-600">Kart</p>
+                        <p className="font-semibold">{formatMoney(courier.order_data.card_total)}</p>
                       </div>
-                      <div className="bg-slate-50 rounded p-1.5 text-center">
-                        <p className="text-muted-foreground">Toplam</p>
-                        <p className="font-bold">{formatMoney((courier.cash_total || 0) + (courier.card_total || 0))}</p>
+                      <div className="bg-slate-100 rounded p-1.5 text-center">
+                        <p className="text-slate-600">Toplam</p>
+                        <p className="font-bold">{formatMoney((courier.order_data.cash_total || 0) + (courier.order_data.card_total || 0))}</p>
                       </div>
                     </div>
 
                     {/* Tahsilat Inputları */}
                     {!isProcessed && hasOrders && (
-                      <div className="grid grid-cols-2 gap-1.5 mb-2">
-                        <div>
-                          <label className="text-[10px] text-muted-foreground">Nakit Tahsilat</label>
-                          <Input type="number" min="0" step="0.01" value={getCollectionValue(courier, 'cash_collected') || ''} onChange={(e) => handleInputChange(courier.id, 'cash_collected', e.target.value)} className="h-7 text-xs" placeholder="0" />
+                      <div className="space-y-1.5 mb-2">
+                        <div className="grid grid-cols-2 gap-1.5">
+                          <div>
+                            <label className="text-[10px] text-muted-foreground">Nakit Tahsilat</label>
+                            <Input type="number" min="0" step="0.01" value={getCollectionValue(courier, 'cash_amount') || ''} onChange={(e) => handleInputChange(courier.id, 'cash_amount', e.target.value)} className="h-7 text-xs" placeholder="0" />
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-muted-foreground">Kart %1</label>
+                            <Input type="number" min="0" step="0.01" value={getCollectionValue(courier, 'card_percent_1') || ''} onChange={(e) => handleInputChange(courier.id, 'card_percent_1', e.target.value)} className="h-7 text-xs" placeholder="0" />
+                          </div>
                         </div>
-                        <div>
-                          <label className="text-[10px] text-muted-foreground">Kart Tahsilat</label>
-                          <Input type="number" min="0" step="0.01" value={getCollectionValue(courier, 'card_collected') || ''} onChange={(e) => handleInputChange(courier.id, 'card_collected', e.target.value)} className="h-7 text-xs" placeholder="0" />
+                        <div className="grid grid-cols-2 gap-1.5">
+                          <div>
+                            <label className="text-[10px] text-muted-foreground">Kart %10</label>
+                            <Input type="number" min="0" step="0.01" value={getCollectionValue(courier, 'card_percent_10') || ''} onChange={(e) => handleInputChange(courier.id, 'card_percent_10', e.target.value)} className="h-7 text-xs" placeholder="0" />
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-muted-foreground">Kart %20</label>
+                            <Input type="number" min="0" step="0.01" value={getCollectionValue(courier, 'card_percent_20') || ''} onChange={(e) => handleInputChange(courier.id, 'card_percent_20', e.target.value)} className="h-7 text-xs" placeholder="0" />
+                          </div>
                         </div>
+                        {hasMealCardCollection && (
+                          <div className="grid grid-cols-2 gap-1.5">
+                            <div>
+                              <label className="text-[10px] text-muted-foreground">Yemek Kartı</label>
+                              <Input type="number" min="0" step="0.01" value={getCollectionValue(courier, 'meal_card_amount') || ''} onChange={(e) => handleInputChange(courier.id, 'meal_card_amount', e.target.value)} className="h-7 text-xs" placeholder="0" />
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
 
