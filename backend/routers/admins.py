@@ -17,25 +17,36 @@ def get_default_permissions() -> Dict[str, bool]:
     return {
         "vardiya": True,
         "muhasebe": True,
+        "raporlar": True,
         "zimmet": True,
         "kuryeler": True,
         "market": True,
         "akademi": True,
-        "sistem": False,  # Varsayılan kapalı
+        "basvurular": True,
+        "sistem": False,
+        "siparis_gecmis": True,
+        "siparis_iptal": True,
+        "muhasebe_kuryeler": True,
+        "muhasebe_isletmeler": True,
+        "muhasebe_cariler": True,
+        "muhasebe_kurye_mutabakat": True,
+        "muhasebe_restoran_mutabakat": True,
+        "muhasebe_yonetici_mutabakat": True,
+        "muhasebe_haftalik_hakedis": True,
+        "muhasebe_kurye_faturalari": True,
+        "muhasebe_isletme_faturalari": True,
+        "muhasebe_hareketler": True,
+        "raporlar_kurye": True,
+        "raporlar_restoran": True,
+        "raporlar_ciro": True,
+        "raporlar_kar_zarar": True,
+        "raporlar_performans": True,
     }
 
 
 def get_full_permissions() -> Dict[str, bool]:
     """Superadmin için tüm izinler"""
-    return {
-        "vardiya": True,
-        "muhasebe": True,
-        "zimmet": True,
-        "kuryeler": True,
-        "market": True,
-        "akademi": True,
-        "sistem": True,
-    }
+    return {k: True for k in get_default_permissions()}
 
 
 # --- Pydantic Models ---
@@ -94,16 +105,16 @@ async def get_all_admins(auth: dict = Depends(require_super_or_system)):
         {"_id": 0, "password": 0}
     ).to_list(500)
     
-    # Simple permission keys
-    simple_keys = {"vardiya", "muhasebe", "zimmet", "kuryeler", "market", "akademi", "sistem"}
+    # All permission keys
+    all_permission_keys = set(get_default_permissions().keys())
     
-    # Normalize permissions to simple format
+    # Normalize permissions
     for admin in admins:
         db_permissions = admin.get("permissions", {})
-        has_simple_format = any(key in db_permissions for key in simple_keys)
+        has_any_key = any(key in db_permissions for key in all_permission_keys)
         
-        if has_simple_format:
-            admin["permissions"] = {k: db_permissions.get(k, False) for k in simple_keys}
+        if has_any_key:
+            admin["permissions"] = {k: db_permissions.get(k, False) for k in all_permission_keys if k in db_permissions}
         else:
             if admin.get("role") == "superadmin":
                 admin["permissions"] = get_full_permissions()
@@ -127,31 +138,27 @@ async def get_admins(company_id: Optional[str] = None, auth: dict = Depends(requ
         query = {"role": {"$ne": "systemadmin"}}
     admins = await db.admins.find(query, {"_id": 0, "password": 0}).to_list(100)
     
-    # Simple permission keys
-    simple_keys = {"vardiya", "muhasebe", "zimmet", "kuryeler", "market", "akademi", "sistem"}
+    all_permission_keys = set(get_default_permissions().keys())
     
-    # Normalize permissions to simple format
     for admin in admins:
         db_permissions = admin.get("permissions", {})
-        has_simple_format = any(key in db_permissions for key in simple_keys)
+        has_any_key = any(key in db_permissions for key in all_permission_keys)
         
-        if has_simple_format:
-            # Extract only simple keys
-            admin["permissions"] = {k: db_permissions.get(k, False) for k in simple_keys}
+        if has_any_key:
+            admin["permissions"] = {k: db_permissions.get(k, False) for k in all_permission_keys if k in db_permissions}
         else:
-            # No simple format, assign defaults
             if admin.get("role") == "superadmin":
                 admin["permissions"] = get_full_permissions()
             else:
                 admin["permissions"] = get_default_permissions()
         
-        # Convert datetime to string
         if admin.get("created_at"):
             admin["created_at"] = str(admin["created_at"])
         if admin.get("last_active_at"):
             admin["last_active_at"] = str(admin["last_active_at"])
     
     return admins
+
 
 
 @router.post("/admins")
