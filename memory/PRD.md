@@ -79,6 +79,24 @@ Multi-panel delivery management system (Admin, Restaurant, Courier) with integra
 - Mobile: `md:hidden` with card-based layouts using grid columns
 - Consistent styling: 10px text, colored backgrounds, rounded cards
 
+## Muhasebe Bakiye Performans Optimizasyonu (2026-04-02)
+### Sorun
+Kuryeler, Restoranlar ve Cariler sekmelerinde bakiye geçmişi kartındaki toplam bakiye ve entity bakiyeleri geç yükleniyordu.
+### Kök Neden
+N+1 API sorunu: Her entity için ayrı `GET /transactions/{type}/{id}?limit=1` çağrısı yapılıyordu. 30 entity = 30 API çağrısı, her biri 3-4 DB query = ~120 DB query.
+### Çözüm
+- Yeni `GET /api/companies/{id}/entity-balances?type=courier|restaurant|vendor` endpoint'i eklendi
+- Backend: `calculate_entity_balances_map()` fonksiyonu tek MongoDB aggregation ile TÜM entity bakiyelerini döndürür
+- Frontend: `useAccountingTab.js` - `fetchBulkBalances()` fonksiyonu ile liste ve bakiyeler paralel çekilir
+- İşlem sonrası tek entity güncelleme `fetchEntityBalance()` ile eski yöntemle devam eder (doğru davranış)
+### Etki
+- API çağrıları: N+1 → 2 (liste + bakiye) = %97 azalma
+- DB sorguları: ~120 → ~2 = %98 azalma
+### Dosyalar
+- `services/accounting_service.py` — `calculate_entity_balances_map()` (YENİ)
+- `routers/accounting.py` — `GET /entity-balances` endpoint'i (YENİ)
+- `hooks/useAccountingTab.js` — `fetchBulkBalances()`, `fetchEntities()`, `fetchArchivedEntities()` güncellendi
+
 ## Pending Issues
 - (P1) "Neden AgrosJet?" statik metin guncellemesi (Kurye kayit sayfalari) - 4x ertelendi
 - (P2) Webhook setup agrosjet.net ping hatasi
