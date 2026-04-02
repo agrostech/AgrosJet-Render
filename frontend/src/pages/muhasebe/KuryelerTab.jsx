@@ -32,6 +32,7 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
     totalCount,
     hasMore,
     loadingMore,
+    loadingBalance,
     balance,
     balancesMap,
     totalBalance,
@@ -338,6 +339,7 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
           selectedEntity={selectedEntity}
           showArchived={showArchived}
           balance={balance}
+          loadingBalance={loadingBalance}
           amount={amount}
           setAmount={setAmount}
           description={description}

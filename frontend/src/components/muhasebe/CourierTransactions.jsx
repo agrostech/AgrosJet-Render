@@ -2,13 +2,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Plus, Minus, Archive, ArchiveRestore, Clock, Search, Download, Pencil, Trash2, CreditCard, CheckCircle2 } from "lucide-react";
+import { Plus, Minus, Archive, ArchiveRestore, Clock, Search, Download, Pencil, Trash2, CreditCard, CheckCircle2, Loader2 } from "lucide-react";
 import { formatMoney, formatDate } from "@/hooks/useAccountingTab";
 
 export default function CourierTransactions({
   selectedEntity,
   showArchived,
   balance,
+  loadingBalance,
   amount,
   setAmount,
   description,
@@ -59,11 +60,15 @@ export default function CourierTransactions({
               <h3 className="font-heading font-bold truncate">{selectedEntity.name}</h3>
               <p className="text-xs text-muted-foreground font-mono">{selectedEntity.phone}</p>
             </div>
-            <div className={`text-right px-3 py-1.5 rounded shrink-0 ${balance > 0 ? 'bg-green-50' : balance < 0 ? 'bg-red-50' : 'bg-slate-100'}`}>
+            <div className={`text-right px-3 py-1.5 rounded shrink-0 ${loadingBalance ? 'bg-slate-100' : balance > 0 ? 'bg-green-50' : balance < 0 ? 'bg-red-50' : 'bg-slate-100'}`}>
               <p className="text-[10px] sm:text-xs text-muted-foreground">Bakiye</p>
-              <p className={`text-sm sm:text-base font-bold font-mono ${balance > 0 ? 'text-green-600' : balance < 0 ? 'text-red-600' : ''}`}>
-                {balance === 0 ? '0 TL' : balance > 0 ? `${formatMoney(balance)}` : `-${formatMoney(balance)}`}
-              </p>
+              {loadingBalance ? (
+                <Loader2 className="w-4 h-4 animate-spin text-muted-foreground ml-auto" />
+              ) : (
+                <p className={`text-sm sm:text-base font-bold font-mono ${balance > 0 ? 'text-green-600' : balance < 0 ? 'text-red-600' : ''}`}>
+                  {balance === 0 ? '0 TL' : balance > 0 ? `${formatMoney(balance)}` : `-${formatMoney(balance)}`}
+                </p>
+              )}
             </div>
           </div>
           

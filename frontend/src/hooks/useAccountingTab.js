@@ -72,6 +72,7 @@ export function useAccountingTab({
   const [totalCount, setTotalCount] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [loadingBalance, setLoadingBalance] = useState(false);
   const [balance, setBalance] = useState(0);
   
   // Ref for tracking current transactions length (for loadMore)
@@ -614,7 +615,10 @@ export function useAccountingTab({
   // Fetch transactions when entity changes
   useEffect(() => {
     if (selectedEntity) {
-      fetchTransactions(selectedEntity.id);
+      setLoadingBalance(true);
+      setTransactions([]);
+      transactionsRef.current = [];
+      fetchTransactions(selectedEntity.id).finally(() => setLoadingBalance(false));
       setAmount("");
       setDescription("");
       setIsHakedis(false);
@@ -640,6 +644,7 @@ export function useAccountingTab({
     totalCount,
     hasMore,
     loadingMore,
+    loadingBalance,
     balance,
     
     // Balances

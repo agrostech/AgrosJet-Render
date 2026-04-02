@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
-import { Plus, Minus, Building2, Trash2, Archive, ArchiveRestore, Search, Download, Clock, Pencil, ArrowLeft } from "lucide-react";
+import { Plus, Minus, Building2, Trash2, Archive, ArchiveRestore, Search, Download, Clock, Pencil, ArrowLeft, Loader2 } from "lucide-react";
 import { 
   useAccountingTab, 
   formatMoney, 
@@ -41,6 +41,7 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
     totalCount,
     hasMore,
     loadingMore,
+    loadingBalance,
     balance,
     balancesMap,
     totalBalance,
@@ -295,11 +296,15 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
                     <h3 className="font-heading font-bold truncate">{selectedEntity.name}</h3>
                     {selectedEntity.phone && <p className="text-xs text-muted-foreground font-mono">{selectedEntity.phone}</p>}
                   </div>
-                  <div className={`text-right px-3 py-1.5 rounded shrink-0 ${balance > 0 ? 'bg-green-50' : balance < 0 ? 'bg-red-50' : 'bg-slate-100'}`}>
+                  <div className={`text-right px-3 py-1.5 rounded shrink-0 ${loadingBalance ? 'bg-slate-100' : balance > 0 ? 'bg-green-50' : balance < 0 ? 'bg-red-50' : 'bg-slate-100'}`}>
                     <p className="text-[10px] sm:text-xs text-muted-foreground">Bakiye</p>
-                    <p className={`text-sm sm:text-base font-bold font-mono ${balance > 0 ? 'text-green-600' : balance < 0 ? 'text-red-600' : ''}`}>
-                      {balance === 0 ? '0 TL' : balance > 0 ? `${formatMoney(balance)}` : `-${formatMoney(balance)}`}
-                    </p>
+                    {loadingBalance ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-muted-foreground ml-auto" />
+                    ) : (
+                      <p className={`text-sm sm:text-base font-bold font-mono ${balance > 0 ? 'text-green-600' : balance < 0 ? 'text-red-600' : ''}`}>
+                        {balance === 0 ? '0 TL' : balance > 0 ? `${formatMoney(balance)}` : `-${formatMoney(balance)}`}
+                      </p>
+                    )}
                   </div>
                 </div>
                 

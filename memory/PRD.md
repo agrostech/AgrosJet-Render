@@ -92,6 +92,10 @@ N+1 API sorunu: Her entity için ayrı `GET /transactions/{type}/{id}?limit=1` �
 ### Etki
 - API çağrıları: N+1 → 2 (liste + bakiye) = %97 azalma
 - DB sorguları: ~120 → ~2 = %98 azalma
+### Bakiye Geçiş Loading Göstergesi (2026-04-02)
+- Entity geçişlerinde (A kuryeden B kuryeye) eski bakiye gösterilmesi yerine loading spinner eklendi
+- `loadingBalance` state: entity değişince true, fetchTransactions bitince false
+- Etkilenen dosyalar: `useAccountingTab.js`, `CourierTransactions.jsx`, `IsletmelerTab.jsx`, `CarilerTab.jsx`
 ### Dosyalar
 - `services/accounting_service.py` — `calculate_entity_balances_map()` (YENİ)
 - `routers/accounting.py` — `GET /entity-balances` endpoint'i (YENİ)
