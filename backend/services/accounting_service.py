@@ -128,6 +128,39 @@ async def calculate_balance_breakdown(entity_type: str, entity_ids: list) -> dic
     }
 
 
+async def calculate_entity_balances_map(entity_type: str, entity_ids: list) -> dict:
+    """Calculate per-entity balance map in a single aggregation.
+    Returns: { entity_id: balance, ... }
+    """
+    if not entity_ids:
+        return {}
+
+    pipeline = [
+        {"$match": {"entity_type": entity_type, "entity_id": {"$in": entity_ids}}},
+        {"$group": {
+            "_id": "$entity_id",
+            "total_out": {"$sum": {"$cond": [{"$in": ["$type", ["payment_out", "given"]]}, "$amount", 0]}},
+            "total_in": {"$sum": {"$cond": [{"$in": ["$type", ["payment_in", "received"]]}, "$amount", 0]}}
+        }},
+        {"$project": {
+            "_id": 1,
+            "balance": {"$subtract": ["$total_out", "$total_in"]}
+        }}
+    ]
+
+    results = await db.transactions.aggregate(pipeline).to_list(1000)
+    balance_map = {}
+    for r in results:
+        balance_map[r["_id"]] = r.get("balance", 0)
+
+    # Entity'ler için 0 bakiye ekle (işlemi olmayanlar)
+    for eid in entity_ids:
+        if eid not in balance_map:
+            balance_map[eid] = 0
+
+    return balance_map
+
+
 def parse_custom_date(custom_date: str = None) -> str:
     """Parse custom date string or return current UTC time"""
     if custom_date:

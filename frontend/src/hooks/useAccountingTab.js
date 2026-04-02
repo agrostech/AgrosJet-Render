@@ -145,7 +145,20 @@ export function useAccountingTab({
   const displayList = showArchived ? archivedEntities : entities;
   const balancesMap = showArchived ? archivedBalances : entityBalances;
 
-  // Fetch entity balance
+  // Fetch bulk balances via single aggregation endpoint
+  const fetchBulkBalances = useCallback(async (type, isArchived = false) => {
+    try {
+      const balanceType = isArchived ? `${type}_archived` : type;
+      const res = await axios.get(`${API}/companies/${companyId}/entity-balances?type=${balanceType}`);
+      if (isArchived) {
+        setArchivedBalances(res.data.balances || {});
+      } else {
+        setEntityBalances(res.data.balances || {});
+      }
+    } catch (err) { /* ignore - bakiyeler sonra da yüklenebilir */ }
+  }, [companyId]);
+
+  // Fetch entity balance (tek entity için - işlem sonrası güncelleme)
   const fetchEntityBalance = useCallback(async (id, isArchived = false) => {
     try {
       const res = await axios.get(`${API}${endpoint.transactions(id)}?limit=1`);
@@ -157,11 +170,20 @@ export function useAccountingTab({
     } catch (err) { /* ignore */ }
   }, [endpoint]);
 
+  // Entity type -> backend query type mapping
+  const backendType = useMemo(() => {
+    if (entityType === 'business') return 'restaurant';
+    return entityType;
+  }, [entityType]);
+
   // Fetch entities
   const fetchEntities = useCallback(async () => {
     try {
-      const res = await axios.get(`${API}${endpoint.list}`);
-      let data = res.data;
+      const [listRes] = await Promise.all([
+        axios.get(`${API}${endpoint.list}`),
+        fetchBulkBalances(backendType, false)
+      ]);
+      let data = listRes.data;
       
       // Kuryeler için: is_admin_linked olanları filtrele (Cariler'de gösterilecek)
       if (entityType === 'courier') {
@@ -176,16 +198,6 @@ export function useAccountingTab({
       if (sortedData.length > 0 && !selectedEntity) {
         setSelectedEntity(sortedData[0]);
       }
-      // Tüm bakiyeleri paralel olarak çek
-      const balancePromises = sortedData.map(e => 
-        axios.get(`${API}${endpoint.transactions(e.id)}?limit=1`)
-          .then(res => ({ id: e.id, balance: res.data.balance }))
-          .catch(() => ({ id: e.id, balance: 0 }))
-      );
-      const balances = await Promise.all(balancePromises);
-      const balanceMap = {};
-      balances.forEach(b => { balanceMap[b.id] = b.balance; });
-      setEntityBalances(balanceMap);
     } catch (err) {
       if (!err.handled) {
         toast.error("Veriler yüklenemedi");
@@ -193,30 +205,23 @@ export function useAccountingTab({
     } finally {
       setLoading(false);
     }
-  }, [endpoint, selectedEntity]);
+  }, [endpoint, selectedEntity, fetchBulkBalances, backendType, entityType]);
 
   // Fetch archived entities
   const fetchArchivedEntities = useCallback(async () => {
     try {
-      const res = await axios.get(`${API}${endpoint.list}?include_archived=true`);
-      const archived = res.data.filter(e => e.is_archived);
+      const [listRes] = await Promise.all([
+        axios.get(`${API}${endpoint.list}?include_archived=true`),
+        fetchBulkBalances(backendType, true)
+      ]);
+      const archived = listRes.data.filter(e => e.is_archived);
       // Alfabetik sıralama
       const sortedArchived = archived.sort((a, b) => 
         (a.name || '').localeCompare(b.name || '', 'tr')
       );
       setArchivedEntities(sortedArchived);
-      // Tüm arşiv bakiyelerini paralel olarak çek
-      const balancePromises = sortedArchived.map(e => 
-        axios.get(`${API}${endpoint.transactions(e.id)}?limit=1`)
-          .then(res => ({ id: e.id, balance: res.data.balance }))
-          .catch(() => ({ id: e.id, balance: 0 }))
-      );
-      const balances = await Promise.all(balancePromises);
-      const balanceMap = {};
-      balances.forEach(b => { balanceMap[b.id] = b.balance; });
-      setArchivedBalances(balanceMap);
     } catch (err) { /* ignore */ }
-  }, [endpoint]);
+  }, [endpoint, fetchBulkBalances, backendType]);
 
   // Fetch transactions
   const fetchTransactions = useCallback(async (entityId, append = false, currentLength = 0) => {

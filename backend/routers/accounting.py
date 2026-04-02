@@ -21,6 +21,7 @@ from services.accounting_service import (
     get_entity_transactions,
     calculate_total_balance,
     calculate_balance_breakdown,
+    calculate_entity_balances_map,
     parse_custom_date
 )
 from utils.jwt_utils import require_admin, require_auth
@@ -667,6 +668,91 @@ async def get_installment_summary(company_id: str) -> dict:
         "remaining_amount": remaining_amount,
         "product_count": product_count
     }
+
+
+@router.get("/companies/{company_id}/entity-balances")
+async def get_entity_balances(company_id: str, type: str):
+    """Get per-entity balance map in a single aggregation.
+    Returns: { balances: { entity_id: balance, ... } }
+    """
+    if type == "courier":
+        company_couriers = await db.company_couriers.find(
+            {"company_id": company_id},
+            {"_id": 0, "courier_id": 1}
+        ).to_list(1000)
+        junction_ids = [cc["courier_id"] for cc in company_couriers]
+        if junction_ids:
+            entities = await db.couriers.find(
+                {"id": {"$in": junction_ids}, "is_archived": {"$ne": True}, "is_admin_linked": {"$ne": True}},
+                {"_id": 0, "id": 1}
+            ).to_list(1000)
+            entity_ids = [e["id"] for e in entities]
+        else:
+            entity_ids = []
+    elif type == "courier_archived":
+        company_couriers = await db.company_couriers.find(
+            {"company_id": company_id},
+            {"_id": 0, "courier_id": 1}
+        ).to_list(1000)
+        junction_ids = [cc["courier_id"] for cc in company_couriers]
+        if junction_ids:
+            entities = await db.couriers.find(
+                {"id": {"$in": junction_ids}, "is_archived": True, "is_admin_linked": {"$ne": True}},
+                {"_id": 0, "id": 1}
+            ).to_list(1000)
+            entity_ids = [e["id"] for e in entities]
+        else:
+            entity_ids = []
+    elif type == "restaurant":
+        entities = await db.restaurants.find(
+            {"company_id": company_id, "is_archived": {"$ne": True}},
+            {"_id": 0, "id": 1}
+        ).to_list(1000)
+        entity_ids = [e["id"] for e in entities]
+    elif type == "restaurant_archived":
+        entities = await db.restaurants.find(
+            {"company_id": company_id, "is_archived": True},
+            {"_id": 0, "id": 1}
+        ).to_list(1000)
+        entity_ids = [e["id"] for e in entities]
+    elif type == "vendor":
+        entities = await db.vendors.find(
+            {"company_id": company_id, "is_archived": {"$ne": True}},
+            {"_id": 0, "id": 1}
+        ).to_list(1000)
+        entity_ids = [e["id"] for e in entities]
+    elif type == "vendor_archived":
+        entities = await db.vendors.find(
+            {"company_id": company_id, "is_archived": True},
+            {"_id": 0, "id": 1}
+        ).to_list(1000)
+        entity_ids = [e["id"] for e in entities]
+    else:
+        raise HTTPException(status_code=400, detail="Geçersiz tip. courier, restaurant veya vendor olmalı")
+
+    # Vendor için admin-linked kuryeler de dahil edilmeli
+    extra_entity_type = type.replace("_archived", "")
+    if extra_entity_type == "vendor":
+        # Admin-linked kuryeler vendor olarak gösterilir, bakiyeleri courier olarak tutulur
+        admin_linked = await db.couriers.find(
+            {"company_id": company_id, "is_admin_linked": True},
+            {"_id": 0, "id": 1}
+        ).to_list(1000)
+        admin_courier_ids = [c["id"] for c in admin_linked]
+        
+        # Vendor bakiyeleri
+        vendor_balances = await calculate_entity_balances_map("vendor", entity_ids)
+        # Admin-linked kurye bakiyeleri (courier entity_type ile kaydedilmiş)
+        courier_balances = await calculate_entity_balances_map("courier", admin_courier_ids)
+        # admin_courier_ prefix ile birleştir
+        for cid, bal in courier_balances.items():
+            vendor_balances[f"admin_courier_{cid}"] = bal
+        
+        return {"balances": vendor_balances}
+
+    entity_type_for_query = extra_entity_type
+    balances = await calculate_entity_balances_map(entity_type_for_query, entity_ids)
+    return {"balances": balances}
 
 
 # --- Taksitli Ürün (Installment Products) ---
