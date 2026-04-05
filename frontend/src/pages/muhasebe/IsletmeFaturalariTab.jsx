@@ -783,7 +783,7 @@ function AlinanFaturalarContent({ companyId, adminId, adminName, isSuperAdmin })
   const [autoEnabled, setAutoEnabled] = useState(false);
   const [lastAutoRun, setLastAutoRun] = useState(null);
   const [autoSaving, setAutoSaving] = useState(false);
-  const [closingTime, setClosingTime] = useState("02:00");
+  const [closingTime, setClosingTime] = useState("06:00");
   
   // View invoice modal
   const [showViewModal, setShowViewModal] = useState(false);

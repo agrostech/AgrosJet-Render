@@ -97,8 +97,8 @@ async def get_company_work_hours(company_id: str) -> tuple:
         {"_id": 0, "opening_time": 1, "closing_time": 1}
     )
     if not company:
-        return "09:00", "23:00"
-    return company.get("opening_time", "09:00"), company.get("closing_time", "23:00")
+        return "06:00", "06:00"
+    return company.get("opening_time", "06:00"), company.get("closing_time", "06:00")
 
 
 def get_weeks_in_month(year: int, month: int, opening_time: str, closing_time: str) -> List[dict]:

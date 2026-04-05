@@ -74,8 +74,8 @@ export default function RaporFiltre({ companyId, onFilter, loading, defaultPrese
   const [activePreset, setActivePreset] = useState(defaultPreset);
   const [startDateTime, setStartDateTime] = useState("");
   const [endDateTime, setEndDateTime] = useState("");
-  const [opening, setOpening] = useState("09:00");
-  const [closing, setClosing] = useState("23:00");
+  const [opening, setOpening] = useState("06:00");
+  const [closing, setClosing] = useState("06:00");
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -84,8 +84,8 @@ export default function RaporFiltre({ companyId, onFilter, loading, defaultPrese
     axios.get(`${API}/companies/${companyId}`).then((res) => {
       if (cancelled) return;
       const c = res.data;
-      const o = c?.opening_time || "09:00";
-      const cl = c?.closing_time || "23:00";
+      const o = c?.opening_time || "06:00";
+      const cl = c?.closing_time || "06:00";
       setOpening(o);
       setClosing(cl);
 

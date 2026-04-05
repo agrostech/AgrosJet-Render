@@ -50,8 +50,8 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     
-    const openingTime = companyData?.opening_time || "09:00";
-    const closingTime = companyData?.closing_time || "23:00";
+    const openingTime = companyData?.opening_time || "06:00";
+    const closingTime = companyData?.closing_time || "06:00";
     
     // Format: YYYY-MM-DDTHH:MM
     const startDateTime = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}T${openingTime}`;

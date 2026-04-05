@@ -35,7 +35,7 @@ export default function HaftalikHakedisTab({ companyId }) {
   // Week data
   const [weeks, setWeeks] = useState([]);
   const [selectedWeek, setSelectedWeek] = useState(null);
-  const [closingTime, setClosingTime] = useState("22:00");
+  const [closingTime, setClosingTime] = useState("06:00");
   
   // Hakedis data
   const [couriers, setCouriers] = useState([]);

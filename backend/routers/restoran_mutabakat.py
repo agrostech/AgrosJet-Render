@@ -133,8 +133,8 @@ async def get_available_weeks(company_id: str):
         {"_id": 0, "opening_time": 1, "closing_time": 1}
     )
     
-    opening_time = company.get("opening_time", "09:00") if company else "09:00"
-    closing_time = company.get("closing_time", "22:00") if company else "22:00"
+    opening_time = company.get("opening_time", "06:00") if company else "06:00"
+    closing_time = company.get("closing_time", "06:00") if company else "06:00"
     
     weeks = get_weeks_list(opening_time, closing_time)
     

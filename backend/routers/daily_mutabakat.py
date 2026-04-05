@@ -90,10 +90,10 @@ async def get_company_settings(company_id: str):
         {"_id": 0, "opening_time": 1, "closing_time": 1}
     )
     if not company:
-        return {"opening_time": "09:00", "closing_time": "22:00"}
+        return {"opening_time": "06:00", "closing_time": "06:00"}
     return {
-        "opening_time": company.get("opening_time", "09:00"),
-        "closing_time": company.get("closing_time", "22:00")
+        "opening_time": company.get("opening_time", "06:00"),
+        "closing_time": company.get("closing_time", "06:00")
     }
 
 

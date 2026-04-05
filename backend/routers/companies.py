@@ -61,8 +61,8 @@ class CompanyResponse(BaseModel):
     city: Optional[str] = ""
     city_lat: Optional[float] = None
     city_lng: Optional[float] = None
-    opening_time: Optional[str] = "09:00"
-    closing_time: Optional[str] = "22:00"
+    opening_time: Optional[str] = "06:00"
+    closing_time: Optional[str] = "06:00"
     created_at: Optional[datetime] = None
     shift_tolerance_minutes: Optional[int] = 5
     auto_dispatch_settings: Optional[dict] = None
@@ -242,8 +242,8 @@ async def delete_company(company_id: str, auth: dict = Depends(require_auth)):
 
 # --- Working Hours ---
 class WorkingHoursUpdate(BaseModel):
-    opening_time: str = "09:00"
-    closing_time: str = "22:00"
+    opening_time: str = "06:00"
+    closing_time: str = "06:00"
 
 
 @router.get("/companies/{company_id}/working-hours")
@@ -253,8 +253,8 @@ async def get_working_hours(company_id: str, auth: dict = Depends(require_auth))
     if not company:
         raise HTTPException(status_code=404, detail="Şirket bulunamadı")
     return {
-        "opening_time": company.get("opening_time", "09:00"),
-        "closing_time": company.get("closing_time", "22:00")
+        "opening_time": company.get("opening_time", "06:00"),
+        "closing_time": company.get("closing_time", "06:00")
     }
 
 

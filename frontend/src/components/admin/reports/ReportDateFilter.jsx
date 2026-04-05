@@ -19,8 +19,8 @@ function getMonday(d) {
 
 export default function ReportDateFilter({ companyId, onGenerate, loading, onPresetChange }) {
   const [preset, setPreset] = useState("bugun");
-  const [openingTime, setOpeningTime] = useState("09:00");
-  const [closingTime, setClosingTime] = useState("23:00");
+  const [openingTime, setOpeningTime] = useState("06:00");
+  const [closingTime, setClosingTime] = useState("06:00");
   const [manualStart, setManualStart] = useState("");
   const [manualEnd, setManualEnd] = useState("");
   const [ready, setReady] = useState(false);
@@ -31,8 +31,8 @@ export default function ReportDateFilter({ companyId, onGenerate, loading, onPre
     const fetch = async () => {
       try {
         const res = await axios.get(`${API}/companies/${companyId}`);
-        setOpeningTime(res.data?.opening_time || "09:00");
-        setClosingTime(res.data?.closing_time || "23:00");
+        setOpeningTime(res.data?.opening_time || "06:00");
+        setClosingTime(res.data?.closing_time || "06:00");
       } catch {}
       setReady(true);
     };

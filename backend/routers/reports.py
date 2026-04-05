@@ -1351,8 +1351,8 @@ async def get_performance_report(
 
     # Şirket açılış/kapanış saatleri
     company = await db.companies.find_one({"id": company_id}, {"_id": 0, "opening_time": 1, "closing_time": 1})
-    opening_hour = int((company or {}).get("opening_time", "09:00").split(":")[0])
-    closing_hour = int((company or {}).get("closing_time", "23:00").split(":")[0])
+    opening_hour = int((company or {}).get("opening_time", "06:00").split(":")[0])
+    closing_hour = int((company or {}).get("closing_time", "06:00").split(":")[0])
 
     # Saatlik sipariş dağılımı (açılıştan kapanışa)
     hourly_pipeline = [

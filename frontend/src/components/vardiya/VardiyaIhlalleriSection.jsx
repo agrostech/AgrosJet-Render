@@ -41,7 +41,7 @@ const getMonday = (date) => {
   return d;
 };
 
-const getWeekRange = (date, openingTime = "09:00", closingTime = "22:00") => {
+const getWeekRange = (date, openingTime = "06:00", closingTime = "06:00") => {
   const monday = getMonday(date);
   const [oH, oM] = openingTime.split(":").map(Number);
   const [cH, cM] = closingTime.split(":").map(Number);
@@ -56,7 +56,7 @@ const getWeekRange = (date, openingTime = "09:00", closingTime = "22:00") => {
   return { start, end: nextMonday };
 };
 
-const getDayRange = (weekStart, dayIndex, openingTime = "09:00", closingTime = "22:00") => {
+const getDayRange = (weekStart, dayIndex, openingTime = "06:00", closingTime = "06:00") => {
   const [oH, oM] = openingTime.split(":").map(Number);
   const [cH, cM] = closingTime.split(":").map(Number);
   
@@ -155,16 +155,16 @@ export default function VardiyaIhlalleriSection({ companyId, isSuperAdmin }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
-  const [openingTime, setOpeningTime] = useState("09:00");
-  const [closingTime, setClosingTime] = useState("22:00");
+  const [openingTime, setOpeningTime] = useState("06:00");
+  const [closingTime, setClosingTime] = useState("06:00");
   const [weekMonday, setWeekMonday] = useState(() => getMonday(new Date()));
 
   // Fetch company work hours
   useEffect(() => {
     if (!companyId) return;
     axios.get(`${API}/companies/${companyId}/work-hours`).then(res => {
-      setOpeningTime(res.data.opening_time || "09:00");
-      setClosingTime(res.data.closing_time || "22:00");
+      setOpeningTime(res.data.opening_time || "06:00");
+      setClosingTime(res.data.closing_time || "06:00");
     }).catch(() => {});
   }, [companyId]);
 

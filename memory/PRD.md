@@ -101,6 +101,17 @@ N+1 API sorunu: Her entity için ayrı `GET /transactions/{type}/{id}?limit=1` �
 - `routers/accounting.py` — `GET /entity-balances` endpoint'i (YENİ)
 - `hooks/useAccountingTab.js` — `fetchBulkBalances()`, `fetchEntities()`, `fetchArchivedEntities()` güncellendi
 
+## Çalışma Saatleri Standartlaştırma (2026-04-05)
+### Sorun
+- DB'de hiçbir şirkette çalışma saatleri kayıtlı değildi (null)
+- 12+ dosyada tutarsız default'lar: 09:00/22:00, 09:00/23:00, 06:00/06:00 karışık kullanılıyordu
+- Tarih seçiciler yanlış saat aralığı gösteriyordu
+### Fix
+- Railway ve preview DB'lere tüm şirketlere 06:00/06:00 yazıldı
+- Backend: 6 dosyada tüm default'lar 06:00/06:00 olarak standartlaştırıldı (companies.py, weekly_hakedis.py, restoran_mutabakat.py, reports.py, issued_invoices.py, restaurant_invoices.py, restaurant_panel_invoices.py, daily_mutabakat.py)
+- Frontend: 8 dosyada tüm fallback default'ları 06:00/06:00 olarak güncellendi (GecmisSiparislerPage, IptalSiparislerPage, RestaurantIptalSiparisler, RestaurantGecmisSiparisler, RaporFiltre, ReportDateFilter, VardiyaIhlalleriSection, RestoranMutabakatTab, HaftalikHakedisTab, IsletmeFaturalariTab)
+- Tarih mantığı: Başlangıç=bugün+açılış, Bitiş=yarın+kapanış (06:00-06:00 = 24 saat çevrim)
+
 ## Pending Issues
 - (P1) "Neden AgrosJet?" statik metin guncellemesi (Kurye kayit sayfalari) - 4x ertelendi
 - (P2) Webhook setup agrosjet.net ping hatasi
