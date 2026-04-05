@@ -3,7 +3,7 @@ import { useNavigate, Routes, Route, Link, useLocation } from "react-router-dom"
 import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, SlidersHorizontal, ShoppingBag, GraduationCap, User, Building2, Store, ClipboardList, Coins, AlertTriangle, Moon, Sun, BarChart3, FileText, Bell } from "lucide-react";
+import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, SlidersHorizontal, ShoppingBag, GraduationCap, User, Building2, Store, ClipboardList, Coins, AlertTriangle, Moon, Sun, BarChart3, FileText, Bell, Power } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 
 // Page components
@@ -428,6 +428,26 @@ export default function AdminDashboard() {
           
           {/* Bottom section */}
           <div className="p-3 border-t border-white/20 space-y-2">
+            {/* Aktif/Pasif Toggle - sadece bağlı kurye varsa */}
+            {hasLinkedCourier && (
+              <button 
+                onClick={() => {
+                  handleToggleAdminStatus();
+                }}
+                className={`w-full flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-semibold rounded-lg transition-colors ${
+                  adminStatus === 'active' 
+                    ? 'bg-green-500/30 border border-green-400 text-green-300' 
+                    : 'bg-white/10 hover:bg-white/20 text-white/80'
+                }`}
+                data-testid="admin-mobile-active-toggle"
+              >
+                <Power className={`w-4 h-4 ${adminStatus === 'active' ? 'text-green-400' : 'text-white/60'}`} />
+                {adminStatus === 'active' ? 'Aktif' : 'Pasif'}
+                {adminStatus === 'active' && (
+                  <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                )}
+              </button>
+            )}
             <button 
               onClick={toggleTheme}
               className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
