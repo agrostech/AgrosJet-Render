@@ -101,6 +101,20 @@ N+1 API sorunu: Her entity için ayrı `GET /transactions/{type}/{id}?limit=1` �
 - `routers/accounting.py` — `GET /entity-balances` endpoint'i (YENİ)
 - `hooks/useAccountingTab.js` — `fetchBulkBalances()`, `fetchEntities()`, `fetchArchivedEntities()` güncellendi
 
+## Fesih Tarih Seçimi Modalı (2026-04-05)
+### Sorun
+Fesih başlatma butonu direkt bugünden başlatıyordu, tarih seçimi yoktu
+### Fix
+- Backend: `start_termination()` fonksiyonuna opsiyonel `start_date` parametresi eklendi
+- En fazla 15 gün geriye izin, ileri tarih sınırsız
+- Frontend: Onay dialog yerine tarih seçicili modal eklendi (mobil uyumlu)
+- Dinamik hesaplama: Seçilen tarihe göre "X gün kaldı", bitiş tarihi, başlangıç etiketi gösterilir
+### Dosyalar
+- `services/courier_service.py` — `start_termination(start_date)` parametresi
+- `routers/couriers.py` — Body kabul eden endpoint
+- `hooks/useKuryeler.js` — `startTermination(courierId, startDate)` parametresi
+- `pages/admin/KuryelerPage.jsx` — Tarih seçicili fesih modal
+
 ## Çalışma Saatleri Standartlaştırma (2026-04-05)
 ### Sorun
 - DB'de hiçbir şirkette çalışma saatleri kayıtlı değildi (null)

@@ -295,7 +295,7 @@ async def remove_courier_from_company(company_id: str, courier_id: str):
     return {"message": "Kurye şirketten çıkarıldı"}, None
 
 
-async def start_termination(company_id: str, courier_id: str):
+async def start_termination(company_id: str, courier_id: str, start_date: str = None):
     """Start 15-day termination period"""
     # Önce ilişkiyi bul (status kontrolü yapmadan)
     relation = await db.company_couriers.find_one({
@@ -314,13 +314,29 @@ async def start_termination(company_id: str, courier_id: str):
     if relation.get("termination_start_date"):
         return None, "Fesih süreci zaten başlatılmış"
     
-    tomorrow = datetime.now(TURKEY_TZ).replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
-    end_date = tomorrow + timedelta(days=15)
+    now = datetime.now(TURKEY_TZ)
+    
+    if start_date:
+        try:
+            parsed = datetime.fromisoformat(start_date)
+            term_start = TURKEY_TZ.localize(parsed.replace(hour=0, minute=0, second=0, microsecond=0)) if parsed.tzinfo is None else parsed.replace(hour=0, minute=0, second=0, microsecond=0)
+        except (ValueError, TypeError):
+            return None, "Geçersiz tarih formatı"
+        
+        # En fazla 15 gün geriye izin ver
+        today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        diff = (today - term_start).days
+        if diff > 15:
+            return None, "En fazla 15 gün geriye fesih başlatılabilir"
+    else:
+        term_start = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
+    
+    end_date = term_start + timedelta(days=15)
     
     await db.company_couriers.update_one(
         {"company_id": company_id, "courier_id": courier_id},
         {"$set": {
-            "termination_start_date": tomorrow.isoformat(),
+            "termination_start_date": term_start.isoformat(),
             "termination_end_date": end_date.isoformat(),
             "termination_started_at": get_turkey_now()
         }}
@@ -328,7 +344,7 @@ async def start_termination(company_id: str, courier_id: str):
     
     return {
         "message": "Fesih süreci başlatıldı",
-        "start_date": tomorrow.isoformat(),
+        "start_date": term_start.isoformat(),
         "end_date": end_date.isoformat()
     }, None
 

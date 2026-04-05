@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { Switch } from "@/components/ui/switch";
-import { Search, UserPlus, UserCheck, UserX, Wallet, CreditCard, Banknote, Globe, UtensilsCrossed, Clock, Package, Coffee, LayoutGrid, List, Shield } from "lucide-react";
+import { Search, UserPlus, UserCheck, UserX, Wallet, CreditCard, Banknote, Globe, UtensilsCrossed, Clock, Package, Coffee, LayoutGrid, List, Shield, CalendarDays, AlertTriangle } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 
 import { useKuryeler } from "@/hooks/useKuryeler";
@@ -92,6 +92,13 @@ export default function KuryelerPage({ companyId }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmConfig, setConfirmConfig] = useState({ title: "", description: "", onConfirm: () => {} });
   
+  // Fesih Modal State
+  const [showTerminationModal, setShowTerminationModal] = useState(false);
+  const [terminationCourierId, setTerminationCourierId] = useState(null);
+  const [terminationCourierName, setTerminationCourierName] = useState("");
+  const [terminationDate, setTerminationDate] = useState("");
+  const [terminationLoading, setTerminationLoading] = useState(false);
+  
   // Matrix refresh trigger - kurye eklenince/silinince matrix'i de yeniler
   const [matrixRefreshTrigger, setMatrixRefreshTrigger] = useState(0);
 
@@ -129,23 +136,64 @@ export default function KuryelerPage({ companyId }) {
     setConfirmOpen(true);
   };
 
-  const handleStartTermination = async (courierId) => {
-    setConfirmConfig({
-      title: "Fesih Süreci Başlatma",
-      description: "Bu kurye için 15 günlük fesih sürecini başlatmak istediğinize emin misiniz?",
-      onConfirm: async () => {
-        try {
-          await startTermination(courierId);
-        } catch (err) {
-          if (!err.handled) {
-            toast.error(err.response?.data?.detail || "İşlem başarısız");
-          }
-        }
-        setConfirmOpen(false);
-      }
-    });
-    setConfirmOpen(true);
+  const handleStartTermination = (courierId) => {
+    const courier = couriers.find(c => c.id === courierId);
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    setTerminationCourierId(courierId);
+    setTerminationCourierName(courier?.name || "");
+    setTerminationDate(`${yyyy}-${mm}-${dd}`);
+    setShowTerminationModal(true);
   };
+
+  const handleConfirmTermination = async () => {
+    if (!terminationCourierId || !terminationDate) return;
+    setTerminationLoading(true);
+    try {
+      await startTermination(terminationCourierId, terminationDate);
+      setShowTerminationModal(false);
+    } catch (err) {
+      if (!err.handled) {
+        toast.error(err.response?.data?.detail || "İşlem başarısız");
+      }
+    } finally {
+      setTerminationLoading(false);
+    }
+  };
+
+  // Fesih tarih hesaplamaları
+  const terminationCalc = useMemo(() => {
+    if (!terminationDate) return null;
+    const selected = new Date(terminationDate + "T00:00:00");
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const endDate = new Date(selected);
+    endDate.setDate(endDate.getDate() + 15);
+    const diffFromToday = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+    const daysDiff = Math.round((selected - today) / (1000 * 60 * 60 * 24));
+    
+    // Min tarih: 15 gün geriye
+    const minDate = new Date(today);
+    minDate.setDate(minDate.getDate() - 15);
+
+    let label = "";
+    if (daysDiff === 0) label = "Bugünden başlar";
+    else if (daysDiff === -1) label = "Dünden başlar";
+    else if (daysDiff < 0) label = `${Math.abs(daysDiff)} gün önceden başlar`;
+    else if (daysDiff === 1) label = "Yarından başlar";
+    else label = `${daysDiff} gün sonra başlar`;
+
+    return {
+      endDate,
+      remainingDays: Math.max(0, diffFromToday),
+      daysDiff,
+      label,
+      minDateStr: `${minDate.getFullYear()}-${String(minDate.getMonth()+1).padStart(2,'0')}-${String(minDate.getDate()).padStart(2,'0')}`,
+      endDateStr: endDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
+    };
+  }, [terminationDate]);
 
   const handleCancelTermination = async (courierId) => {
     setConfirmConfig({
@@ -579,6 +627,73 @@ export default function KuryelerPage({ companyId }) {
         onConfirm={confirmConfig.onConfirm}
         variant="warning"
       />
+
+      {/* Fesih Tarih Seçimi Modal */}
+      <Dialog open={showTerminationModal} onOpenChange={setShowTerminationModal}>
+        <DialogContent className="max-w-sm max-h-[90vh] overflow-y-auto" data-testid="termination-modal">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <AlertTriangle className="w-5 h-5 text-orange-500" />
+              Fesih Süreci Başlat
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 rounded-lg p-3">
+              <p className="text-sm font-medium text-orange-800 dark:text-orange-300">{terminationCourierName}</p>
+              <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">15 günlük fesih süreci başlatılacak</p>
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium mb-1.5 block">Fesih Başlangıç Tarihi</Label>
+              <Input
+                type="date"
+                value={terminationDate}
+                onChange={(e) => setTerminationDate(e.target.value)}
+                min={terminationCalc?.minDateStr}
+                className="w-full"
+                data-testid="termination-date-input"
+              />
+            </div>
+
+            {terminationCalc && (
+              <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Başlangıç</span>
+                  <span className={`font-medium ${terminationCalc.daysDiff < 0 ? 'text-orange-600' : terminationCalc.daysDiff > 0 ? 'text-blue-600' : 'text-green-600'}`}>
+                    {terminationCalc.label}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Bitiş Tarihi</span>
+                  <span className="font-medium">{terminationCalc.endDateStr}</span>
+                </div>
+                <div className="border-t pt-2 mt-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Kalan Gün</span>
+                    <span className={`text-lg font-bold ${terminationCalc.remainingDays <= 3 ? 'text-red-600' : terminationCalc.remainingDays <= 7 ? 'text-orange-600' : 'text-green-600'}`} data-testid="termination-remaining-days">
+                      {terminationCalc.remainingDays} gün
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setShowTerminationModal(false)} className="w-full sm:w-auto" data-testid="termination-cancel-btn">
+              Vazgeç
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleConfirmTermination} 
+              disabled={terminationLoading || !terminationDate} 
+              className="w-full sm:w-auto"
+              data-testid="termination-confirm-btn"
+            >
+              {terminationLoading ? "Başlatılıyor..." : "Fesih Başlat"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Pricing Modal */}
       <Dialog open={showPricingModal} onOpenChange={setShowPricingModal}>

@@ -103,8 +103,9 @@ export function useKuryeler(companyId) {
     return true;
   };
 
-  const startTermination = async (courierId) => {
-    await axios.post(`${API}/companies/${companyId}/couriers/${courierId}/start-termination`);
+  const startTermination = async (courierId, startDate) => {
+    const body = startDate ? { start_date: startDate } : {};
+    await axios.post(`${API}/companies/${companyId}/couriers/${courierId}/start-termination`, body);
     toast.success("Fesih süreci başlatıldı");
     fetchCouriers();
   };

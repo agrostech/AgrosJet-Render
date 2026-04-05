@@ -255,10 +255,12 @@ async def unarchive_company_courier(
 @router.post("/companies/{company_id}/couriers/{courier_id}/start-termination")
 async def start_termination(
     company_id: str, 
-    courier_id: str
+    courier_id: str,
+    body: dict = None
 ):
     """Start 15-day termination period for a courier"""
-    result, error = await courier_service.start_termination(company_id, courier_id)
+    start_date = (body or {}).get("start_date")
+    result, error = await courier_service.start_termination(company_id, courier_id, start_date)
     if error:
         raise HTTPException(status_code=400 if "başlatılmış" in error else 404, detail=error)
     return result
