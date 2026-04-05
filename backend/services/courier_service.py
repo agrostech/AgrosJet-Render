@@ -319,7 +319,7 @@ async def start_termination(company_id: str, courier_id: str, start_date: str = 
     if start_date:
         try:
             parsed = datetime.fromisoformat(start_date)
-            term_start = TURKEY_TZ.localize(parsed.replace(hour=0, minute=0, second=0, microsecond=0)) if parsed.tzinfo is None else parsed.replace(hour=0, minute=0, second=0, microsecond=0)
+            term_start = parsed.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=TURKEY_TZ)
         except (ValueError, TypeError):
             return None, "Geçersiz tarih formatı"
         
