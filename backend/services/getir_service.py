@@ -27,8 +27,8 @@ logger = logging.getLogger(__name__)
 GETIR_TEST_URL = "https://food-external-api-gateway.development.getirapi.com"
 GETIR_PROD_URL = "https://food-external-api-gateway.getirapi.com"
 
-# Varsayılan olarak test ortamı kullan
-GETIR_BASE_URL = GETIR_TEST_URL
+# Canlı ortam (production) kullan
+GETIR_BASE_URL = GETIR_PROD_URL
 
 # Global AgrosJet App Secret Key (Getir tarafından verilen)
 GETIR_APP_SECRET = "cb8cb6f888eb4fd561d58ca6a1456f49544f1186"
