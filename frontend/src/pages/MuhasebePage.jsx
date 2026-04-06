@@ -50,7 +50,10 @@ export default function MuhasebePage({ companyId, adminId, adminName, companyLog
     if (tab.superAdminOnly) return false;
     const permKey = SUB_PERM_MAP[tab.key];
     if (!permKey) return true;
-    return permissions[permKey] !== false;
+    // Alt izin key'leri DB'de var mı kontrol et
+    const hasAnySubPerm = Object.keys(permissions).some(k => k.startsWith("muhasebe_"));
+    if (!hasAnySubPerm) return true; // Eski admin, alt izin tanımlanmamış → tümünü göster
+    return permissions[permKey] === true; // Alt izin varsa sadece true olanları göster
   });
 
   const FILTERED_TAB_KEYS = FILTERED_TABS.map(t => t.key);

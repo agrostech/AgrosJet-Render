@@ -17,7 +17,10 @@ const SUB_TABS = [
 export default function RaporlarTab({ companyId, isSuperAdmin, companyLogo, companyName, permissions = {} }) {
   const visibleTabs = useMemo(() => {
     if (isSuperAdmin) return SUB_TABS;
-    return SUB_TABS.filter(tab => permissions[tab.permKey] !== false);
+    // Alt izin key'leri DB'de var mı kontrol et
+    const hasAnySubPerm = Object.keys(permissions).some(k => k.startsWith("raporlar_"));
+    if (!hasAnySubPerm) return SUB_TABS; // Eski admin, alt izin tanımlanmamış → tümünü göster
+    return SUB_TABS.filter(tab => permissions[tab.permKey] === true); // Alt izin varsa sadece true olanları göster
   }, [isSuperAdmin, permissions]);
 
   const [activeSubTab, setActiveSubTab] = useState(() => visibleTabs[0]?.key || "kurye");

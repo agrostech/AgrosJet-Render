@@ -511,7 +511,7 @@ class PermissionCheckMiddleware(BaseHTTPMiddleware):
         auth_header = request.headers.get("Authorization", "")
         if auth_header.startswith("Bearer "):
             payload = decode_token(auth_header[7:])
-            if payload and payload.get("role") in ("admin", "superadmin"):
+            if payload and payload.get("role") in ("admin", "superadmin", "systemadmin"):
                 admin_id = payload.get("sub")
                 if admin_id and check_and_clear(admin_id):
                     response.headers["X-Permissions-Updated"] = "true"
