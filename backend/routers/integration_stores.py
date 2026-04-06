@@ -50,8 +50,8 @@ async def test_migros_connection(credentials: dict) -> dict:
     try:
         service = MigrosYemekService(
             api_key=credentials.get("api_key", ""),
-            secret_key=credentials.get("secret_key", ""),
-            is_test=credentials.get("is_test", True)
+            secret_key=MIGROS_TEST_SECRET,
+            is_test=False
         )
         result = await service.test_connection()
         if result.get("success"):
@@ -62,26 +62,23 @@ async def test_migros_connection(credentials: dict) -> dict:
         return {"success": False, "error": str(e)}
 
 
+from routers.migros import MIGROS_TEST_SECRET
+
 async def update_migros_store_status(store: dict, is_open: bool, store_off_option: str = None) -> dict:
     """Migros mağaza açık/kapalı durumunu güncelle (AddStoreOffDate / RemoveStoreOffDate)"""
     try:
         creds = store.get("credentials", {})
         api_key = creds.get("api_key")
-        secret_key = creds.get("secret_key")
         store_id = creds.get("store_id")
         store_group_id = creds.get("store_group_id")
         
-        is_test = creds.get("is_test", True)
-        if isinstance(is_test, str):
-            is_test = is_test.lower() not in ("false", "0", "no", "")
-        
-        if not all([api_key, secret_key, store_id, store_group_id]):
-            return {"success": False, "error": "Migros credentials eksik (api_key, secret_key, store_id, store_group_id)"}
+        if not all([api_key, store_id, store_group_id]):
+            return {"success": False, "error": "Migros credentials eksik (api_key, store_id, store_group_id)"}
         
         service = MigrosYemekService(
             api_key=api_key,
-            secret_key=secret_key,
-            is_test=bool(is_test)
+            secret_key=MIGROS_TEST_SECRET,
+            is_test=False
         )
         
         if is_open:
