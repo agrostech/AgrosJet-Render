@@ -89,7 +89,6 @@ const PLATFORM_CONFIG = {
     bgLightClass: "bg-purple-100",
     textClass: "text-purple-600",
     fields: [
-      { key: "app_secret_key", label: "App Secret Key", type: "password", required: true, placeholder: "f00ab688e4330f67..." },
       { key: "restaurant_secret_key", label: "Restaurant Secret Key", type: "password", required: true, placeholder: "a04f73c8e4caf7f5..." },
       { key: "restaurant_id", label: "Getir Restaurant ID", type: "text", required: false, placeholder: "699817751a105bfd0b93ef38", description: "Getir tarafından verilen restoran ID (opsiyonel)" }
     ],

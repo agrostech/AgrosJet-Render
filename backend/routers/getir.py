@@ -41,7 +41,8 @@ from services.getir_service import (
     inactivate_option,
     get_option_products,
     GETIR_CANCEL_REASONS,
-    GETIR_PAYMENT_METHODS
+    GETIR_PAYMENT_METHODS,
+    GETIR_APP_SECRET
 )
 
 logger = logging.getLogger(__name__)
@@ -437,10 +438,10 @@ async def get_pos_status(restaurant_id: str):
         raise HTTPException(status_code=404, detail="Restoran bulunamadı")
     
     integration = restaurant.get("platform_integrations", {}).get("getir", {})
-    app_secret = integration.get("app_secret_key")
+    app_secret = GETIR_APP_SECRET
     restaurant_secret = integration.get("restaurant_secret_key")
     
-    if not app_secret or not restaurant_secret:
+    if not restaurant_secret:
         raise HTTPException(status_code=400, detail="Getir API bilgileri eksik")
     
     result = await check_pos_status(app_secret, restaurant_secret)
@@ -459,10 +460,10 @@ async def activate_pos(restaurant_id: str):
         raise HTTPException(status_code=404, detail="Restoran bulunamadı")
     
     integration = restaurant.get("platform_integrations", {}).get("getir", {})
-    app_secret = integration.get("app_secret_key")
+    app_secret = GETIR_APP_SECRET
     restaurant_secret = integration.get("restaurant_secret_key")
     
-    if not app_secret or not restaurant_secret:
+    if not restaurant_secret:
         raise HTTPException(status_code=400, detail="Getir API bilgileri eksik")
     
     result = await activate_pos_status(app_secret, restaurant_secret)

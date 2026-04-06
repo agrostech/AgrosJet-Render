@@ -30,6 +30,9 @@ GETIR_PROD_URL = "https://food-external-api-gateway.getirapi.com"
 # Varsayılan olarak test ortamı kullan
 GETIR_BASE_URL = GETIR_TEST_URL
 
+# Global AgrosJet App Secret Key (Getir tarafından verilen)
+GETIR_APP_SECRET = "cb8cb6f888eb4fd561d58ca6a1456f49544f1186"
+
 # Ödeme yöntemleri mapping'i (Getir API docs'tan)
 GETIR_PAYMENT_METHODS = {
     1: {"name": "MasterPass", "type": "online"},
@@ -105,10 +108,10 @@ async def get_getir_token(restaurant: dict) -> Optional[str]:
             pass
     
     # Yeni token al
-    app_secret = integration.get("app_secret_key")
+    app_secret = GETIR_APP_SECRET
     restaurant_secret = integration.get("restaurant_secret_key")
     
-    if not app_secret or not restaurant_secret:
+    if not restaurant_secret:
         logger.warning(f"Getir credentials eksik: restaurant={restaurant.get('id')}")
         return None
     
@@ -224,11 +227,11 @@ async def test_getir_connection(restaurant_id: str, activate_pos: bool = True) -
         return {"success": False, "error": "Restoran bulunamadı"}
     
     integration = restaurant.get("platform_integrations", {}).get("getir", {})
-    app_secret = integration.get("app_secret_key")
+    app_secret = GETIR_APP_SECRET
     restaurant_secret = integration.get("restaurant_secret_key")
     
-    if not app_secret or not restaurant_secret:
-        return {"success": False, "error": "Getir API bilgileri eksik (App Secret Key ve Restaurant Secret Key gerekli)"}
+    if not restaurant_secret:
+        return {"success": False, "error": "Getir API bilgileri eksik (Restaurant Secret Key gerekli)"}
     
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:
