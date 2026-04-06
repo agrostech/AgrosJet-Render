@@ -556,6 +556,7 @@ async def get_courier_payment_report(
             "_id": 0,
             "order_no": 1,
             "order_number": 1,
+            "restaurant_id": 1,
             "restaurant_name": 1,
             "restaurant_location": 1,
             "customer_name": 1,
@@ -567,6 +568,22 @@ async def get_courier_payment_report(
             "created_at": 1
         }
     ).sort("created_at", -1).to_list(500)
+    
+    # Restoranların tahsilat ayarlarını çek
+    restaurant_ids = list(set(o.get("restaurant_id") for o in orders if o.get("restaurant_id")))
+    restaurant_collection_map = {}
+    if restaurant_ids:
+        rest_cursor = db.restaurants.find(
+            {"id": {"$in": restaurant_ids}},
+            {"_id": 0, "id": 1, "collection_settings": 1}
+        )
+        async for r in rest_cursor:
+            cs = r.get("collection_settings", {})
+            restaurant_collection_map[r["id"]] = {
+                "cash": cs.get("cash_collection", "courier") == "courier",
+                "card": cs.get("card_collection", "courier") == "courier",
+                "meal_card": cs.get("meal_card_collection", "courier") == "courier",
+            }
     
     # Nakit, kart, yemek kartı ve online siparişlerini ayır
     cash_orders = []
@@ -602,31 +619,35 @@ async def get_courier_payment_report(
         payment_details = order.get("payment_details") or {}
         payment_method = order.get("payment_method", "")
         
+        # Restoran tahsilat ayarlarını kontrol et
+        rest_id = order.get("restaurant_id")
+        collection = restaurant_collection_map.get(rest_id, {"cash": True, "card": True, "meal_card": True})
+        
         cash_amt = payment_details.get("cash_amount", 0) or 0
         card_amt = payment_details.get("card_amount", 0) or 0
         
         if payment_method == "mixed" or (cash_amt > 0 and card_amt > 0):
-            # Parçalı ödeme - her iki listeye de ekle
-            if cash_amt > 0:
+            # Parçalı ödeme - sadece kurye tahsilatlı olanları ekle
+            if cash_amt > 0 and collection["cash"]:
                 cash_order = {**base_order_data, "amount": cash_amt, "is_split": True}
                 cash_orders.append(cash_order)
                 cash_total += cash_amt
             
-            if card_amt > 0:
+            if card_amt > 0 and collection["card"]:
                 card_order = {**base_order_data, "amount": card_amt, "is_split": True}
                 card_orders.append(card_order)
                 card_total += card_amt
-        elif payment_method == "cash":
+        elif payment_method == "cash" and collection["cash"]:
             is_modified = payment_details.get("original_method") and payment_details.get("original_method") != "cash"
             order_data = {**base_order_data, "amount": order.get("total_amount", 0), "is_modified": is_modified}
             cash_orders.append(order_data)
             cash_total += order.get("total_amount", 0) or 0
-        elif payment_method == "card":
+        elif payment_method == "card" and collection["card"]:
             is_modified = payment_details.get("original_method") and payment_details.get("original_method") != "card"
             order_data = {**base_order_data, "amount": order.get("total_amount", 0), "is_modified": is_modified}
             card_orders.append(order_data)
             card_total += order.get("total_amount", 0) or 0
-        elif payment_method == "meal_card":
+        elif payment_method == "meal_card" and collection["meal_card"]:
             is_modified = payment_details.get("original_method") and payment_details.get("original_method") != "meal_card"
             order_data = {**base_order_data, "amount": order.get("total_amount", 0), "is_modified": is_modified}
             meal_card_orders.append(order_data)
