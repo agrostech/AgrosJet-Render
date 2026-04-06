@@ -476,8 +476,12 @@ async def create_package(
     # Adres açıklamasını ayrı alana kaydet (görüntülenmeyecek)
     address_description = request.order.address.description or ""
     
-    # Hazırlık süresini hesapla
-    prep_time = request.order.preparation_time or restaurant.get("preparation_time") or 20
+    # Hazırlık süresini hesapla - ürün bazlı süreleri de dikkate al
+    if request.order.preparation_time:
+        prep_time = request.order.preparation_time
+    else:
+        from routers.orders import calculate_preparation_time_async
+        prep_time = await calculate_preparation_time_async(restaurant.get("id"), items)
     now = datetime.now(TURKEY_TZ)
     prep_end = now + timedelta(minutes=prep_time)
     
