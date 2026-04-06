@@ -41,76 +41,45 @@ Multi-panel delivery management system (Admin, Restaurant, Courier) with integra
 - Performansim, Ihlallerim tabs, UTC/Turkey timezone fix
 
 ### Permission System Fix (2026-04-01)
-- Extended valid_keys: raporlar, basvurular, siparis_gecmis, siparis_iptal + muhasebe/raporlar sub-permissions
-- 5sn polling removed -> Event-driven: PermissionCheckMiddleware + X-Permissions-Updated header + Axios interceptor
+- Extended valid_keys + Event-driven permission updates
 
 ### R2 Logo Direct Streaming (2026-03-31)
-- Presigned URL redirects replaced with direct byte streaming to fix disappearing logos
+- Presigned URL redirects replaced with direct byte streaming
 
 ### Mobile Responsive Fixes
-- CourierCards button overflow fix (2026-03-31)
-- Vardiyalar tab mobile rewrite (2026-03-31)
-- Muhasebe tabs mobile card views (2026-04-01)
+- CourierCards, Vardiyalar tab, Muhasebe tabs mobile card views
 
-### Load Test System (2026-03-30)
-- Built-in load tester in System Admin panel, dynamic port resolution for Railway
+### Muhasebe Bakiye Performans Optimizasyonu (2026-04-02)
+- N+1 API → bulk entity-balances endpoint (%97 azalma)
 
-### Native App JWT Bypass (2026-03-29)
-- courier_native.py for background location updates without JWT
+### Fesih Tarih Seçimi Modalı (2026-04-05)
+- Retroactive date selection for courier termination
 
-### Polling Optimization (2026-03-29)
-- 4 requests -> 1 combined /poll endpoint per courier (75% reduction)
+### Çalışma Saatleri Standartlaştırma (2026-04-05)
+- All defaults standardized to 06:00/06:00
 
-### Admin Panel Fixes
-- Kurye Liste/Matrix sync fix, Turkish character fixes, AgrosAI Rota branding
-- PDF export using logo_light, Dummy orders for Test Firma
+### Kademeli Ücretlendirme Fix (2026-04-06)
+- Tiered pricing courier_fee preserved on delivery
 
-## Muhasebe Mobile UI Refactoring (2026-04-01)
-### Files Modified
-1. **GunlukMutabakatTab.jsx** - CRITICAL BUG FIX: Mobile card view had wrong variable/function references
-2. **RestoranMutabakatTab.jsx** - Mobile card view verified OK
-3. **YoneticiMutabakatTab.jsx** - Mobile card view verified OK
-4. **KesilenFaturalarTab.jsx** - Mobile card view verified OK
-5. **HaftalikHakedisTab.jsx** - Uses HakedisTable component
-6. **HakedisTable.jsx** (component) - NEW mobile card view added
+### OrderDetailModal Beyaz Ekran Fix (2026-04-06)
+- `paymentLabel` ReferenceError in separate `OrderDetails` component → fixed by computing inside component
 
-## Muhasebe Bakiye Performans Optimizasyonu (2026-04-02)
-- N+1 API sorunu çözüldü: Tek `entity-balances` endpoint ile tüm bakiyeler
-- API çağrıları: N+1 → 2 = %97 azalma
-- Bakiye geçiş loading göstergesi eklendi
-
-## Fesih Tarih Seçimi Modalı (2026-04-05)
-- Backend: `start_termination()` fonksiyonuna opsiyonel `start_date` parametresi
-- Frontend: Tarih seçicili fesih modal eklendi
-
-## Çalışma Saatleri Standartlaştırma (2026-04-05)
-- Tüm default'lar 06:00/06:00 olarak standartlaştırıldı
-
-## Kademeli Ücretlendirme Fix (2026-04-06)
-- Teslimatta courier_fee'nin 0₺'ye sıfırlanması engellendi (tiered pricing korunuyor)
-
-## OrderDetailModal Beyaz Ekran Fix (2026-04-06)
-- **Sorun**: `paymentLabel` değişkeni `OrderDetailModal` içinde hesaplanıyordu ama ayrı fonksiyon olan `OrderDetails` bileşenine prop olarak geçirilmemişti. `OrderDetails` içinde `paymentLabel` referansı ReferenceError fırlatarak React crash'e (beyaz ekran) neden oluyordu.
-- **Fix**: `paymentLabel` hesaplaması `OrderDetails` bileşeninin içine taşındı (mevcut `order` ve `paymentInfo` prop'larından türetiliyor)
-- **Dosya**: `components/restoran/OrderDetailModal.jsx`
+### Restoran Ürünler Yetki Fix (2026-04-06)
+- **Sorun**: `products.py` router'ı `require_admin` ile korunuyordu → restoran kullanıcıları ürün ekleyemiyor ve göremiyordu
+- **Fix**: Router dependency `require_admin` → `require_auth` olarak değiştirildi
+- Restoran kullanıcıları artık kendi ürünlerini görüntüleyebilir, ekleyebilir, düzenleyebilir ve silebilir
 
 ## Pending Issues
-- (P1) "Neden AgrosJet?" statik metin guncellemesi (Kurye kayit sayfalari) - 5x ertelendi
-- (P2) Webhook setup agrosjet.net ping hatasi
+- (P1) "Neden AgrosJet?" statik metin güncellemesi (Kurye kayıt sayfaları) - 5x ertelendi
+- (P2) Webhook setup agrosjet.net ping hatası
 
 ## Upcoming Tasks
 - (P1) Migros "Reject" Fonksiyonelliği
 - (P1) VatanSMS Entegrasyonu
 - (P2) Native Courier App - Harita/Proximity Engine
 - (P2) Yemeksepeti Chrome Extension
-- (P2) "Stop Count" kapasite mantigi
+- (P2) "Stop Count" kapasite mantığı
 - (P2) Caller ID entegrasyonu
-
-## Key Files
-- `/app/backend/utils/jwt_utils.py` - JWT token creation, validation
-- `/app/backend/routers/auth.py` - Login endpoints + token generation
-- `/app/backend/server.py` - PermissionCheckMiddleware
-- `/app/frontend/src/components/restoran/OrderDetailModal.jsx` - Order detail modal (fixed)
 
 ## Credentials
 - System Admin: `onurertas` / `Delivery32..`
