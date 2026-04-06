@@ -595,6 +595,16 @@ async def get_courier_payment_report(
     meal_card_total = 0
     online_total = 0
     
+    PAYMENT_LABELS = {
+        "cash": "Nakit",
+        "card": "Kredi Kartı",
+        "meal_card": "Yemek Kartı",
+        "online": "Online",
+        "online_meal_card": "Online Yemek Kartı",
+        "mixed": "Parçalı"
+    }
+    modified_orders = []
+    
     for order in orders:
         # Mesafe hesapla
         distance = None
@@ -618,6 +628,21 @@ async def get_courier_payment_report(
         # Parçalı ödeme kontrolü
         payment_details = order.get("payment_details") or {}
         payment_method = order.get("payment_method", "")
+        original_method = payment_details.get("original_method")
+        
+        # Değiştirilen ödeme yöntemini kaydet
+        is_modified = original_method and original_method != payment_method
+        if is_modified:
+            modified_orders.append({
+                "order_no": base_order_data["order_no"],
+                "restaurant": base_order_data["restaurant"],
+                "customer": base_order_data["customer"],
+                "date": base_order_data["date"],
+                "amount": order.get("total_amount", 0),
+                "original_method": PAYMENT_LABELS.get(original_method, original_method),
+                "current_method": PAYMENT_LABELS.get(payment_method, payment_method),
+                "changed_by": payment_details.get("changed_by", "-"),
+            })
         
         # Restoran tahsilat ayarlarını kontrol et
         rest_id = order.get("restaurant_id")
@@ -666,7 +691,8 @@ async def get_courier_payment_report(
         "cash_orders": cash_orders,
         "card_orders": card_orders,
         "meal_card_orders": meal_card_orders,
-        "online_orders": online_orders
+        "online_orders": online_orders,
+        "modified_orders": modified_orders
     }
 
 

@@ -17,7 +17,9 @@ import {
   Banknote,
   CreditCard,
   AlertCircle,
-  Users
+  Users,
+  ArrowRight,
+  RefreshCw
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -895,6 +897,72 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                 <p className="text-sm text-muted-foreground text-center py-4">
                   Bu tarihte sipariş bulunamadı
                 </p>
+              )}
+
+              {/* Değiştirilen Ödemeler */}
+              {courierOrders.modified_orders?.length > 0 && (
+                <Card className="border-amber-200 overflow-hidden">
+                  <CardContent className="p-0">
+                    <div className="bg-amber-50 p-4 flex items-center gap-3 border-b border-amber-200">
+                      <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+                        <RefreshCw className="w-5 h-5 text-amber-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-amber-600 font-medium">
+                          Değiştirilen Ödemeler ({courierOrders.modified_orders.length} sipariş)
+                        </p>
+                      </div>
+                    </div>
+                    <div className="p-3 max-h-64 overflow-y-auto">
+                      {/* Desktop tablo */}
+                      <table className="w-full text-xs hidden sm:table">
+                        <thead>
+                          <tr className="border-b text-left text-amber-600">
+                            <th className="pb-2 pr-2">Sipariş</th>
+                            <th className="pb-2 pr-2">Restoran</th>
+                            <th className="pb-2 pr-2">Müşteri</th>
+                            <th className="pb-2 pr-2">Tutar</th>
+                            <th className="pb-2 text-right">Değişiklik</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {courierOrders.modified_orders.map((order, idx) => (
+                            <tr key={idx} className="border-b border-amber-100 last:border-0">
+                              <td className="py-1.5 pr-2 font-medium whitespace-nowrap">{order.order_no}</td>
+                              <td className="py-1.5 pr-2 truncate max-w-[100px]" title={order.restaurant}>{order.restaurant}</td>
+                              <td className="py-1.5 pr-2 truncate max-w-[80px]" title={order.customer}>{order.customer}</td>
+                              <td className="py-1.5 pr-2 font-medium">{formatMoney(order.amount)}</td>
+                              <td className="py-1.5 text-right">
+                                <span className="inline-flex items-center gap-1 text-xs">
+                                  <span className="text-red-500 line-through">{order.original_method}</span>
+                                  <ArrowRight className="w-3 h-3 text-gray-400" />
+                                  <span className="text-green-600 font-medium">{order.current_method}</span>
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {/* Mobil kart görünümü */}
+                      <div className="sm:hidden space-y-2">
+                        {courierOrders.modified_orders.map((order, idx) => (
+                          <div key={idx} className="bg-amber-50/50 rounded-lg p-3 border border-amber-100">
+                            <div className="flex justify-between items-start mb-1.5">
+                              <span className="text-xs font-bold text-gray-800">{order.order_no}</span>
+                              <span className="text-xs font-semibold">{formatMoney(order.amount)}</span>
+                            </div>
+                            <p className="text-xs text-gray-500 truncate">{order.restaurant} - {order.customer}</p>
+                            <div className="mt-2 flex items-center gap-1.5 text-xs">
+                              <span className="text-red-500 line-through bg-red-50 px-1.5 py-0.5 rounded">{order.original_method}</span>
+                              <ArrowRight className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                              <span className="text-green-600 font-medium bg-green-50 px-1.5 py-0.5 rounded">{order.current_method}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               )}
             </div>
           ) : (
