@@ -40,9 +40,9 @@ from services.getir_service import (
 from services.yemeksepeti_service import test_yemeksepeti_connection
 from services.adisyo_service import test_adisyo_connection
 from services.migros_service import MigrosYemekService
-from utils.jwt_utils import require_admin
+from utils.jwt_utils import require_auth
 
-router = APIRouter(prefix="/api/integration-stores", tags=["Entegrasyon Mağazaları"], dependencies=[Depends(require_admin)])
+router = APIRouter(prefix="/api/integration-stores", tags=["Entegrasyon Mağazaları"], dependencies=[Depends(require_auth)])
 
 
 async def test_migros_connection(credentials: dict) -> dict:
