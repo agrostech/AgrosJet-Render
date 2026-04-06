@@ -648,6 +648,23 @@ export default function IntegrationStoresManager({ restaurantId }) {
                           Düzenle
                         </Button>
 
+                        {store.credentials && Object.values(store.credentials).some(v => v) && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleTest(store.id)}
+                            disabled={testing[store.id]}
+                            data-testid={`test-store-${store.id}`}
+                          >
+                            {testing[store.id] ? (
+                              <RefreshCw className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Link2 className="w-4 h-4" />
+                            )}
+                            <span className="ml-1">Test</span>
+                          </Button>
+                        )}
+
                         <Button
                           size="sm"
                           variant="outline"
