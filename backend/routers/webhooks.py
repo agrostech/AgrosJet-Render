@@ -900,10 +900,21 @@ async def migros_order_webhook(
                         break
             
             if migros_config.get("api_key"):
+                # is_test boolean olarak handle et (corrupt veri olabilir)
+                is_test = migros_config.get("is_test", False)
+                if isinstance(is_test, str):
+                    is_test = is_test.lower() in ("true", "1", "yes")
+                is_test = bool(is_test)
+                
+                # Test ortamında restoranın kendi secret_key'ini, prod'da global key'i kullan
+                secret_key = migros_config.get("secret_key") if is_test and migros_config.get("secret_key") else MIGROS_SECRET_KEY
+                
+                logger.info(f"Migros otomatik onay: api_key={migros_config['api_key'][:10]}..., is_test={is_test}")
+                
                 service = MigrosYemekService(
                     api_key=migros_config["api_key"],
-                    secret_key=MIGROS_SECRET_KEY,
-                    is_test=False
+                    secret_key=secret_key,
+                    is_test=is_test
                 )
                 
                 # Migros'a "Approved" gönder

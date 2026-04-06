@@ -16,30 +16,41 @@ Multi-panel delivery management system (Admin, Restaurant, Courier) with integra
 
 ## What's Been Implemented
 
-### Recent Fixes (2026-04-06)
-- **OrderDetailModal Beyaz Ekran Fix**: `paymentLabel` ReferenceError → hesaplama OrderDetails bileşenine taşındı
-- **Restoran Ürünler Yetki Fix**: `products.py` router `require_admin` → `require_auth` (restoran kullanıcıları ürün CRUD yapabiliyor)
-- **Performans Raporu UTC Fix**: `$hour` operatörüne `timezone: "+03:00"` eklendi, saatlik dağılım grafiği doğru Türkiye saatini gösteriyor
+### Recent Fixes (2026-04-07)
+- **Migros Webhook Auto-Approve Fix**: `is_test` artik DB'den okunuyor (hardcoded False degildi), test ortaminda restoranin kendi `secret_key`'i kullaniliyor. Onceki hata: test api_key production URL'e gonderiliyordu → "Api key not found"
+
+### Previous Fixes (2026-04-06)
+- **OrderDetailModal Beyaz Ekran Fix**: `paymentLabel` ReferenceError
+- **Restoran Urunler Yetki Fix**: `products.py` router `require_admin` → `require_auth`
+- **Performans Raporu UTC Fix**: `$hour` timezone "+03:00"
+- **Sepettakip DTMF ve Hazirlık Suresi Fix**
+- **Migros/Getir Global Secret Key Refactoring**
+- **Restoran Integration Stores/Reports 403 Fix**
+- **KDV dahil kar/zarar raporu**
+- **Kurye Mutabakat collection_settings filtresi**
+- **Degistirilen Odemeler UI**
 
 ### Previous Work
-- Kademeli ücretlendirme fix (tiered pricing courier_fee korunuyor)
-- Fesih tarih seçimi modalı (retroactive termination)
-- Çalışma saatleri standardizasyonu (06:00)
+- Kademeli ucretlendirme fix (tiered pricing courier_fee korunuyor)
+- Fesih tarih secimi modali (retroactive termination)
+- Calisma saatleri standardizasyonu (06:00)
 - Muhasebe bulk balance API (%97 azalma)
 - Mobile responsive fixes
 - JWT Auth + Permission system
 - R2 logo streaming
 
 ## Pending Issues
-- (P1) "Neden AgrosJet?" statik metin güncellemesi - 5x ertelendi
-- (P2) Webhook setup agrosjet.net ping hatası
+- (P1) Admin Permissions UI Bug - Alt izinler alt sekmeleri gizlemiyor
+- (P1) Tiered Pricing Calculation - Sadece assigned+confirmed sayilmali, on_the_way haric
+- (P1) "Neden AgrosJet?" statik metin guncellemesi - 6x ertelendi
+- (P2) Webhook setup agrosjet.net ping hatasi
 
 ## Upcoming Tasks
 - (P1) Migros "Reject" Fonksiyonelliği
 - (P1) VatanSMS Entegrasyonu
 - (P2) Native Courier App - Harita/Proximity Engine
 - (P2) Yemeksepeti Chrome Extension
-- (P2) "Stop Count" kapasite mantığı
+- (P2) "Stop Count" kapasite mantigi
 - (P2) Caller ID entegrasyonu
 
 ## Credentials

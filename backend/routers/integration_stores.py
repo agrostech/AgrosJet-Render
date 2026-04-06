@@ -48,10 +48,17 @@ router = APIRouter(prefix="/api/integration-stores", tags=["Entegrasyon Mağazal
 async def test_migros_connection(credentials: dict) -> dict:
     """Migros Yemek bağlantısını test et"""
     try:
+        is_test = credentials.get("is_test", False)
+        if isinstance(is_test, str):
+            is_test = is_test.lower() in ("true", "1", "yes")
+        is_test = bool(is_test)
+        # Test ortamında restoranın secret_key'i, prod'da global key
+        secret_key = credentials.get("secret_key") if is_test and credentials.get("secret_key") else MIGROS_TEST_SECRET
+        
         service = MigrosYemekService(
             api_key=credentials.get("api_key", ""),
-            secret_key=MIGROS_TEST_SECRET,
-            is_test=False
+            secret_key=secret_key,
+            is_test=is_test
         )
         result = await service.test_connection()
         if result.get("success"):
@@ -75,10 +82,18 @@ async def update_migros_store_status(store: dict, is_open: bool, store_off_optio
         if not all([api_key, store_id, store_group_id]):
             return {"success": False, "error": "Migros credentials eksik (api_key, store_id, store_group_id)"}
         
+        # is_test boolean olarak handle et
+        is_test = creds.get("is_test", False)
+        if isinstance(is_test, str):
+            is_test = is_test.lower() in ("true", "1", "yes")
+        is_test = bool(is_test)
+        # Test ortamında restoranın secret_key'i, prod'da global key
+        secret_key = creds.get("secret_key") if is_test and creds.get("secret_key") else MIGROS_TEST_SECRET
+        
         service = MigrosYemekService(
             api_key=api_key,
-            secret_key=MIGROS_TEST_SECRET,
-            is_test=False
+            secret_key=secret_key,
+            is_test=is_test
         )
         
         if is_open:
