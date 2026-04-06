@@ -27,11 +27,24 @@ router = APIRouter(prefix="/api/sepettakip", tags=["SepetTakip"])
 logger = logging.getLogger(__name__)
 
 def clean_sepettakip_phone(phone: str) -> str:
-    """Telefon numarasını temizle ve DTMF formatına çevir (Trendyol/Getir '-' ayırıcısı -> ',,')"""
+    """Telefon numarasını temizle ve DTMF formatına çevir"""
     if not phone:
         return phone
-    clean = phone.replace(" ", "")
-    clean = clean.replace("-", ",,")
+    clean = phone.replace(" ", "").replace("(", "").replace(")", "")
+    # +90 prefix temizle
+    if clean.startswith("+90"):
+        clean = "0" + clean[3:]
+    # 90 prefix temizle (905xx → 05xx)
+    elif clean.startswith("90") and len(clean) >= 12:
+        clean = "0" + clean[2:]
+    # Getir: "/" varsa DTMF ayırıcı, "-" numara içi formatlama
+    if "/" in clean:
+        clean = clean.replace("-", "")
+        clean = clean.replace("/", ",,")
+    else:
+        # Trendyol: "-" DTMF ayırıcı
+        clean = clean.replace("-", ",,")
+    # 5xx ile başlıyorsa başına 0 ekle
     if clean.startswith("5") and len(clean) == 10:
         clean = "0" + clean
     return clean
