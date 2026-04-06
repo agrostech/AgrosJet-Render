@@ -1134,15 +1134,20 @@ async def calculate_order_fees(order: dict) -> dict:
     if courier_id:
         courier = await db.couriers.find_one(
             {"id": courier_id}, 
-            {"_id": 0, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1}
+            {"_id": 0, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1, "tier_prices": 1}
         )
         if courier:
-            courier_fee = calculate_fee_from_pricing(
-                courier.get("pricing_type", "per_package"),
-                courier.get("per_package_price", 0),
-                courier.get("km_ranges", []),
-                distance_km
-            )
+            pricing_type = courier.get("pricing_type", "per_package")
+            if pricing_type == "tiered":
+                # Kademeli: atamada hesaplanan courier_fee'yi koru
+                courier_fee = order.get("courier_fee", 0) or 0
+            else:
+                courier_fee = calculate_fee_from_pricing(
+                    pricing_type,
+                    courier.get("per_package_price", 0),
+                    courier.get("km_ranges", []),
+                    distance_km
+                )
     
     # Restoran ücret hesaplama
     restaurant_id = order.get("restaurant_id")
