@@ -26,6 +26,17 @@ TURKEY_TZ = timezone(timedelta(hours=3))
 router = APIRouter(prefix="/api/sepettakip", tags=["SepetTakip"])
 logger = logging.getLogger(__name__)
 
+def clean_sepettakip_phone(phone: str) -> str:
+    """Telefon numarasını temizle ve DTMF formatına çevir (Trendyol/Getir '-' ayırıcısı -> ',,')"""
+    if not phone:
+        return phone
+    clean = phone.replace(" ", "")
+    clean = clean.replace("-", ",,")
+    if clean.startswith("5") and len(clean) == 10:
+        clean = "0" + clean
+    return clean
+
+
 from services.integration_log_service import save_integration_log as _db_log
 
 class _IntLogger:
@@ -513,7 +524,7 @@ async def create_package(
             "longitude": restaurant.get("longitude")
         },
         "customer_name": request.order.customer.full_name,
-        "customer_phone": request.order.customer.phone_number,
+        "customer_phone": clean_sepettakip_phone(request.order.customer.phone_number),
         "delivery_address": full_address,
         "delivery_location": {
             "latitude": delivery_lat,
