@@ -235,8 +235,26 @@ async def test_getir_connection(restaurant_id: str, activate_pos: bool = True) -
     
     try:
         logger.info(f"Getir bağlantı testi başlıyor: restaurant={restaurant_id}, URL={GETIR_BASE_URL}")
+        
+        # 1. Önce POS durumunu kontrol et ve gerekirse aktif et (login'den önce yapılmalı!)
+        pos_activated = False
+        if activate_pos:
+            pos_status = await check_pos_status(app_secret, restaurant_secret)
+            logger.info(f"Getir POS status: {pos_status}")
+            
+            if pos_status.get("success") and not pos_status.get("is_active"):
+                logger.info(f"Getir POS pasif, aktif ediliyor: restaurant={restaurant_id}")
+                activate_result = await activate_pos_status(app_secret, restaurant_secret)
+                pos_activated = activate_result.get("success", False)
+                logger.info(f"Getir POS aktivasyonu: {activate_result}")
+                if not pos_activated:
+                    return {"success": False, "error": f"POS aktif edilemedi: {activate_result.get('error', 'Bilinmeyen hata')}"}
+            elif pos_status.get("is_active"):
+                pos_activated = True
+                logger.info(f"Getir POS zaten aktif: restaurant={restaurant_id}")
+        
+        # 2. Login testi
         async with httpx.AsyncClient(timeout=15.0) as client:
-            # 1. Login testi
             response = await client.post(
                 f"{GETIR_BASE_URL}/auth/login",
                 json={
@@ -254,18 +272,6 @@ async def test_getir_connection(restaurant_id: str, activate_pos: bool = True) -
                 if token:
                     # Token'ı kaydet
                     expires_at = (datetime.now(TURKEY_TZ) + timedelta(minutes=50)).isoformat()
-                    
-                    # 2. POS durumunu kontrol et ve aktif et
-                    pos_status = await check_pos_status(app_secret, restaurant_secret)
-                    pos_activated = False
-                    
-                    if pos_status.get("success") and not pos_status.get("is_active") and activate_pos:
-                        # POS pasif, aktif et
-                        activate_result = await activate_pos_status(app_secret, restaurant_secret)
-                        pos_activated = activate_result.get("success", False)
-                        logger.info(f"Getir POS aktivasyonu: {activate_result}")
-                    elif pos_status.get("is_active"):
-                        pos_activated = True
                     
                     await db.restaurants.update_one(
                         {"id": restaurant_id},
