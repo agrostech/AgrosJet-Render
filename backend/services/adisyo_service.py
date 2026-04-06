@@ -479,9 +479,13 @@ async def convert_adisyo_order_to_shiftjet(adisyo_order: dict, restaurant: dict)
     if customer_phone:
         # Boşlukları ve tire işaretlerini kaldır
         clean_phone = customer_phone.replace(" ", "").replace("-", "")
+        # Trendyol-via-Adisyo: "/" ayırıcıyı ",," (DTMF pause) formatına çevir
+        if "/" in clean_phone:
+            clean_phone = clean_phone.replace("/", ",,")
         # 5 ile başlıyorsa ve 10 haneli ise başına 0 ekle
         if clean_phone.startswith("5") and len(clean_phone) == 10:
-            customer_phone = "0" + customer_phone
+            clean_phone = "0" + clean_phone
+        customer_phone = clean_phone
     
     # Koordinatları düzgün parse et
     delivery_lat = parse_coordinate(adisyo_order.get("customerLatitude"))
