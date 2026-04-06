@@ -1081,7 +1081,10 @@ async def get_profit_loss_report(
         {
             "$group": {
                 "_id": None,
-                "total_revenue": {"$sum": {"$ifNull": ["$restaurant_fee", 0]}},
+                "total_revenue": {"$sum": {"$add": [
+                    {"$ifNull": ["$restaurant_fee", 0]},
+                    {"$ifNull": ["$restaurant_kdv", 0]}
+                ]}},
                 "order_count": {"$sum": 1}
             }
         }
