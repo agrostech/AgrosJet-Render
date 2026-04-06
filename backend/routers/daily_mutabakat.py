@@ -137,6 +137,22 @@ async def get_order_totals_for_courier(company_id: str, courier_id: str, start_d
         "status": "delivered"
     }, {"_id": 0, "id": 1, "payment_method": 1, "total_amount": 1, "restaurant_name": 1, "restaurant_id": 1, "delivered_at": 1, "payment_details": 1}).to_list(1000)
     
+    # Restoranların tahsilat ayarlarını çek
+    restaurant_ids = list(set(o.get("restaurant_id") for o in orders if o.get("restaurant_id")))
+    restaurant_collection_map = {}
+    if restaurant_ids:
+        rest_cursor = db.restaurants.find(
+            {"id": {"$in": restaurant_ids}},
+            {"_id": 0, "id": 1, "collection_settings": 1}
+        )
+        async for r in rest_cursor:
+            cs = r.get("collection_settings", {})
+            restaurant_collection_map[r["id"]] = {
+                "cash": cs.get("cash_collection", "courier") == "courier",
+                "card": cs.get("card_collection", "courier") == "courier",
+                "meal_card": cs.get("meal_card_collection", "courier") == "courier",
+            }
+    
     cash_total = 0
     card_percent_1 = 0
     card_percent_10 = 0
@@ -194,6 +210,10 @@ async def get_order_totals_for_courier(company_id: str, courier_id: str, start_d
         payment_method = (order.get("payment_method", "") or "").lower()
         payment_details = order.get("payment_details", {})
         
+        # Restoran tahsilat ayarlarını kontrol et
+        rest_id = order.get("restaurant_id")
+        collection = restaurant_collection_map.get(rest_id, {"cash": True, "card": True, "meal_card": True})
+        
         # Parçalı ödeme kontrolü
         if payment_method == "mixed" or (payment_details.get("cash_amount", 0) > 0 and payment_details.get("card_amount", 0) > 0):
             # Parçalı ödeme
@@ -201,10 +221,12 @@ async def get_order_totals_for_courier(company_id: str, courier_id: str, start_d
             card_amt = payment_details.get("card_amount", 0) or 0
             meal_card_amt = payment_details.get("meal_card_amount", 0) or 0
             
-            cash_total += cash_amt
-            meal_card_total += meal_card_amt
+            if collection["cash"]:
+                cash_total += cash_amt
+            if collection["meal_card"]:
+                meal_card_total += meal_card_amt
             
-            if card_amt > 0:
+            if card_amt > 0 and collection["card"]:
                 tax_bracket = await get_restaurant_tax_bracket(
                     order.get("restaurant_id"),
                     order.get("restaurant_name", "")
@@ -220,21 +242,21 @@ async def get_order_totals_for_courier(company_id: str, courier_id: str, start_d
                 modified_payment_count += 1
         
         # Tek ödeme - Nakit
-        elif "cash" in payment_method or "nakit" in payment_method:
+        elif ("cash" in payment_method or "nakit" in payment_method) and collection["cash"]:
             price = order.get("total_amount", 0) or 0
             cash_total += price
             if payment_details.get("original_method"):
                 modified_payment_count += 1
         
         # Tek ödeme - Yemek Kartı
-        elif "meal" in payment_method or "yemek" in payment_method:
+        elif ("meal" in payment_method or "yemek" in payment_method) and collection["meal_card"]:
             price = order.get("total_amount", 0) or 0
             meal_card_total += price
             if payment_details.get("original_method"):
                 modified_payment_count += 1
         
         # Tek ödeme - Kart/Online
-        elif "online" in payment_method or "card" in payment_method or "kredi" in payment_method or "kart" in payment_method:
+        elif ("online" in payment_method or "card" in payment_method or "kredi" in payment_method or "kart" in payment_method) and collection["card"]:
             price = order.get("total_amount", 0) or 0
             tax_bracket = await get_restaurant_tax_bracket(
                 order.get("restaurant_id"),
