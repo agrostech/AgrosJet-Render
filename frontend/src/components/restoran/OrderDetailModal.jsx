@@ -277,6 +277,8 @@ function OrderDetails({
   callPhone,
   onClose
 }) {
+  const paymentLabel = order.source === 'migros' && order.payment_method_detail ? order.payment_method_detail : paymentInfo.label;
+
   return (
     <div className="space-y-4">
       {/* Üst Bilgi - Durum & Ödeme & Kaynak */}

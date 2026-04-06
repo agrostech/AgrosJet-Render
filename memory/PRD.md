@@ -50,7 +50,7 @@ Multi-panel delivery management system (Admin, Restaurant, Courier) with integra
 ### Mobile Responsive Fixes
 - CourierCards button overflow fix (2026-03-31)
 - Vardiyalar tab mobile rewrite (2026-03-31)
-- Muhasebe tabs mobile card views (2026-04-01) - See below
+- Muhasebe tabs mobile card views (2026-04-01)
 
 ### Load Test System (2026-03-30)
 - Built-in load tester in System Admin panel, dynamic port resolution for Railway
@@ -67,67 +67,35 @@ Multi-panel delivery management system (Admin, Restaurant, Courier) with integra
 
 ## Muhasebe Mobile UI Refactoring (2026-04-01)
 ### Files Modified
-1. **GunlukMutabakatTab.jsx** - CRITICAL BUG FIX: Mobile card view had wrong variable/function references (filteredCouriers, savingCouriers.has(), handleShowOrders, wrong data field names). Completely rewritten with correct references (couriers, savingCourierId, fetchCourierOrders, order_data.cash_total etc.)
-2. **RestoranMutabakatTab.jsx** - Mobile card view verified OK (correct data references)
-3. **YoneticiMutabakatTab.jsx** - Mobile card view verified OK (correct data references)
-4. **KesilenFaturalarTab.jsx** - Mobile card view verified OK (correct data references)
+1. **GunlukMutabakatTab.jsx** - CRITICAL BUG FIX: Mobile card view had wrong variable/function references
+2. **RestoranMutabakatTab.jsx** - Mobile card view verified OK
+3. **YoneticiMutabakatTab.jsx** - Mobile card view verified OK
+4. **KesilenFaturalarTab.jsx** - Mobile card view verified OK
 5. **HaftalikHakedisTab.jsx** - Uses HakedisTable component
-6. **HakedisTable.jsx** (component) - NEW mobile card view added with checkbox, courier stats, amounts grid, footer totals
-
-### Pattern Used
-- Desktop: `hidden md:block` with full data tables
-- Mobile: `md:hidden` with card-based layouts using grid columns
-- Consistent styling: 10px text, colored backgrounds, rounded cards
+6. **HakedisTable.jsx** (component) - NEW mobile card view added
 
 ## Muhasebe Bakiye Performans Optimizasyonu (2026-04-02)
-### Sorun
-Kuryeler, Restoranlar ve Cariler sekmelerinde bakiye geçmişi kartındaki toplam bakiye ve entity bakiyeleri geç yükleniyordu.
-### Kök Neden
-N+1 API sorunu: Her entity için ayrı `GET /transactions/{type}/{id}?limit=1` çağrısı yapılıyordu. 30 entity = 30 API çağrısı, her biri 3-4 DB query = ~120 DB query.
-### Çözüm
-- Yeni `GET /api/companies/{id}/entity-balances?type=courier|restaurant|vendor` endpoint'i eklendi
-- Backend: `calculate_entity_balances_map()` fonksiyonu tek MongoDB aggregation ile TÜM entity bakiyelerini döndürür
-- Frontend: `useAccountingTab.js` - `fetchBulkBalances()` fonksiyonu ile liste ve bakiyeler paralel çekilir
-- İşlem sonrası tek entity güncelleme `fetchEntityBalance()` ile eski yöntemle devam eder (doğru davranış)
-### Etki
-- API çağrıları: N+1 → 2 (liste + bakiye) = %97 azalma
-- DB sorguları: ~120 → ~2 = %98 azalma
-### Bakiye Geçiş Loading Göstergesi (2026-04-02)
-- Entity geçişlerinde (A kuryeden B kuryeye) eski bakiye gösterilmesi yerine loading spinner eklendi
-- `loadingBalance` state: entity değişince true, fetchTransactions bitince false
-- Etkilenen dosyalar: `useAccountingTab.js`, `CourierTransactions.jsx`, `IsletmelerTab.jsx`, `CarilerTab.jsx`
-### Dosyalar
-- `services/accounting_service.py` — `calculate_entity_balances_map()` (YENİ)
-- `routers/accounting.py` — `GET /entity-balances` endpoint'i (YENİ)
-- `hooks/useAccountingTab.js` — `fetchBulkBalances()`, `fetchEntities()`, `fetchArchivedEntities()` güncellendi
+- N+1 API sorunu çözüldü: Tek `entity-balances` endpoint ile tüm bakiyeler
+- API çağrıları: N+1 → 2 = %97 azalma
+- Bakiye geçiş loading göstergesi eklendi
 
 ## Fesih Tarih Seçimi Modalı (2026-04-05)
-### Sorun
-Fesih başlatma butonu direkt bugünden başlatıyordu, tarih seçimi yoktu
-### Fix
-- Backend: `start_termination()` fonksiyonuna opsiyonel `start_date` parametresi eklendi
-- En fazla 15 gün geriye izin, ileri tarih sınırsız
-- Frontend: Onay dialog yerine tarih seçicili modal eklendi (mobil uyumlu)
-- Dinamik hesaplama: Seçilen tarihe göre "X gün kaldı", bitiş tarihi, başlangıç etiketi gösterilir
-### Dosyalar
-- `services/courier_service.py` — `start_termination(start_date)` parametresi
-- `routers/couriers.py` — Body kabul eden endpoint
-- `hooks/useKuryeler.js` — `startTermination(courierId, startDate)` parametresi
-- `pages/admin/KuryelerPage.jsx` — Tarih seçicili fesih modal
+- Backend: `start_termination()` fonksiyonuna opsiyonel `start_date` parametresi
+- Frontend: Tarih seçicili fesih modal eklendi
 
 ## Çalışma Saatleri Standartlaştırma (2026-04-05)
-### Sorun
-- DB'de hiçbir şirkette çalışma saatleri kayıtlı değildi (null)
-- 12+ dosyada tutarsız default'lar: 09:00/22:00, 09:00/23:00, 06:00/06:00 karışık kullanılıyordu
-- Tarih seçiciler yanlış saat aralığı gösteriyordu
-### Fix
-- Railway ve preview DB'lere tüm şirketlere 06:00/06:00 yazıldı
-- Backend: 6 dosyada tüm default'lar 06:00/06:00 olarak standartlaştırıldı (companies.py, weekly_hakedis.py, restoran_mutabakat.py, reports.py, issued_invoices.py, restaurant_invoices.py, restaurant_panel_invoices.py, daily_mutabakat.py)
-- Frontend: 8 dosyada tüm fallback default'ları 06:00/06:00 olarak güncellendi (GecmisSiparislerPage, IptalSiparislerPage, RestaurantIptalSiparisler, RestaurantGecmisSiparisler, RaporFiltre, ReportDateFilter, VardiyaIhlalleriSection, RestoranMutabakatTab, HaftalikHakedisTab, IsletmeFaturalariTab)
-- Tarih mantığı: Başlangıç=bugün+açılış, Bitiş=yarın+kapanış (06:00-06:00 = 24 saat çevrim)
+- Tüm default'lar 06:00/06:00 olarak standartlaştırıldı
+
+## Kademeli Ücretlendirme Fix (2026-04-06)
+- Teslimatta courier_fee'nin 0₺'ye sıfırlanması engellendi (tiered pricing korunuyor)
+
+## OrderDetailModal Beyaz Ekran Fix (2026-04-06)
+- **Sorun**: `paymentLabel` değişkeni `OrderDetailModal` içinde hesaplanıyordu ama ayrı fonksiyon olan `OrderDetails` bileşenine prop olarak geçirilmemişti. `OrderDetails` içinde `paymentLabel` referansı ReferenceError fırlatarak React crash'e (beyaz ekran) neden oluyordu.
+- **Fix**: `paymentLabel` hesaplaması `OrderDetails` bileşeninin içine taşındı (mevcut `order` ve `paymentInfo` prop'larından türetiliyor)
+- **Dosya**: `components/restoran/OrderDetailModal.jsx`
 
 ## Pending Issues
-- (P1) "Neden AgrosJet?" statik metin guncellemesi (Kurye kayit sayfalari) - 4x ertelendi
+- (P1) "Neden AgrosJet?" statik metin guncellemesi (Kurye kayit sayfalari) - 5x ertelendi
 - (P2) Webhook setup agrosjet.net ping hatasi
 
 ## Upcoming Tasks
@@ -142,12 +110,10 @@ Fesih başlatma butonu direkt bugünden başlatıyordu, tarih seçimi yoktu
 - `/app/backend/utils/jwt_utils.py` - JWT token creation, validation
 - `/app/backend/routers/auth.py` - Login endpoints + token generation
 - `/app/backend/server.py` - PermissionCheckMiddleware
-- `/app/backend/utils/permission_cache.py` - In-memory permission tracking
-- `/app/frontend/src/utils/axiosConfig.js` - Axios interceptor for auth headers
-- `/app/frontend/src/pages/muhasebe/*` - Accounting tabs (mobile responsive)
-- `/app/frontend/src/components/muhasebe/HakedisTable.jsx` - Hakedis table with mobile view
+- `/app/frontend/src/components/restoran/OrderDetailModal.jsx` - Order detail modal (fixed)
 
 ## Credentials
 - System Admin: `onurertas` / `Delivery32..`
 - Company Admin: `admin` / `123456`
 - Courier: `05550003201` / `123456`
+- Restaurant: `restoran1` / `123456`
