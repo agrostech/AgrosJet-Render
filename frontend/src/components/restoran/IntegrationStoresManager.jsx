@@ -267,10 +267,14 @@ export default function IntegrationStoresManager({ restaurantId }) {
     setTesting(prev => ({ ...prev, [storeId]: true }));
     try {
       const res = await axios.post(`${API}/integration-stores/${restaurantId}/${storeId}/test`);
-      toast.success(res.data.message || "Bağlantı başarılı");
+      if (res.data.success) {
+        toast.success(res.data.message || "Bağlantı başarılı");
+      } else {
+        toast.error(res.data.error || "Bağlantı testi başarısız");
+      }
       fetchStores();
     } catch (err) {
-      toast.error(err.response?.data?.detail || "Bağlantı testi başarısız");
+      toast.error(err.response?.data?.detail || err.response?.data?.error || "Bağlantı testi başarısız");
     } finally {
       setTesting(prev => ({ ...prev, [storeId]: false }));
     }

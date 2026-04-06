@@ -234,6 +234,7 @@ async def test_getir_connection(restaurant_id: str, activate_pos: bool = True) -
         return {"success": False, "error": "Getir API bilgileri eksik (Restaurant Secret Key gerekli)"}
     
     try:
+        logger.info(f"Getir bağlantı testi başlıyor: restaurant={restaurant_id}, URL={GETIR_BASE_URL}")
         async with httpx.AsyncClient(timeout=15.0) as client:
             # 1. Login testi
             response = await client.post(
@@ -243,6 +244,8 @@ async def test_getir_connection(restaurant_id: str, activate_pos: bool = True) -
                     "restaurantSecretKey": restaurant_secret
                 }
             )
+            
+            logger.info(f"Getir login response: status={response.status_code}, body={response.text[:500]}")
             
             if response.status_code == 200:
                 data = response.json()
@@ -277,15 +280,18 @@ async def test_getir_connection(restaurant_id: str, activate_pos: bool = True) -
                     
                     return {"success": True, "message": "Getir bağlantısı başarılı"}
                 else:
+                    logger.warning(f"Getir login token alınamadı: restaurant={restaurant_id}, response={data}")
                     return {"success": False, "error": "Token alınamadı"}
             elif response.status_code == 401:
+                logger.warning(f"Getir login 401: restaurant={restaurant_id}, response={response.text[:300]}")
                 await db.restaurants.update_one(
                     {"id": restaurant_id},
                     {"$set": {"platform_integrations.getir.connected": False}}
                 )
-                return {"success": False, "error": "API anahtarları geçersiz"}
+                return {"success": False, "error": f"API anahtarları geçersiz (401): {response.text[:200]}"}
             else:
-                return {"success": False, "error": f"API hatası: {response.status_code}"}
+                logger.warning(f"Getir login hata: restaurant={restaurant_id}, status={response.status_code}, response={response.text[:300]}")
+                return {"success": False, "error": f"API hatası ({response.status_code}): {response.text[:200]}"}
                 
     except httpx.TimeoutException:
         return {"success": False, "error": "Bağlantı zaman aşımı"}
