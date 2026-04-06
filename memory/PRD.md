@@ -11,66 +11,27 @@ Multi-panel delivery management system (Admin, Restaurant, Courier) with integra
 - **Integrations**: Migros (PROD), Getir, Trendyol, Adisyo
 
 ## Security - JWT Auth System (2026-03-29)
-### Implementation
-- JWT tokens generated on all 3 login endpoints (admin, courier, restaurant)
-- Frontend axios interceptor sends `Authorization: Bearer <token>` on every request
-- Token stored in localStorage alongside user session data
-
-### Protection Levels
-| Level | Dependency | Used For |
-|-------|-----------|----------|
-| `require_system_admin` | systemadmin only | System settings, DB viewer |
-| `require_super_or_system` | superadmin + systemadmin | Admin CRUD, backup, company assignment |
-| `require_admin` | admin + superadmin + systemadmin | All admin panel operations |
-| `require_auth` | Any valid token | Shared endpoints (orders, couriers, restaurants) |
-
-### Coverage
-- **531 endpoints protected** (JWT required)
-- **68 endpoints open** (webhooks with own API key auth)
-- **~5 endpoints intentionally open** (login, logo serve, impersonate verify)
+- JWT tokens on all 3 login endpoints, axios interceptor, localStorage
+- 531 protected, 68 webhook-auth, ~5 open endpoints
 
 ## What's Been Implemented
 
-### JWT Auth Middleware (2026-03-29)
-- Phase 1-4: Full JWT coverage across all routers
+### Recent Fixes (2026-04-06)
+- **OrderDetailModal Beyaz Ekran Fix**: `paymentLabel` ReferenceError → hesaplama OrderDetails bileşenine taşındı
+- **Restoran Ürünler Yetki Fix**: `products.py` router `require_admin` → `require_auth` (restoran kullanıcıları ürün CRUD yapabiliyor)
+- **Performans Raporu UTC Fix**: `$hour` operatörüne `timezone: "+03:00"` eklendi, saatlik dağılım grafiği doğru Türkiye saatini gösteriyor
 
-### System Admin Role Fix (2026-03-29)
-- Fixed auth.py role override: systemadmin > superadmin > admin["role"]
-
-### Courier Reports Fix (2026-03-29)
-- Performansim, Ihlallerim tabs, UTC/Turkey timezone fix
-
-### Permission System Fix (2026-04-01)
-- Extended valid_keys + Event-driven permission updates
-
-### R2 Logo Direct Streaming (2026-03-31)
-- Presigned URL redirects replaced with direct byte streaming
-
-### Mobile Responsive Fixes
-- CourierCards, Vardiyalar tab, Muhasebe tabs mobile card views
-
-### Muhasebe Bakiye Performans Optimizasyonu (2026-04-02)
-- N+1 API → bulk entity-balances endpoint (%97 azalma)
-
-### Fesih Tarih Seçimi Modalı (2026-04-05)
-- Retroactive date selection for courier termination
-
-### Çalışma Saatleri Standartlaştırma (2026-04-05)
-- All defaults standardized to 06:00/06:00
-
-### Kademeli Ücretlendirme Fix (2026-04-06)
-- Tiered pricing courier_fee preserved on delivery
-
-### OrderDetailModal Beyaz Ekran Fix (2026-04-06)
-- `paymentLabel` ReferenceError in separate `OrderDetails` component → fixed by computing inside component
-
-### Restoran Ürünler Yetki Fix (2026-04-06)
-- **Sorun**: `products.py` router'ı `require_admin` ile korunuyordu → restoran kullanıcıları ürün ekleyemiyor ve göremiyordu
-- **Fix**: Router dependency `require_admin` → `require_auth` olarak değiştirildi
-- Restoran kullanıcıları artık kendi ürünlerini görüntüleyebilir, ekleyebilir, düzenleyebilir ve silebilir
+### Previous Work
+- Kademeli ücretlendirme fix (tiered pricing courier_fee korunuyor)
+- Fesih tarih seçimi modalı (retroactive termination)
+- Çalışma saatleri standardizasyonu (06:00)
+- Muhasebe bulk balance API (%97 azalma)
+- Mobile responsive fixes
+- JWT Auth + Permission system
+- R2 logo streaming
 
 ## Pending Issues
-- (P1) "Neden AgrosJet?" statik metin güncellemesi (Kurye kayıt sayfaları) - 5x ertelendi
+- (P1) "Neden AgrosJet?" statik metin güncellemesi - 5x ertelendi
 - (P2) Webhook setup agrosjet.net ping hatası
 
 ## Upcoming Tasks

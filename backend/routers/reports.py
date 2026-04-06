@@ -1371,7 +1371,7 @@ async def get_performance_report(
         {"$match": {"_parsed": {"$ne": None}}},
         {
             "$group": {
-                "_id": {"$hour": "$_parsed"},
+                "_id": {"$hour": {"date": "$_parsed", "timezone": "+03:00"}},
                 "count": {"$sum": 1}
             }
         },
