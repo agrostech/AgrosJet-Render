@@ -726,6 +726,7 @@ from routers.applications import router as applications_router, webhook_router a
 from routers.courier_native import router as courier_native_router
 from routers.load_test import router as load_test_router
 from routers.restaurant_collections import router as restaurant_collections_router
+from routers.contracts import router as contracts_router
 
 # Set db for products router
 set_products_db(db)
@@ -791,6 +792,7 @@ app.include_router(applications_webhook_router)
 app.include_router(courier_native_router)
 app.include_router(load_test_router)
 app.include_router(restaurant_collections_router)
+app.include_router(contracts_router)
 
 # Health check
 @api_router.get("/")

@@ -27,6 +27,7 @@ export default function CourierLoginPage() {
     name: "",
     phone: "",
     email: "",
+    tc_no: "",
     address: "",
     iban: "",
     plate: "",
@@ -432,6 +433,20 @@ export default function CourierLoginPage() {
                   data-testid="register-email-input"
                 />
                 <p className="text-xs text-slate-500 mt-1">Doğrulama kodu bu adrese gelecek</p>
+              </div>
+              
+              <div>
+                <Label className="text-slate-300 text-sm">TC Kimlik No *</Label>
+                <Input
+                  type="text"
+                  placeholder="11 haneli TC Kimlik No"
+                  value={registerData.tc_no}
+                  onChange={(e) => setRegisterData({ ...registerData, tc_no: e.target.value.replace(/\D/g, '').slice(0, 11) })}
+                  className="mt-1 h-11 bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 focus:border-orange-500 font-mono"
+                  maxLength={11}
+                  required
+                  data-testid="register-tc-input"
+                />
               </div>
               
               <div>

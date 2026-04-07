@@ -200,7 +200,7 @@ async def save_contract_settings(company_id: str, data: ContractSettings, auth: 
 @router.get("/preview/{courier_id}")
 async def preview_contract(courier_id: str, auth: dict = Depends(require_auth)):
     """Kuryenin göreceği sözleşme metnini oluştur (placeholder'lar dolu)"""
-    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0})
+    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "id": 1, "name": 1, "email": 1, "address": 1, "phone": 1, "plate": 1, "tc_kimlik": 1, "tc_no": 1})
     if not courier:
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
 
@@ -236,7 +236,7 @@ async def preview_contract(courier_id: str, auth: dict = Depends(require_auth)):
         uygulama_adi=cs.get("uygulama_adi", "___"),
         yetkili_mahkeme=cs.get("yetkili_mahkeme", "___"),
         kullanici_adi=courier.get("name", ""),
-        kullanici_tc=courier.get("tc_kimlik", "___"),
+        kullanici_tc=courier.get("tc_kimlik") or courier.get("tc_no", "___"),
         kullanici_eposta=courier.get("email", ""),
         kullanici_adres=courier.get("address", ""),
         kullanici_telefon=courier.get("phone", ""),
@@ -252,20 +252,20 @@ async def preview_contract(courier_id: str, auth: dict = Depends(require_auth)):
 @router.post("/accept/{courier_id}")
 async def accept_contract(courier_id: str, data: ContractAcceptRequest, auth: dict = Depends(require_auth)):
     """Kurye sözleşmeyi imzalayarak onaylar"""
-    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0})
+    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "id": 1, "name": 1, "email": 1, "phone": 1})
     if not courier:
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
 
-    # TC doğrula
+    # TC doğrula (opsiyonel - kayıt sırasında alınmışsa kullan)
     tc = data.tc_kimlik.strip()
-    if len(tc) != 11 or not tc.isdigit():
-        raise HTTPException(status_code=400, detail="TC Kimlik numarası 11 haneli olmalıdır")
-
-    # TC'yi kuryeye kaydet
-    await db.couriers.update_one(
-        {"id": courier_id},
-        {"$set": {"tc_kimlik": tc}}
-    )
+    if tc:
+        if len(tc) != 11 or not tc.isdigit():
+            raise HTTPException(status_code=400, detail="TC Kimlik numarası 11 haneli olmalıdır")
+        # TC'yi kuryeye kaydet
+        await db.couriers.update_one(
+            {"id": courier_id},
+            {"$set": {"tc_kimlik": tc}}
+        )
 
     # İmzayı decode et
     try:
@@ -341,7 +341,7 @@ async def get_contract_status(courier_id: str, auth: dict = Depends(require_auth
     """Kuryenin sözleşme durumunu kontrol et"""
     courier = await db.couriers.find_one(
         {"id": courier_id},
-        {"_id": 0, "contract_accepted": 1, "contract_accepted_at": 1}
+        {"_id": 0, "id": 1, "contract_accepted": 1, "contract_accepted_at": 1}
     )
     if not courier:
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")

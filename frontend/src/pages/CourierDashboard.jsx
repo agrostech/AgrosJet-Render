@@ -80,6 +80,7 @@ export default function CourierDashboard() {
   const [companyName, setCompanyName] = useState("");
   const [companyLogo, setCompanyLogo] = useState("");
   const [documentsComplete, setDocumentsComplete] = useState(true);
+  const [contractAccepted, setContractAccepted] = useState(true);
   const [maintenanceNotifications, setMaintenanceNotifications] = useState(0);
   const [navItems, setNavItems] = useState([]);
   const [bottomBarItems, setBottomBarItems] = useState([]);
@@ -194,11 +195,15 @@ export default function CourierDashboard() {
     };
   }, [sendLocationToBackend]);
 
-  // Fetch document status
+  // Fetch document status + contract status
   const checkDocumentStatus = useCallback(async (courierId) => {
     try {
-      const res = await axios.get(`${API}/documents/courier/${courierId}/status`);
-      setDocumentsComplete(res.data.all_complete);
+      const [docRes, contractRes] = await Promise.all([
+        axios.get(`${API}/documents/courier/${courierId}/status`),
+        axios.get(`${API}/contracts/status/${courierId}`)
+      ]);
+      setDocumentsComplete(docRes.data.all_complete);
+      setContractAccepted(contractRes.data.accepted);
     } catch (err) {
       console.error("Evrak durumu alınamadı", err);
     }
@@ -798,6 +803,16 @@ export default function CourierDashboard() {
   };
 
   if (!user) return null;
+
+  // Sözleşme guard: kabul edilmemişse evraklar sayfasına yönlendir
+  const isEvraklarPage = location.pathname.includes('/evraklar');
+  const needsContractRedirect = !contractAccepted && !isEvraklarPage;
+
+  // Yönlendirmeyi return'dan önce yapamayız ama render sırasında kontrol ederiz
+  if (needsContractRedirect) {
+    // setTimeout ile redirect — render cycle'ı bozmamak için
+    setTimeout(() => navigate(`${basePath}/evraklar`, { replace: true }), 0);
+  }
 
   const currentStatus = AVAILABILITY_STATUSES[availabilityStatus] || AVAILABILITY_STATUSES.offline;
   const StatusIcon = currentStatus.icon;

@@ -20,6 +20,7 @@ export default function RegisterPage() {
     name: "",
     phone: "",
     email: "",
+    tc_no: "",
     address: "",
     iban: "",
     plate: "",
@@ -126,6 +127,10 @@ export default function RegisterPage() {
                   <Label htmlFor="email" className="text-sm font-semibold">E-posta *</Label>
                   <Input id="email" name="email" data-testid="register-email-input" type="email" placeholder="ornek@email.com" value={formData.email} onChange={handleChange} className="mt-1 h-12 border-2" required />
                   <p className="text-xs text-muted-foreground mt-1">Doğrulama kodu bu adrese gönderilecek</p>
+                </div>
+                <div>
+                  <Label htmlFor="tc_no" className="text-sm font-semibold">TC Kimlik No *</Label>
+                  <Input id="tc_no" name="tc_no" data-testid="register-tc-input" type="text" placeholder="11 haneli TC Kimlik No" value={formData.tc_no} onChange={(e) => setFormData({...formData, tc_no: e.target.value.replace(/\D/g, '').slice(0, 11)})} className="mt-1 h-12 border-2 font-mono" maxLength={11} required />
                 </div>
                 <div>
                   <Label htmlFor="address" className="text-sm font-semibold">Adres *</Label>

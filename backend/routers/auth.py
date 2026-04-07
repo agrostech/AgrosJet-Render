@@ -25,6 +25,7 @@ class CourierRegister(BaseModel):
     iban: str
     plate: str
     password: str
+    tc_no: Optional[str] = None
 
 
 class VerifyEmail(BaseModel):
@@ -118,6 +119,7 @@ async def register_courier(request: Request, data: CourierRegister):
         "iban": data.iban,
         "plate": data.plate.upper(),
         "password": hash_password(data.password),
+        "tc_no": (data.tc_no or "").strip(),
         "expires_at": expires_at,
         "created_at": now_utc,
         "verified": False
@@ -215,8 +217,11 @@ async def verify_email_and_complete_registration(request: Request, data: VerifyE
         "iban": pending["iban"],
         "plate": pending["plate"],
         "password": pending["password"],
+        "tc_no": pending.get("tc_no", ""),
         "status": "active",
         "email_verified": True,
+        "contract_accepted": False,
+        "document_status": "pending",
         "created_at": get_turkey_now()
     }
     await db.couriers.insert_one(courier)
@@ -268,13 +273,11 @@ async def login_courier(request: Request, data: CourierLogin):
                 companies.append(company)
                 active_in_any_company = True
     
-    # Hiçbir şirkette aktif değilse giriş engelle
+    # Hiçbir şirkette aktif değilse giriş engelle (ama şirkete eklenmişse!)
     if not active_in_any_company and len(company_relations) > 0:
         raise HTTPException(status_code=403, detail="Hesabınız pasif durumda. Yöneticinizle iletişime geçin.")
     
-    # Hiçbir şirkete eklenmemişse giriş engelle
-    if len(company_relations) == 0:
-        raise HTTPException(status_code=403, detail="Henüz bir şirkete eklenmemişsiniz. Çalışacağınız şirketin yöneticisiyle iletişime geçin.")
+    # Şirkete eklenmemişse de giriş yapabilir (evrak/sözleşme süreci için)
     
     # Yeni session oluştur — eski cihazları geçersiz kıl
     # Eğer yeni cihazın push_token'ı varsa, eski token'ı DEĞİŞTİR
@@ -301,6 +304,8 @@ async def login_courier(request: Request, data: CourierLogin):
         "company_id": companies[0]["id"] if companies else None,
         "companies": companies,
         "push_session_id": push_session_id,
+        "contract_accepted": courier.get("contract_accepted", False),
+        "document_status": courier.get("document_status", "pending"),
         "token": create_token(courier["id"], "courier", {"company_id": companies[0]["id"] if companies else None})
     }
 
