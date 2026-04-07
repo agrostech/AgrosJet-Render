@@ -100,12 +100,10 @@ export default function RestaurantMuhasebe({ restaurantId, restaurantName }) {
   // Restoran tahsilat ayarlarını kontrol et
   useEffect(() => {
     if (!restaurantId) return;
-    axios.get(`${API}/restaurants/${restaurantId}`)
+    axios.get(`${API}/restaurant-collections/${restaurantId}/courier-balances?date=${new Date().toISOString().split('T')[0]}`)
       .then(res => {
-        const cs = res.data?.collection_settings || {};
-        setHasCollectionSettings(
-          cs.cash_collection === "restaurant" || cs.card_collection === "restaurant"
-        );
+        // Eğer "ayarlanmamış" mesajı yoksa, tahsilat aktif demektir
+        setHasCollectionSettings(!res.data?.message);
       })
       .catch(() => {});
   }, [restaurantId]);
