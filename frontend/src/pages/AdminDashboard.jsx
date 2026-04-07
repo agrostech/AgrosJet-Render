@@ -186,6 +186,16 @@ export default function AdminDashboard() {
     }
     setUser(parsed);
     
+    // Permissions'ı backend'den tazele
+    axios.get(`${API}/admins/${parsed.id}/permissions`).then(res => {
+      const freshPerms = res.data?.permissions;
+      if (freshPerms) {
+        parsed.permissions = freshPerms;
+        localStorage.setItem("user", JSON.stringify(parsed));
+        setUser({...parsed});
+      }
+    }).catch(() => {});
+    
     // Fetch admin status
     fetchAdminStatus(parsed.id);
     

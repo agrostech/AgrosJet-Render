@@ -97,6 +97,43 @@ class AdminResponse(BaseModel):
     created_at: Optional[datetime] = None
 
 
+
+def resolve_permissions(admin: dict) -> dict:
+    """Admin izinlerini DB'den çözümle (login ile aynı mantık)"""
+    main_keys = {"vardiya", "muhasebe", "zimmet", "kuryeler", "market", "akademi", "sistem", "raporlar", "basvurular"}
+    sub_keys = {
+        "muhasebe_kuryeler", "muhasebe_isletmeler", "muhasebe_cariler",
+        "muhasebe_kurye_mutabakat", "muhasebe_restoran_mutabakat", "muhasebe_yonetici_mutabakat",
+        "muhasebe_haftalik_hakedis", "muhasebe_kurye_faturalari", "muhasebe_isletme_faturalari",
+        "muhasebe_hareketler",
+        "siparis_gecmis", "siparis_iptal",
+        "raporlar_kurye", "raporlar_restoran", "raporlar_ciro", "raporlar_kar_zarar", "raporlar_performans"
+    }
+    simple_keys = main_keys | sub_keys
+    is_super = admin.get("is_super_admin", False) or admin.get("role") in ("superadmin", "systemadmin")
+    if is_super:
+        return {k: True for k in simple_keys}
+    db_permissions = admin.get("permissions", {})
+    has_simple_format = any(key in db_permissions for key in main_keys)
+    if has_simple_format:
+        return {k: db_permissions.get(k, True if k in sub_keys else False) for k in simple_keys}
+    perms = {k: True for k in simple_keys}
+    perms["sistem"] = False
+    perms["raporlar"] = False
+    perms["basvurular"] = False
+    return perms
+
+
+@router.get("/admins/{admin_id}/permissions")
+async def get_admin_permissions(admin_id: str):
+    """Admin izinlerini tazele"""
+    admin = await db.admins.find_one({"id": admin_id}, {"_id": 0})
+    if not admin:
+        raise HTTPException(status_code=404, detail="Admin bulunamadı")
+    return {"permissions": resolve_permissions(admin)}
+
+
+
 # --- Admin Management ---
 @router.get("/admins/all")
 async def get_all_admins(auth: dict = Depends(require_super_or_system)):
