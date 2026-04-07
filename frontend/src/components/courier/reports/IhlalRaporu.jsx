@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Card, CardContent } from "@/components/ui/card";
-import { AlertTriangle, Clock, XCircle } from "lucide-react";
+import { AlertTriangle, XCircle } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -117,55 +116,34 @@ export default function IhlalRaporu({ courierId, companyId }) {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="text-center">
-        <h3 className="text-lg font-semibold text-slate-800">Bu Haftaki İhlallerin</h3>
+    <div className="space-y-3">
+      {/* Özet */}
+      <div className={`flex items-center justify-between px-3 py-2 rounded-lg ${violations.length === 0 ? 'bg-green-50 dark:bg-green-900/20' : 'bg-orange-50 dark:bg-orange-900/20'}`}>
+        <div className="flex items-center gap-2">
+          <AlertTriangle className={`w-4 h-4 ${violations.length === 0 ? 'text-green-600' : 'text-orange-600'}`} />
+          <span className={`text-sm font-medium ${violations.length === 0 ? 'text-green-700 dark:text-green-400' : 'text-orange-700 dark:text-orange-400'}`}>
+            Bu Hafta
+          </span>
+        </div>
+        <span className={`text-sm font-bold ${violations.length === 0 ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`}>
+          {violations.length === 0 ? 'İhlal yok' : `${violations.length} ihlal`}
+        </span>
       </div>
 
-      <Card className={violations.length === 0 ? "bg-green-50 border-green-200" : "bg-orange-50 border-orange-200"}>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className={`w-5 h-5 ${violations.length === 0 ? 'text-green-600' : 'text-orange-600'}`} />
-              <span className={`font-medium ${violations.length === 0 ? 'text-green-800' : 'text-orange-800'}`}>
-                {violations.length === 0 ? 'İhlal Yok!' : 'Toplam İhlal'}
-              </span>
-            </div>
-            <span className={`text-2xl font-bold ${violations.length === 0 ? 'text-green-600' : 'text-orange-600'}`}>
-              {violations.length === 0 ? '\u2713' : violations.length}
-            </span>
-          </div>
-        </CardContent>
-      </Card>
-
+      {/* İhlal Listesi */}
       {violations.length > 0 && (
-        <div className="space-y-2">
+        <div className="rounded-lg border border-slate-200 dark:border-slate-700 divide-y divide-slate-100 dark:divide-slate-700 overflow-hidden">
           {violations.map((v, idx) => (
-            <Card key={v.id || idx} className="border-l-4 border-l-orange-500">
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <XCircle className="w-4 h-4 text-orange-500 shrink-0" />
-                      <span className="font-medium text-sm truncate">
-                        {getViolationLabel(v.violation_type)}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Clock className="w-3 h-3" />
-                      {formatDate(v.created_at)}
-                    </div>
-                    {v.details && (
-                      <p className="text-xs text-slate-600 mt-2 bg-slate-100 rounded p-2">
-                        {v.details.shift_start_time && `Vardiya: ${v.details.shift_start_time} - ${v.details.shift_end_time}`}
-                        {v.details.tolerance_minutes && ` (Tolerans: ${v.details.tolerance_minutes}dk)`}
-                        {v.details.description && v.details.description}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <div key={v.id || idx} className="flex items-center gap-2.5 px-3 py-2.5 bg-white dark:bg-slate-800">
+              <XCircle className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <span className="text-[13px] font-medium text-slate-800 dark:text-slate-200">{getViolationLabel(v.violation_type)}</span>
+                {v.details?.shift_start_time && (
+                  <span className="text-[11px] text-slate-400 ml-1.5">{v.details.shift_start_time}-{v.details.shift_end_time}</span>
+                )}
+              </div>
+              <span className="text-[11px] text-slate-400 dark:text-slate-500 shrink-0">{formatDate(v.created_at)}</span>
+            </div>
           ))}
         </div>
       )}
