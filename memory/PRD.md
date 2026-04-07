@@ -12,15 +12,17 @@ Multi-tenant delivery management platform for restaurants, couriers, and adminis
 ## What's Been Implemented
 
 ### Completed Features
-- Courier login company_id resolution via junction table (DONE)
-- R2 logo direct byte streaming (replaces presigned URLs) (DONE)
-- Migros webhook auto-approve routing fix (DONE)
-- Getir integration production URL + POS activation fix (DONE)
-- Admin permissions sub-tab visibility fix (DONE)
-- Courier Collection (Kurye Hesap Al) feature with business-day filtering (DONE)
-- Admin toggle for courier_collection_enabled per restaurant (DONE)
-- Courier orders page "Siparisleri Yenile" refresh button with animation (DONE)
-- Refresh button 5-second rate limit (DONE)
+- Courier login company_id resolution via junction table
+- R2 logo direct byte streaming (replaces presigned URLs)
+- Migros webhook auto-approve routing fix
+- Getir integration production URL + POS activation fix
+- Admin permissions sub-tab visibility fix
+- Courier Collection (Kurye Hesap Al) feature with business-day filtering
+- Admin toggle for courier_collection_enabled per restaurant
+- Courier orders page "Siparisleri Yenile" refresh button with 5s rate limit
+- Courier İhlaller (violations) page minimal redesign
+- AgrosAI Rota tab name simplified
+- **Courier Ödeme Raporu**: Şirket/Restoran sekmeli yapı (collector param), verildi/verilmedi durumu, iş günü default tarih mantığı
 
 ## Pending Issues (Prioritized)
 ### P1
@@ -42,9 +44,11 @@ Multi-tenant delivery management platform for restaurants, couriers, and adminis
 - POST /api/restaurant-collections/collect
 - PUT /api/restaurants/collection-settings/{restaurant_id}
 - GET /api/orders/v2/list
+- GET /api/reports/courier/payments (collector=company|restaurant)
+- GET /api/reports/courier/business-day (company_id)
 
 ## Test Credentials
 - System Admin: onurertas / Delivery32..
 - Company Admin: admin / 123456
-- Courier: 05553331122 / 123456
+- Courier: 05550003201 / 123456
 - Restaurant: restoran1 / 123456

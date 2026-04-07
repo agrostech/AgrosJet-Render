@@ -503,15 +503,46 @@ async def get_restaurant_report(
     }
 
 
+@router.get("/courier/business-day")
+async def get_courier_business_day(company_id: str = Query(...)):
+    """Kuryenin şirketine göre mevcut iş gününü döndür"""
+    company = await db.companies.find_one(
+        {"id": company_id}, {"_id": 0, "opening_time": 1, "closing_time": 1}
+    )
+    opening = "06:00"
+    closing = "06:00"
+    if company:
+        opening = company.get("opening_time", "06:00")
+        closing = company.get("closing_time", "06:00")
+    
+    ch, cm = (int(x) for x in closing.split(":"))
+    now = datetime.now(TURKEY_TZ)
+    
+    if now.hour < ch or (now.hour == ch and now.minute < cm):
+        business_day = now - timedelta(days=1)
+    else:
+        business_day = now
+    
+    return {
+        "date": business_day.strftime("%Y-%m-%d"),
+        "opening_time": opening,
+        "closing_time": closing,
+    }
+
+
+
 @router.get("/courier/payments")
 async def get_courier_payment_report(
     courier_id: str = Query(...),
     start_datetime: str = Query(None),
     end_datetime: str = Query(None),
     start_date: str = Query(None),
-    end_date: str = Query(None)
+    end_date: str = Query(None),
+    collector: str = Query("company")
 ):
-    """Kurye ödeme raporu - Nakit ve Kredi Kartı toplamları + sipariş listesi"""
+    """Kurye ödeme raporu - Nakit ve Kredi Kartı toplamları + sipariş listesi
+    collector: 'company' = şirket tahsilatlı, 'restaurant' = restoran tahsilatlı
+    """
     import math
     
     def calculate_distance(lat1, lon1, lat2, lon2):
@@ -554,6 +585,7 @@ async def get_courier_payment_report(
         match_filter,
         {
             "_id": 0,
+            "id": 1,
             "order_no": 1,
             "order_number": 1,
             "restaurant_id": 1,
@@ -579,11 +611,30 @@ async def get_courier_payment_report(
         )
         async for r in rest_cursor:
             cs = r.get("collection_settings", {})
-            restaurant_collection_map[r["id"]] = {
-                "cash": cs.get("cash_collection", "courier") == "courier",
-                "card": cs.get("card_collection", "courier") == "courier",
-                "meal_card": cs.get("meal_card_collection", "courier") == "courier",
-            }
+            if collector == "restaurant":
+                # Restoran tahsilatlı: collection restaurant ise True
+                restaurant_collection_map[r["id"]] = {
+                    "cash": cs.get("cash_collection", "courier") == "restaurant",
+                    "card": cs.get("card_collection", "courier") == "restaurant",
+                    "meal_card": cs.get("meal_card_collection", "courier") == "restaurant",
+                }
+            else:
+                # Şirket tahsilatlı: collection courier ise True
+                restaurant_collection_map[r["id"]] = {
+                    "cash": cs.get("cash_collection", "courier") == "courier",
+                    "card": cs.get("card_collection", "courier") == "courier",
+                    "meal_card": cs.get("meal_card_collection", "courier") == "courier",
+                }
+    
+    # Restoran modunda: tahsil edilmiş sipariş ID'lerini çek
+    collected_order_ids = set()
+    if collector == "restaurant" and start_datetime and end_datetime:
+        # Tarih aralığındaki tahsilatları çek
+        all_collections = await db.restaurant_courier_collections.find(
+            {"courier_id": courier_id},
+            {"_id": 0, "order_id": 1}
+        ).to_list(5000)
+        collected_order_ids = set(c["order_id"] for c in all_collections if "order_id" in c)
     
     # Nakit, kart, yemek kartı ve online siparişlerini ayır
     cash_orders = []
@@ -624,6 +675,8 @@ async def get_courier_payment_report(
             "distance_km": distance,
             "date": order.get("created_at", "")[:16].replace("T", " ") if order.get("created_at") else ""
         }
+        if collector == "restaurant":
+            base_order_data["is_collected"] = order.get("id", "") in collected_order_ids
         
         # Parçalı ödeme kontrolü
         payment_details = order.get("payment_details") or {}
@@ -646,7 +699,8 @@ async def get_courier_payment_report(
         
         # Restoran tahsilat ayarlarını kontrol et
         rest_id = order.get("restaurant_id")
-        collection = restaurant_collection_map.get(rest_id, {"cash": True, "card": True, "meal_card": True})
+        default_collection = {"cash": False, "card": False, "meal_card": False} if collector == "restaurant" else {"cash": True, "card": True, "meal_card": True}
+        collection = restaurant_collection_map.get(rest_id, default_collection)
         
         cash_amt = payment_details.get("cash_amount", 0) or 0
         card_amt = payment_details.get("card_amount", 0) or 0
