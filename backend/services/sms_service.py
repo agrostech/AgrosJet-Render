@@ -20,6 +20,14 @@ async def get_sms_settings():
     return settings
 
 
+async def fetch_senders(api_id: str, api_key: str):
+    """VatanSMS hesabına tanımlı gönderici başlıklarını çek"""
+    payload = {"api_id": api_id, "api_key": api_key}
+    async with httpx.AsyncClient(timeout=15) as client:
+        resp = await client.post(f"{VATANSMS_BASE_URL}/senders", json=payload)
+        return resp.json()
+
+
 async def send_sms(phones: list, message: str, message_type: str = "turkce"):
     """
     1:N SMS gönderimi.

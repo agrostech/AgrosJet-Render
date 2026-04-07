@@ -607,3 +607,21 @@ async def test_vatansms(phone: str = None, auth: dict = Depends(require_system_a
             "success": False,
             "message": f"SMS hatası: {str(e)[:100]}"
         }
+
+
+@router.post("/vatansms/senders")
+async def get_vatansms_senders(auth: dict = Depends(require_system_admin)):
+    """VatanSMS hesabına tanımlı gönderici başlıklarını çek"""
+    settings = await db.system_settings.find_one(
+        {"type": "vatansms"},
+        {"_id": 0}
+    )
+    if not settings:
+        raise HTTPException(status_code=400, detail="Önce API ID ve API Key kaydedin")
+
+    try:
+        from services.sms_service import fetch_senders
+        result = await fetch_senders(settings["api_id"], settings["api_key"])
+        return {"senders": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Başlıklar çekilemedi: {str(e)[:100]}")

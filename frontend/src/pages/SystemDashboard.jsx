@@ -1683,6 +1683,8 @@ function SistemAyarlariPage() {
   const [showSmsKey, setShowSmsKey] = useState(false);
   const [smsConfigured, setSmsConfigured] = useState(false);
   const [smsTestPhone, setSmsTestPhone] = useState("");
+  const [smsSenders, setSmsSenders] = useState([]);
+  const [smsSendersLoading, setSmsSendersLoading] = useState(false);
   const [smsSettings, setSmsSettings] = useState({
     api_id: "",
     api_key: "",
@@ -1915,6 +1917,31 @@ function SistemAyarlariPage() {
       setSmsTestResult({ success: false, message: err.response?.data?.detail || "Test başarısız" });
     } finally {
       setSmsTesting(false);
+    }
+  };
+
+  const fetchSmsSenders = async () => {
+    setSmsSendersLoading(true);
+    try {
+      const res = await axios.post(`${API}/system-settings/vatansms/senders`);
+      const data = res.data?.senders;
+      // VatanSMS yanıt formatına göre parse et
+      let list = [];
+      if (Array.isArray(data)) {
+        list = data;
+      } else if (data && typeof data === 'object') {
+        list = data.data || data.senders || data.result || Object.values(data).flat().filter(v => typeof v === 'string');
+      }
+      setSmsSenders(list);
+      if (list.length === 0) {
+        toast.error("Hesaba tanımlı başlık bulunamadı");
+      } else {
+        toast.success(`${list.length} başlık bulundu`);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Başlıklar çekilemedi");
+    } finally {
+      setSmsSendersLoading(false);
     }
   };
 
@@ -2392,14 +2419,42 @@ function SistemAyarlariPage() {
             </div>
             <div>
               <Label className="text-sm font-semibold">Gönderici Başlığı</Label>
-              <Input
-                value={smsSettings.sender}
-                onChange={(e) => setSmsSettings({...smsSettings, sender: e.target.value})}
-                placeholder="AGROSJET"
-                className="mt-1 border-2 text-sm"
-                data-testid="sms-sender-input"
-              />
-              <p className="text-xs text-muted-foreground mt-1">SMS&apos;lerde görünecek başlık</p>
+              <div className="flex gap-2 mt-1">
+                {smsSenders.length > 0 ? (
+                  <select
+                    value={smsSettings.sender}
+                    onChange={(e) => setSmsSettings({...smsSettings, sender: e.target.value})}
+                    className="flex-1 h-10 px-3 rounded-md border-2 border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    data-testid="sms-sender-select"
+                  >
+                    <option value="">Başlık seçin</option>
+                    {smsSenders.map((s, i) => (
+                      <option key={i} value={typeof s === 'string' ? s : s.name || s.title || s}>{typeof s === 'string' ? s : s.name || s.title || s}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <Input
+                    value={smsSettings.sender}
+                    onChange={(e) => setSmsSettings({...smsSettings, sender: e.target.value})}
+                    placeholder={smsConfigured ? smsSettings.sender || "Başlıkları çekin" : "Önce API bilgilerini kaydedin"}
+                    className="flex-1 border-2 text-sm"
+                    readOnly={smsConfigured}
+                    data-testid="sms-sender-input"
+                  />
+                )}
+                {smsConfigured && (
+                  <Button
+                    variant="outline"
+                    onClick={fetchSmsSenders}
+                    disabled={smsSendersLoading}
+                    className="shrink-0 border-2 text-sm"
+                    data-testid="sms-fetch-senders-btn"
+                  >
+                    {smsSendersLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Başlıkları Çek"}
+                  </Button>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">BTK onaylı, hesabınıza tanımlı başlıklar</p>
             </div>
           </div>
 
