@@ -38,6 +38,9 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
   // Company settings for default times
   const [companySettings, setCompanySettings] = useState({ opening_time: "06:00", closing_time: "06:00" });
   
+  // Restaurant pricing settings
+  const [pricing, setPricing] = useState(null);
+  
   // Date filters
   const getDefaultDates = useCallback((settings) => {
     const s = settings || { opening_time: "06:00", closing_time: "06:00" };
@@ -162,6 +165,14 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
           };
           setCompanySettings(settings);
           
+          // Fetch restaurant pricing settings
+          try {
+            const pricingRes = await axios.get(`${API}/restaurants/pricing/${restaurantId}`);
+            setPricing(pricingRes.data);
+          } catch (e) {
+            console.error("Pricing fetch error:", e);
+          }
+          
           // Update date filters with company times and fetch orders
           const defaults = getDefaultDates(settings);
           setStartDateTime(defaults.startDateTime);
@@ -279,13 +290,34 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
     }
   };
 
-  // Mesafe ve ücretlendirme bilgisi
+  // Mesafe ve ücretlendirme bilgisi - restoran pricing ayarlarından hesapla
   const getDeliveryFeeInfo = (order) => {
     const distance = order.distance_km || order.distance || order.delivery_distance || 0;
-    const deliveryFee = order.courier_fee || order.delivery_fee || 0;
-    const deliveryFeeVat = order.delivery_fee_vat || order.courier_fee_vat || (deliveryFee * 0.10) || 0;
     const posCommission = order.pos_commission || 0;
     const isCard = order.payment_method === 'card';
+    
+    let deliveryFee = 0;
+    let deliveryFeeVat = 0;
+    
+    if (pricing) {
+      // Restoran ücretlendirme ayarlarından hesapla
+      if (pricing.pricing_type === "per_package") {
+        deliveryFee = pricing.per_package_price || 0;
+      } else if (pricing.pricing_type === "per_km" && pricing.km_ranges) {
+        // Mesafeye göre doğru aralığı bul
+        for (const range of pricing.km_ranges) {
+          const min = range.min_km || 0;
+          const max = range.max_km;
+          if (distance >= min && (max === null || max === undefined || distance < max)) {
+            deliveryFee = range.price || 0;
+            break;
+          }
+        }
+      }
+      // KDV hesapla - restoran ayarlarındaki oran ile
+      const kdvRate = pricing.kdv_rate || 0;
+      deliveryFeeVat = deliveryFee * (kdvRate / 100);
+    }
     
     return { distance, deliveryFee, deliveryFeeVat, posCommission, isCard };
   };
@@ -583,7 +615,7 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
                             <div className="space-y-0.5">
                               <div>{feeInfo.distance.toFixed(1)} km</div>
                               <div className="text-muted-foreground">
-                                {feeInfo.deliveryFee.toFixed(2)}₺ + {feeInfo.deliveryFeeVat.toFixed(2)}₺ KDV
+                                {feeInfo.deliveryFee.toFixed(2)}₺{feeInfo.deliveryFeeVat > 0 && <> + {feeInfo.deliveryFeeVat.toFixed(2)}₺ KDV</>}
                               </div>
                               {feeInfo.isCard && feeInfo.posCommission > 0 && (
                                 <div className="text-orange-600">POS: {feeInfo.posCommission.toFixed(2)}₺</div>
