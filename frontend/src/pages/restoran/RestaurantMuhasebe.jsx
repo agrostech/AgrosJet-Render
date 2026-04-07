@@ -3,7 +3,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
+import {
   Calculator, 
   TrendingUp, 
   TrendingDown, 
@@ -11,9 +11,11 @@ import {
   ChevronDown,
   FileText,
   Wallet,
-  Receipt
+  Receipt,
+  HandCoins
 } from "lucide-react";
 import RestaurantFaturalarModal from "@/components/restoran/RestaurantFaturalarModal";
+import CourierCollectionModal from "@/components/restoran/CourierCollectionModal";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -91,6 +93,7 @@ export default function RestaurantMuhasebe({ restaurantId, restaurantName }) {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [showFaturalar, setShowFaturalar] = useState(false);
+  const [showCollection, setShowCollection] = useState(false);
   const [missingInvoiceCount, setMissingInvoiceCount] = useState(0);
 
   // Eksik fatura sayısını al
@@ -190,6 +193,15 @@ export default function RestaurantMuhasebe({ restaurantId, restaurantName }) {
           <p className="text-sm text-muted-foreground">Finansal işlemler ve bakiye</p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowCollection(true)}
+            data-testid="courier-collection-btn"
+          >
+            <HandCoins className="w-4 h-4 mr-2" />
+            Kurye Hesap Al
+          </Button>
           <Button 
             variant="outline" 
             size="sm" 
@@ -353,12 +365,18 @@ export default function RestaurantMuhasebe({ restaurantId, restaurantName }) {
         onOpenChange={(open) => {
           setShowFaturalar(open);
           if (!open) {
-            // Modal kapandığında badge'i güncelle
             fetchMissingInvoiceCount();
           }
         }}
         restaurantId={restaurantId}
         restaurantName={restaurantName}
+      />
+
+      {/* Kurye Hesap Al Modal */}
+      <CourierCollectionModal
+        open={showCollection}
+        onOpenChange={setShowCollection}
+        restaurantId={restaurantId}
       />
     </div>
   );
