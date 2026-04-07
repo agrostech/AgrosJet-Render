@@ -165,10 +165,15 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
           };
           setCompanySettings(settings);
           
-          // Fetch restaurant pricing settings
+          // Fetch restaurant pricing + collection settings
           try {
-            const pricingRes = await axios.get(`${API}/restaurants/pricing/${restaurantId}`);
-            setPricing(pricingRes.data);
+            const [pricingRes, csRes] = await Promise.all([
+              axios.get(`${API}/restaurants/pricing/${restaurantId}`),
+              axios.get(`${API}/restaurants/collection-settings/${restaurantId}`)
+            ]);
+            const pricingData = pricingRes.data;
+            pricingData.card_collection = csRes.data?.card_collection || "courier";
+            setPricing(pricingData);
           } catch (e) {
             console.error("Pricing fetch error:", e);
           }
@@ -295,6 +300,8 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
     const distance = order.distance_km || order.distance || order.delivery_distance || 0;
     const posCommission = order.pos_commission || 0;
     const isCard = order.payment_method === 'card';
+    // POS komisyonu sadece kart tahsilatı kurye şirketindeyse gösterilir
+    const showPos = isCard && pricing?.card_collection !== "restaurant";
     
     let deliveryFee = 0;
     let deliveryFeeVat = 0;
@@ -319,7 +326,7 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
       deliveryFeeVat = deliveryFee * (kdvRate / 100);
     }
     
-    return { distance, deliveryFee, deliveryFeeVat, posCommission, isCard };
+    return { distance, deliveryFee, deliveryFeeVat, posCommission, isCard, showPos };
   };
 
   // Kurye/Teslimat bilgisini göster
@@ -617,7 +624,7 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
                               <div className="text-muted-foreground">
                                 {feeInfo.deliveryFee.toFixed(2)}₺{feeInfo.deliveryFeeVat > 0 && <> + {feeInfo.deliveryFeeVat.toFixed(2)}₺ KDV</>}
                               </div>
-                              {feeInfo.isCard && feeInfo.posCommission > 0 && (
+                              {feeInfo.showPos && feeInfo.posCommission > 0 && (
                                 <div className="text-orange-600">POS: {feeInfo.posCommission.toFixed(2)}₺</div>
                               )}
                             </div>
