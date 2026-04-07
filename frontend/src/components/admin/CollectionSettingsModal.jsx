@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Switch } from "@/components/ui/switch";
 import { Loader2 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -30,6 +31,7 @@ export default function CollectionSettingsModal({
   const [cashCollection, setCashCollection] = useState("courier");
   const [cardCollection, setCardCollection] = useState("courier");
   const [mealCardCollection, setMealCardCollection] = useState("courier");
+  const [courierCollectionEnabled, setCourierCollectionEnabled] = useState(false);
 
   useEffect(() => {
     if (open && restaurant?.id) {
@@ -44,10 +46,12 @@ export default function CollectionSettingsModal({
       setCashCollection(res.data.cash_collection || "courier");
       setCardCollection(res.data.card_collection || "courier");
       setMealCardCollection(res.data.meal_card_collection || "courier");
+      setCourierCollectionEnabled(res.data.courier_collection_enabled || false);
     } catch (err) {
       setCashCollection("courier");
       setCardCollection("courier");
       setMealCardCollection("courier");
+      setCourierCollectionEnabled(false);
     } finally {
       setLoading(false);
     }
@@ -59,7 +63,8 @@ export default function CollectionSettingsModal({
       await axios.put(`${API}/restaurants/collection-settings/${restaurant.id}`, {
         cash_collection: cashCollection,
         card_collection: cardCollection,
-        meal_card_collection: mealCardCollection
+        meal_card_collection: mealCardCollection,
+        courier_collection_enabled: courierCollectionEnabled
       });
       toast.success("Tahsilat ayarları kaydedildi");
       onSaved?.();
@@ -134,6 +139,18 @@ export default function CollectionSettingsModal({
             <p className="text-xs text-muted-foreground border-t pt-3">
               Restoran tahsil ediyorsa mütabakat ve raporlara dahil edilmez.
             </p>
+
+            <div className="flex items-center justify-between p-3 border rounded-lg border-primary/30 bg-primary/5">
+              <div>
+                <Label className="text-sm font-medium">Kurye Hesap Al</Label>
+                <p className="text-xs text-muted-foreground">Restoran panelinde kuryeden tahsilat alma özelliği</p>
+              </div>
+              <Switch
+                checked={courierCollectionEnabled}
+                onCheckedChange={setCourierCollectionEnabled}
+                data-testid="courier-collection-toggle"
+              />
+            </div>
           </div>
         )}
 

@@ -97,15 +97,17 @@ export default function RestaurantMuhasebe({ restaurantId, restaurantName }) {
   const [hasCollectionSettings, setHasCollectionSettings] = useState(false);
   const [missingInvoiceCount, setMissingInvoiceCount] = useState(0);
 
-  // Restoran tahsilat ayarlarını kontrol et
+  // Restoran tahsilat ayarlarını kontrol et (1. toggle aktif mi? 2. restoran tahsilatı var mı?)
   useEffect(() => {
     if (!restaurantId) return;
-    axios.get(`${API}/restaurant-collections/${restaurantId}/courier-balances?date=${new Date().toISOString().split('T')[0]}`)
+    axios.get(`${API}/restaurants/collection-settings/${restaurantId}`)
       .then(res => {
-        // Eğer "ayarlanmamış" mesajı yoksa, tahsilat aktif demektir
-        setHasCollectionSettings(!res.data?.message);
+        const d = res.data;
+        const toggleOn = d.courier_collection_enabled === true;
+        const hasRestaurantCollection = d.cash_collection === "restaurant" || d.card_collection === "restaurant";
+        setHasCollectionSettings(toggleOn && hasRestaurantCollection);
       })
-      .catch(() => {});
+      .catch(() => setHasCollectionSettings(false));
   }, [restaurantId]);
 
   // Eksik fatura sayısını al

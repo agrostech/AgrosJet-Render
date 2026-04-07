@@ -239,6 +239,7 @@ class CollectionSettingsUpdate(BaseModel):
     cash_collection: str  # "courier" veya "restaurant"
     card_collection: str  # "courier" veya "restaurant"
     meal_card_collection: str = "courier"  # "courier" veya "restaurant"
+    courier_collection_enabled: bool = False  # Kurye Hesap Al özelliği açık/kapalı
 
 
 @router.get("/collection-settings/{restaurant_id}")
@@ -257,7 +258,8 @@ async def get_collection_settings(restaurant_id: str):
     return {
         "cash_collection": settings.get("cash_collection", "courier"),
         "card_collection": settings.get("card_collection", "courier"),
-        "meal_card_collection": settings.get("meal_card_collection", "courier")
+        "meal_card_collection": settings.get("meal_card_collection", "courier"),
+        "courier_collection_enabled": settings.get("courier_collection_enabled", False)
     }
 
 
@@ -279,7 +281,8 @@ async def update_collection_settings(restaurant_id: str, data: CollectionSetting
             "collection_settings": {
                 "cash_collection": data.cash_collection,
                 "card_collection": data.card_collection,
-                "meal_card_collection": data.meal_card_collection
+                "meal_card_collection": data.meal_card_collection,
+                "courier_collection_enabled": data.courier_collection_enabled
             },
             "updated_at": get_turkey_now()
         }}
