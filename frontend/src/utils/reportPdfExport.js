@@ -20,57 +20,36 @@ function formatDateTR(dateStr) {
   }
 }
 
-async function addCompanyLogo(doc, companyId, pageWidth) {
-  if (!companyId) { console.error("[LOGO] companyId yok!"); return; }
+async function addCompanyLogo(doc, companyLogo, pageWidth) {
+  if (!companyLogo) return;
   try {
-    // Step 1: Get company data to find logo path
-    const compUrl = `${BACKEND}/api/companies/${companyId}`;
-    console.log("[LOGO] Step 1 - Fetching company:", compUrl);
-    const compRes = await fetch(compUrl);
-    console.log("[LOGO] Step 1 - Response status:", compRes.status);
-    if (!compRes.ok) { console.error("[LOGO] Step 1 FAILED - status:", compRes.status); return; }
-    const company = await compRes.json();
-    const logoPath = company.logo_light || company.logo_url;
-    console.log("[LOGO] Step 1 - logo_light:", company.logo_light, "logo_url:", company.logo_url, "chosen:", logoPath);
-    if (!logoPath) { console.error("[LOGO] Step 1 FAILED - no logo path found"); return; }
-
-    // Step 2: Fetch logo image
-    const logoUrl = logoPath.startsWith('/')
-      ? `${BACKEND}${logoPath}`
-      : `${BACKEND}/api/proxy-image?url=${encodeURIComponent(logoPath)}`;
-    console.log("[LOGO] Step 2 - Fetching image:", logoUrl);
+    // companyLogo zaten tam veya relative URL
+    const logoUrl = companyLogo.startsWith('/') ? `${BACKEND}${companyLogo}` : companyLogo;
     const logoRes = await fetch(logoUrl);
-    console.log("[LOGO] Step 2 - Response status:", logoRes.status, "content-type:", logoRes.headers.get('content-type'));
-    if (!logoRes.ok) { console.error("[LOGO] Step 2 FAILED - status:", logoRes.status); return; }
+    if (!logoRes.ok) return;
 
-    // Step 3: Convert to dataURL
     const blob = await logoRes.blob();
-    console.log("[LOGO] Step 3 - Blob size:", blob.size, "type:", blob.type);
+    if (blob.size === 0) return;
     const dataUrl = await new Promise((resolve) => {
       const reader = new FileReader();
       reader.onloadend = () => resolve(reader.result);
       reader.readAsDataURL(blob);
     });
-    console.log("[LOGO] Step 3 - DataURL length:", dataUrl.length, "starts with:", dataUrl.substring(0, 30));
 
-    // Step 4: Get image dimensions for aspect ratio
     const img = await new Promise((resolve, reject) => {
       const i = new window.Image();
       i.onload = () => resolve(i);
-      i.onerror = (e) => { console.error("[LOGO] Step 4 FAILED - Image load error:", e); reject(e); };
+      i.onerror = (e) => reject(e);
       i.src = dataUrl;
     });
-    console.log("[LOGO] Step 4 - Image dimensions:", img.naturalWidth, "x", img.naturalHeight);
     const maxH = 15, maxW = 35;
     const aspect = img.naturalWidth / img.naturalHeight;
     let w = maxH * aspect, h = maxH;
     if (w > maxW) { w = maxW; h = w / aspect; }
-    console.log("[LOGO] Step 5 - Adding to PDF at:", pageWidth - w - 14, 5, "size:", w, "x", h);
 
     doc.addImage(dataUrl, 'PNG', pageWidth - w - 20, 8, w, h);
-    console.log("[LOGO] SUCCESS - Logo added to PDF");
   } catch (e) {
-    console.error("[LOGO] EXCEPTION:", e);
+    console.error("[LOGO] PDF logo eklenemedi:", e);
   }
 }
 
@@ -157,7 +136,7 @@ export async function exportKuryeRaporuPDF({ reportData, companyLogo, companyNam
   const s = reportData.summary;
 
   drawHeader(doc, "Kurye Raporu", companyName || "");
-  await addCompanyLogo(doc, companyId, pageWidth);
+  await addCompanyLogo(doc, companyLogo, pageWidth);
 
   let currentY = drawDateRange(doc, dateRange?.start, dateRange?.end, 38);
 
@@ -218,7 +197,7 @@ export async function exportRestoranRaporuPDF({ reportData, companyLogo, company
   const s = reportData.summary;
 
   drawHeader(doc, "Restoran Raporu", companyName || "");
-  await addCompanyLogo(doc, companyId, pageWidth);
+  await addCompanyLogo(doc, companyLogo, pageWidth);
 
   let currentY = drawDateRange(doc, dateRange?.start, dateRange?.end, 38);
 
@@ -290,7 +269,7 @@ export async function exportCiroRaporuPDF({ data, companyLogo, companyName, date
   const s = data.summary;
 
   drawHeader(doc, "Ciro Raporu", companyName || "");
-  await addCompanyLogo(doc, companyId, pageWidth);
+  await addCompanyLogo(doc, companyLogo, pageWidth);
 
   let currentY = drawDateRange(doc, dateRange?.start, dateRange?.end, 38);
 
@@ -354,7 +333,7 @@ export async function exportKarZararRaporuPDF({ data, companyLogo, companyName, 
   const pageWidth = doc.internal.pageSize.getWidth();
 
   drawHeader(doc, "Kar / Zarar Raporu", companyName || "");
-  await addCompanyLogo(doc, companyId, pageWidth);
+  await addCompanyLogo(doc, companyLogo, pageWidth);
 
   let currentY = drawDateRange(doc, dateRange?.start, dateRange?.end, 38);
 
@@ -437,7 +416,7 @@ export async function exportPerformansRaporuPDF({ data, companyLogo, companyName
   const pageWidth = doc.internal.pageSize.getWidth();
 
   drawHeader(doc, "Performans Raporu", companyName || "");
-  await addCompanyLogo(doc, companyId, pageWidth);
+  await addCompanyLogo(doc, companyLogo, pageWidth);
 
   let currentY = drawDateRange(doc, dateRange?.start, dateRange?.end, 38);
 
