@@ -6,7 +6,7 @@ import uuid
 
 from utils.database import db
 from utils.helpers import hash_password, format_name, get_turkey_now, TURKEY_TZ
-from utils.jwt_utils import require_super_or_system
+from utils.jwt_utils import require_super_or_system, require_admin
 
 router = APIRouter(prefix="/api", tags=["Admins"])
 
@@ -368,11 +368,18 @@ async def update_admin(admin_id: str, data: AdminUpdate, auth: dict = Depends(re
 
 # --- Admin Aktiflik Yönetimi ---
 @router.post("/admins/{admin_id}/toggle-status")
-async def toggle_admin_status(admin_id: str, auth: dict = Depends(require_super_or_system)):
+async def toggle_admin_status(admin_id: str, auth: dict = Depends(require_admin)):
     """
     Admin aktif/pasif durumunu değiştir.
-    Admin aktif olursa bağlı kurye pasif olur ve vice versa.
+    Admin sadece kendi durumunu değiştirebilir, superadmin/systemadmin herkesinkini.
     """
+    # Normal admin sadece kendini değiştirebilir
+    caller_role = auth.get("role", "")
+    caller_is_super = auth.get("is_super", False)
+    if caller_role not in ("systemadmin", "superadmin") and not caller_is_super:
+        if auth.get("sub") != admin_id:
+            raise HTTPException(status_code=403, detail="Sadece kendi durumunuzu değiştirebilirsiniz")
+    
     admin = await db.admins.find_one({"id": admin_id}, {"_id": 0})
     if not admin:
         raise HTTPException(status_code=404, detail="Yönetici bulunamadı")
