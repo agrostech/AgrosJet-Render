@@ -17,7 +17,6 @@ import {
   User,
   Loader2,
   AlertCircle,
-  Package,
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -47,7 +46,6 @@ export default function CourierCollectionModal({ open, onOpenChange, restaurantI
   const [weekStatus, setWeekStatus] = useState([]);
   const [couriers, setCouriers] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [weekLoading, setWeekLoading] = useState(false);
   const [submitting, setSubmitting] = useState({});
 
   const weekDates = useMemo(() => {
@@ -66,17 +64,12 @@ export default function CourierCollectionModal({ open, onOpenChange, restaurantI
 
   const fetchWeekStatus = useCallback(async () => {
     if (!restaurantId || !open) return;
-    setWeekLoading(true);
     try {
       const res = await axios.get(
         `${API}/restaurant-collections/${restaurantId}/week-status?week_start=${formatDateStr(weekStart)}`
       );
       setWeekStatus(res.data.days || []);
-    } catch {
-      // silent
-    } finally {
-      setWeekLoading(false);
-    }
+    } catch { /* silent */ }
   }, [restaurantId, weekStart, open]);
 
   const fetchBalances = useCallback(async () => {
@@ -94,28 +87,27 @@ export default function CourierCollectionModal({ open, onOpenChange, restaurantI
     }
   }, [restaurantId, selectedDate, open]);
 
-  useEffect(() => {
-    if (open) fetchWeekStatus();
-  }, [fetchWeekStatus, open]);
+  useEffect(() => { if (open) fetchWeekStatus(); }, [fetchWeekStatus, open]);
+  useEffect(() => { if (open) fetchBalances(); }, [fetchBalances, open]);
 
-  useEffect(() => {
-    if (open) fetchBalances();
-  }, [fetchBalances, open]);
-
-  const handleCollect = async (courierId) => {
-    setSubmitting((p) => ({ ...p, [courierId]: true }));
+  const handleCollectOrder = async (orderId, courierId) => {
+    setSubmitting((p) => ({ ...p, [orderId]: true }));
     try {
       const res = await axios.post(
         `${API}/restaurant-collections/${restaurantId}/collect`,
-        { courier_id: courierId, date: selectedDate }
+        { order_id: orderId, courier_id: courierId, date: selectedDate }
       );
-      toast.success(res.data.message);
-      fetchBalances();
-      fetchWeekStatus();
+      if (res.data.success) {
+        toast.success(res.data.message);
+        fetchBalances();
+        fetchWeekStatus();
+      } else {
+        toast.error(res.data.error || "Hata");
+      }
     } catch (err) {
       toast.error(err.response?.data?.detail || "Tahsilat kaydedilemedi");
     } finally {
-      setSubmitting((p) => ({ ...p, [courierId]: false }));
+      setSubmitting((p) => ({ ...p, [orderId]: false }));
     }
   };
 
@@ -139,17 +131,13 @@ export default function CourierCollectionModal({ open, onOpenChange, restaurantI
         {/* Hafta Seçici */}
         <div className="flex items-center justify-between mb-1" data-testid="week-selector">
           <Button variant="ghost" size="icon" onClick={() => {
-            const d = new Date(weekStart);
-            d.setDate(d.getDate() - 7);
-            setWeekStart(d);
+            const d = new Date(weekStart); d.setDate(d.getDate() - 7); setWeekStart(d);
           }}>
             <ChevronLeft className="w-4 h-4" />
           </Button>
           <span className="text-sm font-semibold text-slate-700">{weekLabel}</span>
           <Button variant="ghost" size="icon" onClick={() => {
-            const d = new Date(weekStart);
-            d.setDate(d.getDate() + 7);
-            setWeekStart(d);
+            const d = new Date(weekStart); d.setDate(d.getDate() + 7); setWeekStart(d);
           }}>
             <ChevronRight className="w-4 h-4" />
           </Button>
@@ -160,9 +148,6 @@ export default function CourierCollectionModal({ open, onOpenChange, restaurantI
           {weekDates.map((wd) => {
             const status = getStatusForDate(wd.date);
             const isSelected = wd.date === selectedDate;
-            const isCompleted = status.all_completed;
-            const hasOrders = status.has_orders;
-
             return (
               <button
                 key={wd.date}
@@ -176,10 +161,10 @@ export default function CourierCollectionModal({ open, onOpenChange, restaurantI
               >
                 <span className="text-[10px] uppercase">{wd.dayName}</span>
                 <span className="text-sm font-bold">{wd.dayNum}</span>
-                {hasOrders && isCompleted && (
+                {status.has_orders && status.all_completed && (
                   <Check className="w-3.5 h-3.5 text-green-500 mt-0.5" />
                 )}
-                {hasOrders && !isCompleted && (
+                {status.has_orders && !status.all_completed && (
                   <span className="w-1.5 h-1.5 rounded-full bg-orange-400 mt-1" />
                 )}
               </button>
@@ -203,7 +188,7 @@ export default function CourierCollectionModal({ open, onOpenChange, restaurantI
               <div
                 key={c.courier_id}
                 className={`border rounded-xl p-3 transition-all ${
-                  c.is_collected ? "bg-green-50/50 border-green-200" : "bg-white"
+                  c.all_collected ? "bg-green-50/50 border-green-200" : "bg-white"
                 }`}
                 data-testid={`courier-row-${c.courier_id}`}
               >
@@ -211,22 +196,18 @@ export default function CourierCollectionModal({ open, onOpenChange, restaurantI
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                      c.is_collected ? "bg-green-100" : "bg-slate-100"
+                      c.all_collected ? "bg-green-100" : "bg-slate-100"
                     }`}>
-                      {c.is_collected ? (
-                        <Check className="w-4 h-4 text-green-600" />
-                      ) : (
-                        <User className="w-4 h-4 text-slate-500" />
-                      )}
+                      {c.all_collected
+                        ? <Check className="w-4 h-4 text-green-600" />
+                        : <User className="w-4 h-4 text-slate-500" />}
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-slate-800">{c.courier_name}</p>
                       <p className="text-[11px] text-muted-foreground">{c.order_count} paket</p>
                     </div>
                   </div>
-
                   <div className="flex items-center gap-3">
-                    {/* Toplam */}
                     <div className="text-right">
                       {c.cash_total > 0 && (
                         <div className="flex items-center gap-1 text-xs">
@@ -241,63 +222,64 @@ export default function CourierCollectionModal({ open, onOpenChange, restaurantI
                         </div>
                       )}
                     </div>
-
-                    {/* Al / Alındı */}
-                    {c.is_collected ? (
-                      <span className="text-xs font-semibold text-green-600 bg-green-100 px-3 py-1.5 rounded-full" data-testid="collected-badge">
-                        Alındı
+                    {c.all_collected && (
+                      <span className="text-xs font-semibold text-green-600 bg-green-100 px-3 py-1 rounded-full">
+                        Tümü Alındı
                       </span>
-                    ) : (
-                      <Button
-                        size="sm"
-                        className="h-8 px-4 text-xs"
-                        disabled={submitting[c.courier_id]}
-                        onClick={() => handleCollect(c.courier_id)}
-                        data-testid={`collect-btn-${c.courier_id}`}
-                      >
-                        {submitting[c.courier_id] ? (
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                        ) : (
-                          "Al"
-                        )}
-                      </Button>
                     )}
                   </div>
                 </div>
 
-                {/* Paket Listesi */}
-                {c.orders && c.orders.length > 0 && (
-                  <div className="mt-2 border-t pt-2 space-y-1">
-                    {c.orders.map((order) => (
-                      <div
-                        key={order.id}
-                        className="flex items-center justify-between text-[11px] text-slate-600 py-0.5 px-1"
-                        data-testid={`order-row-${order.id}`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <Package className="w-3 h-3 text-slate-400" />
-                          <span>{order.order_code || order.id.slice(0, 8)}</span>
-                          {order.platform && (
-                            <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-500">
-                              {order.platform}
-                            </span>
+                {/* Sipariş Listesi */}
+                <div className="border-t pt-2 space-y-1">
+                  {c.orders.map((order) => (
+                    <div
+                      key={order.id}
+                      className={`flex items-center justify-between py-1.5 px-2 rounded-lg text-xs ${
+                        order.is_collected
+                          ? "bg-green-50 text-slate-400"
+                          : "bg-slate-50 text-slate-700"
+                      }`}
+                      data-testid={`order-row-${order.id}`}
+                    >
+                      {/* Sol: Müşteri adı + adres */}
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        {order.payment_method === "cash"
+                          ? <Banknote className="w-3.5 h-3.5 text-green-500 shrink-0" />
+                          : <CreditCard className="w-3.5 h-3.5 text-blue-500 shrink-0" />}
+                        <span className="truncate">
+                          <span className="font-medium">{order.customer_name || "Müşteri"}</span>
+                          {order.address && (
+                            <span className="text-slate-400 ml-1.5">— {order.address}</span>
                           )}
-                          {order.customer_name && (
-                            <span className="text-slate-400">{order.customer_name}</span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          {order.payment_method === "cash" ? (
-                            <Banknote className="w-3 h-3 text-green-500" />
-                          ) : (
-                            <CreditCard className="w-3 h-3 text-blue-500" />
-                          )}
-                          <span className="font-medium">{formatMoney(order.total_amount)}</span>
-                        </div>
+                        </span>
                       </div>
-                    ))}
-                  </div>
-                )}
+
+                      {/* Sağ: Tutar + Al/Alındı */}
+                      <div className="flex items-center gap-2 shrink-0 ml-2">
+                        <span className="font-semibold">{formatMoney(order.total_amount)}</span>
+                        {order.is_collected ? (
+                          <span className="text-green-600 flex items-center gap-0.5">
+                            <Check className="w-3.5 h-3.5" /> Alındı
+                          </span>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-6 px-2 text-[11px]"
+                            disabled={submitting[order.id]}
+                            onClick={() => handleCollectOrder(order.id, c.courier_id)}
+                            data-testid={`collect-btn-${order.id}`}
+                          >
+                            {submitting[order.id]
+                              ? <Loader2 className="w-3 h-3 animate-spin" />
+                              : "Al"}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
