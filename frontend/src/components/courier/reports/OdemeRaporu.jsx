@@ -257,9 +257,9 @@ export default function OdemeRaporu({ courierId, companyId }) {
           <PaymentCard label="Kredi Kartı" icon={CreditCard} count={data.card_orders?.length || 0} total={data.card_total}
             orders={data.card_orders} colorKey="blue" expanded={expandedCards.card} onToggle={() => toggleCard('card')} showCollected={showCollected} />
           <PaymentCard label="Yemek Kartı" icon={Utensils} count={data.meal_card_orders?.length || 0} total={data.meal_card_total}
-            orders={data.meal_card_orders} colorKey="orange" expanded={expandedCards.meal} onToggle={() => toggleCard('meal')} showCollected={showCollected} />
+            orders={data.meal_card_orders} colorKey="orange" expanded={expandedCards.meal} onToggle={() => toggleCard('meal')} showCollected={false} />
           <PaymentCard label="Online" icon={Globe} count={data.online_orders?.length || 0} total={data.online_total}
-            orders={data.online_orders} colorKey="purple" expanded={expandedCards.online} onToggle={() => toggleCard('online')} showCollected={showCollected} />
+            orders={data.online_orders} colorKey="purple" expanded={expandedCards.online} onToggle={() => toggleCard('online')} showCollected={false} />
           
           {!hasOrders && (
             <p className="text-sm text-muted-foreground text-center py-4">Bu tarih aralığında sipariş bulunamadı</p>
