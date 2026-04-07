@@ -21,18 +21,29 @@ Multi-tenant delivery management platform for restaurants, couriers, and adminis
 - Courier Collection (Kurye Hesap Al) feature with business-day filtering
 - Admin toggle for courier_collection_enabled per restaurant
 - Courier orders page "Siparisleri Yenile" refresh button with 5s countdown rate limit
-- Courier İhlaller (violations) page minimal redesign
+- Courier Ihlaller (violations) page minimal redesign
 - AgrosAI Rota tab name simplified
-- Courier Ödeme Raporu: Şirket/Restoran tabs (collector param), verildi/verilmedi status, business-day default date
-- Online/Yemek kartı collection status hidden (not applicable for restaurant collection)
+- Courier Odeme Raporu: Sirket/Restoran tabs (collector param), verildi/verilmedi status, business-day default date
+- Online/Yemek karti collection status hidden (not applicable for restaurant collection)
 - Restaurant delivery fee fix: uses pricing settings instead of courier_fee
 - KDV fix: uses restaurant kdv_rate instead of hardcoded 10%
 - POS commission: only shown when card collection is by company (not restaurant)
 - Admin permissions auto-refresh on page load (GET /api/admins/{id}/permissions)
 - Admin toggle-status auth fix (require_admin instead of require_super_or_system)
 - PDF company logo fix (uses companyLogo prop directly, no auth-required fetch)
-- Auto-processing schedules: dynamic closing_time + 1 hour (fatura, mütabakat, hakediş)
+- Auto-processing schedules: dynamic closing_time + 1 hour (fatura, mutabakat, hakedis)
 - VatanSMS integration: sms_service.py + system settings UI + test SMS
+- **Courier Document Upload & Registration Revamp (P0)** - COMPLETED 2026-04-08:
+  - Courier login allows login without company assignment (for onboarding flow)
+  - TC Kimlik No field added to courier registration form
+  - Scroll-enforced contract view with dynamic company variables
+  - E-signature canvas (react-signature-canvas) for contract signing
+  - PDF generation (reportlab) with embedded e-signature
+  - Contract PDF uploaded to Cloudflare R2
+  - Routing guard: forces couriers to /evraklar if contract not accepted
+  - Admin panel: contract status (Onayli/Bekliyor) + PDF view button in courier detail modal
+  - Document upload step (Step 2) after contract acceptance
+  - Contract settings management via Admin API (/api/contracts/settings/{company_id})
 
 ## Pending Issues (Prioritized)
 ### P1
@@ -43,15 +54,20 @@ Multi-tenant delivery management platform for restaurants, couriers, and adminis
 - Webhook setup ping failure for agrosjet.net (HTML response handling)
 
 ## Upcoming/Future
-- Nilvera e-Fatura entegrasyonu (analiz tamamlandı, tevkifat destekli)
+- Nilvera e-Fatura entegrasyonu (analiz tamamlandi, tevkifat destekli)
 - Native Courier App improvements (Map / Proximity Engine)
 - Yemeksepeti Chrome extension
 - "Stop Count" capacity logic
 - Caller ID integration
 
 ## Key API Endpoints
-- POST /api/auth/courier/login
+- POST /api/auth/courier/login (returns contract_accepted, document_status)
 - GET /api/companies/logo/{filename}
+- GET /api/contracts/status/{courier_id}
+- GET /api/contracts/preview/{courier_id}
+- POST /api/contracts/accept/{courier_id}
+- GET /api/contracts/pdf/{courier_id}
+- GET/POST /api/contracts/settings/{company_id}
 - GET /api/restaurant-collections/courier-balances
 - POST /api/restaurant-collections/collect
 - PUT /api/restaurants/collection-settings/{restaurant_id}
@@ -72,5 +88,5 @@ Multi-tenant delivery management platform for restaurants, couriers, and adminis
 - Trendyol, Migros, Getir, Yemeksepeti, Sepetapp, Adisyo (Order Integrations)
 - Cloudflare R2 (Storage)
 - Expo / Firebase (Push Notifications)
-- VatanSMS (SMS - API ayarları sistem panelinden girilir)
-- Nilvera (e-Fatura - henüz entegre edilmedi, analiz tamamlandı)
+- VatanSMS (SMS - API ayarlari sistem panelinden girilir)
+- Nilvera (e-Fatura - henuz entegre edilmedi, analiz tamamlandi)
