@@ -104,6 +104,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   const [pendingNotReadyOrder, setPendingNotReadyOrder] = useState(null);
   const [permissions, setPermissions] = useState({ can_mark_not_ready: true });
   const [smartRouteData, setSmartRouteData] = useState([]); // Akıllı rota adımları
+  const [refreshCooldown, setRefreshCooldown] = useState(false);
   const [smartRouteTotalDistance, setSmartRouteTotalDistance] = useState(0);
   const wakeLockRef = useRef(null);
 
@@ -991,6 +992,22 @@ export default function CourierSiparisPage({ courierId, companyId }) {
           )}
         </button>
       </div>
+
+      {/* Yenile Butonu */}
+      <button
+        onClick={() => {
+          if (refreshCooldown) return;
+          fetchOrders(true);
+          setRefreshCooldown(true);
+          setTimeout(() => setRefreshCooldown(false), 5000);
+        }}
+        disabled={refreshing || refreshCooldown}
+        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm font-medium active:scale-[0.98] transition-all hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-60"
+        data-testid="refresh-orders-btn"
+      >
+        <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-purple-600 dark:text-purple-400' : ''}`} />
+        {refreshing ? 'Yenileniyor...' : refreshCooldown ? 'Bekleniyor...' : 'Siparişleri Yenile'}
+      </button>
 
       {/* Liste Görünümü */}
       {viewMode === "list" && (
