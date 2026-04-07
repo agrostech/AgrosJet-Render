@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Menu, X, LogOut, Building2, Trash2, Plus, Edit, Users, Settings, Cloud, CheckCircle, XCircle, Loader2, Eye, EyeOff, UserCog, MapPin, Coins, Mail, Upload, MinusCircle, PlusCircle, ExternalLink, ChevronLeft, ChevronRight, Activity } from "lucide-react";
+import { Menu, X, LogOut, Building2, Trash2, Plus, Edit, Users, Settings, Cloud, CheckCircle, XCircle, Loader2, Eye, EyeOff, UserCog, MapPin, Coins, Mail, Upload, MinusCircle, PlusCircle, ExternalLink, ChevronLeft, ChevronRight, Activity, MessageSquare } from "lucide-react";
 import { PageLoading, LoadingSpinner } from "@/components/ui/loading-spinner";
 
 import LoadTestPanel from "@/components/system/LoadTestPanel";
@@ -1676,10 +1676,25 @@ function SistemAyarlariPage() {
     base_url: "https://agrosjet.com"
   });
 
+  // VatanSMS settings
+  const [smsSaving, setSmsSaving] = useState(false);
+  const [smsTesting, setSmsTesting] = useState(false);
+  const [smsTestResult, setSmsTestResult] = useState(null);
+  const [showSmsKey, setShowSmsKey] = useState(false);
+  const [smsConfigured, setSmsConfigured] = useState(false);
+  const [smsTestPhone, setSmsTestPhone] = useState("");
+  const [smsSettings, setSmsSettings] = useState({
+    api_id: "",
+    api_key: "",
+    sender: "",
+    enabled: true
+  });
+
   useEffect(() => {
     fetchSettings();
     fetchSmtpSettings();
     fetchAgjSettings();
+    fetchSmsSettings();
   }, []);
 
   const fetchSettings = async () => {
@@ -1846,13 +1861,70 @@ function SistemAyarlariPage() {
     }
   };
 
+  // ---- VatanSMS ----
+  const fetchSmsSettings = async () => {
+    try {
+      const res = await axios.get(`${API}/system-settings/vatansms`);
+      setSmsConfigured(res.data.configured);
+      setSmsSettings({
+        api_id: res.data.api_id || "",
+        api_key: "",
+        sender: res.data.sender || "",
+        enabled: res.data.enabled ?? true
+      });
+    } catch (err) {
+      console.error("VatanSMS ayarları yüklenemedi:", err);
+    }
+  };
+
+  const handleSmsSave = async () => {
+    if (!smsConfigured && (!smsSettings.api_id || !smsSettings.api_key || !smsSettings.sender)) {
+      toast.error("API ID, API Key ve Gönderici başlığı zorunludur");
+      return;
+    }
+    setSmsSaving(true);
+    try {
+      const payload = { api_id: smsSettings.api_id, sender: smsSettings.sender, enabled: smsSettings.enabled };
+      if (smsSettings.api_key) payload.api_key = smsSettings.api_key;
+
+      if (smsConfigured) {
+        await axios.put(`${API}/system-settings/vatansms`, payload);
+      } else {
+        await axios.post(`${API}/system-settings/vatansms`, { ...payload, api_key: smsSettings.api_key });
+      }
+      toast.success("VatanSMS ayarları kaydedildi");
+      fetchSmsSettings();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Kaydetme başarısız");
+    } finally {
+      setSmsSaving(false);
+    }
+  };
+
+  const handleSmsTest = async () => {
+    if (!smsTestPhone) {
+      toast.error("Test telefon numarası girin");
+      return;
+    }
+    setSmsTesting(true);
+    setSmsTestResult(null);
+    try {
+      const res = await axios.post(`${API}/system-settings/vatansms/test?phone=${smsTestPhone}`);
+      setSmsTestResult(res.data);
+    } catch (err) {
+      setSmsTestResult({ success: false, message: err.response?.data?.detail || "Test başarısız" });
+    } finally {
+      setSmsTesting(false);
+    }
+  };
+
   if (loading) return <PageLoading />;
 
   return (
     <div className="space-y-4 sm:space-y-6">
       <div>
         <h1 className="font-heading text-xl sm:text-2xl font-bold">Sistem Ayarları</h1>
-        <p className="text-muted-foreground text-xs sm:text-sm">Depolama ve e-posta yapılandırması</p>
+        <p className="text-muted-foreground text-xs sm:text-sm">Depolama, e-posta ve SMS yapılandırması</p>
       </div>
 
       <div className="bg-white border-2 border-border overflow-hidden">
@@ -2244,6 +2316,131 @@ function SistemAyarlariPage() {
           <div className="p-3 bg-emerald-50 rounded-lg text-xs text-emerald-700">
             <p className="font-medium">Bilgi:</p>
             <p>AgrosJet.com üzerinden gelen kurye, restoran ve şirket başvurularını görüntülemek ve yönetmek için bu entegrasyonu yapılandırın.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* VatanSMS Ayarları Kartı */}
+      <div className="bg-white rounded-xl border shadow-sm overflow-hidden" data-testid="sms-settings-card">
+        <div className="p-3 sm:p-4 bg-cyan-50 border-b flex items-center gap-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-cyan-100 rounded-lg flex items-center justify-center">
+            <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-600" />
+          </div>
+          <div>
+            <h2 className="font-heading text-sm sm:text-lg font-bold">VatanSMS</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">SMS gönderim entegrasyonu</p>
+          </div>
+          <div className="ml-auto flex items-center gap-2">
+            {smsConfigured ? (
+              <span className="px-2 sm:px-3 py-1 bg-green-100 text-green-700 text-xs sm:text-sm font-semibold rounded-full flex items-center gap-1">
+                <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Yapılandırıldı</span>
+              </span>
+            ) : (
+              <span className="px-2 sm:px-3 py-1 bg-orange-100 text-orange-700 text-xs sm:text-sm font-semibold rounded-full flex items-center gap-1">
+                <XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Yapılandırılmadı</span>
+              </span>
+            )}
+          </div>
+        </div>
+        
+        <div className="p-3 sm:p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-semibold">SMS Aktif</Label>
+            <button
+              type="button"
+              onClick={() => setSmsSettings({...smsSettings, enabled: !smsSettings.enabled})}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${smsSettings.enabled ? 'bg-cyan-600' : 'bg-gray-300'}`}
+              data-testid="sms-enabled-toggle"
+            >
+              <span className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${smsSettings.enabled ? 'translate-x-6' : 'translate-x-1'}`} />
+            </button>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-4">
+            <div>
+              <Label className="text-sm font-semibold">API ID</Label>
+              <Input
+                value={smsSettings.api_id}
+                onChange={(e) => setSmsSettings({...smsSettings, api_id: e.target.value})}
+                placeholder="API ID"
+                className="mt-1 border-2 text-sm"
+                data-testid="sms-api-id-input"
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-semibold">
+                API Key
+                {smsConfigured && <span className="text-muted-foreground font-normal ml-1">(değiştirmek için doldurun)</span>}
+              </Label>
+              <div className="relative mt-1">
+                <Input
+                  type={showSmsKey ? "text" : "password"}
+                  value={smsSettings.api_key}
+                  onChange={(e) => setSmsSettings({...smsSettings, api_key: e.target.value})}
+                  placeholder={smsConfigured ? "••••••••" : "API Key"}
+                  className="border-2 text-sm pr-10"
+                  data-testid="sms-api-key-input"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowSmsKey(!showSmsKey)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showSmsKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+            <div>
+              <Label className="text-sm font-semibold">Gönderici Başlığı</Label>
+              <Input
+                value={smsSettings.sender}
+                onChange={(e) => setSmsSettings({...smsSettings, sender: e.target.value})}
+                placeholder="AGROSJET"
+                className="mt-1 border-2 text-sm"
+                data-testid="sms-sender-input"
+              />
+              <p className="text-xs text-muted-foreground mt-1">SMS&apos;lerde görünecek başlık</p>
+            </div>
+          </div>
+
+          {smsTestResult && (
+            <div className={`p-4 rounded-lg border-2 ${smsTestResult.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+              <div className="flex items-center gap-2">
+                {smsTestResult.success ? (
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                ) : (
+                  <XCircle className="w-5 h-5 text-red-600" />
+                )}
+                <span className={`font-semibold text-sm ${smsTestResult.success ? 'text-green-700' : 'text-red-700'}`}>
+                  {smsTestResult.message}
+                </span>
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-wrap gap-3 pt-4 border-t">
+            <Button onClick={handleSmsSave} disabled={smsSaving} className="font-semibold" data-testid="sms-save-btn">
+              {smsSaving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Kaydediliyor...</> : "Kaydet"}
+            </Button>
+            {smsConfigured && (
+              <div className="flex items-center gap-2">
+                <Input
+                  value={smsTestPhone}
+                  onChange={(e) => setSmsTestPhone(e.target.value)}
+                  placeholder="5xxxxxxxxx"
+                  className="w-36 border-2 text-sm h-9"
+                  data-testid="sms-test-phone-input"
+                />
+                <Button variant="outline" onClick={handleSmsTest} disabled={smsTesting} className="font-semibold border-2" data-testid="sms-test-btn">
+                  {smsTesting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Gönderiliyor...</> : "Test SMS Gönder"}
+                </Button>
+              </div>
+            )}
+          </div>
+
+          <div className="p-3 bg-cyan-50 rounded-lg text-xs text-cyan-700">
+            <p className="font-medium">Bilgi:</p>
+            <p>VatanSMS ile OTP doğrulama, fatura bildirimi ve sistem bildirimleri gönderilebilir. API bilgilerini VatanSMS panelinden alabilirsiniz.</p>
           </div>
         </div>
       </div>

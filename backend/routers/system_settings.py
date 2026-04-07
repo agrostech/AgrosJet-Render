@@ -473,3 +473,137 @@ async def test_agrosjet_connection(auth: dict = Depends(require_system_admin)):
             "success": False,
             "message": str(e)
         }
+
+
+
+# ==================== VATANSMS AYARLARI ====================
+
+class VatanSMSSettings(BaseModel):
+    api_id: str
+    api_key: str
+    sender: str
+    enabled: bool = True
+
+
+class VatanSMSSettingsUpdate(BaseModel):
+    api_id: Optional[str] = None
+    api_key: Optional[str] = None
+    sender: Optional[str] = None
+    enabled: Optional[bool] = None
+
+
+@router.get("/vatansms")
+async def get_vatansms_settings(auth: dict = Depends(require_system_admin)):
+    """VatanSMS ayarlarını getir. Key maskelenir."""
+    settings = await db.system_settings.find_one(
+        {"type": "vatansms"},
+        {"_id": 0}
+    )
+
+    if not settings:
+        return {
+            "configured": False,
+            "api_id": "",
+            "api_key_masked": "",
+            "sender": "",
+            "enabled": False
+        }
+
+    key = settings.get("api_key", "")
+    masked = f"{key[:4]}...{key[-4:]}" if len(key) > 8 else "****"
+
+    return {
+        "configured": True,
+        "api_id": settings.get("api_id", ""),
+        "api_key_masked": masked,
+        "sender": settings.get("sender", ""),
+        "enabled": settings.get("enabled", True),
+        "updated_at": settings.get("updated_at")
+    }
+
+
+@router.post("/vatansms")
+async def save_vatansms_settings(data: VatanSMSSettings, auth: dict = Depends(require_system_admin)):
+    """VatanSMS ayarlarını kaydet."""
+    settings = {
+        "type": "vatansms",
+        "api_id": data.api_id,
+        "api_key": data.api_key,
+        "sender": data.sender,
+        "enabled": data.enabled,
+        "updated_at": get_turkey_now()
+    }
+
+    await db.system_settings.update_one(
+        {"type": "vatansms"},
+        {"$set": settings},
+        upsert=True
+    )
+
+    return {"message": "VatanSMS ayarları kaydedildi"}
+
+
+@router.put("/vatansms")
+async def update_vatansms_settings(data: VatanSMSSettingsUpdate, auth: dict = Depends(require_system_admin)):
+    """VatanSMS ayarlarını güncelle (sadece değişen alanlar)."""
+    existing = await db.system_settings.find_one({"type": "vatansms"})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Önce VatanSMS ayarlarını kaydedin")
+
+    update_data = {"updated_at": get_turkey_now()}
+
+    if data.api_id is not None:
+        update_data["api_id"] = data.api_id
+    if data.api_key is not None and not data.api_key.startswith("****"):
+        update_data["api_key"] = data.api_key
+    if data.sender is not None:
+        update_data["sender"] = data.sender
+    if data.enabled is not None:
+        update_data["enabled"] = data.enabled
+
+    await db.system_settings.update_one(
+        {"type": "vatansms"},
+        {"$set": update_data}
+    )
+
+    return {"message": "VatanSMS ayarları güncellendi"}
+
+
+@router.post("/vatansms/test")
+async def test_vatansms(phone: str = None, auth: dict = Depends(require_system_admin)):
+    """VatanSMS bağlantısını test et. Opsiyonel olarak test SMS gönder."""
+    settings = await db.system_settings.find_one(
+        {"type": "vatansms"},
+        {"_id": 0}
+    )
+
+    if not settings:
+        raise HTTPException(status_code=400, detail="VatanSMS ayarları yapılandırılmamış")
+
+    try:
+        from services.sms_service import send_sms
+        test_phone = phone or "5000000000"
+        result = await send_sms(
+            phones=[test_phone],
+            message="AgrosJet SMS test mesajı"
+        )
+        
+        # VatanSMS status kontrolü
+        status = result.get("status", result.get("code", ""))
+        if str(status) == "200" or str(status) == "success" or result.get("message") == "OK":
+            return {
+                "success": True,
+                "message": f"Test SMS {test_phone} numarasına gönderildi",
+                "details": result
+            }
+        else:
+            return {
+                "success": False,
+                "message": f"SMS gönderilemedi: {result.get('message', str(result))}",
+                "details": result
+            }
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"SMS hatası: {str(e)[:100]}"
+        }
