@@ -42,11 +42,36 @@ const DAY_NAMES_SHORT = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"];
 
 export default function CourierCollectionModal({ open, onOpenChange, restaurantId }) {
   const [weekStart, setWeekStart] = useState(() => getWeekStart(new Date()));
-  const [selectedDate, setSelectedDate] = useState(() => formatDateStr(new Date()));
+  const [selectedDate, setSelectedDate] = useState(null);
   const [weekStatus, setWeekStatus] = useState([]);
   const [couriers, setCouriers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState({});
+  const [initialized, setInitialized] = useState(false);
+
+  // Modal açılınca şirket saatlerine göre doğru iş gününü al
+  useEffect(() => {
+    if (!open || !restaurantId || initialized) return;
+    axios.get(`${API}/restaurant-collections/${restaurantId}/current-business-day`)
+      .then(res => {
+        const businessDay = res.data.date;
+        setSelectedDate(businessDay);
+        setWeekStart(getWeekStart(new Date(businessDay + "T12:00:00")));
+        setInitialized(true);
+      })
+      .catch(() => {
+        // Fallback: takvim günü
+        const today = formatDateStr(new Date());
+        setSelectedDate(today);
+        setWeekStart(getWeekStart(new Date()));
+        setInitialized(true);
+      });
+  }, [open, restaurantId, initialized]);
+
+  // Modal kapanınca reset
+  useEffect(() => {
+    if (!open) setInitialized(false);
+  }, [open]);
 
   const weekDates = useMemo(() => {
     const dates = [];

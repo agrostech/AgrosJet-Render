@@ -77,6 +77,26 @@ def filter_orders_by_date(orders, start_dt, end_dt):
     return filtered
 
 
+@router.get("/{restaurant_id}/current-business-day")
+async def get_current_business_day(restaurant_id: str, user=Depends(require_auth)):
+    """Şirket açılış/kapanış saatine göre mevcut iş gününü döndür"""
+    opening, closing = await get_company_hours(restaurant_id)
+    ch, cm = (int(x) for x in closing.split(":"))
+    
+    now = datetime.now(TURKEY_TZ)
+    # Saat kapanış saatinden önceyse, iş günü dün
+    if now.hour < ch or (now.hour == ch and now.minute < cm):
+        business_day = now - timedelta(days=1)
+    else:
+        business_day = now
+    
+    return {
+        "date": business_day.strftime("%Y-%m-%d"),
+        "opening_time": opening,
+        "closing_time": closing,
+    }
+
+
 @router.get("/{restaurant_id}/courier-balances")
 async def get_courier_balances(restaurant_id: str, date: str, user=Depends(require_auth)):
     """Belirli bir gün için kurye bazında paketleri listele. Her paketin alındı durumu ayrı."""
