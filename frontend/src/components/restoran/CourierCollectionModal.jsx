@@ -8,7 +8,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   ChevronLeft,
   ChevronRight,
@@ -18,6 +17,7 @@ import {
   User,
   Loader2,
   AlertCircle,
+  Package,
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -36,8 +36,7 @@ function getWeekStart(date) {
 }
 
 function formatDateStr(date) {
-  const d = new Date(date);
-  return d.toISOString().split("T")[0];
+  return new Date(date).toISOString().split("T")[0];
 }
 
 const DAY_NAMES_SHORT = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"];
@@ -49,9 +48,7 @@ export default function CourierCollectionModal({ open, onOpenChange, restaurantI
   const [couriers, setCouriers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [weekLoading, setWeekLoading] = useState(false);
-  const [inputs, setInputs] = useState({});
   const [submitting, setSubmitting] = useState({});
-  const [collectionFlags, setCollectionFlags] = useState({});
 
   const weekDates = useMemo(() => {
     const dates = [];
@@ -90,11 +87,6 @@ export default function CourierCollectionModal({ open, onOpenChange, restaurantI
         `${API}/restaurant-collections/${restaurantId}/courier-balances?date=${selectedDate}`
       );
       setCouriers(res.data.couriers || []);
-      setCollectionFlags({
-        cash: res.data.cash_by_restaurant,
-        card: res.data.card_by_restaurant,
-      });
-      setInputs({});
     } catch {
       toast.error("Veriler yüklenemedi");
     } finally {
@@ -110,60 +102,28 @@ export default function CourierCollectionModal({ open, onOpenChange, restaurantI
     if (open) fetchBalances();
   }, [fetchBalances, open]);
 
-  const prevWeek = () => {
-    const d = new Date(weekStart);
-    d.setDate(d.getDate() - 7);
-    setWeekStart(d);
-  };
-
-  const nextWeek = () => {
-    const d = new Date(weekStart);
-    d.setDate(d.getDate() + 7);
-    setWeekStart(d);
-  };
-
-  const handleCollect = async (courierId, paymentType) => {
-    const key = `${courierId}_${paymentType}`;
-    const amount = parseFloat(inputs[key]);
-    if (!amount || amount <= 0) {
-      toast.error("Geçerli bir tutar girin");
-      return;
-    }
-
-    const courier = couriers.find((c) => c.courier_id === courierId);
-    const maxBalance = paymentType === "cash" ? courier?.cash_balance : courier?.card_balance;
-    if (amount > maxBalance) {
-      toast.error(`Maksimum ${formatMoney(maxBalance)} tahsil edebilirsiniz`);
-      return;
-    }
-
-    setSubmitting((p) => ({ ...p, [key]: true }));
+  const handleCollect = async (courierId) => {
+    setSubmitting((p) => ({ ...p, [courierId]: true }));
     try {
       const res = await axios.post(
         `${API}/restaurant-collections/${restaurantId}/collect`,
-        {
-          courier_id: courierId,
-          amount,
-          payment_type: paymentType,
-          date: selectedDate,
-        }
+        { courier_id: courierId, date: selectedDate }
       );
       toast.success(res.data.message);
-      setInputs((p) => ({ ...p, [key]: "" }));
       fetchBalances();
       fetchWeekStatus();
     } catch (err) {
       toast.error(err.response?.data?.detail || "Tahsilat kaydedilemedi");
     } finally {
-      setSubmitting((p) => ({ ...p, [key]: false }));
+      setSubmitting((p) => ({ ...p, [courierId]: false }));
     }
   };
 
   const weekLabel = useMemo(() => {
-    const start = new Date(weekStart);
-    const end = new Date(weekStart);
-    end.setDate(end.getDate() + 6);
-    return `${start.toLocaleDateString("tr-TR", { day: "numeric", month: "short" })} - ${end.toLocaleDateString("tr-TR", { day: "numeric", month: "short", year: "numeric" })}`;
+    const s = new Date(weekStart);
+    const e = new Date(weekStart);
+    e.setDate(e.getDate() + 6);
+    return `${s.toLocaleDateString("tr-TR", { day: "numeric", month: "short" })} - ${e.toLocaleDateString("tr-TR", { day: "numeric", month: "short", year: "numeric" })}`;
   }, [weekStart]);
 
   const getStatusForDate = (dateStr) =>
@@ -178,11 +138,19 @@ export default function CourierCollectionModal({ open, onOpenChange, restaurantI
 
         {/* Hafta Seçici */}
         <div className="flex items-center justify-between mb-1" data-testid="week-selector">
-          <Button variant="ghost" size="icon" onClick={prevWeek}>
+          <Button variant="ghost" size="icon" onClick={() => {
+            const d = new Date(weekStart);
+            d.setDate(d.getDate() - 7);
+            setWeekStart(d);
+          }}>
             <ChevronLeft className="w-4 h-4" />
           </Button>
           <span className="text-sm font-semibold text-slate-700">{weekLabel}</span>
-          <Button variant="ghost" size="icon" onClick={nextWeek}>
+          <Button variant="ghost" size="icon" onClick={() => {
+            const d = new Date(weekStart);
+            d.setDate(d.getDate() + 7);
+            setWeekStart(d);
+          }}>
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
@@ -235,17 +203,17 @@ export default function CourierCollectionModal({ open, onOpenChange, restaurantI
               <div
                 key={c.courier_id}
                 className={`border rounded-xl p-3 transition-all ${
-                  c.is_completed ? "bg-green-50/50 border-green-200" : "bg-white"
+                  c.is_collected ? "bg-green-50/50 border-green-200" : "bg-white"
                 }`}
                 data-testid={`courier-row-${c.courier_id}`}
               >
-                {/* Kurye Bilgisi */}
+                {/* Kurye Başlık */}
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                      c.is_completed ? "bg-green-100" : "bg-slate-100"
+                      c.is_collected ? "bg-green-100" : "bg-slate-100"
                     }`}>
-                      {c.is_completed ? (
+                      {c.is_collected ? (
                         <Check className="w-4 h-4 text-green-600" />
                       ) : (
                         <User className="w-4 h-4 text-slate-500" />
@@ -253,111 +221,81 @@ export default function CourierCollectionModal({ open, onOpenChange, restaurantI
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-slate-800">{c.courier_name}</p>
-                      <p className="text-[11px] text-muted-foreground">
-                        {c.order_count} paket
-                      </p>
+                      <p className="text-[11px] text-muted-foreground">{c.order_count} paket</p>
                     </div>
                   </div>
-                  {c.is_completed && (
-                    <span className="text-xs font-semibold text-green-600 bg-green-100 px-2 py-1 rounded-full" data-testid="completed-badge">
-                      Alındı
-                    </span>
-                  )}
+
+                  <div className="flex items-center gap-3">
+                    {/* Toplam */}
+                    <div className="text-right">
+                      {c.cash_total > 0 && (
+                        <div className="flex items-center gap-1 text-xs">
+                          <Banknote className="w-3.5 h-3.5 text-green-600" />
+                          <span className="font-semibold text-green-700">{formatMoney(c.cash_total)}</span>
+                        </div>
+                      )}
+                      {c.card_total > 0 && (
+                        <div className="flex items-center gap-1 text-xs">
+                          <CreditCard className="w-3.5 h-3.5 text-blue-600" />
+                          <span className="font-semibold text-blue-700">{formatMoney(c.card_total)}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Al / Alındı */}
+                    {c.is_collected ? (
+                      <span className="text-xs font-semibold text-green-600 bg-green-100 px-3 py-1.5 rounded-full" data-testid="collected-badge">
+                        Alındı
+                      </span>
+                    ) : (
+                      <Button
+                        size="sm"
+                        className="h-8 px-4 text-xs"
+                        disabled={submitting[c.courier_id]}
+                        onClick={() => handleCollect(c.courier_id)}
+                        data-testid={`collect-btn-${c.courier_id}`}
+                      >
+                        {submitting[c.courier_id] ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          "Al"
+                        )}
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
-                {!c.is_completed && (
-                  <div className="space-y-2">
-                    {/* Nakit Satırı */}
-                    {collectionFlags.cash && c.cash_total > 0 && (
-                      <div className="flex items-center gap-2" data-testid={`cash-row-${c.courier_id}`}>
-                        <div className="flex items-center gap-1.5 min-w-[100px]">
-                          <Banknote className="w-4 h-4 text-green-600" />
-                          <div>
-                            <span className="text-[11px] text-muted-foreground block leading-none">Nakit</span>
-                            <span className="text-xs font-bold text-green-700">{formatMoney(c.cash_balance)}</span>
-                          </div>
+                {/* Paket Listesi */}
+                {c.orders && c.orders.length > 0 && (
+                  <div className="mt-2 border-t pt-2 space-y-1">
+                    {c.orders.map((order) => (
+                      <div
+                        key={order.id}
+                        className="flex items-center justify-between text-[11px] text-slate-600 py-0.5 px-1"
+                        data-testid={`order-row-${order.id}`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Package className="w-3 h-3 text-slate-400" />
+                          <span>{order.order_code || order.id.slice(0, 8)}</span>
+                          {order.platform && (
+                            <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-500">
+                              {order.platform}
+                            </span>
+                          )}
+                          {order.customer_name && (
+                            <span className="text-slate-400">{order.customer_name}</span>
+                          )}
                         </div>
-                        {c.cash_balance > 0 ? (
-                          <>
-                            <Input
-                              type="number"
-                              placeholder="Tutar"
-                              className="h-8 text-xs flex-1"
-                              value={inputs[`${c.courier_id}_cash`] || ""}
-                              onChange={(e) =>
-                                setInputs((p) => ({
-                                  ...p,
-                                  [`${c.courier_id}_cash`]: e.target.value,
-                                }))
-                              }
-                              max={c.cash_balance}
-                              data-testid={`cash-input-${c.courier_id}`}
-                            />
-                            <Button
-                              size="sm"
-                              className="h-8 text-xs px-3"
-                              disabled={submitting[`${c.courier_id}_cash`]}
-                              onClick={() => handleCollect(c.courier_id, "cash")}
-                              data-testid={`cash-collect-btn-${c.courier_id}`}
-                            >
-                              {submitting[`${c.courier_id}_cash`] ? (
-                                <Loader2 className="w-3 h-3 animate-spin" />
-                              ) : (
-                                "Al"
-                              )}
-                            </Button>
-                          </>
-                        ) : (
-                          <span className="text-xs text-green-600 font-medium ml-auto">Tamamlandı</span>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Kart Satırı */}
-                    {collectionFlags.card && c.card_total > 0 && (
-                      <div className="flex items-center gap-2" data-testid={`card-row-${c.courier_id}`}>
-                        <div className="flex items-center gap-1.5 min-w-[100px]">
-                          <CreditCard className="w-4 h-4 text-blue-600" />
-                          <div>
-                            <span className="text-[11px] text-muted-foreground block leading-none">Kart</span>
-                            <span className="text-xs font-bold text-blue-700">{formatMoney(c.card_balance)}</span>
-                          </div>
+                        <div className="flex items-center gap-1">
+                          {order.payment_method === "cash" ? (
+                            <Banknote className="w-3 h-3 text-green-500" />
+                          ) : (
+                            <CreditCard className="w-3 h-3 text-blue-500" />
+                          )}
+                          <span className="font-medium">{formatMoney(order.total_amount)}</span>
                         </div>
-                        {c.card_balance > 0 ? (
-                          <>
-                            <Input
-                              type="number"
-                              placeholder="Tutar"
-                              className="h-8 text-xs flex-1"
-                              value={inputs[`${c.courier_id}_card`] || ""}
-                              onChange={(e) =>
-                                setInputs((p) => ({
-                                  ...p,
-                                  [`${c.courier_id}_card`]: e.target.value,
-                                }))
-                              }
-                              max={c.card_balance}
-                              data-testid={`card-input-${c.courier_id}`}
-                            />
-                            <Button
-                              size="sm"
-                              className="h-8 text-xs px-3"
-                              disabled={submitting[`${c.courier_id}_card`]}
-                              onClick={() => handleCollect(c.courier_id, "card")}
-                              data-testid={`card-collect-btn-${c.courier_id}`}
-                            >
-                              {submitting[`${c.courier_id}_card`] ? (
-                                <Loader2 className="w-3 h-3 animate-spin" />
-                              ) : (
-                                "Al"
-                              )}
-                            </Button>
-                          </>
-                        ) : (
-                          <span className="text-xs text-blue-600 font-medium ml-auto">Tamamlandı</span>
-                        )}
                       </div>
-                    )}
+                    ))}
                   </div>
                 )}
               </div>
