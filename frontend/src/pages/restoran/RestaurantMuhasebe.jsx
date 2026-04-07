@@ -94,7 +94,21 @@ export default function RestaurantMuhasebe({ restaurantId, restaurantName }) {
   const [loadingMore, setLoadingMore] = useState(false);
   const [showFaturalar, setShowFaturalar] = useState(false);
   const [showCollection, setShowCollection] = useState(false);
+  const [hasCollectionSettings, setHasCollectionSettings] = useState(false);
   const [missingInvoiceCount, setMissingInvoiceCount] = useState(0);
+
+  // Restoran tahsilat ayarlarını kontrol et
+  useEffect(() => {
+    if (!restaurantId) return;
+    axios.get(`${API}/restaurants/${restaurantId}`)
+      .then(res => {
+        const cs = res.data?.collection_settings || {};
+        setHasCollectionSettings(
+          cs.cash_collection === "restaurant" || cs.card_collection === "restaurant"
+        );
+      })
+      .catch(() => {});
+  }, [restaurantId]);
 
   // Eksik fatura sayısını al
   const fetchMissingInvoiceCount = useCallback(async () => {
@@ -193,15 +207,17 @@ export default function RestaurantMuhasebe({ restaurantId, restaurantName }) {
           <p className="text-sm text-muted-foreground">Finansal işlemler ve bakiye</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowCollection(true)}
-            data-testid="courier-collection-btn"
-          >
-            <HandCoins className="w-4 h-4 mr-2" />
-            Kurye Hesap Al
-          </Button>
+          {hasCollectionSettings && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowCollection(true)}
+              data-testid="courier-collection-btn"
+            >
+              <HandCoins className="w-4 h-4 mr-2" />
+              Kurye Hesap Al
+            </Button>
+          )}
           <Button 
             variant="outline" 
             size="sm" 

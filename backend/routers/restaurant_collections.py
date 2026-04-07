@@ -22,11 +22,37 @@ class CollectOrderRequest(BaseModel):
     date: str
 
 
-def parse_date(date_str: str) -> tuple[datetime, datetime]:
+def parse_date(date_str: str, opening_time: str = "06:00", closing_time: str = "06:00") -> tuple[datetime, datetime]:
+    """
+    İş günü aralığı: seçili gün açılış saati → ertesi gün kapanış saati.
+    Örn: opening=06:00, closing=06:00 → 7 Nisan 06:00 - 8 Nisan 06:00
+    """
     dt = datetime.strptime(date_str, "%Y-%m-%d")
-    start = dt.replace(hour=0, minute=0, second=0, tzinfo=TURKEY_TZ)
-    end = dt.replace(hour=23, minute=59, second=59, tzinfo=TURKEY_TZ)
+    
+    oh, om = (int(x) for x in opening_time.split(":"))
+    ch, cm = (int(x) for x in closing_time.split(":"))
+    
+    start = dt.replace(hour=oh, minute=om, second=0, tzinfo=TURKEY_TZ)
+    end = (dt + timedelta(days=1)).replace(hour=ch, minute=cm, second=0, tzinfo=TURKEY_TZ)
+    
     return start, end
+
+
+async def get_company_hours(restaurant_id: str) -> tuple[str, str]:
+    """Restoranın bağlı olduğu şirketin açılış/kapanış saatlerini getir"""
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id}, {"_id": 0, "company_id": 1}
+    )
+    if not restaurant or not restaurant.get("company_id"):
+        return "06:00", "06:00"
+    
+    company = await db.companies.find_one(
+        {"id": restaurant["company_id"]}, {"_id": 0, "opening_time": 1, "closing_time": 1}
+    )
+    if not company:
+        return "06:00", "06:00"
+    
+    return company.get("opening_time", "06:00"), company.get("closing_time", "06:00")
 
 
 def filter_orders_by_date(orders, start_dt, end_dt):
@@ -54,7 +80,8 @@ def filter_orders_by_date(orders, start_dt, end_dt):
 @router.get("/{restaurant_id}/courier-balances")
 async def get_courier_balances(restaurant_id: str, date: str, user=Depends(require_auth)):
     """Belirli bir gün için kurye bazında paketleri listele. Her paketin alındı durumu ayrı."""
-    start_dt, end_dt = parse_date(date)
+    opening, closing = await get_company_hours(restaurant_id)
+    start_dt, end_dt = parse_date(date, opening, closing)
 
     restaurant = await db.restaurants.find_one(
         {"id": restaurant_id},
@@ -193,6 +220,7 @@ async def collect_order(restaurant_id: str, data: CollectOrderRequest, user=Depe
 async def get_week_status(restaurant_id: str, week_start: str, user=Depends(require_auth)):
     """Haftanın her günü için tahsilat durumunu döndür."""
     start = datetime.strptime(week_start, "%Y-%m-%d")
+    opening, closing = await get_company_hours(restaurant_id)
 
     restaurant = await db.restaurants.find_one(
         {"id": restaurant_id}, {"_id": 0, "collection_settings": 1}
@@ -217,8 +245,11 @@ async def get_week_status(restaurant_id: str, week_start: str, user=Depends(requ
     if not payment_methods:
         return {"days": empty_days, "week_start": week_start}
 
-    week_start_dt = start.replace(hour=0, minute=0, second=0, tzinfo=TURKEY_TZ)
-    week_end_dt = (start + timedelta(days=6)).replace(hour=23, minute=59, second=59, tzinfo=TURKEY_TZ)
+    # Tüm hafta aralığı: ilk günün açılışı → son günün kapanışı (ertesi gün)
+    oh, om = (int(x) for x in opening.split(":"))
+    ch, cm = (int(x) for x in closing.split(":"))
+    week_start_dt = start.replace(hour=oh, minute=om, second=0, tzinfo=TURKEY_TZ)
+    week_end_dt = (start + timedelta(days=7)).replace(hour=ch, minute=cm, second=0, tzinfo=TURKEY_TZ)
 
     orders = await db.orders.find(
         {
@@ -232,7 +263,7 @@ async def get_week_status(restaurant_id: str, week_start: str, user=Depends(requ
 
     filtered = filter_orders_by_date(orders, week_start_dt, week_end_dt)
 
-    # Gün bazında sipariş ID setleri
+    # Gün bazında sipariş ID setleri — şirket saatlerine göre hangi güne ait
     day_orders = {}
     for order in filtered:
         order_date = order.get("delivered_at") or order.get("created_at")
@@ -245,10 +276,18 @@ async def get_week_status(restaurant_id: str, week_start: str, user=Depends(requ
             dt = order_date.astimezone(TURKEY_TZ) if order_date.tzinfo else order_date.replace(tzinfo=TURKEY_TZ)
         else:
             continue
-        day_str = dt.strftime("%Y-%m-%d")
-        if day_str not in day_orders:
-            day_orders[day_str] = set()
-        day_orders[day_str].add(order["id"])
+        
+        # Sipariş hangi iş gününe ait? Her gün için aralık kontrol et
+        for i in range(7):
+            day = start + timedelta(days=i)
+            day_start = day.replace(hour=oh, minute=om, second=0, tzinfo=TURKEY_TZ)
+            day_end = (day + timedelta(days=1)).replace(hour=ch, minute=cm, second=0, tzinfo=TURKEY_TZ)
+            if day_start <= dt < day_end:
+                day_str = day.strftime("%Y-%m-%d")
+                if day_str not in day_orders:
+                    day_orders[day_str] = set()
+                day_orders[day_str].add(order["id"])
+                break
 
     # Hafta için tüm tahsilatları çek
     week_end_str = (start + timedelta(days=6)).strftime("%Y-%m-%d")
