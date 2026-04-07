@@ -377,7 +377,7 @@ export default function RestoranMutabakatTab({ companyId }) {
               <div>
                 <p className="text-sm font-medium">Otomatik İşleme</p>
                 <p className="text-xs text-muted-foreground">
-                  Her Pazartesi {closingTime}'da otomatik mütabakat
+                  Her Pazartesi {(() => { const [h,m] = closingTime.split(':').map(Number); return `${String((h+1)%24).padStart(2,'0')}:${String(m).padStart(2,'0')}`; })()}'da otomatik mütabakat
                 </p>
               </div>
             </div>

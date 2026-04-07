@@ -670,7 +670,7 @@ function RestaurantInvoicesCard({ selectedRestaurant, restaurantData, loading, o
 }
 
 // ==================== Upcoming Invoices Preview Card ====================
-function UpcomingInvoicesCard({ preview, loading, onRefresh }) {
+function UpcomingInvoicesCard({ preview, loading, onRefresh, closingTime = "06:00" }) {
   const getBreakdownText = (breakdown) => {
     const parts = [];
     if (breakdown?.cash) parts.push(`Nakit: ${formatMoney(breakdown.cash)}`);
@@ -706,7 +706,7 @@ function UpcomingInvoicesCard({ preview, loading, onRefresh }) {
           </Button>
         </div>
         <p className="text-xs text-blue-600 mt-1">
-          Pazartesi 02:00'da otomatik oluşturulacak faturalar
+          Pazartesi {(() => { const [h,m] = closingTime.split(':').map(Number); return `${String((h+1)%24).padStart(2,'0')}:${String(m).padStart(2,'0')}`; })()}'da otomatik oluşturulacak faturalar
         </p>
       </div>
       
@@ -1103,7 +1103,7 @@ function AlinanFaturalarContent({ companyId, adminId, adminName, isSuperAdmin })
               <div>
                 <p className="text-sm font-medium">Otomatik İşleme</p>
                 <p className="text-xs text-muted-foreground">
-                  Her Pazartesi 02:00'da otomatik eksik fatura oluşturma
+                  Her Pazartesi {(() => { const [h,m] = closingTime.split(':').map(Number); return `${String((h+1)%24).padStart(2,'0')}:${String(m).padStart(2,'0')}`; })()}'da otomatik eksik fatura oluşturma
                 </p>
               </div>
             </div>
@@ -1176,6 +1176,7 @@ function AlinanFaturalarContent({ companyId, adminId, adminName, isSuperAdmin })
           preview={upcomingPreview}
           loading={previewLoading}
           onRefresh={fetchUpcomingPreview}
+          closingTime={closingTime}
         />
       </div>
 

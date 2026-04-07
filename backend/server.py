@@ -237,40 +237,65 @@ async def lifespan(app: FastAPI):
         replace_existing=True
     )
     
-    # Add auto restaurant invoice generation job - runs every Monday at 02:00
+    # Add auto restaurant invoice generation job - runs every minute, checks closing_time + 1 hour
     async def auto_generate_restaurant_invoices():
-        """Haftalık eksik restoran faturalarını otomatik oluştur - Her Pazartesi 02:00"""
+        """Haftalık eksik restoran faturalarını otomatik oluştur - kapanış + 1 saat, sadece Pazartesi"""
         from datetime import datetime, timezone, timedelta
         try:
             turkey_tz = timezone(timedelta(hours=3))
             now_turkey = datetime.now(turkey_tz)
             
+            # Sadece Pazartesi günleri çalış
+            if now_turkey.weekday() != 0:
+                return
+            
+            current_hour = now_turkey.hour
+            current_minute = now_turkey.minute
+            
             # Otomatik işleme açık olan şirketleri bul
             enabled_settings = await db.restaurant_invoice_settings.find(
                 {"enabled": True},
-                {"_id": 0, "company_id": 1}
+                {"_id": 0, "company_id": 1, "last_auto_run": 1}
             ).to_list(100)
             
             if not enabled_settings:
-                print("No companies with auto restaurant invoice enabled")
                 return
-            
-            print(f"Auto restaurant invoice generation started for {len(enabled_settings)} companies")
-            
-            # Geçen haftanın başlangıcını hesapla (bir önceki Pazartesi)
-            days_since_monday = now_turkey.weekday()
-            last_monday = now_turkey - timedelta(days=7 + days_since_monday)
-            last_monday = last_monday.replace(hour=9, minute=0, second=0, microsecond=0)
-            week_start = last_monday.astimezone(timezone.utc).isoformat()
             
             for setting in enabled_settings:
                 company_id = setting["company_id"]
+                
+                # Şirket kapanış saatini al
+                company = await db.companies.find_one(
+                    {"id": company_id},
+                    {"_id": 0, "closing_time": 1}
+                )
+                if not company:
+                    continue
+                
+                closing_time = company.get("closing_time", "06:00")
+                close_h, close_m = map(int, closing_time.split(':'))
+                target_hour = (close_h + 1) % 24
+                
+                if current_hour != target_hour or current_minute != close_m:
+                    continue
+                
+                # Bugün zaten çalıştı mı?
+                last_run = setting.get("last_auto_run")
+                if last_run:
+                    last_run_dt = datetime.fromisoformat(last_run.replace('Z', '+00:00'))
+                    if (datetime.now(timezone.utc) - last_run_dt).total_seconds() < 3600:
+                        continue
+                
+                # Geçen haftanın başlangıcını hesapla
+                days_since_monday = now_turkey.weekday()
+                last_monday = now_turkey - timedelta(days=7 + days_since_monday)
+                last_monday = last_monday.replace(hour=9, minute=0, second=0, microsecond=0)
+                week_start = last_monday.astimezone(timezone.utc).isoformat()
+                
                 try:
-                    # generate-weekly endpoint'ini çağır
                     from routers.restaurant_invoices import generate_weekly_missing_invoices
                     result = await generate_weekly_missing_invoices(company_id, week_start)
                     
-                    # Son çalışma zamanını güncelle
                     await db.restaurant_invoice_settings.update_one(
                         {"company_id": company_id},
                         {"$set": {"last_auto_run": datetime.now(timezone.utc).isoformat()}}
@@ -285,11 +310,87 @@ async def lifespan(app: FastAPI):
     
     scheduler.add_job(
         auto_generate_restaurant_invoices,
-        CronTrigger(day_of_week='mon', hour=2, minute=0, timezone='Europe/Istanbul'),
+        'interval',
+        minutes=1,
         id="auto_restaurant_invoices",
-        name="Auto Restaurant Invoice Generation (Monday 02:00)",
+        name="Auto Restaurant Invoice Generation (closing + 1h, Mondays)",
         replace_existing=True
     )
+
+    # Auto Mütabakat Job - kapanış + 1 saat, Pazartesi
+    async def auto_mutabakat_job():
+        """Haftalık restoran mütabakatını otomatik işle - kapanış + 1 saat, sadece Pazartesi"""
+        from datetime import datetime, timezone, timedelta
+        try:
+            turkey_tz = timezone(timedelta(hours=3))
+            now_turkey = datetime.now(turkey_tz)
+            
+            if now_turkey.weekday() != 0:
+                return
+            
+            current_hour = now_turkey.hour
+            current_minute = now_turkey.minute
+            
+            enabled_settings = await db.restoran_mutabakat_settings.find(
+                {"enabled": True},
+                {"_id": 0, "company_id": 1, "last_auto_run": 1}
+            ).to_list(100)
+            
+            if not enabled_settings:
+                return
+            
+            for setting in enabled_settings:
+                company_id = setting["company_id"]
+                
+                company = await db.companies.find_one(
+                    {"id": company_id},
+                    {"_id": 0, "closing_time": 1, "opening_time": 1}
+                )
+                if not company:
+                    continue
+                
+                closing_time = company.get("closing_time", "06:00")
+                close_h, close_m = map(int, closing_time.split(':'))
+                target_hour = (close_h + 1) % 24
+                
+                if current_hour != target_hour or current_minute != close_m:
+                    continue
+                
+                last_run = setting.get("last_auto_run")
+                if last_run:
+                    last_run_dt = datetime.fromisoformat(last_run.replace('Z', '+00:00'))
+                    if (datetime.now(timezone.utc) - last_run_dt).total_seconds() < 3600:
+                        continue
+                
+                try:
+                    from routers.restoran_mutabakat import get_weeks_list
+                    opening_time = company.get("opening_time", "06:00")
+                    weeks = get_weeks_list(opening_time, closing_time, count=2)
+                    last_week = weeks[1] if len(weeks) > 1 else None
+                    if not last_week:
+                        continue
+                    
+                    print(f"Auto mutabakat for {company_id}: {last_week['label']}")
+                    
+                    await db.restoran_mutabakat_settings.update_one(
+                        {"company_id": company_id},
+                        {"$set": {"last_auto_run": datetime.now(timezone.utc).isoformat()}}
+                    )
+                except Exception as e:
+                    print(f"Auto mutabakat error for {company_id}: {e}")
+        except Exception as e:
+            print(f"Auto mutabakat job error: {e}")
+    
+    scheduler.add_job(
+        auto_mutabakat_job,
+        'interval',
+        minutes=1,
+        id="auto_mutabakat",
+        name="Auto Restaurant Mutabakat (closing + 1h, Mondays)",
+        replace_existing=True
+    )
+
+
     
     # Otomatik Atama Job'ı (her 30 saniyede)
     async def auto_dispatch_job():
