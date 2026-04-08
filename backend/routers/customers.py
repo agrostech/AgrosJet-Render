@@ -12,10 +12,10 @@ import uuid
 import logging
 
 from utils.database import db
-from utils.jwt_utils import require_admin
+from utils.jwt_utils import require_auth
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/api/customers", tags=["customers"], dependencies=[Depends(require_admin)])
+router = APIRouter(prefix="/api/customers", tags=["customers"], dependencies=[Depends(require_auth)])
 
 TURKEY_TZ = timezone(timedelta(hours=3))
 
