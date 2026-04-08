@@ -999,7 +999,7 @@ export default function CourierDashboard() {
         <main className={`flex-1 overflow-x-auto transition-all duration-300 ${
           sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-56'
         }`}>
-          <div className="p-4 md:p-6 min-h-[calc(100vh-80px)]">
+          <div className="p-4 md:p-6 min-h-[calc(100vh-80px)] lg:min-h-screen pb-20 lg:pb-6">
             <Routes>
               <Route index element={<CourierSiparisPage courierId={user.id} companyId={user.company_id} />} />
               <Route path="vardiyalar" element={<CourierVardiyalarPage courierId={user.id} companyId={user.company_id} />} />
@@ -1025,7 +1025,7 @@ export default function CourierDashboard() {
         </main>
 
         {/* Bottom Navigation Bar */}
-        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 safe-area-bottom" data-testid="courier-bottom-bar">
+        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 safe-area-bottom lg:hidden" data-testid="courier-bottom-bar">
           <div className="flex items-center justify-around h-14 max-w-lg mx-auto">
             {bottomBarItems.map((item) => {
               const isActive = location.pathname === item.path || 
