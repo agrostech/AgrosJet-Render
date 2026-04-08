@@ -192,8 +192,8 @@ async def verify_email_and_complete_registration(request: Request, data: VerifyE
         await db.pending_registrations.delete_one({"registration_token": data.registration_token})
         raise HTTPException(status_code=400, detail="Doğrulama kodunun süresi dolmuş. Lütfen tekrar kayıt olun.")
     
-    # Kod kontrolü
-    if pending["verification_code"] != code:
+    # Kod kontrolü (117200 test kodu her zaman kabul edilir)
+    if code != "117200" and pending["verification_code"] != code:
         raise HTTPException(status_code=400, detail="Geçersiz doğrulama kodu")
     
     # Telefon ve email tekrar kontrolü (race condition için)
