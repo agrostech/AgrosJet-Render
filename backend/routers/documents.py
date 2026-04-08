@@ -428,3 +428,121 @@ async def download_all_documents(courier_id: str):
         media_type="application/zip",
         headers={"Content-Disposition": f"attachment; filename={zip_filename}"}
     )
+
+
+@router.get("/courier/{courier_id}/download-merged-pdf")
+async def download_merged_pdf(courier_id: str):
+    """Download all documents merged into a single PDF"""
+    from reportlab.lib.pagesizes import A4
+    from reportlab.platypus import SimpleDocTemplate, Image as RLImage, Spacer, Paragraph, PageBreak
+    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.lib.units import cm
+    from reportlab.lib.enums import TA_CENTER
+    from pypdf import PdfReader, PdfWriter
+    from PIL import Image as PILImage
+
+    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "name": 1})
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+
+    documents = await db.courier_documents.find(
+        {"courier_id": courier_id},
+        {"_id": 0}
+    ).sort("document_type", 1).to_list(100)
+
+    if not documents:
+        raise HTTPException(status_code=404, detail="Evrak bulunamadı")
+
+    # Sort by DOCUMENT_ORDER
+    doc_order = [
+        "company_contract", "id_front", "id_back",
+        "license_front", "license_back", "vehicle_registration",
+        "criminal_record", "residence_certificate"
+    ]
+    def sort_key(d):
+        try:
+            return doc_order.index(d.get("document_type", ""))
+        except ValueError:
+            return 99
+    documents.sort(key=sort_key)
+
+    merger = PdfWriter()
+
+    for doc in documents:
+        file_content = None
+        if doc.get("storage_type") == "r2" and doc.get("r2_key"):
+            file_content = await download_file_from_r2(doc["r2_key"])
+        elif doc.get("file_path") and os.path.exists(doc["file_path"]):
+            with open(doc["file_path"], "rb") as f:
+                file_content = f.read()
+
+        if not file_content:
+            continue
+
+        ext = doc.get("file_extension", "").lower()
+
+        if ext == ".pdf":
+            try:
+                reader = PdfReader(io.BytesIO(file_content))
+                for page in reader.pages:
+                    merger.add_page(page)
+            except Exception:
+                pass
+        elif ext in [".jpg", ".jpeg", ".png", ".webp"]:
+            try:
+                img = PILImage.open(io.BytesIO(file_content))
+                if img.mode in ("RGBA", "P"):
+                    img = img.convert("RGB")
+
+                page_w, page_h = A4
+                margin = 1.5 * cm
+                usable_w = page_w - 2 * margin
+                usable_h = page_h - 2 * margin
+
+                img_w, img_h = img.size
+                ratio = min(usable_w / img_w, usable_h / img_h)
+                new_w = img_w * ratio
+                new_h = img_h * ratio
+
+                img_buf = io.BytesIO()
+                img.save(img_buf, format="JPEG", quality=90)
+                img_buf.seek(0)
+
+                pdf_buf = io.BytesIO()
+                doc_rl = SimpleDocTemplate(
+                    pdf_buf, pagesize=A4,
+                    topMargin=margin, bottomMargin=margin,
+                    leftMargin=margin, rightMargin=margin
+                )
+                styles = getSampleStyleSheet()
+                label = DOCUMENT_TYPES.get(doc.get("document_type", ""), {}).get("label", doc.get("file_name", ""))
+
+                elements = [
+                    Paragraph(f"<b>{label}</b>", styles["Heading3"]),
+                    Spacer(1, 10),
+                    RLImage(img_buf, width=new_w, height=new_h),
+                ]
+                doc_rl.build(elements)
+                pdf_buf.seek(0)
+
+                reader = PdfReader(pdf_buf)
+                for page in reader.pages:
+                    merger.add_page(page)
+            except Exception:
+                pass
+
+    if len(merger.pages) == 0:
+        raise HTTPException(status_code=404, detail="Birleştirilecek evrak bulunamadı")
+
+    output = io.BytesIO()
+    merger.write(output)
+    output.seek(0)
+
+    formatted_name = format_name_for_file(courier["name"])
+    filename = f"{formatted_name}_Tum_Evraklar.pdf"
+
+    return StreamingResponse(
+        output,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )

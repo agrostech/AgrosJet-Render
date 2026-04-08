@@ -522,3 +522,29 @@ async def reset_fesih(courier_id: str, auth: dict = Depends(require_auth)):
     )
 
     return {"message": "Fesih onayı sıfırlandı"}
+
+
+@router.post("/reset-documents/{courier_id}")
+async def reset_documents(courier_id: str, auth: dict = Depends(require_auth)):
+    """Kuryenin yüklediği evrakları sıfırla (sözleşme hariç)"""
+    from services.r2_storage import delete_file_from_r2
+
+    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "id": 1})
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+
+    # Sözleşme hariç tüm evrakları sil
+    docs = await db.courier_documents.find(
+        {"courier_id": courier_id, "document_type": {"$ne": "company_contract"}},
+        {"_id": 0, "id": 1, "r2_key": 1, "storage_type": 1}
+    ).to_list(100)
+
+    for doc in docs:
+        if doc.get("storage_type") == "r2" and doc.get("r2_key"):
+            await delete_file_from_r2(doc["r2_key"])
+
+    await db.courier_documents.delete_many(
+        {"courier_id": courier_id, "document_type": {"$ne": "company_contract"}}
+    )
+
+    return {"message": "Evraklar sıfırlandı", "deleted_count": len(docs)}
