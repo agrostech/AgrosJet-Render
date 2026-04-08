@@ -95,7 +95,7 @@ Kullanıcı her koşul ve şartta aşağıdaki kurallara üyeliği süresince is
 
 Madde 5. Ödeme ve Sigorta Koşulları:
 
-İş sahibi tarafından, kullanıcıya teslim ettiği her başarılı sipariş karşılığında {paket_basi_ucret} TL ücret ödenecektir. Kullanıcı kendisi de bir esnaf olduğu için bu tutarı iş sahibine fatura etmekle yükümlüdür.
+İş sahibi tarafından, kullanıcıya teslim ettiği her başarılı sipariş karşılığında {paket_basi_ucret} TL ücret ödenecektir. Bu ücret, iş yoğunluğu, mesafe, hava koşulları ve kampanya dönemlerine bağlı olarak -20 TL ile +20 TL arasında değişiklik gösterebilir. Kullanıcı kendisi de bir esnaf olduğu için bu tutarı iş sahibine fatura etmekle yükümlüdür.
 
 Kullanıcı, işbu sözleşmenin elektronik ortamda imzalandığı tarihte yasal düzenlemeler kapsamında aracın Kara Yolları Zorunlu Trafik Sigortasına sahip olduğunu beyan ve kabul eder.
 
