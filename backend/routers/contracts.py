@@ -159,6 +159,8 @@ class ContractSettings(BaseModel):
     sirket_iban_sahibi: str
     paket_basi_ucret: str = ""
     fesih_tazminat: str = ""
+    fesih_bildirim_suresi: str = "15"
+    fesih_bildirim_telefon: str = ""
     uygulama_adi: str = ""
     yetkili_mahkeme: str = ""
     kurucu: str = ""
@@ -244,7 +246,17 @@ async def preview_contract(courier_id: str, auth: dict = Depends(require_auth)):
         tarih=now.strftime("%d/%m/%Y"),
     )
 
-    return {"text": text, "company_name": company.get("name", "")}
+    return {
+        "text": text,
+        "company_name": company.get("name", ""),
+        "fesih": {
+            "tazminat": cs.get("fesih_tazminat", ""),
+            "bildirim_suresi": cs.get("fesih_bildirim_suresi", "15"),
+            "bildirim_telefon": cs.get("fesih_bildirim_telefon") or cs.get("sirket_telefon", ""),
+            "sirket_adi": cs.get("sirket_adi", ""),
+            "yetkili_mahkeme": cs.get("yetkili_mahkeme", ""),
+        }
+    }
 
 
 # ==================== KURYE: Sözleşme Onaylama ====================
@@ -336,12 +348,35 @@ async def accept_contract(courier_id: str, data: ContractAcceptRequest, auth: di
     return {"message": "Sözleşme onaylandı ve kaydedildi", "pdf_r2_key": r2_key}
 
 
+
+@router.post("/fesih-accept/{courier_id}")
+async def accept_fesih(courier_id: str, auth: dict = Depends(require_auth)):
+    """Kurye fesih şartlarını ayrıca kabul eder"""
+    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "id": 1, "contract_accepted": 1})
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+
+    if not courier.get("contract_accepted"):
+        raise HTTPException(status_code=400, detail="Önce sözleşmeyi kabul etmelisiniz")
+
+    now = get_turkey_now()
+    await db.couriers.update_one(
+        {"id": courier_id},
+        {"$set": {
+            "fesih_accepted": True,
+            "fesih_accepted_at": now
+        }}
+    )
+
+    return {"message": "Fesih şartları kabul edildi"}
+
+
 @router.get("/status/{courier_id}")
 async def get_contract_status(courier_id: str, auth: dict = Depends(require_auth)):
     """Kuryenin sözleşme durumunu kontrol et"""
     courier = await db.couriers.find_one(
         {"id": courier_id},
-        {"_id": 0, "id": 1, "contract_accepted": 1, "contract_accepted_at": 1}
+        {"_id": 0, "id": 1, "contract_accepted": 1, "contract_accepted_at": 1, "fesih_accepted": 1, "fesih_accepted_at": 1}
     )
     if not courier:
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
@@ -354,6 +389,8 @@ async def get_contract_status(courier_id: str, auth: dict = Depends(require_auth
     return {
         "accepted": courier.get("contract_accepted", False),
         "accepted_at": courier.get("contract_accepted_at"),
+        "fesih_accepted": courier.get("fesih_accepted", False),
+        "fesih_accepted_at": courier.get("fesih_accepted_at"),
         "contract": contract
     }
 

@@ -40,10 +40,15 @@ Multi-tenant delivery management platform for restaurants, couriers, and adminis
   - E-signature canvas (react-signature-canvas) for contract signing
   - PDF generation (reportlab) with embedded e-signature
   - Contract PDF uploaded to Cloudflare R2
-  - Routing guard: forces couriers to /evraklar if contract not accepted
+  - Routing guard: forces couriers to /evraklar if contract/fesih not accepted
   - Admin panel: contract status (Onayli/Bekliyor) + PDF view button in courier detail modal
-  - Document upload step (Step 2) after contract acceptance
+  - Document upload step (Step 3) after contract + fesih acceptance
   - Contract settings management via Admin API (/api/contracts/settings/{company_id})
+  - **Fesih Şartları (Termination Conditions)** step added as Step 2:
+    - 5 descriptive articles with dynamic company variables
+    - Explicit checkbox confirmation required
+    - Variables: fesih_tazminat, fesih_bildirim_suresi, fesih_bildirim_telefon, yetkili_mahkeme
+    - POST /api/contracts/fesih-accept/{courier_id} endpoint
 
 ## Pending Issues (Prioritized)
 ### P1
@@ -61,11 +66,12 @@ Multi-tenant delivery management platform for restaurants, couriers, and adminis
 - Caller ID integration
 
 ## Key API Endpoints
-- POST /api/auth/courier/login (returns contract_accepted, document_status)
+- POST /api/auth/courier/login (returns contract_accepted, fesih_accepted, document_status)
 - GET /api/companies/logo/{filename}
-- GET /api/contracts/status/{courier_id}
-- GET /api/contracts/preview/{courier_id}
+- GET /api/contracts/status/{courier_id} (returns accepted, fesih_accepted)
+- GET /api/contracts/preview/{courier_id} (returns text, company_name, fesih data)
 - POST /api/contracts/accept/{courier_id}
+- POST /api/contracts/fesih-accept/{courier_id}
 - GET /api/contracts/pdf/{courier_id}
 - GET/POST /api/contracts/settings/{company_id}
 - GET /api/restaurant-collections/courier-balances
@@ -77,12 +83,6 @@ Multi-tenant delivery management platform for restaurants, couriers, and adminis
 - POST /api/admins/{admin_id}/toggle-status
 - GET/POST/PUT /api/system-settings/vatansms
 - POST /api/system-settings/vatansms/test
-
-## Test Credentials
-- System Admin: onurertas / Delivery32..
-- Company Admin: admin / 123456
-- Courier: 05550003201 / 123456
-- Restaurant: restoran1 / 123456
 
 ## 3rd Party Integrations
 - Trendyol, Migros, Getir, Yemeksepeti, Sepetapp, Adisyo (Order Integrations)

@@ -81,6 +81,7 @@ export default function CourierDashboard() {
   const [companyLogo, setCompanyLogo] = useState("");
   const [documentsComplete, setDocumentsComplete] = useState(true);
   const [contractAccepted, setContractAccepted] = useState(true);
+  const [fesihAccepted, setFesihAccepted] = useState(true);
   const [maintenanceNotifications, setMaintenanceNotifications] = useState(0);
   const [navItems, setNavItems] = useState([]);
   const [bottomBarItems, setBottomBarItems] = useState([]);
@@ -204,6 +205,7 @@ export default function CourierDashboard() {
       ]);
       setDocumentsComplete(docRes.data.all_complete);
       setContractAccepted(contractRes.data.accepted);
+      setFesihAccepted(contractRes.data.fesih_accepted);
     } catch (err) {
       console.error("Evrak durumu alınamadı", err);
     }
@@ -806,7 +808,7 @@ export default function CourierDashboard() {
 
   // Sözleşme guard: kabul edilmemişse evraklar sayfasına yönlendir
   const isEvraklarPage = location.pathname.includes('/evraklar');
-  const needsContractRedirect = !contractAccepted && !isEvraklarPage;
+  const needsContractRedirect = (!contractAccepted || !fesihAccepted) && !isEvraklarPage;
 
   // Yönlendirmeyi return'dan önce yapamayız ama render sırasında kontrol ederiz
   if (needsContractRedirect) {

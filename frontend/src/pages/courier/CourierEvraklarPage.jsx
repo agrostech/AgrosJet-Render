@@ -59,6 +59,7 @@ const PDF_TYPES = ["criminal_record", "residence_certificate"];
 function ContractStep({ courierId, onComplete }) {
   const [contractText, setContractText] = useState("");
   const [companyName, setCompanyName] = useState("");
+  const [fesihData, setFesihData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [scrolledToBottom, setScrolledToBottom] = useState(false);
   const [signatureProvided, setSignatureProvided] = useState(false);
@@ -73,6 +74,7 @@ function ContractStep({ courierId, onComplete }) {
         const res = await axios.get(`${API}/contracts/preview/${courierId}`);
         setContractText(res.data.text);
         setCompanyName(res.data.company_name);
+        if (res.data.fesih) setFesihData(res.data.fesih);
       } catch (err) {
         if (err.response?.status === 400) {
           setNoContract(true);
@@ -119,7 +121,7 @@ function ContractStep({ courierId, onComplete }) {
         tc_kimlik: "" // TC zaten kayit sirasinda alindi
       });
       toast.success("Sozlesme onaylandi!");
-      onComplete();
+      onComplete(fesihData);
     } catch (err) {
       toast.error(err.response?.data?.detail || "Sozlesme onaylanamadi");
     } finally {
@@ -495,40 +497,203 @@ function DocumentUploadStep({ courierId, companyId, companyName }) {
   );
 }
 
+// ==================== STEP 2: Fesih Sartlari ====================
+function FesihStep({ courierId, fesihData, onComplete }) {
+  const [checked, setChecked] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const bildirimSuresi = fesihData?.bildirim_suresi || "15";
+  const bildirimTelefon = fesihData?.bildirim_telefon || "";
+  const tazminat = fesihData?.tazminat || "";
+  const sirketAdi = fesihData?.sirket_adi || "";
+  const yetkiliMahkeme = fesihData?.yetkili_mahkeme || "";
+
+  const handleAccept = async () => {
+    if (!checked) return;
+    setSubmitting(true);
+    try {
+      await axios.post(`${API}/contracts/fesih-accept/${courierId}`);
+      toast.success("Fesih sartlari kabul edildi");
+      onComplete();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Islem basarisiz");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-4" data-testid="fesih-step">
+      {/* Baslik */}
+      <div className="border-2 border-border bg-white p-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-red-50">
+            <AlertCircle className="w-5 h-5 text-red-600" />
+          </div>
+          <div>
+            <h2 className="font-heading font-bold text-xl">Sozlesme Fesih Bildirimi ve Sartlari</h2>
+            <p className="text-sm text-muted-foreground">Lutfen asagidaki sartlari dikkatlice okuyun</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Fesih Maddeleri */}
+      <div className="border-2 border-border bg-white">
+        <div className="p-5 space-y-5">
+          {/* Madde 1 */}
+          <div className="flex gap-3" data-testid="fesih-madde-1">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-red-100 text-red-700 font-bold text-sm flex-shrink-0 mt-0.5">1</div>
+            <div>
+              <h4 className="font-semibold text-base mb-1">Fesih Bildirimi Zorunlulugu</h4>
+              <p className="text-sm leading-relaxed text-slate-700">
+                Isbu sozlesmenin feshedilmek istenmesi halinde, fesih talebinizi en az <strong className="text-red-700">{bildirimSuresi} (
+                {bildirimSuresi === "15" ? "on bes" : bildirimSuresi} ) gun</strong> oncesinden bildirmeniz gerekmektedir.
+              </p>
+            </div>
+          </div>
+
+          {/* Madde 2 */}
+          <div className="flex gap-3" data-testid="fesih-madde-2">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-red-100 text-red-700 font-bold text-sm flex-shrink-0 mt-0.5">2</div>
+            <div>
+              <h4 className="font-semibold text-base mb-1">Bildirim Usulu</h4>
+              <p className="text-sm leading-relaxed text-slate-700">
+                Fesih bildirimi, <strong className="text-red-700">{bildirimTelefon}</strong> numarali telefona <strong>yazili SMS</strong> gonderilmek suretiyle yapilmalidir. Telefon aramasi, e-posta veya sozlu bildirim gecerli fesih usulu olarak kabul edilmez.
+              </p>
+            </div>
+          </div>
+
+          {/* Madde 3 */}
+          <div className="flex gap-3" data-testid="fesih-madde-3">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-red-100 text-red-700 font-bold text-sm flex-shrink-0 mt-0.5">3</div>
+            <div>
+              <h4 className="font-semibold text-base mb-1">Erken Fesih Bedeli</h4>
+              <p className="text-sm leading-relaxed text-slate-700">
+                Belirtilen sure ve usule uygun sekilde fesih bildirimi yapilmamasi halinde, <strong className="text-red-700">{tazminat}</strong> tutarinda erken fesih bedelini odemeyi pesinen kabul, beyan ve taahhut etmis sayilirsiniz.
+              </p>
+            </div>
+          </div>
+
+          {/* Madde 4 */}
+          <div className="flex gap-3" data-testid="fesih-madde-4">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-red-100 text-red-700 font-bold text-sm flex-shrink-0 mt-0.5">4</div>
+            <div>
+              <h4 className="font-semibold text-base mb-1">Is Sahibinin Fesih Hakki</h4>
+              <p className="text-sm leading-relaxed text-slate-700">
+                {sirketAdi}, sozlesme sartlarina uyulmamasi, platform kurallarinin ihlali veya hizmet kalitesinin dusuk bulunmasi halinde sozlesmeyi <strong>tek tarafli ve derhal</strong> feshetme hakkina sahiptir. Bu durumda erken fesih bedeli talep edilmez.
+              </p>
+            </div>
+          </div>
+
+          {/* Madde 5 */}
+          <div className="flex gap-3" data-testid="fesih-madde-5">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-red-100 text-red-700 font-bold text-sm flex-shrink-0 mt-0.5">5</div>
+            <div>
+              <h4 className="font-semibold text-base mb-1">Uyusmazlik Cozumu</h4>
+              <p className="text-sm leading-relaxed text-slate-700">
+                Isbu fesih sartlarindan dogan her turlu uyusmazlikta <strong className="text-red-700">{yetkiliMahkeme} Mahkemeleri ve Icra Daireleri</strong> yetkilidir.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Onay Checkbox */}
+      <div className={`border-2 bg-white p-4 transition-all ${checked ? 'border-green-300 bg-green-50/50' : 'border-border'}`}>
+        <label className="flex items-start gap-3 cursor-pointer" data-testid="fesih-checkbox-label">
+          <input
+            type="checkbox"
+            checked={checked}
+            onChange={(e) => setChecked(e.target.checked)}
+            className="mt-1 w-5 h-5 rounded border-2 border-slate-300 accent-red-600"
+            data-testid="fesih-checkbox"
+          />
+          <span className="text-sm leading-relaxed">
+            Yukaridaki fesih sartlarini okudum, anliyorum ve kabul ediyorum. Sozlesmenin feshinde <strong>{bildirimSuresi} gun onceden {bildirimTelefon} numarasina yazili SMS ile bildirim yapmam gerektigini</strong> ve bunu yapmamam halinde <strong>{tazminat} erken fesih bedeli odemem gerekecegini</strong> biliyorum.
+          </span>
+        </label>
+      </div>
+
+      {/* Kabul Butonu */}
+      <Button
+        onClick={handleAccept}
+        disabled={!checked || submitting}
+        className="w-full h-14 text-base font-bold bg-red-600 hover:bg-red-700"
+        data-testid="accept-fesih-btn"
+      >
+        {submitting ? (
+          <>
+            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+            Kaydediliyor...
+          </>
+        ) : (
+          <>
+            <Check className="w-5 h-5 mr-2" />
+            Fesih Sartlarini Kabul Ediyorum
+          </>
+        )}
+      </Button>
+    </div>
+  );
+}
+
 // ==================== ANA SAYFA ====================
 export default function CourierEvraklarPage({ courierId, companyId, companyName }) {
   const [contractAccepted, setContractAccepted] = useState(null);
+  const [fesihAccepted, setFesihAccepted] = useState(null);
+  const [fesihData, setFesihData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const checkContractStatus = useCallback(async () => {
+  const checkStatus = useCallback(async () => {
     try {
-      const res = await axios.get(`${API}/contracts/status/${courierId}`);
-      setContractAccepted(res.data.accepted);
+      const [statusRes, previewRes] = await Promise.all([
+        axios.get(`${API}/contracts/status/${courierId}`),
+        axios.get(`${API}/contracts/preview/${courierId}`).catch(() => null)
+      ]);
+      setContractAccepted(statusRes.data.accepted);
+      setFesihAccepted(statusRes.data.fesih_accepted);
+      if (previewRes?.data?.fesih) {
+        setFesihData(previewRes.data.fesih);
+      }
     } catch (err) {
-      // Hata durumunda false kabul et
       setContractAccepted(false);
+      setFesihAccepted(false);
     } finally {
       setLoading(false);
     }
   }, [courierId]);
 
   useEffect(() => {
-    if (courierId) checkContractStatus();
-  }, [courierId, checkContractStatus]);
+    if (courierId) checkStatus();
+  }, [courierId, checkStatus]);
 
   if (loading) return <PageLoading />;
 
-  // Sozlesme henuz kabul edilmediyse Step 1 goster
+  // Adim 1: Sozlesme henuz kabul edilmediyse
   if (!contractAccepted) {
     return (
       <ContractStep 
         courierId={courierId} 
-        onComplete={() => setContractAccepted(true)} 
+        onComplete={(fesih) => {
+          setContractAccepted(true);
+          if (fesih) setFesihData(fesih);
+        }} 
       />
     );
   }
 
-  // Sozlesme kabul edildiyse belge yukleme goster
+  // Adim 2: Fesih sartlari henuz kabul edilmediyse
+  if (!fesihAccepted && fesihData) {
+    return (
+      <FesihStep
+        courierId={courierId}
+        fesihData={fesihData}
+        onComplete={() => setFesihAccepted(true)}
+      />
+    );
+  }
+
+  // Adim 3: Belge yukleme
   return (
     <DocumentUploadStep 
       courierId={courierId} 

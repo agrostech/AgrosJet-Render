@@ -305,6 +305,7 @@ async def login_courier(request: Request, data: CourierLogin):
         "companies": companies,
         "push_session_id": push_session_id,
         "contract_accepted": courier.get("contract_accepted", False),
+        "fesih_accepted": courier.get("fesih_accepted", False),
         "document_status": courier.get("document_status", "pending"),
         "token": create_token(courier["id"], "courier", {"company_id": companies[0]["id"] if companies else None})
     }
