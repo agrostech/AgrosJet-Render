@@ -516,6 +516,14 @@ async def lifespan(app: FastAPI):
     # Mevcut vardiyaların job'larını yükle
     await load_shift_jobs()
     
+    # Migration: Mevcut kuryelere contract_accepted ve fesih_accepted ekle
+    migration_result = await db.couriers.update_many(
+        {"contract_accepted": {"$exists": False}},
+        {"$set": {"contract_accepted": True, "fesih_accepted": True}}
+    )
+    if migration_result.modified_count > 0:
+        print(f"Migration: {migration_result.modified_count} eski kuryeye contract_accepted=True yazıldı")
+
     print("Schedulers started - backup (hourly), adisyo sync (30s), trendyol sync (30s), getir sync (30s), break system (30s), break reset (daily 00:00), weekly hakedis (1m), restaurant invoices (Monday 02:00), shift jobs (dynamic)")
     
     yield
