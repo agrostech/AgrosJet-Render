@@ -49,6 +49,14 @@ Multi-tenant delivery management platform for restaurants, couriers, and adminis
     - Explicit checkbox confirmation required
     - Variables: fesih_tazminat, fesih_bildirim_suresi, fesih_bildirim_telefon, yetkili_mahkeme
     - POST /api/contracts/fesih-accept/{courier_id} endpoint
+  - **Admin Document Management** - COMPLETED 2026-04-08:
+    - Courier "Süreci tamamladınız" success screen when all 7 docs uploaded + contract + fesih accepted
+    - Admin Panel Evraklar tab: Contract/Fesih status display with Sıfırla (Reset) buttons
+    - Admin Panel: "Tek PDF" merged download button (combines images+PDFs into single PDF using reportlab+pypdf)
+    - Admin Panel: "ZIP" download button for all docs
+    - Admin Panel: "Evrakları Sıfırla" button (deletes uploaded docs except contract)
+    - Backend endpoints: POST /api/contracts/reset-contract/{id}, reset-fesih/{id}, reset-documents/{id}
+    - Backend endpoint: GET /api/documents/courier/{id}/download-merged-pdf
 
 ## Pending Issues (Prioritized)
 ### P1
@@ -74,6 +82,10 @@ Multi-tenant delivery management platform for restaurants, couriers, and adminis
 - POST /api/contracts/fesih-accept/{courier_id}
 - GET /api/contracts/pdf/{courier_id}
 - GET/POST /api/contracts/settings/{company_id}
+- POST /api/contracts/reset-contract/{courier_id}
+- POST /api/contracts/reset-fesih/{courier_id}
+- POST /api/contracts/reset-documents/{courier_id}
+- GET /api/documents/courier/{courier_id}/download-merged-pdf
 - GET /api/restaurant-collections/courier-balances
 - POST /api/restaurant-collections/collect
 - PUT /api/restaurants/collection-settings/{restaurant_id}

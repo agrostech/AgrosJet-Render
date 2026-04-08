@@ -1,18 +1,25 @@
 # Test Credentials
 
-## System Admin Panel
+## System Admin
 - Username: onurertas
 - Password: Delivery32..
+- Login URL: /login -> POST /api/auth/admin/login
 
-## Company Admin Panel
+## Company Admin (AgrosJet Isparta)
 - Username: admin
 - Password: 123456
+- Login URL: /login -> POST /api/auth/admin/login
 
-## Courier Login
+## Courier (Test)
+- Phone: 05553337766
+- Password: 123456
+- Courier ID: f7188370-b3c6-46e9-bd49-acf3e18c1df7
+- Login URL: /courier-login -> POST /api/auth/courier/login
+- Status: contract_accepted=true, fesih_accepted=true, 7/7 documents uploaded
+
+## Courier (Alternative)
 - Phone: 05550003201
 - Password: 123456
-- Note: This courier has contract_accepted=True
 
-## Restaurant Panel
-- Username: restoran1
-- Password: 123456
+## Testing Bypass
+- Email verification OTP code is hardcoded to: 117200
