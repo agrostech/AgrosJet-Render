@@ -487,3 +487,38 @@ def generate_contract_pdf(contract_text: str, signature_bytes: bytes, courier_na
 
     doc.build(elements)
     return buffer.getvalue()
+
+
+@router.post("/reset-contract/{courier_id}")
+async def reset_contract(courier_id: str, auth: dict = Depends(require_auth)):
+    """Kuryenin sözleşme sürecini sıfırla (admin)"""
+    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "id": 1})
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+
+    await db.couriers.update_one(
+        {"id": courier_id},
+        {"$set": {"contract_accepted": False, "fesih_accepted": False},
+         "$unset": {"contract_accepted_at": "", "fesih_accepted_at": ""}}
+    )
+    await db.courier_contracts.delete_many({"courier_id": courier_id})
+    # Eski sözleşme belgelerini de sil
+    await db.courier_documents.delete_many({"courier_id": courier_id, "document_type": "company_contract"})
+
+    return {"message": "Sözleşme süreci sıfırlandı"}
+
+
+@router.post("/reset-fesih/{courier_id}")
+async def reset_fesih(courier_id: str, auth: dict = Depends(require_auth)):
+    """Kuryenin fesih onayını sıfırla (admin)"""
+    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "id": 1})
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+
+    await db.couriers.update_one(
+        {"id": courier_id},
+        {"$set": {"fesih_accepted": False},
+         "$unset": {"fesih_accepted_at": ""}}
+    )
+
+    return {"message": "Fesih onayı sıfırlandı"}

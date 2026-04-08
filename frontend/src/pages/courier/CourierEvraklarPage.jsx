@@ -477,6 +477,41 @@ function DocumentUploadStep({ courierId, companyId, companyName }) {
 
   if (loading) return <PageLoading />;
 
+  // Tüm süreç tamamlandıysa başarı mesajı göster
+  if (status?.all_complete) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-4" data-testid="documents-complete">
+        <div className="border-2 border-green-300 bg-green-50 p-6 text-center">
+          <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+          <h2 className="font-heading font-bold text-2xl text-green-800 mb-2">Evrak Süreciniz Tamamlandı</h2>
+          <p className="text-sm text-green-700 mb-1">Kullanıcı sözleşmeniz onaylandı ve tüm evraklarınız yüklendi.</p>
+          <p className="text-xs text-green-600">Evraklarınız incelendikten sonra hesabınız aktif edilecektir.</p>
+        </div>
+
+        <div className="border-2 border-border bg-white p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <CheckCircle className="w-5 h-5 text-green-500" />
+            <span className="font-semibold text-sm">Tamamlanan Adımlar</span>
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm text-green-700">
+              <Check className="w-4 h-4" />
+              <span>Kullanıcı Sözleşmesi onaylandı</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-green-700">
+              <Check className="w-4 h-4" />
+              <span>Fesih şartları kabul edildi</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-green-700">
+              <Check className="w-4 h-4" />
+              <span>Tüm evraklar yüklendi ({status.total_uploaded}/{status.total_required})</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 max-w-2xl mx-auto" data-testid="document-upload-step">
       {/* Progress */}
