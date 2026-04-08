@@ -291,6 +291,9 @@ async def get_document_status(courier_id: str):
     total_uploaded = 0
     
     for doc_type, config in DOCUMENT_TYPES.items():
+        # Sözleşme artık contracts modülünde yönetiliyor, status'tan hariç tut
+        if doc_type == "company_contract":
+            continue
         required = config["max_count"]
         uploaded = type_counts.get(doc_type, 0)
         is_complete = uploaded >= required

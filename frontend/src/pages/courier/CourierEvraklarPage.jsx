@@ -34,13 +34,13 @@ const DOCUMENT_ORDER = [
 ];
 
 const DOCUMENT_LABELS = {
-  id_front: "Kimlik On Yuz",
-  id_back: "Kimlik Arka Yuz",
-  license_front: "Ehliyet On Yuz",
-  license_back: "Ehliyet Arka Yuz",
-  vehicle_registration: "Arac Ruhsati",
-  criminal_record: "Adli Sicil Kaydi",
-  residence_certificate: "Ikametgah Belgesi"
+  id_front: "Kimlik Ön Yüz",
+  id_back: "Kimlik Arka Yüz",
+  license_front: "Ehliyet Ön Yüz",
+  license_back: "Ehliyet Arka Yüz",
+  vehicle_registration: "Araç Ruhsatı",
+  criminal_record: "Adli Sicil Kaydı",
+  residence_certificate: "İkametgah Belgesi"
 };
 
 const MAX_COUNTS = {
@@ -55,7 +55,7 @@ const MAX_COUNTS = {
 
 const PDF_TYPES = ["criminal_record", "residence_certificate"];
 
-// ==================== STEP 1: Sozlesme ====================
+// ==================== STEP 1: Sözleşme ====================
 function ContractStep({ courierId, onComplete }) {
   const [contractText, setContractText] = useState("");
   const [companyName, setCompanyName] = useState("");
@@ -79,7 +79,7 @@ function ContractStep({ courierId, onComplete }) {
         if (err.response?.status === 400) {
           setNoContract(true);
         } else {
-          toast.error("Sozlesme yuklenemedi");
+          toast.error("Sözleşme yüklenemedi");
         }
       } finally {
         setLoading(false);
@@ -118,12 +118,12 @@ function ContractStep({ courierId, onComplete }) {
     try {
       await axios.post(`${API}/contracts/accept/${courierId}`, {
         signature_base64: signatureBase64,
-        tc_kimlik: "" // TC zaten kayit sirasinda alindi
+        tc_kimlik: ""
       });
-      toast.success("Sozlesme onaylandi!");
+      toast.success("Sözleşme onaylandı!");
       onComplete(fesihData);
     } catch (err) {
-      toast.error(err.response?.data?.detail || "Sozlesme onaylanamadi");
+      toast.error(err.response?.data?.detail || "Sözleşme onaylanamadı");
     } finally {
       setSubmitting(false);
     }
@@ -136,9 +136,9 @@ function ContractStep({ courierId, onComplete }) {
       <div className="max-w-2xl mx-auto" data-testid="contract-not-configured">
         <div className="border-2 border-amber-300 bg-amber-50 p-6 text-center">
           <AlertCircle className="w-12 h-12 text-amber-500 mx-auto mb-3" />
-          <h3 className="font-bold text-lg mb-2">Sozlesme Ayarlari Yapilandirilmamis</h3>
+          <h3 className="font-bold text-lg mb-2">Sözleşme Ayarları Yapılandırılmamış</h3>
           <p className="text-sm text-muted-foreground">
-            Sirket yoneticiniz henuz sozlesme ayarlarini tamamlamamis. Lutfen yoneticinizle iletisime gecin.
+            Şirket yöneticiniz henüz sözleşme ayarlarını tamamlamamış. Lütfen yöneticinizle iletişime geçin.
           </p>
         </div>
       </div>
@@ -149,20 +149,20 @@ function ContractStep({ courierId, onComplete }) {
 
   return (
     <div className="max-w-2xl mx-auto space-y-4" data-testid="contract-step">
-      {/* Baslik */}
+      {/* Başlık */}
       <div className="border-2 border-border bg-white p-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-blue-50">
             <ScrollText className="w-5 h-5 text-blue-600" />
           </div>
           <div>
-            <h2 className="font-heading font-bold text-xl">Kullanici Sozlesmesi</h2>
+            <h2 className="font-heading font-bold text-xl">Kullanıcı Sözleşmesi</h2>
             <p className="text-sm text-muted-foreground">{companyName}</p>
           </div>
         </div>
       </div>
 
-      {/* Sozlesme Metni - Scrollable */}
+      {/* Sözleşme Metni - Scrollable */}
       <div className="border-2 border-border bg-white">
         <div 
           ref={contractRef}
@@ -177,19 +177,19 @@ function ContractStep({ courierId, onComplete }) {
         {!scrolledToBottom && (
           <div className="flex items-center justify-center gap-2 py-3 bg-slate-50 border-t border-border text-sm text-muted-foreground animate-pulse">
             <ChevronDown className="w-4 h-4" />
-            <span>Sozlesmeyi sonuna kadar okuyun</span>
+            <span>Sözleşmeyi sonuna kadar okuyun</span>
             <ChevronDown className="w-4 h-4" />
           </div>
         )}
         {scrolledToBottom && (
           <div className="flex items-center justify-center gap-2 py-3 bg-green-50 border-t border-green-200 text-sm text-green-700">
             <Check className="w-4 h-4" />
-            <span>Sozlesme okundu</span>
+            <span>Sözleşme okundu</span>
           </div>
         )}
       </div>
 
-      {/* E-Imza Alani */}
+      {/* E-İmza Alanı */}
       <div className={`border-2 bg-white transition-opacity ${scrolledToBottom ? 'opacity-100 border-border' : 'opacity-40 pointer-events-none border-slate-200'}`}>
         <div className="p-4 border-b border-border">
           <div className="flex items-center justify-between">
@@ -198,8 +198,8 @@ function ContractStep({ courierId, onComplete }) {
                 <PenTool className="w-5 h-5 text-purple-600" />
               </div>
               <div>
-                <h3 className="font-semibold">E-Imza</h3>
-                <p className="text-xs text-muted-foreground">Asagidaki alana imzanizi atin</p>
+                <h3 className="font-semibold">E-İmza</h3>
+                <p className="text-xs text-muted-foreground">Aşağıdaki alana imzanızı atın</p>
               </div>
             </div>
             {signatureProvided && (
@@ -232,7 +232,7 @@ function ContractStep({ courierId, onComplete }) {
           </div>
           {!signatureProvided && scrolledToBottom && (
             <p className="text-xs text-muted-foreground mt-2 text-center">
-              Imzanizi yukaridaki beyaz alana cizin
+              İmzanızı yukarıdaki beyaz alana çizin
             </p>
           )}
         </div>
@@ -248,12 +248,12 @@ function ContractStep({ courierId, onComplete }) {
         {submitting ? (
           <>
             <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-            Sozlesme Onaylaniyor...
+            Sözleşme Onaylanıyor...
           </>
         ) : (
           <>
             <Check className="w-5 h-5 mr-2" />
-            Sozlesmeyi Okudum ve Kabul Ediyorum
+            Sözleşmeyi Okudum ve Kabul Ediyorum
           </>
         )}
       </Button>
@@ -261,7 +261,146 @@ function ContractStep({ courierId, onComplete }) {
   );
 }
 
-// ==================== STEP 2: Belge Yukleme ====================
+// ==================== STEP 2: Fesih Şartları ====================
+function FesihStep({ courierId, fesihData, onComplete }) {
+  const [checked, setChecked] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const bildirimSuresi = fesihData?.bildirim_suresi || "15";
+  const bildirimTelefon = fesihData?.bildirim_telefon || "";
+  const tazminat = fesihData?.tazminat || "";
+  const sirketAdi = fesihData?.sirket_adi || "";
+  const yetkiliMahkeme = fesihData?.yetkili_mahkeme || "";
+
+  const handleAccept = async () => {
+    if (!checked) return;
+    setSubmitting(true);
+    try {
+      await axios.post(`${API}/contracts/fesih-accept/${courierId}`);
+      toast.success("Fesih şartları kabul edildi");
+      onComplete();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "İşlem başarısız");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-4" data-testid="fesih-step">
+      {/* Başlık */}
+      <div className="border-2 border-border bg-white p-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-red-50">
+            <AlertCircle className="w-5 h-5 text-red-600" />
+          </div>
+          <div>
+            <h2 className="font-heading font-bold text-xl">Sözleşme Fesih Bildirimi ve Şartları</h2>
+            <p className="text-sm text-muted-foreground">Lütfen aşağıdaki şartları dikkatlice okuyun</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Fesih Maddeleri */}
+      <div className="border-2 border-border bg-white">
+        <div className="p-5 space-y-5">
+          {/* Madde 1 */}
+          <div className="flex gap-3" data-testid="fesih-madde-1">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-red-100 text-red-700 font-bold text-sm flex-shrink-0 mt-0.5">1</div>
+            <div>
+              <h4 className="font-semibold text-base mb-1">Fesih Bildirimi Zorunluluğu</h4>
+              <p className="text-sm leading-relaxed text-slate-700">
+                İşbu sözleşmenin feshedilmek istenmesi halinde, fesih talebinizi en az <strong className="text-red-700">{bildirimSuresi} ({bildirimSuresi === "15" ? "on beş" : bildirimSuresi}) gün</strong> öncesinden bildirmeniz gerekmektedir.
+              </p>
+            </div>
+          </div>
+
+          {/* Madde 2 */}
+          <div className="flex gap-3" data-testid="fesih-madde-2">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-red-100 text-red-700 font-bold text-sm flex-shrink-0 mt-0.5">2</div>
+            <div>
+              <h4 className="font-semibold text-base mb-1">Bildirim Usulü</h4>
+              <p className="text-sm leading-relaxed text-slate-700">
+                Fesih bildirimi, <strong className="text-red-700">{bildirimTelefon}</strong> numaralı telefona <strong>yazılı SMS</strong> gönderilmek suretiyle yapılmalıdır. Telefon araması, e-posta veya sözlü bildirim geçerli fesih usulü olarak kabul edilmez.
+              </p>
+            </div>
+          </div>
+
+          {/* Madde 3 */}
+          <div className="flex gap-3" data-testid="fesih-madde-3">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-red-100 text-red-700 font-bold text-sm flex-shrink-0 mt-0.5">3</div>
+            <div>
+              <h4 className="font-semibold text-base mb-1">Erken Fesih Bedeli</h4>
+              <p className="text-sm leading-relaxed text-slate-700">
+                Belirtilen süre ve usule uygun şekilde fesih bildirimi yapılmaması halinde, <strong className="text-red-700">{tazminat}</strong> tutarında erken fesih bedelini ödemeyi peşinen kabul, beyan ve taahhüt etmiş sayılırsınız.
+              </p>
+            </div>
+          </div>
+
+          {/* Madde 4 */}
+          <div className="flex gap-3" data-testid="fesih-madde-4">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-red-100 text-red-700 font-bold text-sm flex-shrink-0 mt-0.5">4</div>
+            <div>
+              <h4 className="font-semibold text-base mb-1">İş Sahibinin Fesih Hakkı</h4>
+              <p className="text-sm leading-relaxed text-slate-700">
+                {sirketAdi}, sözleşme şartlarına uyulmaması, platform kurallarının ihlali veya hizmet kalitesinin düşük bulunması halinde sözleşmeyi <strong>tek taraflı ve derhal</strong> feshetme hakkına sahiptir. Bu durumda erken fesih bedeli talep edilmez.
+              </p>
+            </div>
+          </div>
+
+          {/* Madde 5 */}
+          <div className="flex gap-3" data-testid="fesih-madde-5">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-red-100 text-red-700 font-bold text-sm flex-shrink-0 mt-0.5">5</div>
+            <div>
+              <h4 className="font-semibold text-base mb-1">Uyuşmazlık Çözümü</h4>
+              <p className="text-sm leading-relaxed text-slate-700">
+                İşbu fesih şartlarından doğan her türlü uyuşmazlıkta <strong className="text-red-700">{yetkiliMahkeme} Mahkemeleri ve İcra Daireleri</strong> yetkilidir.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Onay Checkbox */}
+      <div className={`border-2 bg-white p-4 transition-all ${checked ? 'border-green-300 bg-green-50/50' : 'border-border'}`}>
+        <label className="flex items-start gap-3 cursor-pointer" data-testid="fesih-checkbox-label">
+          <input
+            type="checkbox"
+            checked={checked}
+            onChange={(e) => setChecked(e.target.checked)}
+            className="mt-1 w-5 h-5 rounded border-2 border-slate-300 accent-red-600"
+            data-testid="fesih-checkbox"
+          />
+          <span className="text-sm leading-relaxed">
+            Yukarıdaki fesih şartlarını okudum, anlıyorum ve kabul ediyorum. Sözleşmenin feshinde <strong>{bildirimSuresi} gün önceden {bildirimTelefon} numarasına yazılı SMS ile bildirim yapmam gerektiğini</strong> ve bunu yapmamam halinde <strong>{tazminat} erken fesih bedeli ödemem gerekeceğini</strong> biliyorum.
+          </span>
+        </label>
+      </div>
+
+      {/* Kabul Butonu */}
+      <Button
+        onClick={handleAccept}
+        disabled={!checked || submitting}
+        className="w-full h-14 text-base font-bold bg-red-600 hover:bg-red-700"
+        data-testid="accept-fesih-btn"
+      >
+        {submitting ? (
+          <>
+            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+            Kaydediliyor...
+          </>
+        ) : (
+          <>
+            <Check className="w-5 h-5 mr-2" />
+            Fesih Şartlarını Kabul Ediyorum
+          </>
+        )}
+      </Button>
+    </div>
+  );
+}
+
+// ==================== STEP 3: Belge Yükleme ====================
 function DocumentUploadStep({ courierId, companyId, companyName }) {
   const [documents, setDocuments] = useState([]);
   const [status, setStatus] = useState(null);
@@ -277,7 +416,7 @@ function DocumentUploadStep({ courierId, companyId, companyName }) {
       setDocuments(docsRes.data);
       setStatus(statusRes.data);
     } catch (err) {
-      console.error("Veriler yuklenemedi");
+      console.error("Veriler yüklenemedi");
     } finally {
       setLoading(false);
     }
@@ -296,12 +435,12 @@ function DocumentUploadStep({ courierId, companyId, companyName }) {
     const validPdfTypes = ["application/pdf"];
     
     if (isPdf && !validPdfTypes.includes(file.type)) {
-      toast.error("Bu belge icin PDF formati gereklidir");
+      toast.error("Bu belge için PDF formatı gereklidir");
       return;
     }
     
     if (!isPdf && !validImageTypes.includes(file.type)) {
-      toast.error("Lutfen bir fotograf yukleyin (JPEG, PNG)");
+      toast.error("Lütfen bir fotoğraf yükleyin (JPEG, PNG)");
       return;
     }
 
@@ -318,10 +457,10 @@ function DocumentUploadStep({ courierId, companyId, companyName }) {
         { headers: { "Content-Type": "multipart/form-data" } }
       );
 
-      toast.success("Belge yuklendi");
+      toast.success("Belge yüklendi");
       fetchData();
     } catch (err) {
-      toast.error("Yukleme basarisiz");
+      toast.error("Yükleme başarısız");
     } finally {
       setUploading(prev => ({ ...prev, [documentType]: false }));
       event.target.value = "";
@@ -348,8 +487,8 @@ function DocumentUploadStep({ courierId, companyId, companyName }) {
               <FileText className="w-5 h-5 text-primary" />
             </div>
             <div className="flex-1">
-              <h2 className="font-heading font-bold text-xl">Evrak Yukleme</h2>
-              <p className="text-sm text-muted-foreground">Gerekli evraklari yukleyin</p>
+              <h2 className="font-heading font-bold text-xl">Evrak Yükleme</h2>
+              <p className="text-sm text-muted-foreground">Gerekli evrakları yükleyin</p>
             </div>
             {status && (
               <div className="text-right">
@@ -366,25 +505,25 @@ function DocumentUploadStep({ courierId, companyId, companyName }) {
             {status.all_complete && (
               <div className="mt-3 flex items-center gap-2 text-green-600">
                 <CheckCircle className="w-5 h-5" />
-                <span className="font-semibold">Tum evraklar yuklendi!</span>
+                <span className="font-semibold">Tüm evraklar yüklendi!</span>
               </div>
             )}
           </div>
         )}
       </div>
 
-      {/* Sozlesme tamamlandi bildirimi */}
+      {/* Sözleşme tamamlandı bildirimi */}
       <div className="border-2 border-green-200 bg-green-50 p-4">
         <div className="flex items-center gap-3">
           <CheckCircle className="w-5 h-5 text-green-600" />
           <div>
-            <p className="font-semibold text-green-800 text-sm">Kullanici Sozlesmesi Onaylandi</p>
-            <p className="text-xs text-green-600">E-imzali sozlesmeniz kaydedildi</p>
+            <p className="font-semibold text-green-800 text-sm">Kullanıcı Sözleşmesi Onaylandı</p>
+            <p className="text-xs text-green-600">E-imzalı sözleşmeniz kaydedildi</p>
           </div>
         </div>
       </div>
 
-      {/* Belge Kartlari */}
+      {/* Belge Kartları */}
       <div className="grid gap-4">
         {DOCUMENT_ORDER.map((docType) => {
           const maxCount = MAX_COUNTS[docType];
@@ -418,7 +557,7 @@ function DocumentUploadStep({ courierId, companyId, companyName }) {
                     <div>
                       <h3 className="font-semibold">{DOCUMENT_LABELS[docType]}</h3>
                       <p className="text-xs text-muted-foreground">
-                        {isPdf ? "PDF" : "Fotograf"} - {uploadedCount}/{maxCount} yuklendi
+                        {isPdf ? "PDF" : "Fotoğraf"} - {uploadedCount}/{maxCount} yüklendi
                       </p>
                     </div>
                   </div>
@@ -446,7 +585,7 @@ function DocumentUploadStep({ courierId, companyId, companyName }) {
                           ) : (
                             <Upload className="w-4 h-4 mr-2" />
                           )}
-                          {isUploading ? "Yukleniyor..." : "Yukle"}
+                          {isUploading ? "Yükleniyor..." : "Yükle"}
                         </span>
                       </Button>
                     </label>
@@ -484,155 +623,15 @@ function DocumentUploadStep({ courierId, companyId, companyName }) {
         <div className="flex gap-3">
           <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-amber-800">
-            <p className="font-semibold mb-1">Onemli Bilgiler</p>
+            <p className="font-semibold mb-1">Önemli Bilgiler</p>
             <ul className="list-disc list-inside space-y-1 text-xs">
-              <li>Kimlik ve ehliyet icin on ve arka yuzleri ayri yukleyin</li>
-              <li>Adli sicil ve ikametgah belgeleri PDF formatinda olmalidir</li>
-              <li>Belgeler net ve okunabilir olmalidir</li>
+              <li>Kimlik ve ehliyet için ön ve arka yüzleri ayrı yükleyin</li>
+              <li>Adli sicil ve ikametgah belgeleri PDF formatında olmalıdır</li>
+              <li>Belgeler net ve okunabilir olmalıdır</li>
             </ul>
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-// ==================== STEP 2: Fesih Sartlari ====================
-function FesihStep({ courierId, fesihData, onComplete }) {
-  const [checked, setChecked] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-
-  const bildirimSuresi = fesihData?.bildirim_suresi || "15";
-  const bildirimTelefon = fesihData?.bildirim_telefon || "";
-  const tazminat = fesihData?.tazminat || "";
-  const sirketAdi = fesihData?.sirket_adi || "";
-  const yetkiliMahkeme = fesihData?.yetkili_mahkeme || "";
-
-  const handleAccept = async () => {
-    if (!checked) return;
-    setSubmitting(true);
-    try {
-      await axios.post(`${API}/contracts/fesih-accept/${courierId}`);
-      toast.success("Fesih sartlari kabul edildi");
-      onComplete();
-    } catch (err) {
-      toast.error(err.response?.data?.detail || "Islem basarisiz");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="max-w-2xl mx-auto space-y-4" data-testid="fesih-step">
-      {/* Baslik */}
-      <div className="border-2 border-border bg-white p-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-red-50">
-            <AlertCircle className="w-5 h-5 text-red-600" />
-          </div>
-          <div>
-            <h2 className="font-heading font-bold text-xl">Sozlesme Fesih Bildirimi ve Sartlari</h2>
-            <p className="text-sm text-muted-foreground">Lutfen asagidaki sartlari dikkatlice okuyun</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Fesih Maddeleri */}
-      <div className="border-2 border-border bg-white">
-        <div className="p-5 space-y-5">
-          {/* Madde 1 */}
-          <div className="flex gap-3" data-testid="fesih-madde-1">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-red-100 text-red-700 font-bold text-sm flex-shrink-0 mt-0.5">1</div>
-            <div>
-              <h4 className="font-semibold text-base mb-1">Fesih Bildirimi Zorunlulugu</h4>
-              <p className="text-sm leading-relaxed text-slate-700">
-                Isbu sozlesmenin feshedilmek istenmesi halinde, fesih talebinizi en az <strong className="text-red-700">{bildirimSuresi} (
-                {bildirimSuresi === "15" ? "on bes" : bildirimSuresi} ) gun</strong> oncesinden bildirmeniz gerekmektedir.
-              </p>
-            </div>
-          </div>
-
-          {/* Madde 2 */}
-          <div className="flex gap-3" data-testid="fesih-madde-2">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-red-100 text-red-700 font-bold text-sm flex-shrink-0 mt-0.5">2</div>
-            <div>
-              <h4 className="font-semibold text-base mb-1">Bildirim Usulu</h4>
-              <p className="text-sm leading-relaxed text-slate-700">
-                Fesih bildirimi, <strong className="text-red-700">{bildirimTelefon}</strong> numarali telefona <strong>yazili SMS</strong> gonderilmek suretiyle yapilmalidir. Telefon aramasi, e-posta veya sozlu bildirim gecerli fesih usulu olarak kabul edilmez.
-              </p>
-            </div>
-          </div>
-
-          {/* Madde 3 */}
-          <div className="flex gap-3" data-testid="fesih-madde-3">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-red-100 text-red-700 font-bold text-sm flex-shrink-0 mt-0.5">3</div>
-            <div>
-              <h4 className="font-semibold text-base mb-1">Erken Fesih Bedeli</h4>
-              <p className="text-sm leading-relaxed text-slate-700">
-                Belirtilen sure ve usule uygun sekilde fesih bildirimi yapilmamasi halinde, <strong className="text-red-700">{tazminat}</strong> tutarinda erken fesih bedelini odemeyi pesinen kabul, beyan ve taahhut etmis sayilirsiniz.
-              </p>
-            </div>
-          </div>
-
-          {/* Madde 4 */}
-          <div className="flex gap-3" data-testid="fesih-madde-4">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-red-100 text-red-700 font-bold text-sm flex-shrink-0 mt-0.5">4</div>
-            <div>
-              <h4 className="font-semibold text-base mb-1">Is Sahibinin Fesih Hakki</h4>
-              <p className="text-sm leading-relaxed text-slate-700">
-                {sirketAdi}, sozlesme sartlarina uyulmamasi, platform kurallarinin ihlali veya hizmet kalitesinin dusuk bulunmasi halinde sozlesmeyi <strong>tek tarafli ve derhal</strong> feshetme hakkina sahiptir. Bu durumda erken fesih bedeli talep edilmez.
-              </p>
-            </div>
-          </div>
-
-          {/* Madde 5 */}
-          <div className="flex gap-3" data-testid="fesih-madde-5">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-red-100 text-red-700 font-bold text-sm flex-shrink-0 mt-0.5">5</div>
-            <div>
-              <h4 className="font-semibold text-base mb-1">Uyusmazlik Cozumu</h4>
-              <p className="text-sm leading-relaxed text-slate-700">
-                Isbu fesih sartlarindan dogan her turlu uyusmazlikta <strong className="text-red-700">{yetkiliMahkeme} Mahkemeleri ve Icra Daireleri</strong> yetkilidir.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Onay Checkbox */}
-      <div className={`border-2 bg-white p-4 transition-all ${checked ? 'border-green-300 bg-green-50/50' : 'border-border'}`}>
-        <label className="flex items-start gap-3 cursor-pointer" data-testid="fesih-checkbox-label">
-          <input
-            type="checkbox"
-            checked={checked}
-            onChange={(e) => setChecked(e.target.checked)}
-            className="mt-1 w-5 h-5 rounded border-2 border-slate-300 accent-red-600"
-            data-testid="fesih-checkbox"
-          />
-          <span className="text-sm leading-relaxed">
-            Yukaridaki fesih sartlarini okudum, anliyorum ve kabul ediyorum. Sozlesmenin feshinde <strong>{bildirimSuresi} gun onceden {bildirimTelefon} numarasina yazili SMS ile bildirim yapmam gerektigini</strong> ve bunu yapmamam halinde <strong>{tazminat} erken fesih bedeli odemem gerekecegini</strong> biliyorum.
-          </span>
-        </label>
-      </div>
-
-      {/* Kabul Butonu */}
-      <Button
-        onClick={handleAccept}
-        disabled={!checked || submitting}
-        className="w-full h-14 text-base font-bold bg-red-600 hover:bg-red-700"
-        data-testid="accept-fesih-btn"
-      >
-        {submitting ? (
-          <>
-            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-            Kaydediliyor...
-          </>
-        ) : (
-          <>
-            <Check className="w-5 h-5 mr-2" />
-            Fesih Sartlarini Kabul Ediyorum
-          </>
-        )}
-      </Button>
     </div>
   );
 }
@@ -669,7 +668,7 @@ export default function CourierEvraklarPage({ courierId, companyId, companyName 
 
   if (loading) return <PageLoading />;
 
-  // Adim 1: Sozlesme henuz kabul edilmediyse
+  // Adım 1: Sözleşme henüz kabul edilmediyse
   if (!contractAccepted) {
     return (
       <ContractStep 
@@ -682,7 +681,7 @@ export default function CourierEvraklarPage({ courierId, companyId, companyName 
     );
   }
 
-  // Adim 2: Fesih sartlari henuz kabul edilmediyse
+  // Adım 2: Fesih şartları henüz kabul edilmediyse
   if (!fesihAccepted && fesihData) {
     return (
       <FesihStep
@@ -693,7 +692,7 @@ export default function CourierEvraklarPage({ courierId, companyId, companyName 
     );
   }
 
-  // Adim 3: Belge yukleme
+  // Adım 3: Belge yükleme
   return (
     <DocumentUploadStep 
       courierId={courierId} 
