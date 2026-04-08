@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { SlidersHorizontal, Save, Mail, AlertCircle, Eye, EyeOff, ChevronDown, ChevronUp, Building2, Clock, Zap } from "lucide-react";
+import { SlidersHorizontal, Save, Mail, AlertCircle, Eye, EyeOff, ChevronDown, ChevronUp, Building2, Clock, Zap, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +21,21 @@ export default function SistemPage({ companyId }) {
     tax_office: "",
     email: ""
   });
+  const [contractSettings, setContractSettings] = useState({
+    sirket_telefon: "",
+    sirket_eposta: "",
+    sirket_iban: "",
+    sirket_iban_sahibi: "",
+    paket_basi_ucret: "",
+    fesih_tazminat: "",
+    fesih_bildirim_suresi: "15",
+    fesih_bildirim_telefon: "",
+    uygulama_adi: "",
+    yetkili_mahkeme: "",
+    kurucu: "",
+    muhasebe: ""
+  });
+  const [contractSaving, setContractSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [companyExpanded, setCompanyExpanded] = useState(false);
@@ -123,6 +138,7 @@ export default function SistemPage({ companyId }) {
     fetchCompanyInfo();
     fetchEmailSettings();
     fetchAutoDispatchSettings();
+    fetchContractSettings();
   }, [companyId]);
 
   const fetchCompanyInfo = async () => {
@@ -143,8 +159,49 @@ export default function SistemPage({ companyId }) {
       setLoading(false);
     }
   };
+  const fetchContractSettings = async () => {
+    if (!companyId) return;
+    try {
+      const res = await axios.get(`${API}/contracts/settings/${companyId}`);
+      if (res.data.configured) {
+        const s = res.data;
+        setContractSettings({
+          sirket_telefon: s.sirket_telefon || "",
+          sirket_eposta: s.sirket_eposta || "",
+          sirket_iban: s.sirket_iban || "",
+          sirket_iban_sahibi: s.sirket_iban_sahibi || "",
+          paket_basi_ucret: s.paket_basi_ucret || "",
+          fesih_tazminat: s.fesih_tazminat || "",
+          fesih_bildirim_suresi: s.fesih_bildirim_suresi || "15",
+          fesih_bildirim_telefon: s.fesih_bildirim_telefon || "",
+          uygulama_adi: s.uygulama_adi || "",
+          yetkili_mahkeme: s.yetkili_mahkeme || "",
+          kurucu: s.kurucu || "",
+          muhasebe: s.muhasebe || ""
+        });
+      }
+    } catch (err) {
+      console.error("Sözleşme ayarları yüklenemedi:", err);
+    }
+  };
 
-
+  const handleContractSave = async () => {
+    setContractSaving(true);
+    try {
+      await axios.post(`${API}/contracts/settings/${companyId}`, {
+        sirket_adi: companyInfo.name,
+        sirket_adresi: companyInfo.address,
+        vergi_dairesi: companyInfo.tax_office,
+        vergi_no: companyInfo.tckn_vkn,
+        ...contractSettings
+      });
+      toast.success("Sözleşme ayarları kaydedildi");
+    } catch (err) {
+      if (!err.handled) toast.error("Kayıt başarısız");
+    } finally {
+      setContractSaving(false);
+    }
+  };
 
   const fetchEmailSettings = async () => {
     if (!companyId) return;
@@ -275,7 +332,7 @@ export default function SistemPage({ companyId }) {
         <h2 className="font-heading text-lg md:text-xl font-bold tracking-tight">Sistem Ayarları</h2>
       </div>
 
-      {/* Şirket Fatura Bilgileri - Collapsible */}
+      {/* Şirket Bilgileri - Collapsible */}
       <div className="border-2 border-border bg-white">
         <button 
           type="button"
@@ -284,7 +341,7 @@ export default function SistemPage({ companyId }) {
         >
           <div className="flex items-center gap-2">
             <Building2 className="w-4 h-4 md:w-5 md:h-5 text-slate-600" />
-            <h3 className="font-semibold text-sm md:text-base">Şirket Fatura Bilgileri</h3>
+            <h3 className="font-semibold text-sm md:text-base">Şirket Bilgileri</h3>
           </div>
           {companyExpanded ? (
             <ChevronUp className="w-5 h-5 text-muted-foreground" />
@@ -294,56 +351,188 @@ export default function SistemPage({ companyId }) {
         </button>
         
         {companyExpanded && (
-          <form onSubmit={handleSave} className="p-3 md:p-4 space-y-4 md:space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-              <div>
-                <Label className="text-xs md:text-sm font-semibold">Şirket Adı</Label>
-                <Input 
-                  value={companyInfo.name} 
-                  onChange={(e) => setCompanyInfo({...companyInfo, name: e.target.value})}
-                  className="mt-1 h-10 md:h-11 border-2 text-sm"
-                />
+          <div className="p-3 md:p-4 space-y-6">
+            {/* Genel Bilgiler */}
+            <form onSubmit={handleSave} className="space-y-4">
+              <h4 className="font-semibold text-sm border-b pb-2 text-slate-700">Genel & Fatura Bilgileri</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                <div>
+                  <Label className="text-xs md:text-sm font-semibold">Şirket Adı</Label>
+                  <Input 
+                    value={companyInfo.name} 
+                    onChange={(e) => setCompanyInfo({...companyInfo, name: e.target.value})}
+                    className="mt-1 h-10 md:h-11 border-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs md:text-sm font-semibold">TCKN / VKN</Label>
+                  <Input 
+                    value={companyInfo.tckn_vkn} 
+                    onChange={(e) => setCompanyInfo({...companyInfo, tckn_vkn: e.target.value})}
+                    className="mt-1 h-10 md:h-11 border-2 text-sm"
+                    placeholder="Vergi veya kimlik numarası"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs md:text-sm font-semibold">Vergi Dairesi</Label>
+                  <Input 
+                    value={companyInfo.tax_office} 
+                    onChange={(e) => setCompanyInfo({...companyInfo, tax_office: e.target.value})}
+                    className="mt-1 h-10 md:h-11 border-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs md:text-sm font-semibold">E-posta</Label>
+                  <Input 
+                    type="email"
+                    value={companyInfo.email} 
+                    onChange={(e) => setCompanyInfo({...companyInfo, email: e.target.value})}
+                    className="mt-1 h-10 md:h-11 border-2 text-sm"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <Label className="text-xs md:text-sm font-semibold">Adres</Label>
+                  <Textarea 
+                    value={companyInfo.address} 
+                    onChange={(e) => setCompanyInfo({...companyInfo, address: e.target.value})}
+                    className="mt-1 border-2 min-h-[80px] text-sm"
+                  />
+                </div>
               </div>
-              <div>
-                <Label className="text-xs md:text-sm font-semibold">TCKN / VKN</Label>
-                <Input 
-                  value={companyInfo.tckn_vkn} 
-                  onChange={(e) => setCompanyInfo({...companyInfo, tckn_vkn: e.target.value})}
-                  className="mt-1 h-10 md:h-11 border-2 text-sm"
-                  placeholder="Vergi veya kimlik numarası"
-                />
+              <Button type="submit" disabled={saving} className="h-10 md:h-11 font-semibold text-sm">
+                <Save className="w-4 h-4 mr-2" />
+                {saving ? "Kaydediliyor..." : "Genel Bilgileri Kaydet"}
+              </Button>
+            </form>
+
+            {/* Sözleşme Ayarları */}
+            <div className="space-y-4 pt-2 border-t">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-slate-600" />
+                <h4 className="font-semibold text-sm text-slate-700">Sözleşme Ayarları</h4>
               </div>
-              <div>
-                <Label className="text-xs md:text-sm font-semibold">Vergi Dairesi</Label>
-                <Input 
-                  value={companyInfo.tax_office} 
-                  onChange={(e) => setCompanyInfo({...companyInfo, tax_office: e.target.value})}
-                  className="mt-1 h-10 md:h-11 border-2 text-sm"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                <div>
+                  <Label className="text-xs md:text-sm font-semibold">Şirket Telefon</Label>
+                  <Input 
+                    value={contractSettings.sirket_telefon} 
+                    onChange={(e) => setContractSettings({...contractSettings, sirket_telefon: e.target.value})}
+                    className="mt-1 h-10 md:h-11 border-2 text-sm"
+                    placeholder="05XX XXX XX XX"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs md:text-sm font-semibold">Şirket E-posta</Label>
+                  <Input 
+                    value={contractSettings.sirket_eposta} 
+                    onChange={(e) => setContractSettings({...contractSettings, sirket_eposta: e.target.value})}
+                    className="mt-1 h-10 md:h-11 border-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs md:text-sm font-semibold">IBAN</Label>
+                  <Input 
+                    value={contractSettings.sirket_iban} 
+                    onChange={(e) => setContractSettings({...contractSettings, sirket_iban: e.target.value})}
+                    className="mt-1 h-10 md:h-11 border-2 text-sm font-mono"
+                    placeholder="TR..."
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs md:text-sm font-semibold">IBAN Sahibi</Label>
+                  <Input 
+                    value={contractSettings.sirket_iban_sahibi} 
+                    onChange={(e) => setContractSettings({...contractSettings, sirket_iban_sahibi: e.target.value})}
+                    className="mt-1 h-10 md:h-11 border-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs md:text-sm font-semibold">Uygulama Adı</Label>
+                  <Input 
+                    value={contractSettings.uygulama_adi} 
+                    onChange={(e) => setContractSettings({...contractSettings, uygulama_adi: e.target.value})}
+                    className="mt-1 h-10 md:h-11 border-2 text-sm"
+                    placeholder="AgrosJet"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs md:text-sm font-semibold">Kurucu</Label>
+                  <Input 
+                    value={contractSettings.kurucu} 
+                    onChange={(e) => setContractSettings({...contractSettings, kurucu: e.target.value})}
+                    className="mt-1 h-10 md:h-11 border-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs md:text-sm font-semibold">Paket Başı Ücret</Label>
+                  <Input 
+                    value={contractSettings.paket_basi_ucret} 
+                    onChange={(e) => setContractSettings({...contractSettings, paket_basi_ucret: e.target.value})}
+                    className="mt-1 h-10 md:h-11 border-2 text-sm"
+                    placeholder="40"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs md:text-sm font-semibold">Yetkili Mahkeme</Label>
+                  <Input 
+                    value={contractSettings.yetkili_mahkeme} 
+                    onChange={(e) => setContractSettings({...contractSettings, yetkili_mahkeme: e.target.value})}
+                    className="mt-1 h-10 md:h-11 border-2 text-sm"
+                    placeholder="Isparta"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs md:text-sm font-semibold">Muhasebe</Label>
+                  <Input 
+                    value={contractSettings.muhasebe} 
+                    onChange={(e) => setContractSettings({...contractSettings, muhasebe: e.target.value})}
+                    className="mt-1 h-10 md:h-11 border-2 text-sm"
+                  />
+                </div>
               </div>
-              <div>
-                <Label className="text-xs md:text-sm font-semibold">E-posta</Label>
-                <Input 
-                  type="email"
-                  value={companyInfo.email} 
-                  onChange={(e) => setCompanyInfo({...companyInfo, email: e.target.value})}
-                  className="mt-1 h-10 md:h-11 border-2 text-sm"
-                />
+
+              <div className="border-t pt-4 mt-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <AlertCircle className="w-4 h-4 text-red-500" />
+                  <h4 className="font-semibold text-sm text-red-700">Fesih Şartları</h4>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+                  <div>
+                    <Label className="text-xs md:text-sm font-semibold">Fesih Tazminatı</Label>
+                    <Input 
+                      value={contractSettings.fesih_tazminat} 
+                      onChange={(e) => setContractSettings({...contractSettings, fesih_tazminat: e.target.value})}
+                      className="mt-1 h-10 md:h-11 border-2 text-sm"
+                      placeholder="50.000 TL"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs md:text-sm font-semibold">Bildirim Süresi (gün)</Label>
+                    <Input 
+                      value={contractSettings.fesih_bildirim_suresi} 
+                      onChange={(e) => setContractSettings({...contractSettings, fesih_bildirim_suresi: e.target.value})}
+                      className="mt-1 h-10 md:h-11 border-2 text-sm"
+                      placeholder="15"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs md:text-sm font-semibold">Bildirim Telefonu</Label>
+                    <Input 
+                      value={contractSettings.fesih_bildirim_telefon} 
+                      onChange={(e) => setContractSettings({...contractSettings, fesih_bildirim_telefon: e.target.value})}
+                      className="mt-1 h-10 md:h-11 border-2 text-sm"
+                      placeholder="0539 323 62 32"
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="md:col-span-2">
-                <Label className="text-xs md:text-sm font-semibold">Adres</Label>
-                <Textarea 
-                  value={companyInfo.address} 
-                  onChange={(e) => setCompanyInfo({...companyInfo, address: e.target.value})}
-                  className="mt-1 border-2 min-h-[80px] text-sm"
-                />
-              </div>
+
+              <Button onClick={handleContractSave} disabled={contractSaving} className="h-10 md:h-11 font-semibold text-sm">
+                <Save className="w-4 h-4 mr-2" />
+                {contractSaving ? "Kaydediliyor..." : "Sözleşme Ayarlarını Kaydet"}
+              </Button>
             </div>
-            <Button type="submit" disabled={saving} className="h-10 md:h-11 font-semibold text-sm">
-              <Save className="w-4 h-4 mr-2" />
-              {saving ? "Kaydediliyor..." : "Kaydet"}
-            </Button>
-          </form>
+          </div>
         )}
       </div>
 
