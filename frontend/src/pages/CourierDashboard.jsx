@@ -82,6 +82,7 @@ export default function CourierDashboard() {
   const [documentsComplete, setDocumentsComplete] = useState(true);
   const [contractAccepted, setContractAccepted] = useState(true);
   const [fesihAccepted, setFesihAccepted] = useState(true);
+  const [documentProcessCompleted, setDocumentProcessCompleted] = useState(true);
   const [maintenanceNotifications, setMaintenanceNotifications] = useState(0);
   const [navItems, setNavItems] = useState([]);
   const [bottomBarItems, setBottomBarItems] = useState([]);
@@ -199,13 +200,15 @@ export default function CourierDashboard() {
   // Fetch document status + contract status
   const checkDocumentStatus = useCallback(async (courierId) => {
     try {
-      const [docRes, contractRes] = await Promise.all([
+      const [docRes, contractRes, courierRes] = await Promise.all([
         axios.get(`${API}/documents/courier/${courierId}/status`),
-        axios.get(`${API}/contracts/status/${courierId}`)
+        axios.get(`${API}/contracts/status/${courierId}`),
+        axios.get(`${API}/couriers/${courierId}`)
       ]);
       setDocumentsComplete(docRes.data.all_complete);
       setContractAccepted(contractRes.data.accepted);
       setFesihAccepted(contractRes.data.fesih_accepted);
+      setDocumentProcessCompleted(courierRes.data.document_process_completed || false);
     } catch (err) {
       console.error("Evrak durumu alınamadı", err);
     }
@@ -806,13 +809,12 @@ export default function CourierDashboard() {
 
   if (!user) return null;
 
-  // Sözleşme guard: kabul edilmemişse evraklar sayfasına yönlendir
+  // Evrak süreci kısıtlı mod: document_process_completed false ise
+  const isRestrictedMode = !documentProcessCompleted;
   const isEvraklarPage = location.pathname.includes('/evraklar');
-  const needsContractRedirect = (!contractAccepted || !fesihAccepted) && !isEvraklarPage;
 
-  // Yönlendirmeyi return'dan önce yapamayız ama render sırasında kontrol ederiz
-  if (needsContractRedirect) {
-    // setTimeout ile redirect — render cycle'ı bozmamak için
+  // Kısıtlı modda evraklar dışında bir sayfadaysa yönlendir
+  if (isRestrictedMode && !isEvraklarPage) {
     setTimeout(() => navigate(`${basePath}/evraklar`, { replace: true }), 0);
   }
 
@@ -845,46 +847,48 @@ export default function CourierDashboard() {
           ) : null}
         </div>
         
-        {/* Sağ: Durum butonu */}
-        <div className="shrink-0 z-10">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button 
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${currentStatus.color} text-white`}
-                disabled={statusLoading}
-                data-testid="mobile-status-dropdown"
-              >
-                <StatusIcon className="w-4 h-4" />
-                <span className="text-xs font-medium">{currentStatus.label}</span>
-                <ChevronDown className="w-3 h-3" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              {Object.entries(AVAILABILITY_STATUSES).map(([key, status]) => {
-                const Icon = status.icon;
-                const isOnBreak = key === "on_break";
-                return (
-                  <DropdownMenuItem
-                    key={key}
-                    onClick={() => handleStatusChange(key)}
-                    className={`flex items-center justify-between ${availabilityStatus === key ? 'bg-accent' : ''}`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${status.color}`} />
-                      <Icon className="w-4 h-4" />
-                      {status.label}
-                    </div>
-                    {isOnBreak && breakStatus && (
-                      <span className={`text-xs ${breakStatus.remaining_break_time <= 5 ? 'text-red-500' : 'text-muted-foreground'}`}>
-                        (Kalan {breakStatus.remaining_break_time}dk)
-                      </span>
-                    )}
-                  </DropdownMenuItem>
-                );
-              })}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        {/* Sağ: Durum butonu - sadece tam sürümde göster */}
+        {!isRestrictedMode && (
+          <div className="shrink-0 z-10">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button 
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${currentStatus.color} text-white`}
+                  disabled={statusLoading}
+                  data-testid="mobile-status-dropdown"
+                >
+                  <StatusIcon className="w-4 h-4" />
+                  <span className="text-xs font-medium">{currentStatus.label}</span>
+                  <ChevronDown className="w-3 h-3" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {Object.entries(AVAILABILITY_STATUSES).map(([key, status]) => {
+                  const Icon = status.icon;
+                  const isOnBreak = key === "on_break";
+                  return (
+                    <DropdownMenuItem
+                      key={key}
+                      onClick={() => handleStatusChange(key)}
+                      className={`flex items-center justify-between ${availabilityStatus === key ? 'bg-accent' : ''}`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${status.color}`} />
+                        <Icon className="w-4 h-4" />
+                        {status.label}
+                      </div>
+                      {isOnBreak && breakStatus && (
+                        <span className={`text-xs ${breakStatus.remaining_break_time <= 5 ? 'text-red-500' : 'text-muted-foreground'}`}>
+                          (Kalan {breakStatus.remaining_break_time}dk)
+                        </span>
+                      )}
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
       </header>
 
       {/* Mobile Navigation - Soldan açılan sidebar */}
@@ -930,24 +934,37 @@ export default function CourierDashboard() {
           
           {/* Menu Items - Sadece sidebar-only itemlar */}
           <div className="p-3 space-y-1 overflow-y-auto max-h-[calc(100vh-140px)]">
-            {sidebarOnlyItems.map((item) => (
+            {isRestrictedMode ? (
+              /* Kısıtlı mod: sadece Evraklar */
               <Link 
-                key={item.path} 
-                to={item.path} 
+                to={`${basePath}/evraklar`}
                 onClick={() => setMobileMenuOpen(false)} 
-                className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg ${
-                  location.pathname === item.path ? "bg-white/20" : "hover:bg-white/10"
-                }`}
+                className="relative flex items-center gap-3 px-3 py-2.5 rounded-lg bg-white/20"
               >
-                <item.icon className="w-5 h-5" />
-                <span className="text-sm font-medium">{item.label}</span>
-                {item.path.includes("/motosikletim") && maintenanceNotifications > 0 && (
-                  <span className="ml-auto w-5 h-5 bg-white text-primary text-[10px] font-bold rounded-full flex items-center justify-center">
-                    {maintenanceNotifications}
-                  </span>
-                )}
+                <FileText className="w-5 h-5" />
+                <span className="text-sm font-medium">Evraklar</span>
               </Link>
-            ))}
+            ) : (
+              /* Tam mod: tüm sekmeler */
+              sidebarOnlyItems.map((item) => (
+                <Link 
+                  key={item.path} 
+                  to={item.path} 
+                  onClick={() => setMobileMenuOpen(false)} 
+                  className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg ${
+                    location.pathname === item.path ? "bg-white/20" : "hover:bg-white/10"
+                  }`}
+                >
+                  <item.icon className="w-5 h-5" />
+                  <span className="text-sm font-medium">{item.label}</span>
+                  {item.path.includes("/motosikletim") && maintenanceNotifications > 0 && (
+                    <span className="ml-auto w-5 h-5 bg-white text-primary text-[10px] font-bold rounded-full flex items-center justify-center">
+                      {maintenanceNotifications}
+                    </span>
+                  )}
+                </Link>
+              ))
+            )}
           </div>
           
           {/* Logout Button */}
@@ -993,6 +1010,7 @@ export default function CourierDashboard() {
           availabilityStatus={availabilityStatus}
           onStatusChange={handleStatusChange}
           statusLoading={statusLoading}
+          isRestrictedMode={isRestrictedMode}
         />
 
         {/* Main Content */}
@@ -1024,8 +1042,9 @@ export default function CourierDashboard() {
           <div className="h-16" />
         </main>
 
-        {/* Bottom Navigation Bar */}
-        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 safe-area-bottom lg:hidden" data-testid="courier-bottom-bar">
+        {/* Bottom Navigation Bar - Kısıtlı modda gizle */}
+        {!isRestrictedMode && (
+          <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 safe-area-bottom lg:hidden" data-testid="courier-bottom-bar">
           <div className="flex items-center justify-around h-14 max-w-lg mx-auto">
             {bottomBarItems.map((item) => {
               const isActive = location.pathname === item.path || 
@@ -1057,6 +1076,7 @@ export default function CourierDashboard() {
             })}
           </div>
         </nav>
+        )}
       </div>
 
       {/* Mola Modalı */}

@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LogOut, ChevronLeft, ChevronRight, User, Check, Coffee, XCircle, Shield, Moon, Sun } from "lucide-react";
+import { LogOut, ChevronLeft, ChevronRight, User, Check, Coffee, XCircle, Shield, Moon, Sun, FileText } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import {
   DropdownMenu,
@@ -28,7 +28,8 @@ export default function CourierSidebar({
   chatUnreadCount = 0,
   availabilityStatus = "offline",
   onStatusChange,
-  statusLoading = false
+  statusLoading = false,
+  isRestrictedMode = false
 }) {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
@@ -61,7 +62,8 @@ export default function CourierSidebar({
               </div>
             </div>
             <p className="text-white/60 text-xs">Kurye Paneli</p>
-            {/* Availability Status Dropdown */}
+            {/* Availability Status Dropdown - sadece tam sürümde */}
+            {!isRestrictedMode && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button 
@@ -91,6 +93,7 @@ export default function CourierSidebar({
                 })}
               </DropdownMenuContent>
             </DropdownMenu>
+            )}
           </>
         )}
         {sidebarCollapsed && (
@@ -110,7 +113,8 @@ export default function CourierSidebar({
                 <User className="w-5 h-5" />
               </div>
             )}
-            {/* Collapsed Status Indicator */}
+            {/* Collapsed Status Indicator - sadece tam sürümde */}
+            {!isRestrictedMode && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button 
@@ -138,12 +142,24 @@ export default function CourierSidebar({
                 })}
               </DropdownMenuContent>
             </DropdownMenu>
+            )}
           </div>
         )}
       </div>
       
       <nav className="flex-1 py-2 overflow-y-auto">
-        {navItems.map((item) => {
+        {isRestrictedMode ? (
+          /* Kısıtlı mod: sadece Evraklar */
+          <Link 
+            to={`${basePath}/evraklar`}
+            className={`relative flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors bg-white/20 border-l-4 border-orange-500 ${sidebarCollapsed ? 'justify-center px-2' : ''}`}
+            title={sidebarCollapsed ? 'Evraklar' : ''}
+          >
+            <FileText className="w-5 h-5 flex-shrink-0" />
+            {!sidebarCollapsed && <span className="truncate">Evraklar</span>}
+          </Link>
+        ) : (
+        navItems.map((item) => {
           // Ana sayfa (siparişler) için tam eşleşme kontrol et
           // Diğer sayfalar için startsWith kullan ama sadece tam path match olmalı
           const isExactMatch = location.pathname === item.path;
@@ -178,7 +194,8 @@ export default function CourierSidebar({
               )}
             </Link>
           );
-        })}
+        })
+        )}
       </nav>
       
       <div className="border-t border-white/20">

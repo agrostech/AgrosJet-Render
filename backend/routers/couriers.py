@@ -1389,3 +1389,23 @@ async def bulk_update_courier_settings(company_id: str, updates: List[dict]):
             )
     
     return {"message": "Ayarlar güncellendi"}
+
+
+
+class DocumentProcessToggle(BaseModel):
+    completed: bool
+
+
+@router.put("/couriers/{courier_id}/document-process")
+async def toggle_document_process(courier_id: str, data: DocumentProcessToggle):
+    """Toggle document process completion for a courier (admin)"""
+    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "id": 1})
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+
+    await db.couriers.update_one(
+        {"id": courier_id},
+        {"$set": {"document_process_completed": data.completed}}
+    )
+
+    return {"message": "Evrak süreci durumu güncellendi", "document_process_completed": data.completed}

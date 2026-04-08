@@ -1,0 +1,96 @@
+{
+  "summary": "Tested Document Process Control System for AgrosJet. All features verified: 1) Backend PUT /api/couriers/{id}/document-process toggles field correctly, 2) GET /api/couriers/{id} returns document_process_completed field, 3) Admin CourierDetailModal shows Evrak Sureci toggle with data-testid='doc-process-toggle', 4) Toggle works - clicking calls PUT endpoint and updates UI with toast notification, 5) Courier restricted mode (document_process_completed=false) hides bottom bar and status dropdown, redirects to evraklar page, 6) Courier full mode (document_process_completed=true) shows all navigation and status dropdown.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_document_process_control.py",
+    "/app/test_reports/pytest/document_process_control_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Backend: PUT /api/couriers/{courier_id}/document-process correctly toggles document_process_completed field (lines 1394-1411 in couriers.py)",
+    "Backend: GET /api/couriers/{courier_id} returns document_process_completed field",
+    "Backend: add_courier_to_company sets document_process_completed=false as default (lines 170-176 in courier_service.py)",
+    "Frontend Admin: CourierDetailModal.jsx has Evrak Sureci toggle section with data-testid='doc-process-toggle' (lines 143-163)",
+    "Frontend Admin: Toggle calls PUT endpoint and shows toast notification on success",
+    "Frontend Courier: CourierDashboard.jsx line 813 defines isRestrictedMode = !documentProcessCompleted",
+    "Frontend Courier: Bottom bar conditionally rendered based on !isRestrictedMode (line 1046)",
+    "Frontend Courier: Status dropdown conditionally rendered based on !isRestrictedMode (line 852)",
+    "Frontend Courier: CourierSidebar.jsx receives isRestrictedMode prop and shows only Evraklar in restricted mode (lines 151-161)"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_document_process_control.py"
+  ],
+  "success_rate": {
+    "backend": "100% (7/7 tests passed)",
+    "frontend": "100%"
+  },
+  "test_credentials": {
+    "courier_working": {"phone": "05550003201", "password": "123456", "name": "Atakan Sarı", "id": "feae169f-222b-45df-b9e8-0664a186031a"},
+    "courier_test_data": {"id": "f7188370-b3c6-46e9-bd49-acf3e18c1df7", "phone": "05553337766", "name": "Onur Ertaş", "note": "Password doesn't match 123456"},
+    "admin": {"username": "superadmin", "password": "123456", "company": "AgrosJet Isparta"},
+    "system_admin": {"username": "onurertas", "password": "Delivery32.."}
+  },
+  "seed_data_creation": "No seed data created - used existing test couriers",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Document Process Control System fully verified. Test courier Atakan Sarı (05550003201) can be used for testing restricted mode. Toggle document_process_completed via admin panel (Kuryeler -> Detaylar -> Bilgiler tab -> Evrak Sureci toggle) or via API PUT /api/couriers/{id}/document-process. When false, courier sees only Evraklar page with no bottom bar or status dropdown.",
+  "verified_features": {
+    "backend_toggle_endpoint": {
+      "feature": "PUT /api/couriers/{courier_id}/document-process toggles document_process_completed",
+      "status": "VERIFIED",
+      "evidence": "7/7 pytest tests passed, API returns correct response with updated field"
+    },
+    "backend_get_courier": {
+      "feature": "GET /api/couriers/{courier_id} returns document_process_completed field",
+      "status": "VERIFIED",
+      "evidence": "Field present in response, boolean type"
+    },
+    "admin_toggle_ui": {
+      "feature": "Admin CourierDetailModal shows Evrak Sureci toggle with data-testid='doc-process-toggle'",
+      "status": "VERIFIED",
+      "evidence": "Screenshot shows toggle in Bilgiler tab, toggle found by data-testid selector"
+    },
+    "admin_toggle_functionality": {
+      "feature": "Toggle works - clicking calls PUT endpoint and updates UI",
+      "status": "VERIFIED",
+      "evidence": "Toggle state changed from ON to OFF, toast notification 'Evrak sureci pasif yapildi' shown"
+    },
+    "courier_restricted_mode_redirect": {
+      "feature": "When document_process_completed=false, courier redirected to evraklar page",
+      "status": "VERIFIED",
+      "evidence": "URL after login: /kurye/{id}/evraklar"
+    },
+    "courier_restricted_mode_bottom_bar": {
+      "feature": "When document_process_completed=false, bottom bar NOT rendered",
+      "status": "VERIFIED",
+      "evidence": "data-testid='courier-bottom-bar' not found in DOM"
+    },
+    "courier_restricted_mode_status_dropdown": {
+      "feature": "When document_process_completed=false, status dropdown NOT rendered",
+      "status": "VERIFIED",
+      "evidence": "data-testid='mobile-status-dropdown' not found in DOM"
+    },
+    "courier_full_mode_bottom_bar": {
+      "feature": "When document_process_completed=true, bottom bar IS visible",
+      "status": "VERIFIED",
+      "evidence": "data-testid='courier-bottom-bar' visible=true"
+    },
+    "courier_full_mode_status_dropdown": {
+      "feature": "When document_process_completed=true, status dropdown IS visible",
+      "status": "VERIFIED",
+      "evidence": "data-testid='mobile-status-dropdown' visible=true"
+    }
+  },
+  "mocked_api": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  }
+}

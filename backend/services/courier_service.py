@@ -167,9 +167,14 @@ async def add_courier_to_company(company_id: str, phone: str):
         "created_at": get_turkey_now()
     }
     await db.company_couriers.insert_one(relation)
-    # Kurye dökümanında company_id yoksa set et
+    # Kurye dökümanında company_id yoksa set et + document_process_completed default false
+    update_fields = {}
     if not courier.get("company_id"):
-        await db.couriers.update_one({"id": courier["id"]}, {"$set": {"company_id": company_id}})
+        update_fields["company_id"] = company_id
+    if "document_process_completed" not in courier:
+        update_fields["document_process_completed"] = False
+    if update_fields:
+        await db.couriers.update_one({"id": courier["id"]}, {"$set": update_fields})
     return {"message": "Kurye şirkete eklendi", "courier_name": courier["name"]}, None
 
 

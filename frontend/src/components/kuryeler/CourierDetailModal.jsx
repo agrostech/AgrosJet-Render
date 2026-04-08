@@ -5,14 +5,42 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, FileText, Clock, CheckCircle, XCircle, ExternalLink } from "lucide-react";
+import { User, FileText, Clock, CheckCircle, XCircle, ExternalLink, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
+import { useState, useEffect, useCallback } from "react";
+import axios from "axios";
 import CourierDocumentsSection from "@/components/admin/CourierDocumentsSection";
 import CourierShiftsSection from "@/components/kuryeler/CourierShiftsSection";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-export function CourierDetailModal({ open, onOpenChange, courier, companyId, companyName }) {
+export function CourierDetailModal({ open, onOpenChange, courier, companyId, companyName, onCourierUpdate }) {
+  const [docProcessCompleted, setDocProcessCompleted] = useState(false);
+  const [toggling, setToggling] = useState(false);
+
+  useEffect(() => {
+    if (courier) {
+      setDocProcessCompleted(courier.document_process_completed || false);
+    }
+  }, [courier]);
+
+  const handleToggleDocProcess = useCallback(async (checked) => {
+    if (!courier?.id) return;
+    setToggling(true);
+    try {
+      await axios.put(`${API}/couriers/${courier.id}/document-process`, { completed: checked });
+      setDocProcessCompleted(checked);
+      toast.success(checked ? "Evrak sureci tamamlandi olarak isaretlendi" : "Evrak sureci pasif yapildi");
+      if (onCourierUpdate) onCourierUpdate();
+    } catch (err) {
+      toast.error("Guncelleme basarisiz");
+    } finally {
+      setToggling(false);
+    }
+  }, [courier?.id, onCourierUpdate]);
+
   const handleViewContract = async () => {
     if (!courier?.id) return;
     try {
@@ -106,10 +134,33 @@ export function CourierDetailModal({ open, onOpenChange, courier, companyId, com
                   data-testid="view-contract-pdf-btn"
                 >
                   <FileText className="w-4 h-4 mr-2" />
-                  E-İmzalı Sözleşme PDF
+                  E-Imzali Sozlesme PDF
                   <ExternalLink className="w-3 h-3 ml-2" />
                 </Button>
               )}
+
+              {/* Document Process Toggle */}
+              <div className="border-2 border-border rounded-lg p-3 bg-slate-50" data-testid="doc-process-toggle-section">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold">Evrak Sureci</p>
+                    <p className="text-xs text-muted-foreground">
+                      {docProcessCompleted 
+                        ? "Tamamlandi - Kurye tam surume erisebilir" 
+                        : "Bekliyor - Kurye sadece evrak ekranini gorebilir"}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {toggling && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
+                    <Switch
+                      checked={docProcessCompleted}
+                      onCheckedChange={handleToggleDocProcess}
+                      disabled={toggling}
+                      data-testid="doc-process-toggle"
+                    />
+                  </div>
+                </div>
+              </div>
             </TabsContent>
             
             <TabsContent value="shifts">
