@@ -32,10 +32,10 @@ export function CourierDetailModal({ open, onOpenChange, courier, companyId, com
     try {
       await axios.put(`${API}/couriers/${courier.id}/document-process`, { completed: checked });
       setDocProcessCompleted(checked);
-      toast.success(checked ? "Evrak sureci tamamlandi olarak isaretlendi" : "Evrak sureci pasif yapildi");
+      toast.success(checked ? "Evrak süreci tamamlandı olarak işaretlendi" : "Evrak süreci pasif yapıldı");
       if (onCourierUpdate) onCourierUpdate();
     } catch (err) {
-      toast.error("Guncelleme basarisiz");
+      toast.error("Güncelleme başarısız");
     } finally {
       setToggling(false);
     }
@@ -134,7 +134,7 @@ export function CourierDetailModal({ open, onOpenChange, courier, companyId, com
                   data-testid="view-contract-pdf-btn"
                 >
                   <FileText className="w-4 h-4 mr-2" />
-                  E-Imzali Sozlesme PDF
+                  E-İmzalı Sözleşme PDF
                   <ExternalLink className="w-3 h-3 ml-2" />
                 </Button>
               )}
@@ -143,11 +143,11 @@ export function CourierDetailModal({ open, onOpenChange, courier, companyId, com
               <div className="border-2 border-border rounded-lg p-3 bg-slate-50" data-testid="doc-process-toggle-section">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-semibold">Evrak Sureci</p>
+                    <p className="text-sm font-semibold">Evrak Süreci</p>
                     <p className="text-xs text-muted-foreground">
                       {docProcessCompleted 
-                        ? "Tamamlandi - Kurye tam surume erisebilir" 
-                        : "Bekliyor - Kurye sadece evrak ekranini gorebilir"}
+                        ? "Tamamlandı - Kurye tam sürüme erişebilir" 
+                        : "Bekliyor - Kurye sadece evrak ekranını görebilir"}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">

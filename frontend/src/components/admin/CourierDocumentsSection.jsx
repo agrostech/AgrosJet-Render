@@ -38,14 +38,14 @@ const DOCUMENT_ORDER = [
 ];
 
 const DOCUMENT_LABELS = {
-  company_contract: "Kullanici Sozlesmesi (E-Imzali)",
-  id_front: "Kimlik On Yuz",
-  id_back: "Kimlik Arka Yuz",
-  license_front: "Ehliyet On Yuz",
-  license_back: "Ehliyet Arka Yuz",
-  vehicle_registration: "Arac Ruhsati",
-  criminal_record: "Adli Sicil Kaydi",
-  residence_certificate: "Ikametgah Belgesi"
+  company_contract: "Kullanıcı Sözleşmesi (E-İmzalı)",
+  id_front: "Kimlik Ön Yüz",
+  id_back: "Kimlik Arka Yüz",
+  license_front: "Ehliyet Ön Yüz",
+  license_back: "Ehliyet Arka Yüz",
+  vehicle_registration: "Araç Ruhsatı",
+  criminal_record: "Adli Sicil Kaydı",
+  residence_certificate: "İkametgah Belgesi"
 };
 
 const PDF_TYPES = ["criminal_record", "residence_certificate", "company_contract"];
@@ -102,7 +102,7 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
       fetchData();
     } catch (err) {
       if (!err.handled) {
-        toast.error(err.response?.data?.detail || "Silme basarisiz");
+        toast.error(err.response?.data?.detail || "Silme başarısız");
       }
     } finally {
       setDeleting(null);
@@ -132,10 +132,10 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      toast.success("Indirme basladi");
+      toast.success("İndirme başladı");
     } catch (err) {
       if (!err.handled) {
-        toast.error("Indirme basarisiz");
+        toast.error("İndirme başarısız");
       }
     } finally {
       setDownloading(false);
@@ -163,10 +163,10 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      toast.success("PDF indirme basladi");
+      toast.success("PDF indirme başladı");
     } catch (err) {
       if (!err.handled) {
-        toast.error(err.response?.data?.detail || "PDF olusturulamadi");
+        toast.error(err.response?.data?.detail || "PDF oluşturulamadı");
       }
     } finally {
       setDownloadingPdf(false);
@@ -192,13 +192,13 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
       }
       await axios.post(endpoint);
       toast.success(
-        pendingReset === "contract" ? "Sozlesme sifirlandi" :
-        pendingReset === "fesih" ? "Fesih onayi sifirlandi" :
-        "Evraklar sifirlandi"
+        pendingReset === "contract" ? "Sözleşme sıfırlandı" :
+        pendingReset === "fesih" ? "Fesih onayı sıfırlandı" :
+        "Evraklar sıfırlandı"
       );
       fetchData();
     } catch (err) {
-      toast.error(err.response?.data?.detail || "Sifirlama basarisiz");
+      toast.error(err.response?.data?.detail || "Sıfırlama başarısız");
     } finally {
       setResetting(null);
       setResetConfirmOpen(false);
@@ -221,7 +221,7 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
       const url = URL.createObjectURL(blob);
       window.open(url, "_blank");
     } catch (err) {
-      toast.error("Sozlesme PDF'i acilamadi");
+      toast.error("Sözleşme PDF'i açılamadı");
     }
   };
 
@@ -230,9 +230,9 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
   };
 
   const resetLabels = {
-    contract: "Sozlesme sureci sifirlanacak. Kurye sozlesmeyi tekrar imzalamak zorunda kalacak.",
-    fesih: "Fesih onayi sifirlanacak. Kurye fesih sartlarini tekrar kabul etmek zorunda kalacak.",
-    documents: "Tum yuklenmis evraklar silinecek (sozlesme haric). Kurye evraklari tekrar yuklemek zorunda kalacak."
+    contract: "Sözleşme süreci sıfırlanacak. Kurye sözleşmeyi tekrar imzalamak zorunda kalacak.",
+    fesih: "Fesih onayı sıfırlanacak. Kurye fesih şartlarını tekrar kabul etmek zorunda kalacak.",
+    documents: "Tüm yüklenmiş evraklar silinecek (sözleşme hariç). Kurye evrakları tekrar yüklemek zorunda kalacak."
   };
 
   if (loading) {
@@ -248,7 +248,7 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
       {/* Contract & Fesih Status */}
       {contractStatus && (
         <div className="border-2 border-border rounded-lg p-3 space-y-2 bg-slate-50">
-          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Sozlesme Durumu</h4>
+          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Sözleşme Durumu</h4>
           <div className="grid grid-cols-1 gap-2">
             {/* Contract Status */}
             <div className="flex items-center justify-between">
@@ -259,7 +259,7 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
                   <AlertCircle className="w-4 h-4 text-amber-500" />
                 )}
                 <span className="text-sm">
-                  Sozlesme: <strong className={contractStatus.accepted ? "text-green-600" : "text-amber-600"}>
+                  Sözleşme: <strong className={contractStatus.accepted ? "text-green-600" : "text-amber-600"}>
                     {contractStatus.accepted ? "Onayli" : "Bekliyor"}
                   </strong>
                 </span>
@@ -273,7 +273,7 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
                 data-testid="reset-contract-btn"
               >
                 {resetting === "contract" ? <Loader2 className="w-3 h-3 animate-spin" /> : <RotateCcw className="w-3 h-3 mr-1" />}
-                Sifirla
+                Sıfırla
               </Button>
             </div>
 
@@ -286,7 +286,7 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
                   <AlertCircle className="w-4 h-4 text-amber-500" />
                 )}
                 <span className="text-sm">
-                  Fesih Sartlari: <strong className={contractStatus.fesih_accepted ? "text-green-600" : "text-amber-600"}>
+                  Fesih Şartları: <strong className={contractStatus.fesih_accepted ? "text-green-600" : "text-amber-600"}>
                     {contractStatus.fesih_accepted ? "Kabul Edildi" : "Bekliyor"}
                   </strong>
                 </span>
@@ -300,7 +300,7 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
                 data-testid="reset-fesih-btn"
               >
                 {resetting === "fesih" ? <Loader2 className="w-3 h-3 animate-spin" /> : <RotateCcw className="w-3 h-3 mr-1" />}
-                Sifirla
+                Sıfırla
               </Button>
             </div>
           </div>
@@ -315,7 +315,7 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
               data-testid="view-contract-pdf-admin"
             >
               <FileText className="w-4 h-4 mr-2" />
-              E-Imzali Sozlesme PDF Goruntule
+              E-İmzalı Sözleşme PDF Görüntüle
             </Button>
           )}
         </div>
@@ -329,7 +329,7 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
             <h3 className="font-semibold">Evraklar</h3>
             {status && (
               <p className="text-xs text-muted-foreground">
-                {status.total_uploaded}/{status.total_required} evrak yuklendi
+                {status.total_uploaded}/{status.total_required} evrak yüklendi
               </p>
             )}
           </div>
@@ -379,11 +379,11 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
           <Progress value={status.progress_percent} className="h-2" />
           <div className="flex items-center justify-between mt-1">
             <span className="text-xs text-muted-foreground">
-              %{status.progress_percent} tamamlandi
+              %{status.progress_percent} tamamlandı
             </span>
             {status.all_complete ? (
               <span className="text-xs text-green-600 font-medium flex items-center gap-1">
-                <CheckCircle className="w-3 h-3" /> Tamamlandi
+                <CheckCircle className="w-3 h-3" /> Tamamlandı
               </span>
             ) : (
               <span className="text-xs text-amber-600 font-medium flex items-center gap-1">
@@ -406,7 +406,7 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
             data-testid="reset-documents-btn"
           >
             {resetting === "documents" ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <RotateCcw className="w-3 h-3 mr-1" />}
-            Evraklari Sifirla
+            Evrakları Sıfırla
           </Button>
         </div>
       )}
@@ -415,7 +415,7 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
       {documents.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           <FileText className="w-10 h-10 mx-auto mb-2 opacity-50" />
-          <p className="text-sm">Henuz evrak yuklenmemis</p>
+          <p className="text-sm">Henüz evrak yüklenmemiş</p>
         </div>
       ) : (
         <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
@@ -453,7 +453,7 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
                           size="icon"
                           className="h-6 w-6 hover:bg-blue-50 hover:text-blue-600"
                           onClick={() => handlePreview(doc)}
-                          title="Goruntule"
+                          title="Görüntüle"
                           data-testid={`view-doc-${doc.id}`}
                         >
                           <Eye className="w-3 h-3" />
@@ -515,7 +515,7 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
         title="Evrak Silme"
-        description="Bu evraki silmek istediginize emin misiniz?"
+        description="Bu evrakı silmek istediğinize emin misiniz?"
         onConfirm={confirmDelete}
         variant="danger"
       />
@@ -524,9 +524,9 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
         open={resetConfirmOpen}
         onOpenChange={setResetConfirmOpen}
         title={
-          pendingReset === "contract" ? "Sozlesme Sifirlama" :
-          pendingReset === "fesih" ? "Fesih Onayi Sifirlama" :
-          "Evraklari Sifirlama"
+          pendingReset === "contract" ? "Sözleşme Sıfırlama" :
+          pendingReset === "fesih" ? "Fesih Onayı Sıfırlama" :
+          "Evrakları Sıfırlama"
         }
         description={resetLabels[pendingReset] || ""}
         onConfirm={confirmReset}
