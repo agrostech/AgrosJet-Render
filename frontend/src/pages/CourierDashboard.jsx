@@ -205,6 +205,8 @@ export default function CourierDashboard() {
   }, [sendLocationToBackend]);
 
   // Fetch document status + contract status
+  const prevDocProcessRef = useRef(null);
+
   const checkDocumentStatus = useCallback(async (courierId) => {
     try {
       const [docRes, contractRes, courierRes] = await Promise.all([
@@ -215,11 +217,23 @@ export default function CourierDashboard() {
       setDocumentsComplete(docRes.data.all_complete);
       setContractAccepted(contractRes.data.accepted);
       setFesihAccepted(contractRes.data.fesih_accepted);
-      setDocumentProcessCompleted(courierRes.data.document_process_completed || false);
+      const newVal = courierRes.data.document_process_completed || false;
+      setDocumentProcessCompleted(prev => {
+        // İlk yüklemede yönlendirme yapma
+        if (prevDocProcessRef.current !== null && prevDocProcessRef.current !== newVal) {
+          if (newVal) {
+            navigate(`${basePath}/siparisler`, { replace: true });
+          } else {
+            navigate(`${basePath}/evraklar`, { replace: true });
+          }
+        }
+        prevDocProcessRef.current = newVal;
+        return newVal;
+      });
     } catch (err) {
       console.error("Evrak durumu alınamadı", err);
     }
-  }, []);
+  }, [basePath, navigate]);
 
   // Evrak durumu polling (10 sn'de bir kontrol)
   const docProcessPollingRef = useRef(null);
