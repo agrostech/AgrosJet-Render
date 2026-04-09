@@ -112,9 +112,39 @@ function ContractStep({ courierId, onComplete }) {
   const handleAccept = async () => {
     if (!scrolledToBottom || !signatureProvided) return;
     
-    // getTrimmedCanvas ile boşlukları kırp - imza daha net gözükür
-    const trimmedCanvas = sigCanvasRef.current.getTrimmedCanvas();
-    const signatureBase64 = trimmedCanvas.toDataURL("image/png");
+    // Canvas'ı manuel kırp - boşlukları kaldır
+    const canvas = sigCanvasRef.current.getCanvas();
+    const ctx = canvas.getContext('2d');
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const { data, width, height } = imgData;
+    
+    let top = height, left = width, right = 0, bottom = 0;
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const alpha = data[(y * width + x) * 4 + 3];
+        if (alpha > 0) {
+          if (y < top) top = y;
+          if (y > bottom) bottom = y;
+          if (x < left) left = x;
+          if (x > right) right = x;
+        }
+      }
+    }
+    
+    const pad = 10;
+    top = Math.max(0, top - pad);
+    left = Math.max(0, left - pad);
+    right = Math.min(width - 1, right + pad);
+    bottom = Math.min(height - 1, bottom + pad);
+    
+    const trimW = right - left + 1;
+    const trimH = bottom - top + 1;
+    const trimmed = document.createElement('canvas');
+    trimmed.width = trimW;
+    trimmed.height = trimH;
+    trimmed.getContext('2d').drawImage(canvas, left, top, trimW, trimH, 0, 0, trimW, trimH);
+    
+    const signatureBase64 = trimmed.toDataURL("image/png");
     
     setSubmitting(true);
     try {
