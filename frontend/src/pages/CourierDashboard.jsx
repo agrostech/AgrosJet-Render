@@ -49,13 +49,19 @@ const getBottomBarItems = (basePath) => [
 ];
 
 // Sidebar-only itemlar (bottom bar'da görünmez)
-const getSidebarItems = (basePath) => [
-  { path: `${basePath}/zimmet`, label: "Zimmetlerim", icon: Package, key: "zimmet" },
-  { path: `${basePath}/motosikletim`, label: "Motosikletim", icon: Bike, key: "motosikletim" },
-  { path: `${basePath}/akademi`, label: "Akademi", icon: GraduationCap, key: "akademi" },
-  { path: `${basePath}/jetpuan`, label: "Market", icon: ShoppingBag, key: "jetpuan" },
-  { path: `${basePath}/evraklar`, label: "Evraklar", icon: FileText, key: "evraklar" },
-];
+const getSidebarItems = (basePath, isRestricted) => {
+  const items = [
+    { path: `${basePath}/zimmet`, label: "Zimmetlerim", icon: Package, key: "zimmet" },
+    { path: `${basePath}/motosikletim`, label: "Motosikletim", icon: Bike, key: "motosikletim" },
+    { path: `${basePath}/akademi`, label: "Akademi", icon: GraduationCap, key: "akademi" },
+    { path: `${basePath}/jetpuan`, label: "Market", icon: ShoppingBag, key: "jetpuan" },
+  ];
+  // Evrak sekmesi sadece kısıtlı modda gösterilir
+  if (isRestricted) {
+    items.push({ path: `${basePath}/evraklar`, label: "Evraklar", icon: FileText, key: "evraklar" });
+  }
+  return items;
+};
 
 // Kurye durumları
 const AVAILABILITY_STATUSES = {
@@ -97,12 +103,13 @@ export default function CourierDashboard() {
   // Base path for navigation (dynamic based on URL)
   const basePath = urlCourierId ? `/kurye/${urlCourierId}` : '/courier';
   
-  // NavItems'ı basePath değiştiğinde güncelle
+  // NavItems'ı basePath ve documentProcessCompleted değiştiğinde güncelle
   useEffect(() => {
-    setNavItems([...getBottomBarItems(basePath), ...getSidebarItems(basePath)]);
+    const restricted = !documentProcessCompleted;
+    setNavItems([...getBottomBarItems(basePath), ...getSidebarItems(basePath, restricted)]);
     setBottomBarItems(getBottomBarItems(basePath));
-    setSidebarOnlyItems(getSidebarItems(basePath));
-  }, [basePath]);
+    setSidebarOnlyItems(getSidebarItems(basePath, restricted));
+  }, [basePath, documentProcessCompleted]);
   
   // Refs for background task management
   const wakeLockRef = useRef(null);
@@ -208,11 +215,31 @@ export default function CourierDashboard() {
       setDocumentsComplete(docRes.data.all_complete);
       setContractAccepted(contractRes.data.accepted);
       setFesihAccepted(contractRes.data.fesih_accepted);
-      setDocumentProcessCompleted(courierRes.data.document_process_completed || false);
+      const newVal = courierRes.data.document_process_completed || false;
+      setDocumentProcessCompleted(prev => {
+        if (prev !== newVal) {
+          // Toggle değişti - sayfayı yenile
+          window.location.reload();
+        }
+        return newVal;
+      });
     } catch (err) {
       console.error("Evrak durumu alınamadı", err);
     }
   }, []);
+
+  // Evrak durumu polling (10 sn'de bir kontrol)
+  const docProcessPollingRef = useRef(null);
+  useEffect(() => {
+    const cId = user?.courier_id || urlCourierId;
+    if (!cId) return;
+    docProcessPollingRef.current = setInterval(() => {
+      checkDocumentStatus(cId);
+    }, 10000);
+    return () => {
+      if (docProcessPollingRef.current) clearInterval(docProcessPollingRef.current);
+    };
+  }, [user?.courier_id, urlCourierId, checkDocumentStatus]);
 
   // FCM Token'ı backend'e kaydet
   const saveFcmToken = useCallback(async (courierId, fcmToken) => {
