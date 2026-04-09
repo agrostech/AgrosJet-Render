@@ -53,7 +53,7 @@ export default function RestaurantLoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundImage: "url('https://static.prod-images.emergentagent.com/jobs/dfe6f827-18c8-44fa-9707-d7a9c2d6e4a6/images/df1ee712afbdbe4a80c6c8d13bb106900f89ddc6a7a9eff3309ca29c9ca23dea.png')", backgroundSize: "cover", backgroundPosition: "center" }}>
-      <div className="w-full max-w-[900px] flex rounded-2xl overflow-hidden shadow-2xl shadow-black/40">
+      <div className="w-full max-w-[1170px] flex rounded-2xl overflow-hidden shadow-2xl shadow-black/40">
         
         {/* Left - Image Panel */}
         <div 
@@ -61,46 +61,46 @@ export default function RestaurantLoginPage() {
           style={{ backgroundImage: `url('${loginImage}')` }}
         >
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-          <div className="relative z-10 flex flex-col justify-end p-8 w-full">
+          <div className="relative z-10 flex flex-col justify-end p-10 w-full">
             <img 
               src="/agrosjet-login-logo.png" 
               alt="AgrosJet" 
-              className="h-14 object-contain self-start mb-3"
+              className="h-16 object-contain self-start mb-4"
             />
-            <p className="text-white/80 text-sm">Teslimatınızı ileriye taşıyın.</p>
+            <p className="text-white/80 text-base">Teslimatınızı ileriye taşıyın.</p>
           </div>
         </div>
 
         {/* Right - Form */}
-        <div className="w-full lg:w-[55%] bg-white p-8 md:p-10 flex flex-col justify-center">
+        <div className="w-full lg:w-[55%] bg-white p-10 md:p-14 flex flex-col justify-center">
           {/* Geri butonu */}
-          <Link to="/login" className="flex items-center gap-1 text-sm text-slate-400 hover:text-slate-600 mb-6 w-fit" data-testid="back-to-selector">
+          <Link to="/login" className="flex items-center gap-1 text-sm text-slate-400 hover:text-slate-600 mb-8 w-fit" data-testid="back-to-selector">
             <ChevronLeft className="w-4 h-4" />
             Geri
           </Link>
 
           {/* Mobile logo */}
-          <div className="flex justify-center mb-6 lg:hidden">
-            <img src="https://customer-assets.emergentagent.com/job_dfe6f827-18c8-44fa-9707-d7a9c2d6e4a6/artifacts/kj7xrk2d_agroslogo.png" alt="AgrosJet" className="h-20" />
+          <div className="flex justify-center mb-8 lg:hidden">
+            <img src="https://customer-assets.emergentagent.com/job_dfe6f827-18c8-44fa-9707-d7a9c2d6e4a6/artifacts/kj7xrk2d_agroslogo.png" alt="AgrosJet" className="h-24" />
           </div>
 
-          <h2 className="text-2xl font-bold text-slate-900 mb-1">Restoran Girişi</h2>
-          <p className="text-sm text-slate-500 mb-6">Restoran yönetim paneline giriş yapın</p>
+          <h2 className="text-3xl font-bold text-slate-900 mb-1">Restoran Girişi</h2>
+          <p className="text-base text-slate-500 mb-8">Restoran yönetim paneline giriş yapın</p>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-5">
             <div>
               <Label htmlFor="username" className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
                 Kullanıcı Adı
               </Label>
-              <div className="relative mt-1.5">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <div className="relative mt-2">
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <Input
                   id="username"
                   data-testid="restaurant-username-input"
                   type="text"
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  className="h-11 pl-10 border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:border-[#e13c10] focus:ring-[#e13c10]/20"
+                  className="h-13 pl-11 text-base border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:border-[#e13c10] focus:ring-[#e13c10]/20"
                   required
                 />
               </div>
@@ -109,15 +109,15 @@ export default function RestaurantLoginPage() {
               <Label htmlFor="password" className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
                 Şifre
               </Label>
-              <div className="relative mt-1.5">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <div className="relative mt-2">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <Input
                   id="password"
                   data-testid="restaurant-password-input"
                   type="password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="h-11 pl-10 border-slate-200 bg-slate-50 text-slate-900 focus:border-[#e13c10] focus:ring-[#e13c10]/20"
+                  className="h-13 pl-11 text-base border-slate-200 bg-slate-50 text-slate-900 focus:border-[#e13c10] focus:ring-[#e13c10]/20"
                   required
                 />
               </div>
@@ -137,14 +137,14 @@ export default function RestaurantLoginPage() {
             <Button 
               type="submit" 
               data-testid="restaurant-login-btn"
-              className="w-full h-11 font-semibold bg-[#e13c10] hover:bg-[#c53510] text-white rounded-lg"
+              className="w-full h-13 text-base font-semibold bg-[#e13c10] hover:bg-[#c53510] text-white rounded-lg"
               disabled={loading}
             >
               {loading ? "Yükleniyor..." : "Giriş Yap"}
             </Button>
           </form>
 
-          <p className="mt-8 text-center text-xs text-slate-400">
+          <p className="mt-10 text-center text-sm text-slate-400">
             © 2026 AgrosJet. Tüm hakları saklıdır. Powered by AgrosTech.
           </p>
         </div>
