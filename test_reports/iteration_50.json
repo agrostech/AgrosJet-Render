@@ -1,0 +1,97 @@
+{
+  "summary": "Login Page Split Feature - All tests passed. Verified LoginSelectorPage at /login with 'Restoran Girişi' and 'Yönetici Girişi' cards, navigation to /restoran-login and /admin-login, back links, and all login flows (admin, system admin, restaurant). Courier login at /courier-login remains independent.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend only test)",
+    "frontend": "100%"
+  },
+  "test_credentials": {
+    "system_admin": "onurertas / Delivery32..",
+    "company_admin": "admin / 123456",
+    "restaurant": "restoran2 / 123456",
+    "courier": "05553337766 / 123456"
+  },
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Login page split feature is complete and working. /login shows LoginSelectorPage with two cards. /admin-login and /restoran-login have separate login forms with 'Geri' back links. All login flows work correctly. Courier login at /courier-login is unchanged.",
+  "tests_executed": [
+    {
+      "test": "LoginSelectorPage at /login",
+      "result": "PASS",
+      "details": "Page loads with 'Restoran Girişi' and 'Yönetici Girişi' cards"
+    },
+    {
+      "test": "Navigation to /restoran-login",
+      "result": "PASS",
+      "details": "Clicking 'Restoran Girişi' card navigates to /restoran-login"
+    },
+    {
+      "test": "Restaurant login form elements",
+      "result": "PASS",
+      "details": "Username input, password input, login button, and 'Geri' back link present"
+    },
+    {
+      "test": "Back link from /restoran-login",
+      "result": "PASS",
+      "details": "'Geri' link navigates back to /login"
+    },
+    {
+      "test": "Navigation to /admin-login",
+      "result": "PASS",
+      "details": "Clicking 'Yönetici Girişi' card navigates to /admin-login"
+    },
+    {
+      "test": "Admin login form elements",
+      "result": "PASS",
+      "details": "Username input, password input, login button, and 'Geri' back link present"
+    },
+    {
+      "test": "Back link from /admin-login",
+      "result": "PASS",
+      "details": "'Geri' link navigates back to /login"
+    },
+    {
+      "test": "Company Admin login (admin/123456)",
+      "result": "PASS",
+      "details": "Login successful, redirects to /admin/*"
+    },
+    {
+      "test": "System Admin login (onurertas/Delivery32..)",
+      "result": "PASS",
+      "details": "Login successful, redirects to /system/*"
+    },
+    {
+      "test": "Restaurant login (restoran2/123456)",
+      "result": "PASS",
+      "details": "Login successful, redirects to /restoran/*"
+    },
+    {
+      "test": "Courier login page independence",
+      "result": "PASS",
+      "details": "/courier-login loads independently with phone/password form, not selector page"
+    },
+    {
+      "test": "Root URL redirect",
+      "result": "PASS",
+      "details": "/ redirects to /login (LoginSelectorPage)"
+    },
+    {
+      "test": "Logout redirect to /login",
+      "result": "PASS",
+      "details": "After logout, users are redirected to /login (selector page)"
+    }
+  ]
+}

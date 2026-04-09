@@ -2,7 +2,9 @@ import { useEffect } from "react";
 import "@/App.css";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
-import LoginPage from "@/pages/LoginPage";
+import LoginSelectorPage from "@/pages/LoginSelectorPage";
+import AdminLoginPage from "@/pages/AdminLoginPage";
+import RestaurantLoginPage from "@/pages/RestaurantLoginPage";
 import CourierLoginPage from "@/pages/CourierLoginPage";
 import CourierDashboard from "@/pages/CourierDashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
@@ -54,7 +56,9 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/login" element={<LoginSelectorPage />} />
+          <Route path="/admin-login" element={<AdminLoginPage />} />
+          <Route path="/restoran-login" element={<RestaurantLoginPage />} />
           <Route path="/courier-login" element={<CourierLoginPage />} />
           <Route path="/register" element={<Navigate to="/courier-login" replace />} />
           <Route path="/kurye/kvkk" element={<CourierKVKKPage companyName="AgrosJet" />} />
