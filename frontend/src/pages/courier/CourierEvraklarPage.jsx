@@ -279,6 +279,7 @@ function ContractStep({ courierId, onComplete }) {
           )}
           <div className="border-2 border-dashed border-slate-300 rounded-lg bg-slate-50" data-testid="signature-canvas-wrapper">
             <SignatureCanvas
+              key={signatureStep}
               ref={sigCanvasRef}
               canvasProps={{
                 className: "w-full",

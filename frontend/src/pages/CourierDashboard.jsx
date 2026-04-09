@@ -3,7 +3,7 @@ import { useNavigate, Routes, Route, Link, useLocation, useSearchParams, usePara
 import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, Clock, Calculator, Package, FileText, ShoppingBag, GraduationCap, Bike, MoreHorizontal, ClipboardList, Check, Coffee, XCircle, BarChart3, ChevronDown, Shield, Moon, Sun } from "lucide-react";
+import { Menu, X, LogOut, Clock, Calculator, Package, FileText, ShoppingBag, GraduationCap, Bike, MoreHorizontal, ClipboardList, Check, Coffee, XCircle, BarChart3, ChevronDown, Shield, Moon, Sun, Loader2 } from "lucide-react";
 import CourierSidebar from "@/components/courier/CourierSidebar";
 import { BreakModal } from "@/components/courier/BreakModal";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -88,7 +88,7 @@ export default function CourierDashboard() {
   const [documentsComplete, setDocumentsComplete] = useState(true);
   const [contractAccepted, setContractAccepted] = useState(true);
   const [fesihAccepted, setFesihAccepted] = useState(true);
-  const [documentProcessCompleted, setDocumentProcessCompleted] = useState(false);
+  const [documentProcessCompleted, setDocumentProcessCompleted] = useState(null); // null = henüz yüklenmedi
   const [maintenanceNotifications, setMaintenanceNotifications] = useState(0);
   const [navItems, setNavItems] = useState([]);
   const [bottomBarItems, setBottomBarItems] = useState([]);
@@ -105,6 +105,7 @@ export default function CourierDashboard() {
   
   // NavItems'ı basePath ve documentProcessCompleted değiştiğinde güncelle
   useEffect(() => {
+    if (documentProcessCompleted === null) return; // henüz yüklenmedi
     const restricted = !documentProcessCompleted;
     setNavItems([...getBottomBarItems(basePath), ...getSidebarItems(basePath, restricted)]);
     setBottomBarItems(getBottomBarItems(basePath));
@@ -842,6 +843,18 @@ export default function CourierDashboard() {
   };
 
   if (!user) return null;
+
+  // Evrak durumu henüz yüklenmediyse loading göster
+  if (documentProcessCompleted === null) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Yükleniyor...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Evrak süreci kısıtlı mod: document_process_completed false ise
   const isRestrictedMode = !documentProcessCompleted;
