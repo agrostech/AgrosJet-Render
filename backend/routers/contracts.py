@@ -12,10 +12,13 @@ import uuid
 import base64
 import io
 
+import random
+
 from utils.database import db
 from utils.helpers import get_turkey_now
 from utils.jwt_utils import require_admin, require_auth
 from services.r2_storage import upload_file_to_r2, download_file_from_r2
+from services.email_service import EmailService
 
 router = APIRouter(prefix="/api/contracts", tags=["Contracts"])
 
@@ -602,62 +605,159 @@ def generate_contract_pdf(contract_text: str, signature_bytes: bytes, courier_na
     return buffer.getvalue()
 
 
-@router.post("/reset-contract/{courier_id}")
-async def reset_contract(courier_id: str, auth: dict = Depends(require_auth)):
-    """Kuryenin sözleşme sürecini sıfırla (admin)"""
+class ResetConfirmRequest(BaseModel):
+    code: str
+    reset_type: str  # "contract", "fesih", "documents"
+
+
+@router.post("/reset-request/{courier_id}")
+async def request_reset_code(courier_id: str, reset_type: str = "contract", auth: dict = Depends(require_auth)):
+    """Sıfırlama için superadmin e-postasına onay kodu gönder"""
+    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "id": 1, "name": 1, "company_id": 1})
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+
+    company_id = courier.get("company_id")
+    if not company_id:
+        raise HTTPException(status_code=400, detail="Kurye bir şirkete bağlı değil")
+
+    # Superadmin veya systemadmin e-postasını bul
+    superadmin = await db.admins.find_one(
+        {"company_id": company_id, "role": {"$in": ["superadmin", "systemadmin"]}, "email": {"$exists": True, "$ne": ""}},
+        {"_id": 0, "email": 1, "name": 1}
+    )
+    # Bulunamazsa tüm systemadminlerde ara
+    if not superadmin or not superadmin.get("email"):
+        superadmin = await db.admins.find_one(
+            {"role": "systemadmin", "email": {"$exists": True, "$ne": ""}},
+            {"_id": 0, "email": 1, "name": 1}
+        )
+    if not superadmin or not superadmin.get("email"):
+        raise HTTPException(status_code=400, detail="Superadmin e-posta adresi bulunamadı. Lütfen admin ayarlarından e-posta ekleyin.")
+
+    # 6 haneli kod üret
+    code = str(random.randint(100000, 999999))
+
+    # Kodu DB'ye kaydet (5 dk geçerli)
+    await db.reset_codes.delete_many({"courier_id": courier_id, "reset_type": reset_type})
+    await db.reset_codes.insert_one({
+        "courier_id": courier_id,
+        "reset_type": reset_type,
+        "code": code,
+        "created_at": datetime.now(timezone.utc),
+        "expires_at": datetime.now(timezone.utc) + timedelta(minutes=5),
+    })
+
+    type_labels = {
+        "contract": "Sözleşme Sıfırlama",
+        "fesih": "Fesih Onayı Sıfırlama",
+        "documents": "Evrak Sıfırlama"
+    }
+    label = type_labels.get(reset_type, "Sıfırlama")
+
+    # E-posta gönder
+    email_service = EmailService()
+    loaded = await email_service.load_system_settings()
+    if not loaded:
+        raise HTTPException(status_code=503, detail="E-posta ayarları yapılandırılmamış")
+
+    html_body = f"""
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px;">
+        <div style="background: #0f172a; color: white; padding: 16px 20px; border-radius: 8px 8px 0 0; text-align: center;">
+            <h2 style="margin: 0; font-size: 18px;">AgrosJet - Evrak Sıfırlama Onayı</h2>
+        </div>
+        <div style="background: white; border: 1px solid #e2e8f0; border-top: none; padding: 24px; border-radius: 0 0 8px 8px;">
+            <p style="color: #475569; margin: 0 0 16px;">
+                <strong>{courier.get('name', '')}</strong> isimli kurye için <strong>{label}</strong> işlemi talep edildi.
+            </p>
+            <div style="background: #f1f5f9; border-radius: 8px; padding: 20px; text-align: center; margin: 16px 0;">
+                <p style="color: #64748b; margin: 0 0 8px; font-size: 13px;">Onay Kodunuz</p>
+                <div style="font-size: 32px; font-weight: 700; letter-spacing: 8px; color: #0f172a;">{code}</div>
+            </div>
+            <p style="color: #94a3b8; font-size: 12px; margin: 16px 0 0; text-align: center;">
+                Bu kod 5 dakika geçerlidir.
+            </p>
+        </div>
+    </div>
+    """
+
+    result = email_service.send_email(
+        superadmin["email"],
+        f"[AgrosJet] {label} Onay Kodu",
+        html_body,
+        f"Onay Kodunuz: {code} (5 dakika geçerlidir)"
+    )
+
+    if not result.get("success"):
+        raise HTTPException(status_code=503, detail=f"E-posta gönderilemedi: {result.get('error', '')}")
+
+    # E-posta adresini maskele
+    email = superadmin["email"]
+    parts = email.split("@")
+    masked = parts[0][:2] + "***@" + parts[1] if len(parts) == 2 else "***"
+
+    return {"message": f"Onay kodu {masked} adresine gönderildi", "masked_email": masked}
+
+
+@router.post("/reset-confirm/{courier_id}")
+async def confirm_reset(courier_id: str, data: ResetConfirmRequest, auth: dict = Depends(require_auth)):
+    """Onay kodu ile sıfırlama işlemini gerçekleştir"""
     courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "id": 1})
     if not courier:
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
 
-    await db.couriers.update_one(
-        {"id": courier_id},
-        {"$set": {"contract_accepted": False, "fesih_accepted": False},
-         "$unset": {"contract_accepted_at": "", "fesih_accepted_at": ""}}
-    )
-    await db.courier_contracts.delete_many({"courier_id": courier_id})
-    # Eski sözleşme belgelerini de sil
-    await db.courier_documents.delete_many({"courier_id": courier_id, "document_type": "company_contract"})
+    # Kodu doğrula
+    reset_record = await db.reset_codes.find_one({
+        "courier_id": courier_id,
+        "reset_type": data.reset_type,
+        "code": data.code,
+    }, {"_id": 0})
 
-    return {"message": "Sözleşme süreci sıfırlandı"}
+    if not reset_record:
+        raise HTTPException(status_code=400, detail="Geçersiz onay kodu")
 
+    expires = reset_record.get("expires_at")
+    if expires:
+        if expires.tzinfo is None:
+            expires = expires.replace(tzinfo=timezone.utc)
+        if datetime.now(timezone.utc) > expires:
+            await db.reset_codes.delete_many({"courier_id": courier_id, "reset_type": data.reset_type})
+            raise HTTPException(status_code=400, detail="Onay kodunun süresi dolmuş")
 
-@router.post("/reset-fesih/{courier_id}")
-async def reset_fesih(courier_id: str, auth: dict = Depends(require_auth)):
-    """Kuryenin fesih onayını sıfırla (admin)"""
-    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "id": 1})
-    if not courier:
-        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    # Kodu sil
+    await db.reset_codes.delete_many({"courier_id": courier_id, "reset_type": data.reset_type})
 
-    await db.couriers.update_one(
-        {"id": courier_id},
-        {"$set": {"fesih_accepted": False},
-         "$unset": {"fesih_accepted_at": ""}}
-    )
+    # Sıfırlama işlemini yap
+    if data.reset_type == "contract":
+        await db.couriers.update_one(
+            {"id": courier_id},
+            {"$set": {"contract_accepted": False, "fesih_accepted": False},
+             "$unset": {"contract_accepted_at": "", "fesih_accepted_at": ""}}
+        )
+        await db.courier_contracts.delete_many({"courier_id": courier_id})
+        await db.courier_documents.delete_many({"courier_id": courier_id, "document_type": "company_contract"})
+        return {"message": "Sözleşme süreci sıfırlandı"}
 
-    return {"message": "Fesih onayı sıfırlandı"}
+    elif data.reset_type == "fesih":
+        await db.couriers.update_one(
+            {"id": courier_id},
+            {"$set": {"fesih_accepted": False},
+             "$unset": {"fesih_accepted_at": ""}}
+        )
+        return {"message": "Fesih onayı sıfırlandı"}
 
+    elif data.reset_type == "documents":
+        from services.r2_storage import delete_file_from_r2
+        docs = await db.courier_documents.find(
+            {"courier_id": courier_id, "document_type": {"$ne": "company_contract"}},
+            {"_id": 0, "id": 1, "r2_key": 1, "storage_type": 1}
+        ).to_list(100)
+        for doc in docs:
+            if doc.get("storage_type") == "r2" and doc.get("r2_key"):
+                await delete_file_from_r2(doc["r2_key"])
+        await db.courier_documents.delete_many(
+            {"courier_id": courier_id, "document_type": {"$ne": "company_contract"}}
+        )
+        return {"message": "Evraklar sıfırlandı", "deleted_count": len(docs)}
 
-@router.post("/reset-documents/{courier_id}")
-async def reset_documents(courier_id: str, auth: dict = Depends(require_auth)):
-    """Kuryenin yüklediği evrakları sıfırla (sözleşme hariç)"""
-    from services.r2_storage import delete_file_from_r2
-
-    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "id": 1})
-    if not courier:
-        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
-
-    # Sözleşme hariç tüm evrakları sil
-    docs = await db.courier_documents.find(
-        {"courier_id": courier_id, "document_type": {"$ne": "company_contract"}},
-        {"_id": 0, "id": 1, "r2_key": 1, "storage_type": 1}
-    ).to_list(100)
-
-    for doc in docs:
-        if doc.get("storage_type") == "r2" and doc.get("r2_key"):
-            await delete_file_from_r2(doc["r2_key"])
-
-    await db.courier_documents.delete_many(
-        {"courier_id": courier_id, "document_type": {"$ne": "company_contract"}}
-    )
-
-    return {"message": "Evraklar sıfırlandı", "deleted_count": len(docs)}
+    raise HTTPException(status_code=400, detail="Geçersiz sıfırlama tipi")

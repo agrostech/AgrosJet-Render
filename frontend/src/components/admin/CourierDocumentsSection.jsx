@@ -58,13 +58,19 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
   const [deleting, setDeleting] = useState(null);
   const [downloading, setDownloading] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
-  const [resetting, setResetting] = useState(null);
   const [previewDoc, setPreviewDoc] = useState(null);
   
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
   const [pendingReset, setPendingReset] = useState(null);
+  
+  // Onay kodu state'leri
+  const [codeModalOpen, setCodeModalOpen] = useState(false);
+  const [resetCode, setResetCode] = useState("");
+  const [codeSending, setCodeSending] = useState(false);
+  const [codeVerifying, setCodeVerifying] = useState(false);
+  const [maskedEmail, setMaskedEmail] = useState("");
 
   const fetchData = useCallback(async () => {
     if (!courierId) return;
@@ -180,29 +186,43 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
 
   const confirmReset = async () => {
     if (!pendingReset) return;
-    setResetting(pendingReset);
+    setResetConfirmOpen(false);
+    setCodeSending(true);
     try {
-      let endpoint;
-      if (pendingReset === "contract") {
-        endpoint = `${API}/contracts/reset-contract/${courierId}`;
-      } else if (pendingReset === "fesih") {
-        endpoint = `${API}/contracts/reset-fesih/${courierId}`;
-      } else {
-        endpoint = `${API}/contracts/reset-documents/${courierId}`;
-      }
-      await axios.post(endpoint);
-      toast.success(
-        pendingReset === "contract" ? "Sözleşme sıfırlandı" :
-        pendingReset === "fesih" ? "Fesih onayı sıfırlandı" :
-        "Evraklar sıfırlandı"
+      const res = await axios.post(
+        `${API}/contracts/reset-request/${courierId}?reset_type=${pendingReset}`
       );
+      setMaskedEmail(res.data.masked_email || "");
+      setResetCode("");
+      setCodeModalOpen(true);
+      toast.success(res.data.message);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Onay kodu gönderilemedi");
+    } finally {
+      setCodeSending(false);
+    }
+  };
+
+  const handleCodeVerify = async () => {
+    if (!resetCode || resetCode.length !== 6) {
+      toast.error("6 haneli onay kodunu girin");
+      return;
+    }
+    setCodeVerifying(true);
+    try {
+      const res = await axios.post(`${API}/contracts/reset-confirm/${courierId}`, {
+        code: resetCode,
+        reset_type: pendingReset
+      });
+      toast.success(res.data.message);
+      setCodeModalOpen(false);
+      setResetCode("");
+      setPendingReset(null);
       fetchData();
     } catch (err) {
-      toast.error(err.response?.data?.detail || "Sıfırlama başarısız");
+      toast.error(err.response?.data?.detail || "Doğrulama başarısız");
     } finally {
-      setResetting(null);
-      setResetConfirmOpen(false);
-      setPendingReset(null);
+      setCodeVerifying(false);
     }
   };
 
@@ -269,10 +289,10 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
                 size="sm"
                 className="h-7 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
                 onClick={() => handleResetRequest("contract")}
-                disabled={resetting === "contract"}
+                disabled={codeSending}
                 data-testid="reset-contract-btn"
               >
-                {resetting === "contract" ? <Loader2 className="w-3 h-3 animate-spin" /> : <RotateCcw className="w-3 h-3 mr-1" />}
+                {codeSending && pendingReset === "contract" ? <Loader2 className="w-3 h-3 animate-spin" /> : <RotateCcw className="w-3 h-3 mr-1" />}
                 Sıfırla
               </Button>
             </div>
@@ -296,10 +316,10 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
                 size="sm"
                 className="h-7 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
                 onClick={() => handleResetRequest("fesih")}
-                disabled={resetting === "fesih"}
+                disabled={codeSending}
                 data-testid="reset-fesih-btn"
               >
-                {resetting === "fesih" ? <Loader2 className="w-3 h-3 animate-spin" /> : <RotateCcw className="w-3 h-3 mr-1" />}
+                {codeSending && pendingReset === "fesih" ? <Loader2 className="w-3 h-3 animate-spin" /> : <RotateCcw className="w-3 h-3 mr-1" />}
                 Sıfırla
               </Button>
             </div>
@@ -402,10 +422,10 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
             size="sm"
             className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
             onClick={() => handleResetRequest("documents")}
-            disabled={resetting === "documents"}
+            disabled={codeSending}
             data-testid="reset-documents-btn"
           >
-            {resetting === "documents" ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <RotateCcw className="w-3 h-3 mr-1" />}
+            {codeSending && pendingReset === "documents" ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <RotateCcw className="w-3 h-3 mr-1" />}
             Evrakları Sıfırla
           </Button>
         </div>
@@ -532,6 +552,54 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
         onConfirm={confirmReset}
         variant="danger"
       />
+
+      {/* Onay Kodu Modalı */}
+      <Dialog open={codeModalOpen} onOpenChange={(open) => { if (!open) { setCodeModalOpen(false); setResetCode(""); } }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-center">Onay Kodu</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground text-center">
+              Superadmin e-postasına ({maskedEmail}) 6 haneli onay kodu gönderildi. Kodu girerek işlemi onaylayın.
+            </p>
+            <div className="flex justify-center">
+              <input
+                type="text"
+                maxLength={6}
+                value={resetCode}
+                onChange={(e) => setResetCode(e.target.value.replace(/\D/g, ''))}
+                className="w-48 text-center text-2xl font-bold tracking-[0.5em] border-2 border-border rounded-lg py-3 focus:outline-none focus:border-primary"
+                placeholder="------"
+                autoFocus
+                data-testid="reset-code-input"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground text-center">
+              Kod 5 dakika geçerlidir
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => { setCodeModalOpen(false); setResetCode(""); }}
+              >
+                İptal
+              </Button>
+              <Button
+                variant="destructive"
+                className="flex-1"
+                onClick={handleCodeVerify}
+                disabled={codeVerifying || resetCode.length !== 6}
+                data-testid="verify-reset-code-btn"
+              >
+                {codeVerifying ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                Onayla
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
