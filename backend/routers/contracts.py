@@ -145,6 +145,12 @@ Tarih: {tarih}
 
 İş Sahibi: {sirket_adi}
 Kullanıcı: {kullanici_adi}
+
+EK 1 - ZİMMET FORMU
+
+İşbu zimmet formu, yukarıdaki sözleşmenin ayrılmaz bir parçasıdır. Kullanıcı, aşağıda listesi verilen veya sonradan eklenecek olan ekipmanları iş sahibinden teslim aldığını, ekipmanları özenle kullanacağını ve iş ilişkisi sona erdiğinde sağlam ve çalışır durumda iade edeceğini kabul ve taahhüt eder. Ekipmanların hasarlı, eksik veya iade edilmemesi durumunda kullanıcı, ekipmanın güncel değerini iş sahibine ödemeyi kabul eder.
+
+ZİMMET_TABLOSU
 """
 
 
@@ -514,9 +520,53 @@ def generate_contract_pdf(contract_text: str, signature_bytes: bytes, courier_na
             elements.append(Spacer(1, 5))
             continue
 
+        # Zimmet tablosu placeholder'ı
+        if line == 'ZİMMET_TABLOSU':
+            from reportlab.platypus import Table, TableStyle
+            from reportlab.lib import colors
+
+            table_data = [
+                ['No', 'Ekipman Adı', 'Değeri (TL)', 'Açıklama'],
+                ['1', '', '', ''],
+                ['2', '', '', ''],
+                ['3', '', '', ''],
+                ['4', '', '', ''],
+                ['5', '', '', ''],
+            ]
+            col_widths = [1*cm, 5*cm, 3*cm, 6*cm]
+            table = Table(table_data, colWidths=col_widths, rowHeights=[0.7*cm]*6)
+            table.setStyle(TableStyle([
+                ('FONTNAME', (0, 0), (-1, 0), 'VeraBd'),
+                ('FONTNAME', (0, 1), (-1, -1), 'Vera'),
+                ('FONTSIZE', (0, 0), (-1, -1), 8),
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#e2e8f0')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor('#1e293b')),
+                ('ALIGN', (0, 0), (0, -1), 'CENTER'),
+                ('ALIGN', (2, 0), (2, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#94a3b8')),
+                ('TOPPADDING', (0, 0), (-1, -1), 3),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+            ]))
+            elements.append(table)
+            elements.append(Spacer(1, 10))
+
+            teslim_style = ParagraphStyle(
+                'TeslimNote', fontName='Vera',
+                fontSize=7.5, leading=10, alignment=TA_JUSTIFY
+            )
+            elements.append(Paragraph(
+                "Teslim Alan: __________________ &nbsp;&nbsp;&nbsp; Teslim Eden: __________________ &nbsp;&nbsp;&nbsp; Tarih: __/__/____",
+                teslim_style
+            ))
+            continue
+
         line = line.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
 
         if 'KULLANICI' in line and 'SÖZLEŞME' in line:
+            elements.append(Paragraph(line, title_style))
+        elif line.startswith('EK 1') and 'ZİMMET' in line:
+            elements.append(Spacer(1, 15))
             elements.append(Paragraph(line, title_style))
         elif line.startswith('Madde') or line.startswith('Ek') or line.startswith('Tarih:') or line.startswith('İş Sahibi:') or line.startswith('Kullanıcı:'):
             elements.append(Paragraph(line, bold_style))
