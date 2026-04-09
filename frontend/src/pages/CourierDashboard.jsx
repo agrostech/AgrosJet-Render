@@ -88,7 +88,7 @@ export default function CourierDashboard() {
   const [documentsComplete, setDocumentsComplete] = useState(true);
   const [contractAccepted, setContractAccepted] = useState(true);
   const [fesihAccepted, setFesihAccepted] = useState(true);
-  const [documentProcessCompleted, setDocumentProcessCompleted] = useState(true);
+  const [documentProcessCompleted, setDocumentProcessCompleted] = useState(false);
   const [maintenanceNotifications, setMaintenanceNotifications] = useState(0);
   const [navItems, setNavItems] = useState([]);
   const [bottomBarItems, setBottomBarItems] = useState([]);
@@ -215,14 +215,7 @@ export default function CourierDashboard() {
       setDocumentsComplete(docRes.data.all_complete);
       setContractAccepted(contractRes.data.accepted);
       setFesihAccepted(contractRes.data.fesih_accepted);
-      const newVal = courierRes.data.document_process_completed || false;
-      setDocumentProcessCompleted(prev => {
-        if (prev !== newVal) {
-          // Toggle değişti - sayfayı yenile
-          window.location.reload();
-        }
-        return newVal;
-      });
+      setDocumentProcessCompleted(courierRes.data.document_process_completed || false);
     } catch (err) {
       console.error("Evrak durumu alınamadı", err);
     }
