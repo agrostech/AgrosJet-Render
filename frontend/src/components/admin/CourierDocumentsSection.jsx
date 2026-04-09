@@ -260,7 +260,7 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
                 )}
                 <span className="text-sm">
                   Sözleşme: <strong className={contractStatus.accepted ? "text-green-600" : "text-amber-600"}>
-                    {contractStatus.accepted ? "Onayli" : "Bekliyor"}
+                    {contractStatus.accepted ? "Onaylı" : "Bekliyor"}
                   </strong>
                 </span>
               </div>
