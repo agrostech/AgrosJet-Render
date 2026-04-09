@@ -112,7 +112,9 @@ function ContractStep({ courierId, onComplete }) {
   const handleAccept = async () => {
     if (!scrolledToBottom || !signatureProvided) return;
     
-    const signatureBase64 = sigCanvasRef.current.toDataURL("image/png");
+    // getTrimmedCanvas ile boşlukları kırp - imza daha net gözükür
+    const trimmedCanvas = sigCanvasRef.current.getTrimmedCanvas();
+    const signatureBase64 = trimmedCanvas.toDataURL("image/png");
     
     setSubmitting(true);
     try {

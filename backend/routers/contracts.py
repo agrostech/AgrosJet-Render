@@ -456,10 +456,10 @@ def generate_contract_pdf(contract_text: str, signature_bytes: bytes, courier_na
         """Her sayfada sağ altta imza kutusu çiz"""
         canvas.saveState()
 
-        box_w = 4.2 * cm
-        box_h = 2.2 * cm
+        box_w = 5 * cm
+        box_h = 2.5 * cm
         box_x = page_w - 2.5 * cm - box_w
-        box_y = 1.2 * cm
+        box_y = 1 * cm
 
         # Kutu çizgisi
         canvas.setStrokeColorRGB(0.4, 0.4, 0.4)
@@ -467,18 +467,18 @@ def generate_contract_pdf(contract_text: str, signature_bytes: bytes, courier_na
         canvas.rect(box_x, box_y, box_w, box_h)
 
         # İsim Soyisim
-        canvas.setFont("VeraBd", 6)
-        canvas.drawString(box_x + 4, box_y + box_h - 10, courier_name)
+        canvas.setFont("VeraBd", 7)
+        canvas.drawString(box_x + 4, box_y + box_h - 12, courier_name)
 
-        # İmza resmi
+        # İmza resmi - kutu genişliğine göre ölçekle
         if sig_image:
             try:
                 sig_io = io.BytesIO()
                 sig_image.save(sig_io, format="PNG")
                 sig_io.seek(0)
                 img_reader = ImageReader(sig_io)
-                img_w = 3.4 * cm
-                img_h = 1.2 * cm
+                img_w = 4.2 * cm
+                img_h = 1.5 * cm
                 img_x = box_x + (box_w - img_w) / 2
                 img_y = box_y + 4
                 canvas.drawImage(img_reader, img_x, img_y, img_w, img_h, preserveAspectRatio=True, mask="auto")
