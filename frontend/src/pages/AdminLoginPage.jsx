@@ -88,7 +88,7 @@ export default function AdminLoginPage() {
           <h2 className="text-3xl font-bold text-slate-900 mb-1">Yönetici Girişi</h2>
           <p className="text-base text-slate-500 mb-8">Şirket yönetim paneline giriş yapın</p>
 
-          <form onSubmit={handleLogin} className="space-y-5 max-w-sm">
+          <form onSubmit={handleLogin} className="space-y-5">
             <div>
               <Label htmlFor="username" className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
                 Kullanıcı Adı
