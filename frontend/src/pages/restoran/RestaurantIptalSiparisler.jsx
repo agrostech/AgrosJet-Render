@@ -200,6 +200,7 @@ export default function RestaurantIptalSiparisler({ restaurantId }) {
 
   const getPaymentLabel = (order) => {
     const method = order.payment_method;
+    const pd = order.payment_details;
     switch (method) {
       case 'cash': return 'Nakit';
       case 'card': return 'Kredi Kartı';
@@ -212,6 +213,15 @@ export default function RestaurantIptalSiparisler({ restaurantId }) {
         return cardType || 'Yemek Kartı';
       case 'online': return 'Online';
       case 'online_meal_card': return 'Online Yemek Kartı';
+      case 'mixed': {
+        if (pd) {
+          const parts = [];
+          if (pd.cash_amount > 0) parts.push(`${pd.cash_amount.toFixed(0)}₺ Nakit`);
+          if (pd.card_amount > 0) parts.push(`${pd.card_amount.toFixed(0)}₺ Kart`);
+          if (parts.length > 0) return `Parçalı (${parts.join(' + ')})`;
+        }
+        return 'Parçalı Ödeme';
+      }
       default: return method || '-';
     }
   };

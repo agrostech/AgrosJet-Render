@@ -292,7 +292,7 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
         order.customer_phone,
         order.courier_name,
         order.delivery_address,
-        order.payment_method === 'cash' ? 'nakit' : order.payment_method === 'card' ? 'kart' : order.payment_method === 'meal_card' ? 'yemek kartı' : 'online',
+        order.payment_method === 'cash' ? 'nakit' : order.payment_method === 'card' ? 'kart' : order.payment_method === 'meal_card' ? 'yemek kartı' : order.payment_method === 'mixed' ? 'parçalı' : 'online',
         order.total_amount?.toString(),
         order.order_number
       ].filter(Boolean);

@@ -122,6 +122,9 @@ async def get_courier_balances(restaurant_id: str, date: str, user=Depends(requi
         payment_methods.append("cash")
     if card_by_restaurant:
         payment_methods.append("card")
+    # Mixed ödemeler her zaman dahil - nakit/kart parçası içerebilir
+    if cash_by_restaurant or card_by_restaurant:
+        payment_methods.append("mixed")
 
     orders = await db.orders.find(
         {
@@ -132,7 +135,7 @@ async def get_courier_balances(restaurant_id: str, date: str, user=Depends(requi
         },
         {"_id": 0, "id": 1, "courier_id": 1, "payment_method": 1, "total_amount": 1,
          "delivered_at": 1, "created_at": 1, "customer_name": 1, "customer_address": 1,
-         "delivery_address": 1, "platform": 1}
+         "delivery_address": 1, "platform": 1, "payment_details": 1}
     ).to_list(5000)
 
     filtered = filter_orders_by_date(orders, start_dt, end_dt)
@@ -158,6 +161,7 @@ async def get_courier_balances(restaurant_id: str, date: str, user=Depends(requi
         courier_map[cid]["orders"].append({
             "id": order["id"],
             "payment_method": order.get("payment_method", ""),
+            "payment_details": order.get("payment_details"),
             "total_amount": order.get("total_amount", 0) or 0,
             "customer_name": order.get("customer_name", ""),
             "address": address,
@@ -165,7 +169,14 @@ async def get_courier_balances(restaurant_id: str, date: str, user=Depends(requi
             "is_collected": order["id"] in collected_order_ids,
         })
         amount = order.get("total_amount", 0) or 0
-        if order.get("payment_method") == "cash":
+        pd = order.get("payment_details")
+        if order.get("payment_method") == "mixed" and pd:
+            # Parçalı ödeme: nakit ve kart kısımlarını ayrı say
+            if cash_by_restaurant:
+                courier_map[cid]["cash_total"] += pd.get("cash_amount", 0)
+            if card_by_restaurant:
+                courier_map[cid]["card_total"] += pd.get("card_amount", 0)
+        elif order.get("payment_method") == "cash":
             courier_map[cid]["cash_total"] += amount
         elif order.get("payment_method") == "card":
             courier_map[cid]["card_total"] += amount
@@ -256,6 +267,8 @@ async def get_week_status(restaurant_id: str, week_start: str, user=Depends(requ
         payment_methods.append("cash")
     if card_by_restaurant:
         payment_methods.append("card")
+    if cash_by_restaurant or card_by_restaurant:
+        payment_methods.append("mixed")
 
     empty_days = [{"date": (start + timedelta(days=i)).strftime("%Y-%m-%d"),
                    "day_name": ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"][(start + timedelta(days=i)).weekday()],

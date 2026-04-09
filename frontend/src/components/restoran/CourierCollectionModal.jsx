@@ -17,6 +17,7 @@ import {
   User,
   Loader2,
   AlertCircle,
+  Split,
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -267,11 +268,15 @@ export default function CourierCollectionModal({ open, onOpenChange, restaurantI
                       }`}
                       data-testid={`order-row-${order.id}`}
                     >
-                      {/* Sol: Müşteri adı + adres */}
+                      {/* Sol: Ödeme ikonu + Müşteri adı + adres */}
                       <div className="flex items-center gap-2 flex-1 min-w-0">
-                        {order.payment_method === "cash"
-                          ? <Banknote className="w-3.5 h-3.5 text-green-500 shrink-0" />
-                          : <CreditCard className="w-3.5 h-3.5 text-blue-500 shrink-0" />}
+                        {order.payment_method === "mixed" ? (
+                          <Split className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                        ) : order.payment_method === "cash" ? (
+                          <Banknote className="w-3.5 h-3.5 text-green-500 shrink-0" />
+                        ) : (
+                          <CreditCard className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                        )}
                         <span className="truncate">
                           <span className="font-medium">{order.customer_name || "Müşteri"}</span>
                           {order.address && (
@@ -280,9 +285,26 @@ export default function CourierCollectionModal({ open, onOpenChange, restaurantI
                         </span>
                       </div>
 
-                      {/* Sağ: Tutar + Al/Alındı */}
+                      {/* Sağ: Tutar detayı + Al/Alındı */}
                       <div className="flex items-center gap-2 shrink-0 ml-2">
-                        <span className="font-semibold">{formatMoney(order.total_amount)}</span>
+                        {order.payment_method === "mixed" && order.payment_details ? (
+                          <div className="text-right">
+                            {order.payment_details.cash_amount > 0 && (
+                              <span className="text-green-700 font-semibold mr-1">
+                                {formatMoney(order.payment_details.cash_amount)}
+                                <span className="text-[10px] font-normal ml-0.5">N</span>
+                              </span>
+                            )}
+                            {order.payment_details.card_amount > 0 && (
+                              <span className="text-blue-700 font-semibold">
+                                {formatMoney(order.payment_details.card_amount)}
+                                <span className="text-[10px] font-normal ml-0.5">K</span>
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="font-semibold">{formatMoney(order.total_amount)}</span>
+                        )}
                         {order.is_collected ? (
                           <span className="text-green-600 flex items-center gap-0.5">
                             <Check className="w-3.5 h-3.5" /> Alındı

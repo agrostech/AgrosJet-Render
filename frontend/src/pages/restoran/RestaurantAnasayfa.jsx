@@ -580,14 +580,16 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
       card: 'bg-blue-100 text-blue-700',
       meal_card: 'bg-orange-100 text-orange-700',
       online_meal_card: 'bg-orange-100 text-orange-700',
-      online: 'bg-purple-100 text-purple-700'
+      online: 'bg-purple-100 text-purple-700',
+      mixed: 'bg-amber-100 text-amber-700'
     };
     const labels = {
       cash: 'Nakit',
       card: 'Kart',
       meal_card: 'Yemek Kartı',
       online_meal_card: 'Online Y.K.',
-      online: 'Online'
+      online: 'Online',
+      mixed: 'Parçalı'
     };
     
     // Yemek kartı detayı varsa göster
