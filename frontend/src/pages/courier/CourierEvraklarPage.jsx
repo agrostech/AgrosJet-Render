@@ -62,7 +62,9 @@ function ContractStep({ courierId, onComplete }) {
   const [fesihData, setFesihData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [scrolledToBottom, setScrolledToBottom] = useState(false);
-  const [signatureProvided, setSignatureProvided] = useState(false);
+  const [signatureStep, setSignatureStep] = useState(1); // 1 veya 2
+  const [signature1, setSignature1] = useState(null); // base64
+  const [signature2Provided, setSignature2Provided] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [noContract, setNoContract] = useState(false);
   const contractRef = useRef(null);
@@ -100,24 +102,17 @@ function ContractStep({ courierId, onComplete }) {
 
   const handleClearSignature = () => {
     sigCanvasRef.current?.clear();
-    setSignatureProvided(false);
-  };
-
-  const handleSignatureEnd = () => {
-    if (sigCanvasRef.current && !sigCanvasRef.current.isEmpty()) {
-      setSignatureProvided(true);
+    if (signatureStep === 1) {
+      setSignature1(null);
+    } else {
+      setSignature2Provided(false);
     }
   };
 
-  const handleAccept = async () => {
-    if (!scrolledToBottom || !signatureProvided) return;
-    
-    // Canvas'ı manuel kırp - boşlukları kaldır
-    const canvas = sigCanvasRef.current.getCanvas();
+  const trimCanvas = (canvas) => {
     const ctx = canvas.getContext('2d');
     const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const { data, width, height } = imgData;
-    
     let top = height, left = width, right = 0, bottom = 0;
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
@@ -130,26 +125,44 @@ function ContractStep({ courierId, onComplete }) {
         }
       }
     }
-    
     const pad = 10;
     top = Math.max(0, top - pad);
     left = Math.max(0, left - pad);
     right = Math.min(width - 1, right + pad);
     bottom = Math.min(height - 1, bottom + pad);
-    
     const trimW = right - left + 1;
     const trimH = bottom - top + 1;
     const trimmed = document.createElement('canvas');
     trimmed.width = trimW;
     trimmed.height = trimH;
     trimmed.getContext('2d').drawImage(canvas, left, top, trimW, trimH, 0, 0, trimW, trimH);
+    return trimmed.toDataURL("image/png");
+  };
+
+  const handleSignatureEnd = () => {
+    if (sigCanvasRef.current && !sigCanvasRef.current.isEmpty()) {
+      if (signatureStep === 1) {
+        // 1. imza atıldı - kaydet ve 2. imzaya geç
+        const base64 = trimCanvas(sigCanvasRef.current.getCanvas());
+        setSignature1(base64);
+        sigCanvasRef.current.clear();
+        setSignatureStep(2);
+      } else {
+        setSignature2Provided(true);
+      }
+    }
+  };
+
+  const handleAccept = async () => {
+    if (!scrolledToBottom || !signature1 || !signature2Provided) return;
     
-    const signatureBase64 = trimmed.toDataURL("image/png");
+    const signature2Base64 = trimCanvas(sigCanvasRef.current.getCanvas());
     
     setSubmitting(true);
     try {
       await axios.post(`${API}/contracts/accept/${courierId}`, {
-        signature_base64: signatureBase64,
+        signature_base64: signature1,
+        signature2_base64: signature2Base64,
         tc_kimlik: ""
       });
       toast.success("Sözleşme onaylandı!");
@@ -160,6 +173,8 @@ function ContractStep({ courierId, onComplete }) {
       setSubmitting(false);
     }
   };
+
+  const canAccept = scrolledToBottom && signature1 && signature2Provided;
 
   if (loading) return <PageLoading />;
 
@@ -176,8 +191,6 @@ function ContractStep({ courierId, onComplete }) {
       </div>
     );
   }
-
-  const canAccept = scrolledToBottom && signatureProvided;
 
   return (
     <div className="max-w-2xl mx-auto space-y-4" data-testid="contract-step">
@@ -230,30 +243,46 @@ function ContractStep({ courierId, onComplete }) {
                 <PenTool className="w-5 h-5 text-purple-600" />
               </div>
               <div>
-                <h3 className="font-semibold">E-İmza</h3>
-                <p className="text-xs text-muted-foreground">Aşağıdaki alana imzanızı atın</p>
+                <h3 className="font-semibold">E-İmza ({signatureStep}. İmza)</h3>
+                <p className="text-xs text-muted-foreground">
+                  {signatureStep === 1 ? "1. imzanızı atın" : "2. imzanızı atın"}
+                </p>
               </div>
             </div>
-            {signatureProvided && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={handleClearSignature}
-                data-testid="clear-signature-btn"
-              >
-                <RotateCcw className="w-4 h-4 mr-1" />
-                Temizle
-              </Button>
-            )}
+            <div className="flex items-center gap-2">
+              {/* İmza adım göstergesi */}
+              <div className="flex gap-1">
+                <div className={`w-2 h-2 rounded-full ${signature1 ? 'bg-green-500' : 'bg-slate-300'}`} />
+                <div className={`w-2 h-2 rounded-full ${signature2Provided ? 'bg-green-500' : 'bg-slate-300'}`} />
+              </div>
+              {((signatureStep === 1 && sigCanvasRef.current && !sigCanvasRef.current?.isEmpty?.()) || (signatureStep === 2 && signature2Provided)) && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleClearSignature}
+                  data-testid="clear-signature-btn"
+                >
+                  <RotateCcw className="w-4 h-4 mr-1" />
+                  Temizle
+                </Button>
+              )}
+            </div>
           </div>
         </div>
         <div className="p-4">
+          {/* 1. imza önizlemesi */}
+          {signature1 && signatureStep === 2 && (
+            <div className="mb-3 p-2 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-xs text-green-700 font-medium mb-1">1. İmza (tamamlandı)</p>
+              <img src={signature1} alt="1. İmza" className="h-12 object-contain" />
+            </div>
+          )}
           <div className="border-2 border-dashed border-slate-300 rounded-lg bg-slate-50" data-testid="signature-canvas-wrapper">
             <SignatureCanvas
               ref={sigCanvasRef}
               canvasProps={{
                 className: "w-full",
-                style: { width: "100%", height: "180px" },
+                style: { width: "100%", height: "150px" },
                 "data-testid": "signature-canvas"
               }}
               onEnd={handleSignatureEnd}
@@ -262,9 +291,14 @@ function ContractStep({ courierId, onComplete }) {
               maxWidth={3}
             />
           </div>
-          {!signatureProvided && scrolledToBottom && (
+          {signatureStep === 1 && !signature1 && scrolledToBottom && (
             <p className="text-xs text-muted-foreground mt-2 text-center">
-              İmzanızı yukarıdaki beyaz alana çizin
+              1. imzanızı yukarıdaki alana çizin
+            </p>
+          )}
+          {signatureStep === 2 && !signature2Provided && (
+            <p className="text-xs text-muted-foreground mt-2 text-center">
+              2. imzanızı yukarıdaki alana çizin
             </p>
           )}
         </div>

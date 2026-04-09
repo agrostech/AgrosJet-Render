@@ -174,7 +174,8 @@ class ContractSettings(BaseModel):
 
 
 class ContractAcceptRequest(BaseModel):
-    signature_base64: str  # PNG base64
+    signature_base64: str  # 1. imza PNG base64
+    signature2_base64: str = ""  # 2. imza PNG base64
     tc_kimlik: str
 
 
@@ -285,21 +286,31 @@ async def accept_contract(courier_id: str, data: ContractAcceptRequest, auth: di
             {"$set": {"tc_kimlik": tc}}
         )
 
-    # İmzayı decode et
+    # İmzaları decode et
     try:
         sig_data = data.signature_base64
         if "base64," in sig_data:
             sig_data = sig_data.split("base64,")[1]
         signature_bytes = base64.b64decode(sig_data)
     except Exception:
-        raise HTTPException(status_code=400, detail="Geçersiz imza verisi")
+        raise HTTPException(status_code=400, detail="Geçersiz 1. imza verisi")
+
+    signature2_bytes = None
+    if data.signature2_base64:
+        try:
+            sig2_data = data.signature2_base64
+            if "base64," in sig2_data:
+                sig2_data = sig2_data.split("base64,")[1]
+            signature2_bytes = base64.b64decode(sig2_data)
+        except Exception:
+            raise HTTPException(status_code=400, detail="Geçersiz 2. imza verisi")
 
     # Sözleşme metnini oluştur
     preview_resp = await preview_contract(courier_id, auth)
     contract_text = preview_resp["text"]
 
     # PDF oluştur
-    pdf_bytes = generate_contract_pdf(contract_text, signature_bytes, courier.get("name", ""))
+    pdf_bytes = generate_contract_pdf(contract_text, signature_bytes, courier.get("name", ""), signature2_bytes)
 
     # R2'ye kaydet
     r2_key = f"EVRAKLAR/Sozlesmeler/{courier_id}_sozlesme_{datetime.now(TURKEY_TZ).strftime('%Y%m%d')}.pdf"
@@ -308,9 +319,12 @@ async def accept_contract(courier_id: str, data: ContractAcceptRequest, auth: di
     if not upload_result["success"]:
         raise HTTPException(status_code=503, detail="PDF kaydedilemedi")
 
-    # İmzayı da R2'ye kaydet
-    sig_r2_key = f"EVRAKLAR/Imzalar/{courier_id}_imza.png"
+    # İmzaları R2'ye kaydet
+    sig_r2_key = f"EVRAKLAR/Imzalar/{courier_id}_imza1.png"
     await upload_file_to_r2(signature_bytes, sig_r2_key, "image/png")
+    if signature2_bytes:
+        sig2_r2_key = f"EVRAKLAR/Imzalar/{courier_id}_imza2.png"
+        await upload_file_to_r2(signature2_bytes, sig2_r2_key, "image/png")
 
     now = get_turkey_now()
 
@@ -426,8 +440,8 @@ async def get_contract_pdf(courier_id: str, auth: dict = Depends(require_auth)):
 
 # ==================== PDF Oluşturma ====================
 
-def generate_contract_pdf(contract_text: str, signature_bytes: bytes, courier_name: str) -> bytes:
-    """Sözleşme metninden + imzadan PDF oluştur - Türkçe karakter destekli, her sayfada imza"""
+def generate_contract_pdf(contract_text: str, signature_bytes: bytes, courier_name: str, signature2_bytes: bytes = None) -> bytes:
+    """Sözleşme metninden + 2 imzadan PDF oluştur - Türkçe karakter destekli, her sayfada çift imza"""
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
@@ -446,50 +460,61 @@ def generate_contract_pdf(contract_text: str, signature_bytes: bytes, courier_na
     if "VeraBd" not in pdfmetrics.getRegisteredFontNames():
         pdfmetrics.registerFont(TTFont("VeraBd", vera_bold_path))
 
-    # İmza resmini hazırla
-    sig_image = None
-    try:
-        sig_buf = io.BytesIO(signature_bytes)
-        sig_image = PILImage.open(sig_buf)
-        if sig_image.mode != "RGBA":
-            sig_image = sig_image.convert("RGBA")
-    except Exception:
-        sig_image = None
+    # İmza resimlerini hazırla
+    def load_sig(sig_bytes):
+        try:
+            buf = io.BytesIO(sig_bytes)
+            img = PILImage.open(buf)
+            if img.mode != "RGBA":
+                img = img.convert("RGBA")
+            return img
+        except Exception:
+            return None
+
+    sig_image1 = load_sig(signature_bytes) if signature_bytes else None
+    sig_image2 = load_sig(signature2_bytes) if signature2_bytes else None
 
     page_w, page_h = A4
 
-    def draw_signature_box(canvas, doc_obj):
-        """Her sayfada sağ altta imza kutusu çiz"""
-        canvas.saveState()
-
-        box_w = 5 * cm
-        box_h = 2.5 * cm
-        box_x = page_w - 2.5 * cm - box_w
-        box_y = 1 * cm
-
+    def draw_sig_in_box(canvas, sig_img, box_x, box_y, box_w, box_h):
+        """Bir imza kutusunu çiz"""
         # Kutu çizgisi
         canvas.setStrokeColorRGB(0.4, 0.4, 0.4)
         canvas.setLineWidth(0.5)
         canvas.rect(box_x, box_y, box_w, box_h)
 
         # İsim Soyisim
-        canvas.setFont("VeraBd", 7)
-        canvas.drawString(box_x + 4, box_y + box_h - 12, courier_name)
+        canvas.setFont("VeraBd", 6.5)
+        canvas.drawString(box_x + 3, box_y + box_h - 11, courier_name)
 
-        # İmza resmi - kutu genişliğine göre ölçekle
-        if sig_image:
+        # İmza resmi
+        if sig_img:
             try:
                 sig_io = io.BytesIO()
-                sig_image.save(sig_io, format="PNG")
+                sig_img.save(sig_io, format="PNG")
                 sig_io.seek(0)
                 img_reader = ImageReader(sig_io)
-                img_w = 4.2 * cm
-                img_h = 1.5 * cm
+                img_w = box_w - 0.6 * cm
+                img_h = box_h - 1 * cm
                 img_x = box_x + (box_w - img_w) / 2
-                img_y = box_y + 4
+                img_y = box_y + 3
                 canvas.drawImage(img_reader, img_x, img_y, img_w, img_h, preserveAspectRatio=True, mask="auto")
             except Exception:
                 pass
+
+    def draw_signature_boxes(canvas, doc_obj):
+        """Her sayfada sağ altta yan yana iki imza kutusu çiz"""
+        canvas.saveState()
+
+        box_w = 3.8 * cm
+        box_h = 2.2 * cm
+        gap = 0.4 * cm
+        total_w = box_w * 2 + gap
+        start_x = page_w - 2 * cm - total_w
+        box_y = 0.8 * cm
+
+        draw_sig_in_box(canvas, sig_image1, start_x, box_y, box_w, box_h)
+        draw_sig_in_box(canvas, sig_image2, start_x + box_w + gap, box_y, box_w, box_h)
 
         canvas.restoreState()
 
@@ -573,7 +598,7 @@ def generate_contract_pdf(contract_text: str, signature_bytes: bytes, courier_na
         else:
             elements.append(Paragraph(line, body_style))
 
-    doc.build(elements, onFirstPage=draw_signature_box, onLaterPages=draw_signature_box)
+    doc.build(elements, onFirstPage=draw_signature_boxes, onLaterPages=draw_signature_boxes)
     return buffer.getvalue()
 
 
