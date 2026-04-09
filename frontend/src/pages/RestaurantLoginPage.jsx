@@ -57,7 +57,7 @@ export default function RestaurantLoginPage() {
         
         {/* Left - Image Panel */}
         <div 
-          className="hidden lg:flex lg:w-[45%] relative bg-cover bg-center"
+          className="hidden lg:flex lg:w-[50%] relative bg-cover bg-center"
           style={{ backgroundImage: `url('${loginImage}')` }}
         >
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
@@ -72,7 +72,7 @@ export default function RestaurantLoginPage() {
         </div>
 
         {/* Right - Form */}
-        <div className="w-full lg:w-[55%] bg-white p-10 md:p-14 flex flex-col justify-center">
+        <div className="w-full lg:w-[50%] bg-white p-10 md:p-12 flex flex-col justify-center">
           {/* Geri butonu */}
           <Link to="/login" className="flex items-center gap-1 text-sm text-slate-400 hover:text-slate-600 mb-8 w-fit" data-testid="back-to-selector">
             <ChevronLeft className="w-4 h-4" />
@@ -87,7 +87,7 @@ export default function RestaurantLoginPage() {
           <h2 className="text-3xl font-bold text-slate-900 mb-1">Restoran Girişi</h2>
           <p className="text-base text-slate-500 mb-8">Restoran yönetim paneline giriş yapın</p>
 
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form onSubmit={handleLogin} className="space-y-5 max-w-sm">
             <div>
               <Label htmlFor="username" className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
                 Kullanıcı Adı
@@ -100,7 +100,7 @@ export default function RestaurantLoginPage() {
                   type="text"
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  className="h-13 pl-11 text-base border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:border-[#e13c10] focus:ring-[#e13c10]/20"
+                  className="h-12 pl-11 text-base border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:border-[#e13c10] focus:ring-[#e13c10]/20"
                   required
                 />
               </div>
@@ -117,7 +117,7 @@ export default function RestaurantLoginPage() {
                   type="password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="h-13 pl-11 text-base border-slate-200 bg-slate-50 text-slate-900 focus:border-[#e13c10] focus:ring-[#e13c10]/20"
+                  className="h-12 pl-11 text-base border-slate-200 bg-slate-50 text-slate-900 focus:border-[#e13c10] focus:ring-[#e13c10]/20"
                   required
                 />
               </div>
@@ -137,7 +137,7 @@ export default function RestaurantLoginPage() {
             <Button 
               type="submit" 
               data-testid="restaurant-login-btn"
-              className="w-full h-13 text-base font-semibold bg-[#e13c10] hover:bg-[#c53510] text-white rounded-lg"
+              className="w-full h-12 text-base font-semibold bg-[#e13c10] hover:bg-[#c53510] text-white rounded-lg"
               disabled={loading}
             >
               {loading ? "Yükleniyor..." : "Giriş Yap"}
