@@ -57,6 +57,13 @@ Multi-tenant delivery management platform for restaurants, couriers, and adminis
     - Admin Panel: "Evrakları Sıfırla" button (deletes uploaded docs except contract)
     - Backend endpoints: POST /api/contracts/reset-contract/{id}, reset-fesih/{id}, reset-documents/{id}
     - Backend endpoint: GET /api/documents/courier/{id}/download-merged-pdf
+  - **Document Process Control System** - COMPLETED 2026-04-09:
+    - Admin toggle (document_process_completed) per courier in CourierDetailModal
+    - Restricted mode: When toggle OFF, courier sees only Evraklar + Logout, no bottom bar, no status dropdown
+    - Full mode: When toggle ON, courier has full app access
+    - Default: false when courier added to company
+    - Removed old startup migration that auto-approved existing couriers
+    - Backend endpoint: PUT /api/couriers/{id}/document-process
 
 ## Pending Issues (Prioritized)
 ### P1
