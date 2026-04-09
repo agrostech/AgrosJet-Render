@@ -20,6 +20,7 @@ const getLogoSrc = (company) => {
 export default function CompanySwitcher({ 
   companies = [], 
   currentCompanyId, 
+  defaultCompanyId,
   onSwitch,
   collapsed = false 
 }) {
@@ -28,6 +29,13 @@ export default function CompanySwitcher({
   if (!companies || companies.length <= 1) {
     return null;
   }
+
+  // Sort: default company first, rest alphabetical
+  const sortedCompanies = [...companies].sort((a, b) => {
+    if (a.id === defaultCompanyId) return -1;
+    if (b.id === defaultCompanyId) return 1;
+    return (a.name || "").localeCompare(b.name || "", "tr");
+  });
 
   const currentCompany = companies.find(c => c.id === currentCompanyId);
 
@@ -79,7 +87,7 @@ export default function CompanySwitcher({
         <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
           Şirket Değiştir
         </div>
-        {companies.map((company) => {
+        {sortedCompanies.map((company) => {
           const logo = getLogoSrc(company);
           return (
             <DropdownMenuItem

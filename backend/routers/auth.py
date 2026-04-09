@@ -559,6 +559,7 @@ async def login_admin(request: Request, data: AdminLogin):
         "permissions_updated_at": admin.get("permissions_updated_at"),
         "company_id": primary_company_id,
         "company_ids": company_ids,
+        "default_company_id": admin.get("default_company_id") or primary_company_id,
         "company": company,
         "accessible_companies": accessible_companies,
         "email": admin.get("email"),

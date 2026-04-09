@@ -46,6 +46,7 @@ export default function AdminDashboard() {
   
   // Multi-company state
   const [activeCompanyId, setActiveCompanyId] = useState(null);
+  const [defaultCompanyId, setDefaultCompanyId] = useState(null);
   const [accessibleCompanies, setAccessibleCompanies] = useState([]);
   
   // Kontör durumu
@@ -208,6 +209,7 @@ export default function AdminDashboard() {
       setAccessibleCompanies([parsed.company]);
     }
     setActiveCompanyId(parsed.company_id);
+    setDefaultCompanyId(parsed.default_company_id || parsed.company_id);
     
     // İzin güncelleme kontrolü: Axios response interceptor
     const permInterceptor = axios.interceptors.response.use((response) => {
@@ -332,6 +334,7 @@ export default function AdminDashboard() {
             <CompanySwitcher
               companies={accessibleCompanies}
               currentCompanyId={activeCompanyId}
+              defaultCompanyId={defaultCompanyId}
               onSwitch={handleCompanySwitch}
               collapsed={false}
             />
@@ -509,6 +512,7 @@ export default function AdminDashboard() {
               <CompanySwitcher
                 companies={accessibleCompanies}
                 currentCompanyId={activeCompanyId}
+                defaultCompanyId={defaultCompanyId}
                 onSwitch={handleCompanySwitch}
                 collapsed={sidebarCollapsed}
               />
