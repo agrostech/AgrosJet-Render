@@ -421,71 +421,109 @@ async def get_contract_pdf(courier_id: str, auth: dict = Depends(require_auth)):
 # ==================== PDF Oluşturma ====================
 
 def generate_contract_pdf(contract_text: str, signature_bytes: bytes, courier_name: str) -> bytes:
-    """Sözleşme metninden + imzadan PDF oluştur"""
+    """Sözleşme metninden + imzadan PDF oluştur - Türkçe karakter destekli, her sayfada imza"""
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
     from reportlab.lib.units import cm
     from reportlab.lib.enums import TA_JUSTIFY, TA_CENTER
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.ttfonts import TTFont
+    from reportlab.lib.utils import ImageReader
+    from PIL import Image as PILImage
+
+    # Türkçe karakter destekli font kaydet
+    vera_path = "/root/.venv/lib/python3.11/site-packages/reportlab/fonts/Vera.ttf"
+    vera_bold_path = "/root/.venv/lib/python3.11/site-packages/reportlab/fonts/VeraBd.ttf"
+    if "Vera" not in pdfmetrics.getRegisteredFontNames():
+        pdfmetrics.registerFont(TTFont("Vera", vera_path))
+    if "VeraBd" not in pdfmetrics.getRegisteredFontNames():
+        pdfmetrics.registerFont(TTFont("VeraBd", vera_bold_path))
+
+    # İmza resmini hazırla
+    sig_image = None
+    try:
+        sig_buf = io.BytesIO(signature_bytes)
+        sig_image = PILImage.open(sig_buf)
+        if sig_image.mode != "RGBA":
+            sig_image = sig_image.convert("RGBA")
+    except Exception:
+        sig_image = None
+
+    page_w, page_h = A4
+
+    def draw_signature_box(canvas, doc_obj):
+        """Her sayfada sağ altta imza kutusu çiz"""
+        canvas.saveState()
+
+        box_w = 4.2 * cm
+        box_h = 2.2 * cm
+        box_x = page_w - 2.5 * cm - box_w
+        box_y = 1.2 * cm
+
+        # Kutu çizgisi
+        canvas.setStrokeColorRGB(0.4, 0.4, 0.4)
+        canvas.setLineWidth(0.5)
+        canvas.rect(box_x, box_y, box_w, box_h)
+
+        # İsim Soyisim
+        canvas.setFont("VeraBd", 6)
+        canvas.drawString(box_x + 4, box_y + box_h - 10, courier_name)
+
+        # İmza resmi
+        if sig_image:
+            try:
+                sig_io = io.BytesIO()
+                sig_image.save(sig_io, format="PNG")
+                sig_io.seek(0)
+                img_reader = ImageReader(sig_io)
+                img_w = 3.4 * cm
+                img_h = 1.2 * cm
+                img_x = box_x + (box_w - img_w) / 2
+                img_y = box_y + 4
+                canvas.drawImage(img_reader, img_x, img_y, img_w, img_h, preserveAspectRatio=True, mask="auto")
+            except Exception:
+                pass
+
+        canvas.restoreState()
 
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4,
-                            topMargin=2*cm, bottomMargin=2*cm,
+                            topMargin=2*cm, bottomMargin=3.8*cm,
                             leftMargin=2.5*cm, rightMargin=2.5*cm)
 
-    styles = getSampleStyleSheet()
-
     title_style = ParagraphStyle(
-        'ContractTitle', parent=styles['Heading1'],
-        fontSize=14, alignment=TA_CENTER, spaceAfter=20
+        'ContractTitle', fontName='VeraBd',
+        fontSize=13, alignment=TA_CENTER, spaceAfter=18, leading=16
     )
     body_style = ParagraphStyle(
-        'ContractBody', parent=styles['Normal'],
-        fontSize=9, leading=13, alignment=TA_JUSTIFY, spaceAfter=4
+        'ContractBody', fontName='Vera',
+        fontSize=8.5, leading=12, alignment=TA_JUSTIFY, spaceAfter=3
     )
     bold_style = ParagraphStyle(
-        'ContractBold', parent=body_style,
-        fontSize=10, leading=14, spaceAfter=8
+        'ContractBold', fontName='VeraBd',
+        fontSize=9.5, leading=13, spaceAfter=6
     )
 
     elements = []
 
-    # Metni paragraflara böl
     lines = contract_text.strip().split('\n')
     for line in lines:
         line = line.strip()
         if not line:
-            elements.append(Spacer(1, 6))
+            elements.append(Spacer(1, 5))
             continue
 
-        # Escape HTML chars
         line = line.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
 
-        if line.startswith('KULLANICI SÖZLEŞMESİ'):
-            elements.append(Paragraph(f"<b>{line}</b>", title_style))
-        elif line.startswith('Madde') or line.startswith('Ek') or line.startswith('Tarih:'):
-            elements.append(Paragraph(f"<b>{line}</b>", bold_style))
+        if 'KULLANICI' in line and 'SÖZLEŞME' in line:
+            elements.append(Paragraph(line, title_style))
+        elif line.startswith('Madde') or line.startswith('Ek') or line.startswith('Tarih:') or line.startswith('İş Sahibi:') or line.startswith('Kullanıcı:'):
+            elements.append(Paragraph(line, bold_style))
         else:
             elements.append(Paragraph(line, body_style))
 
-    # İmza alanı
-    elements.append(Spacer(1, 30))
-    elements.append(Paragraph("<b>Kullanıcı İmzası:</b>", bold_style))
-
-    # İmza resmini ekle
-    try:
-        sig_buffer = io.BytesIO(signature_bytes)
-        sig_img = Image(sig_buffer, width=6*cm, height=3*cm)
-        elements.append(sig_img)
-    except Exception as e:
-        elements.append(Paragraph(f"[İmza yüklenemedi: {e}]", body_style))
-
-    elements.append(Spacer(1, 10))
-    elements.append(Paragraph(f"<b>{courier_name}</b>", body_style))
-
-    doc.build(elements)
+    doc.build(elements, onFirstPage=draw_signature_box, onLaterPages=draw_signature_box)
     return buffer.getvalue()
 
 
