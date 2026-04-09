@@ -65,6 +65,12 @@ Multi-tenant delivery management platform for restaurants, couriers, and adminis
     - Removed old startup migration that auto-approved existing couriers
     - Backend endpoint: PUT /api/couriers/{id}/document-process
 
+## Completed - Login Page Split (2026-04-09)
+- Split unified LoginPage into LoginSelectorPage (/login), AdminLoginPage (/admin-login), RestaurantLoginPage (/restoran-login)
+- Old LoginPage.jsx deleted, App.js routing updated
+- All logout flows redirect to /login (selector page)
+- Courier login (/courier-login) unchanged
+
 ## Pending Issues (Prioritized)
 ### P1
 - Tiered Pricing calculation: `get_courier_active_package_count` should only count `assigned` + `confirmed`

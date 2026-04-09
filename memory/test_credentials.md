@@ -3,12 +3,17 @@
 ## System Admin
 - Username: onurertas
 - Password: Delivery32..
-- Login URL: /login -> POST /api/auth/admin/login
+- Login URL: /admin-login -> POST /api/auth/admin/login
 
 ## Company Admin (AgrosJet Isparta)
 - Username: admin
 - Password: 123456
-- Login URL: /login -> POST /api/auth/admin/login
+- Login URL: /admin-login -> POST /api/auth/admin/login
+
+## Restaurant Admin
+- Username: restoran2
+- Password: 123456
+- Login URL: /restoran-login -> POST /api/restaurant-users/login
 
 ## Courier (Test)
 - Phone: 05553337766
