@@ -222,7 +222,7 @@ export default function CourierDashboard() {
         // İlk yüklemede yönlendirme yapma
         if (prevDocProcessRef.current !== null && prevDocProcessRef.current !== newVal) {
           if (newVal) {
-            navigate(`${basePath}/siparisler`, { replace: true });
+            navigate(basePath, { replace: true });
           } else {
             navigate(`${basePath}/evraklar`, { replace: true });
           }
