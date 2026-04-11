@@ -2173,17 +2173,9 @@ async def assign_courier(company_id: str, order_id: str, data: OrderAssign):
         now = datetime.now(TURKEY_TZ).isoformat()
         old_courier = await db.couriers.find_one({"id": existing_courier_id}, {"_id": 0, "name": 1})
         old_courier_name = old_courier.get("name", "Kurye") if old_courier else "Kurye"
-        
-        # Kademeli ücretlendirme için yeniden hesapla
         old_tiered_position = order.get("tiered_position")
-        if old_tiered_position:
-            try:
-                from services.tiered_pricing_service import recalculate_tiered_fees_on_unassign
-                await recalculate_tiered_fees_on_unassign(existing_courier_id, company_id)
-            except Exception as e:
-                logger.error(f"Eski kurye kademeli ücret güncelleme hatası: {e}")
         
-        # Siparişi kurye atanmamış duruma getir
+        # ÖNCE siparişi kurye atanmamış duruma getir
         history_entry = {
             "status": "reassigned",
             "label": "Kurye Değiştirildi",
@@ -2207,6 +2199,14 @@ async def assign_courier(company_id: str, order_id: str, data: OrderAssign):
                 "$push": {"status_history": history_entry}
             }
         )
+        
+        # SONRA kademeli ücretlendirme için yeniden hesapla (sipariş artık kuryeden ayrılmış)
+        if old_tiered_position:
+            try:
+                from services.tiered_pricing_service import recalculate_tiered_fees_on_unassign
+                await recalculate_tiered_fees_on_unassign(existing_courier_id, company_id)
+            except Exception as e:
+                logger.error(f"Eski kurye kademeli ücret güncelleme hatası: {e}")
         
         # Order'ı yeniden al (courier_id = None olmuş hali)
         order = await db.orders.find_one({"id": order_id, "company_id": company_id})
