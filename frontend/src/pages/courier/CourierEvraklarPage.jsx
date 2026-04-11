@@ -142,11 +142,16 @@ function ContractStep({ courierId, onComplete }) {
   const handleSignatureEnd = () => {
     if (sigCanvasRef.current && !sigCanvasRef.current.isEmpty()) {
       if (signatureStep === 1) {
-        // 1. imza atıldı - kaydet ve 2. imzaya geç
+        // 1. imza atıldı - kaydet, temizle ve 2. imzaya geç
         const base64 = trimCanvas(sigCanvasRef.current.getCanvas());
         setSignature1(base64);
-        sigCanvasRef.current.clear();
         setSignatureStep(2);
+        // Küçük gecikme ile canvas'ı temizle (state güncellemesi sonrası)
+        setTimeout(() => {
+          if (sigCanvasRef.current) {
+            sigCanvasRef.current.clear();
+          }
+        }, 50);
       } else {
         setSignature2Provided(true);
       }
@@ -277,13 +282,12 @@ function ContractStep({ courierId, onComplete }) {
               <img src={signature1} alt="1. İmza" className="h-12 object-contain" />
             </div>
           )}
-          <div className="border-2 border-dashed border-slate-300 rounded-lg bg-slate-50" data-testid="signature-canvas-wrapper">
+          <div className="border-2 border-dashed border-slate-300 rounded-lg bg-slate-50" style={{ touchAction: "none" }} data-testid="signature-canvas-wrapper">
             <SignatureCanvas
-              key={signatureStep}
               ref={sigCanvasRef}
               canvasProps={{
                 className: "w-full",
-                style: { width: "100%", height: "150px" },
+                style: { width: "100%", height: "150px", touchAction: "none" },
                 "data-testid": "signature-canvas"
               }}
               onEnd={handleSignatureEnd}
