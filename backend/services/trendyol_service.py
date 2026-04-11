@@ -356,7 +356,7 @@ async def convert_trendyol_package_to_shiftjet(package: dict, restaurant: dict) 
     
     # orderId varsa otomatik tuşlama formatı ekle
     if clean_phone and order_id:
-        customer_phone = f"{clean_phone},,{order_id}"
+        customer_phone = f"{clean_phone},{order_id}"
     else:
         customer_phone = clean_phone or raw_phone
     

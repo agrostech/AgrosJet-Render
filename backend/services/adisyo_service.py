@@ -481,7 +481,7 @@ async def convert_adisyo_order_to_shiftjet(adisyo_order: dict, restaurant: dict)
         clean_phone = customer_phone.replace(" ", "").replace("-", "")
         # Trendyol-via-Adisyo: "/" ayırıcıyı ",," (DTMF pause) formatına çevir
         if "/" in clean_phone:
-            clean_phone = clean_phone.replace("/", ",,")
+            clean_phone = clean_phone.replace("/", ",")
         # 5 ile başlıyorsa ve 10 haneli ise başına 0 ekle
         if clean_phone.startswith("5") and len(clean_phone) == 10:
             clean_phone = "0" + clean_phone

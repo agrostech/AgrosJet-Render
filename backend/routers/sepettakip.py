@@ -40,10 +40,10 @@ def clean_sepettakip_phone(phone: str) -> str:
     # Getir: "/" varsa DTMF ayırıcı, "-" numara içi formatlama
     if "/" in clean:
         clean = clean.replace("-", "")
-        clean = clean.replace("/", ",,")
+        clean = clean.replace("/", ",")
     else:
         # Trendyol: "-" DTMF ayırıcı
-        clean = clean.replace("-", ",,")
+        clean = clean.replace("-", ",")
     # 5xx ile başlıyorsa başına 0 ekle
     if clean.startswith("5") and len(clean) == 10:
         clean = "0" + clean
