@@ -65,6 +65,7 @@ function ContractStep({ courierId, onComplete }) {
   const [signatureStep, setSignatureStep] = useState(1); // 1 veya 2
   const [signature1, setSignature1] = useState(null); // base64
   const [signature2Provided, setSignature2Provided] = useState(false);
+  const [signature2, setSignature2] = useState(null); // base64
   const [submitting, setSubmitting] = useState(false);
   const [noContract, setNoContract] = useState(false);
   const contractRef = useRef(null);
@@ -105,6 +106,7 @@ function ContractStep({ courierId, onComplete }) {
     if (signatureStep === 1) {
       setSignature1(null);
     } else {
+      setSignature2(null);
       setSignature2Provided(false);
     }
   };
@@ -124,6 +126,10 @@ function ContractStep({ courierId, onComplete }) {
           if (x > right) right = x;
         }
       }
+    }
+    // Boş canvas koruması
+    if (right < left || bottom < top) {
+      return canvas.toDataURL("image/png");
     }
     const pad = 10;
     top = Math.max(0, top - pad);
@@ -153,21 +159,22 @@ function ContractStep({ courierId, onComplete }) {
           }
         }, 50);
       } else {
+        // 2. imza atıldı - anında base64 olarak kaydet (canvas'a bağımlı kalma)
+        const base64 = trimCanvas(sigCanvasRef.current.getCanvas());
+        setSignature2(base64);
         setSignature2Provided(true);
       }
     }
   };
 
   const handleAccept = async () => {
-    if (!scrolledToBottom || !signature1 || !signature2Provided) return;
-    
-    const signature2Base64 = trimCanvas(sigCanvasRef.current.getCanvas());
+    if (!scrolledToBottom || !signature1 || !signature2Provided || !signature2) return;
     
     setSubmitting(true);
     try {
       await axios.post(`${API}/contracts/accept/${courierId}`, {
         signature_base64: signature1,
-        signature2_base64: signature2Base64,
+        signature2_base64: signature2,
         tc_kimlik: ""
       });
       toast.success("Sözleşme onaylandı!");
