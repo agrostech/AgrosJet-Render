@@ -2129,13 +2129,13 @@ async def assign_courier_from_restaurant(restaurant_id: str, order_id: str, data
             detail="Bu restorandan sadece halihazırda paketi olan kuryelere atama yapabilirsiniz"
         )
     
-    # Merkezi fonksiyon ile ata (fee hesaplama yok - restoran görmez)
+    # Merkezi fonksiyon ile ata (fee hesaplanır ama restoran panelde gösterilmez)
     result = await assign_courier_core(
         order=order,
         courier_id=data.courier_id,
         actor_type="restaurant",
         actor_name="Restoran",
-        calculate_fee=False,
+        calculate_fee=True,
         send_push=True
     )
     
