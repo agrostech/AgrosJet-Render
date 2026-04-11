@@ -409,25 +409,118 @@ function ApplicationMobileCards({ applications, activeTab, uniqueStatuses, admin
   }
 
   return (
-    <div className="md:hidden space-y-1.5">
+    <div className="md:hidden space-y-3">
       {applications.map((app) => (
-        <div key={app.id} className="border rounded-lg px-2.5 py-2 bg-white dark:bg-card" data-testid={`app-card-${app.id}`}>
-          <div className="flex items-center gap-2">
+        <div key={app.id} className="border-2 border-border rounded-xl bg-white dark:bg-card overflow-hidden" data-testid={`app-card-${app.id}`}>
+          {/* Kart Başlık */}
+          <div className="flex items-start justify-between gap-2 px-3.5 pt-3 pb-2">
             <div className="min-w-0 flex-1">
-              <p className="font-semibold text-sm truncate leading-tight">
+              <p className="font-bold text-sm leading-tight truncate" data-testid={`app-card-name-${app.id}`}>
                 {activeTab === "restaurant" ? (app.restaurant_name || app.full_name) : app.full_name}
               </p>
-              <p className="text-[10px] text-muted-foreground leading-tight">
-                <PhoneCell phone={app.phone} className="text-[10px] text-muted-foreground" />
-                {app.province ? ` · ${app.province}` : ""}
-                {activeTab === "courier" && formatBirthDate(app) !== "-" ? ` · ${formatBirthDate(app)}` : ""}
-                {activeTab === "courier" && app.experience ? ` · ${app.experience}` : ""}
-                {activeTab === "restaurant" && app.package_count ? ` · ${app.package_count} paket` : ""}
-              </p>
+              <PhoneCell phone={app.phone} className="text-xs text-blue-600 font-mono mt-0.5 block" />
             </div>
             <div className="flex items-center gap-1 flex-shrink-0">
               <HistoryButton application={app} uniqueStatuses={uniqueStatuses} />
               <StatusDropdown application={app} uniqueStatuses={uniqueStatuses} appType={activeTab} adminName={adminName} onSuccess={onSuccess} />
+            </div>
+          </div>
+
+          {/* Kart Detayları */}
+          <div className="px-3.5 pb-3 space-y-1.5">
+            {activeTab === "courier" ? (
+              <>
+                {/* Kurye — Satır 1: İl/İlçe + Doğum Tarihi */}
+                <div className="flex gap-4 text-xs">
+                  <div className="flex-1">
+                    <span className="text-muted-foreground">İl/İlçe: </span>
+                    <span className="font-medium">{app.province || "-"}{app.district ? ` / ${app.district}` : ""}</span>
+                  </div>
+                  <div className="flex-1">
+                    <span className="text-muted-foreground">D.Tarihi: </span>
+                    <span className="font-medium">{formatBirthDate(app)}</span>
+                  </div>
+                </div>
+                {/* Kurye — Satır 2: Ehliyet + Motosiklet */}
+                <div className="flex gap-4 text-xs">
+                  <div className="flex-1">
+                    <span className="text-muted-foreground">Ehliyet: </span>
+                    <span className="font-medium">{(app.license_types || []).join(", ") || "-"}</span>
+                  </div>
+                  <div className="flex-1">
+                    <span className="text-muted-foreground">Motor: </span>
+                    {app.has_motorcycle
+                      ? <span className="font-medium">{`${app.motorcycle_brand || ""} ${app.motorcycle_model || ""}`.trim() || "Var"}</span>
+                      : <span className="text-red-500 font-semibold">Yok</span>
+                    }
+                  </div>
+                </div>
+                {/* Kurye — Satır 3: Günlük Saat + Deneyim */}
+                <div className="flex gap-4 text-xs">
+                  <div className="flex-1">
+                    <span className="text-muted-foreground">Günlük Saat: </span>
+                    <span className="font-medium">{app.daily_hours || "-"}</span>
+                  </div>
+                  <div className="flex-1">
+                    <span className="text-muted-foreground">Deneyim: </span>
+                    <span className="font-medium">{app.experience || "-"}</span>
+                  </div>
+                </div>
+                {/* Kurye — Açıklama */}
+                {app.description && (
+                  <div className="text-xs">
+                    <span className="text-muted-foreground">Açıklama: </span>
+                    <span className="font-medium">{app.description}</span>
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                {/* Restoran — Satır 1: Yetkili + İl/İlçe */}
+                <div className="flex gap-4 text-xs">
+                  <div className="flex-1">
+                    <span className="text-muted-foreground">Yetkili: </span>
+                    <span className="font-medium">{app.contact_name || "-"}</span>
+                  </div>
+                  <div className="flex-1">
+                    <span className="text-muted-foreground">İl/İlçe: </span>
+                    <span className="font-medium">{app.province || "-"}{app.district ? ` / ${app.district}` : ""}</span>
+                  </div>
+                </div>
+                {/* Restoran — Satır 2: Paket/Gün + Kuryesi Var mı */}
+                <div className="flex gap-4 text-xs">
+                  <div className="flex-1">
+                    <span className="text-muted-foreground">Paket/Gün: </span>
+                    <span className="font-medium">{app.package_count || "-"}</span>
+                  </div>
+                  <div className="flex-1">
+                    <span className="text-muted-foreground">Kuryesi: </span>
+                    <span className="font-medium">{boolLabel(app.has_courier)}</span>
+                  </div>
+                </div>
+                {/* Restoran — Satır 3: Başka Servis + Ziyaret */}
+                <div className="flex gap-4 text-xs">
+                  <div className="flex-1">
+                    <span className="text-muted-foreground">B.Servis: </span>
+                    <span className="font-medium">{boolLabel(app.uses_other_service)}</span>
+                  </div>
+                  <div className="flex-1">
+                    <span className="text-muted-foreground">Ziyaret: </span>
+                    <span className="font-medium">{app.visit_date ? `${app.visit_date}${app.visit_time_slot ? ` ${app.visit_time_slot}` : ""}` : "-"}</span>
+                  </div>
+                </div>
+                {/* Restoran — Adres */}
+                {app.address && (
+                  <div className="text-xs">
+                    <span className="text-muted-foreground">Adres: </span>
+                    <span className="font-medium">{app.address}</span>
+                  </div>
+                )}
+              </>
+            )}
+            {/* Tarih — Alt satır */}
+            <div className="text-[10px] text-muted-foreground pt-1 border-t border-slate-100 dark:border-slate-800">
+              {formatDate(app.created_at)}
             </div>
           </div>
         </div>
