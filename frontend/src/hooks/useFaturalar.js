@@ -69,12 +69,30 @@ export function useFaturalar(companyId, year, month) {
   }, [refetch]);
 
   // Actions
-  const downloadSingle = (invoiceId) => {
-    window.open(`${API}/invoices/download/${invoiceId}`, '_blank');
+  const downloadSingle = async (invoiceId) => {
+    try {
+      const res = await axios.get(`${API}/invoices/download/${invoiceId}`, { responseType: 'blob' });
+      const url = URL.createObjectURL(res.data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = res.headers['content-disposition']?.split('filename="')[1]?.replace('"', '') || 'fatura';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Fatura indirilemedi");
+    }
   };
 
-  const viewInvoice = (invoiceId) => {
-    window.open(`${API}/invoices/view/${invoiceId}`, '_blank');
+  const viewInvoice = async (invoiceId) => {
+    try {
+      const res = await axios.get(`${API}/invoices/view/${invoiceId}`, { responseType: 'blob' });
+      const url = URL.createObjectURL(res.data);
+      window.open(url, '_blank');
+    } catch {
+      toast.error("Fatura görüntülenemedi");
+    }
   };
 
   const deleteInvoice = async (invoiceId) => {
