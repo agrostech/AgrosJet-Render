@@ -9,6 +9,7 @@ export function useFaturalar(companyId, year, month) {
   const [monthInvoices, setMonthInvoices] = useState([]);
   const [missingInvoices, setMissingInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [viewingFile, setViewingFile] = useState(null); // { url, fileName, contentType }
 
   const fetchCouriersSummary = useCallback(async () => {
     if (!companyId) return;
@@ -89,10 +90,19 @@ export function useFaturalar(companyId, year, month) {
     try {
       const res = await axios.get(`${API}/invoices/view/${invoiceId}`, { responseType: 'blob' });
       const url = URL.createObjectURL(res.data);
-      window.open(url, '_blank');
+      const contentType = res.data.type || 'application/pdf';
+      const fileName = res.headers['content-disposition']?.split('filename="')[1]?.replace('"', '') || 'fatura';
+      setViewingFile({ url, fileName, contentType });
     } catch {
       toast.error("Fatura görüntülenemedi");
     }
+  };
+
+  const closeViewer = () => {
+    if (viewingFile?.url) {
+      URL.revokeObjectURL(viewingFile.url);
+    }
+    setViewingFile(null);
   };
 
   const deleteInvoice = async (invoiceId) => {
@@ -198,6 +208,8 @@ export function useFaturalar(companyId, year, month) {
     fetchCourierInvoices,
     downloadSingle,
     viewInvoice,
+    viewingFile,
+    closeViewer,
     deleteInvoice,
     downloadBulk,
     verifyInvoice,
