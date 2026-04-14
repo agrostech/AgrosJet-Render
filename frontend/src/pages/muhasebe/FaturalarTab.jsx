@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { X, Download } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
-import { Button } from "@/components/ui/button";
+import { PdfViewerModal } from "@/components/ui/pdf-viewer-modal";
 
 import { useFaturalar } from "@/hooks/useFaturalar";
 import { MonthSelector } from "@/components/faturalar/MonthSelector";
@@ -222,35 +221,7 @@ export default function FaturalarTab({ companyId, adminId, adminName, isSuperAdm
       />
 
       {/* PDF/Görsel Görüntüleme Modal */}
-      {viewingFile && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={closeViewer}>
-          <div className="relative w-full max-w-4xl h-[90vh] mx-4 bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b bg-slate-50">
-              <p className="text-sm font-semibold truncate">{viewingFile.fileName}</p>
-              <div className="flex items-center gap-2">
-                <a href={viewingFile.url} download={viewingFile.fileName}>
-                  <Button size="sm" variant="outline" className="h-8 gap-1.5">
-                    <Download className="w-3.5 h-3.5" />
-                    İndir
-                  </Button>
-                </a>
-                <Button size="sm" variant="ghost" onClick={closeViewer} className="h-8 w-8 p-0">
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-            {/* Content */}
-            <div className="flex-1 overflow-auto bg-slate-100">
-              {viewingFile.contentType.startsWith('image/') ? (
-                <img src={viewingFile.url} alt={viewingFile.fileName} className="max-w-full max-h-full m-auto" />
-              ) : (
-                <iframe src={viewingFile.url} title={viewingFile.fileName} className="w-full h-full border-0" />
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      <PdfViewerModal file={viewingFile} onClose={closeViewer} />
     </div>
   );
 }

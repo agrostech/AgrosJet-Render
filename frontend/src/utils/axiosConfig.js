@@ -1,6 +1,7 @@
 /**
  * Axios Configuration
  * Her istekte JWT token'ı Authorization header'ında gönderir
+ * 401 alındığında otomatik logout yapar
  */
 import axios from 'axios';
 
@@ -17,5 +18,20 @@ axios.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// 401 yanıtlarında otomatik logout
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        localStorage.removeItem("user");
+        window.location.href = "/login";
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default axios;

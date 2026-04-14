@@ -92,14 +92,7 @@ export function useFaturalar(companyId, year, month) {
       const url = URL.createObjectURL(res.data);
       const contentType = res.data.type || 'application/pdf';
       const fileName = res.headers['content-disposition']?.split('filename="')[1]?.replace('"', '') || 'fatura';
-      
-      if (contentType.startsWith('image/')) {
-        // Resimler modal'da göster
-        setViewingFile({ url, fileName, contentType });
-      } else {
-        // PDF'ler direkt yeni sekmede aç (mobilde iframe çalışmıyor)
-        window.open(url, '_blank');
-      }
+      setViewingFile({ url, fileName, contentType });
     } catch {
       toast.error("Fatura görüntülenemedi");
     }
