@@ -16,8 +16,18 @@ LOGO_DIR = "/app/uploads/logos"
 
 # Register Turkish-compatible fonts
 _FONT_DIR = "/usr/share/fonts/truetype/liberation"
-pdfmetrics.registerFont(TTFont("TRSans", os.path.join(_FONT_DIR, "LiberationSans-Regular.ttf")))
-pdfmetrics.registerFont(TTFont("TRSansBold", os.path.join(_FONT_DIR, "LiberationSans-Bold.ttf")))
+_FONTS_AVAILABLE = False
+try:
+    _regular = os.path.join(_FONT_DIR, "LiberationSans-Regular.ttf")
+    _bold = os.path.join(_FONT_DIR, "LiberationSans-Bold.ttf")
+    if os.path.exists(_regular) and os.path.exists(_bold):
+        pdfmetrics.registerFont(TTFont("TRSans", _regular))
+        pdfmetrics.registerFont(TTFont("TRSansBold", _bold))
+        _FONTS_AVAILABLE = True
+    else:
+        print(f"Liberation fontları bulunamadı: {_FONT_DIR}")
+except Exception as e:
+    print(f"Font register hatası: {e}")
 
 TURKISH_MONTHS = {
     1: "Ocak", 2: "Şubat", 3: "Mart", 4: "Nisan",
@@ -82,12 +92,14 @@ def create_cover_page(
             print(f"Logo eklenemedi: {e}")
 
     # Title
-    c.setFont("TRSansBold", 26)
+    _title_font = "TRSansBold" if _FONTS_AVAILABLE else "Helvetica-Bold"
+    _body_font = "TRSans" if _FONTS_AVAILABLE else "Helvetica"
+    c.setFont(_title_font, 26)
     c.setFillColorRGB(0.15, 0.15, 0.15)
     c.drawCentredString(width / 2, height - 280, title)
 
     # Subtitle (month/year)
-    c.setFont("TRSans", 18)
+    c.setFont(_body_font, 18)
     c.setFillColorRGB(0.35, 0.35, 0.35)
     c.drawCentredString(width / 2, height - 315, subtitle)
 
@@ -97,17 +109,17 @@ def create_cover_page(
     c.line(width * 0.25, height - 345, width * 0.75, height - 345)
 
     # Invoice count
-    c.setFont("TRSans", 14)
+    c.setFont(_body_font, 14)
     c.setFillColorRGB(0.25, 0.25, 0.25)
     c.drawCentredString(width / 2, height - 380, f"{invoice_count} Fatura")
 
     # Generated date
-    c.setFont("TRSans", 11)
+    c.setFont(_body_font, 11)
     c.setFillColorRGB(0.5, 0.5, 0.5)
     c.drawCentredString(width / 2, height - 410, f"Oluşturulma: {generated_date}")
 
     # Footer
-    c.setFont("TRSans", 8)
+    c.setFont(_body_font, 8)
     c.setFillColorRGB(0.6, 0.6, 0.6)
     c.drawCentredString(width / 2, 30, "AgrosJet - Powered by AgrosTech")
 
@@ -126,7 +138,7 @@ def add_page_numbers(writer: PdfWriter) -> PdfWriter:
 
         overlay_buf = io.BytesIO()
         c = rl_canvas.Canvas(overlay_buf, pagesize=(pw, ph))
-        c.setFont("TRSans", 9)
+        c.setFont("TRSans" if _FONTS_AVAILABLE else "Helvetica", 9)
         c.setFillColorRGB(0.45, 0.45, 0.45)
         c.drawRightString(pw - 20, 15, f"Sayfa {i + 1} / {total}")
         c.save()

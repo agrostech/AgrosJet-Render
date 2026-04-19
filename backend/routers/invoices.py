@@ -1009,37 +1009,43 @@ async def download_bulk_invoices(data: BulkPdfRequest):
             detail += f". İndirilemeyenler: {', '.join(failed_files[:5])}"
         raise HTTPException(status_code=404, detail=detail)
     
-    now = datetime.now(TURKEY_TZ)
-    month_name = TURKISH_MONTHS[now.month]
+    try:
+        now = datetime.now(TURKEY_TZ)
+        month_name = TURKISH_MONTHS[now.month]
 
-    # Create cover page
-    cover_buf = create_cover_page(
-        title="Kurye Faturaları",
-        subtitle=f"{company_name} - {month_name} {now.year}",
-        logo_bytes=logo_bytes,
-        invoice_count=len(data.invoice_ids),
-        generated_date=now.strftime("%d.%m.%Y %H:%M"),
-    )
-    cover_reader = PdfReader(cover_buf)
+        # Create cover page
+        cover_buf = create_cover_page(
+            title="Kurye Faturaları",
+            subtitle=f"{company_name} - {month_name} {now.year}",
+            logo_bytes=logo_bytes,
+            invoice_count=len(data.invoice_ids),
+            generated_date=now.strftime("%d.%m.%Y %H:%M"),
+        )
+        cover_reader = PdfReader(cover_buf)
 
-    # Build final: cover + content pages
-    final_writer = PdfWriter()
-    for page in cover_reader.pages:
-        final_writer.add_page(page)
-    for page in writer.pages:
-        final_writer.add_page(page)
+        # Build final: cover + content pages
+        final_writer = PdfWriter()
+        for page in cover_reader.pages:
+            final_writer.add_page(page)
+        for page in writer.pages:
+            final_writer.add_page(page)
 
-    # Add page numbers
-    add_page_numbers(final_writer)
-    
-    pdf_buffer = io.BytesIO()
-    final_writer.write(pdf_buffer)
-    pdf_buffer.seek(0)
-    
-    pdf_filename = f"Kurye{month_name}Faturalar.pdf"
-    
-    return StreamingResponse(
-        pdf_buffer,
-        media_type="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename={pdf_filename}"}
-    )
+        # Add page numbers
+        add_page_numbers(final_writer)
+        
+        pdf_buffer = io.BytesIO()
+        final_writer.write(pdf_buffer)
+        pdf_buffer.seek(0)
+        
+        pdf_filename = f"Kurye{month_name}Faturalar.pdf"
+        
+        return StreamingResponse(
+            pdf_buffer,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename={pdf_filename}"}
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"PDF birleştirme hatası: {e}")
+        raise HTTPException(status_code=500, detail=f"PDF oluşturma hatası: {str(e)}")
