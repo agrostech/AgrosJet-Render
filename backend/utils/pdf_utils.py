@@ -15,17 +15,22 @@ from PIL import Image as PILImage
 LOGO_DIR = "/app/uploads/logos"
 
 # Register Turkish-compatible fonts
-_FONT_DIR = "/usr/share/fonts/truetype/liberation"
 _FONTS_AVAILABLE = False
 try:
-    _regular = os.path.join(_FONT_DIR, "LiberationSans-Regular.ttf")
-    _bold = os.path.join(_FONT_DIR, "LiberationSans-Bold.ttf")
-    if os.path.exists(_regular) and os.path.exists(_bold):
-        pdfmetrics.registerFont(TTFont("TRSans", _regular))
-        pdfmetrics.registerFont(TTFont("TRSansBold", _bold))
+    # Vera fontları reportlab ile birlikte geliyor - her ortamda mevcut
+    _vera_dir = os.path.dirname(os.path.abspath(__file__))
+    import reportlab
+    _vera_dir = os.path.join(os.path.dirname(reportlab.__file__), "fonts")
+    _vera_regular = os.path.join(_vera_dir, "Vera.ttf")
+    _vera_bold = os.path.join(_vera_dir, "VeraBd.ttf")
+    if os.path.exists(_vera_regular) and os.path.exists(_vera_bold):
+        if "TRSans" not in pdfmetrics.getRegisteredFontNames():
+            pdfmetrics.registerFont(TTFont("TRSans", _vera_regular))
+        if "TRSansBold" not in pdfmetrics.getRegisteredFontNames():
+            pdfmetrics.registerFont(TTFont("TRSansBold", _vera_bold))
         _FONTS_AVAILABLE = True
     else:
-        print(f"Liberation fontları bulunamadı: {_FONT_DIR}")
+        print(f"Vera fontları bulunamadı: {_vera_dir}")
 except Exception as e:
     print(f"Font register hatası: {e}")
 
