@@ -151,9 +151,9 @@ export function MonthInvoicesCard({
                         size="sm"
                         variant="outline"
                         onClick={(e) => { e.stopPropagation(); handleOpenVerifyModal(invoice); }}
-                        className={`h-7 px-2 ${invoice.verified ? 'text-green-600 border-green-300 bg-green-50' : ''}`}
+                        className={`h-8 px-2.5 ${invoice.verified ? 'text-green-600 border-green-300 bg-green-50' : ''}`}
                       >
-                        {invoice.verified ? <CheckCircle className="w-3 h-3" /> : <Circle className="w-3 h-3" />}
+                        {invoice.verified ? <CheckCircle className="w-5 h-5" /> : <Circle className="w-5 h-5" />}
                       </Button>
                     </div>
                   </div>

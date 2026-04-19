@@ -319,7 +319,7 @@ function TransactionHistory({
                       {tx.description}
                       {tx.is_hakedis && <span className="ml-1 px-1 py-0.5 bg-blue-100 text-blue-700 text-[10px] rounded">Hakediş</span>}
                       {tx.is_hakedis && tx.invoice_verified && (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-green-600 ml-1" title="Fatura onaylandı" />
+                        <CheckCircle2 className="w-5 h-5 text-green-600 ml-1 flex-shrink-0" title="Fatura onaylandı" />
                       )}
                       {tx.installment_product_id && <span className="ml-1 px-1 py-0.5 bg-purple-100 text-purple-700 text-[10px] rounded">Taksit</span>}
                     </div>
