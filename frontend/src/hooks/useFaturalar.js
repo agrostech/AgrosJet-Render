@@ -4,6 +4,20 @@ import { toast } from "sonner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
+// Blob response'daki hata mesajını parse et
+async function parseBlobError(err) {
+  try {
+    if (err.response?.data instanceof Blob) {
+      const text = await err.response.data.text();
+      const json = JSON.parse(text);
+      return json.detail || null;
+    }
+    return err.response?.data?.detail || null;
+  } catch {
+    return null;
+  }
+}
+
 export function useFaturalar(companyId, year, month) {
   const [couriersSummary, setCouriersSummary] = useState([]);
   const [monthInvoices, setMonthInvoices] = useState([]);
@@ -81,8 +95,9 @@ export function useFaturalar(companyId, year, month) {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    } catch {
-      toast.error("Fatura indirilemedi");
+    } catch (err) {
+      const msg = await parseBlobError(err);
+      toast.error(msg || "Fatura indirilemedi");
     }
   };
 
@@ -93,8 +108,9 @@ export function useFaturalar(companyId, year, month) {
       const contentType = res.data.type || 'application/pdf';
       const fileName = res.headers['content-disposition']?.split('filename="')[1]?.replace('"', '') || 'fatura';
       setViewingFile({ url, fileName, contentType });
-    } catch {
-      toast.error("Fatura görüntülenemedi");
+    } catch (err) {
+      const msg = await parseBlobError(err);
+      toast.error(msg || "Fatura görüntülenemedi");
     }
   };
 
@@ -137,7 +153,8 @@ export function useFaturalar(companyId, year, month) {
       
       toast.success(`${invoiceIds.length} fatura birleştirildi`, { id: "bulk-pdf" });
     } catch (err) {
-      toast.error("PDF birleştirme başarısız", { id: "bulk-pdf" });
+      const msg = await parseBlobError(err);
+      toast.error(msg || "PDF birleştirme başarısız", { id: "bulk-pdf" });
       throw err;
     }
   };

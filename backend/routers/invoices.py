@@ -967,6 +967,7 @@ async def download_bulk_invoices(data: BulkPdfRequest):
             logo_bytes = get_logo_bytes(company.get("logo_light", ""))
 
     writer = PdfWriter()
+    failed_files = []
     
     for invoice in invoices:
         file_content = None
@@ -978,6 +979,7 @@ async def download_bulk_invoices(data: BulkPdfRequest):
                     file_content = f.read()
         
         if not file_content:
+            failed_files.append(invoice.get("file_name", "bilinmeyen"))
             continue
         
         file_name = invoice.get("file_name", "").lower()
@@ -998,10 +1000,14 @@ async def download_bulk_invoices(data: BulkPdfRequest):
                     writer.add_page(page)
         except Exception as e:
             print(f"Fatura birleştirme hatası ({file_name}): {e}")
+            failed_files.append(invoice.get("file_name", "bilinmeyen"))
             continue
     
     if len(writer.pages) == 0:
-        raise HTTPException(status_code=404, detail="Birleştirilebilecek fatura bulunamadı")
+        detail = "Birleştirilebilecek fatura bulunamadı"
+        if failed_files:
+            detail += f". İndirilemeyenler: {', '.join(failed_files[:5])}"
+        raise HTTPException(status_code=404, detail=detail)
     
     now = datetime.now(TURKEY_TZ)
     month_name = TURKISH_MONTHS[now.month]
