@@ -71,10 +71,12 @@ Multi-tenant delivery management platform for restaurants, couriers, and adminis
 - All logout flows redirect to /login (selector page)
 - Courier login (/courier-login) unchanged
 
-## Pending Issues (Prioritized)
-### P1
-- Tiered Pricing calculation: `get_courier_active_package_count` should only count `assigned` + `confirmed`
+## Completed - Adisyo Webhook Delivered-Without-Courier Fix (2026-04-24)
+- **Bug**: Adisyo `order.updated` webhook with `statusId=5` (Teslim Edildi) could set order to "delivered" even when no courier was assigned (`courier_id` is null). This happened when order was in "preparing" status.
+- **Fix**: Added `courier_id` check in both `adisyo_webhook.py` (process_order_event) and `adisyo_service.py` (sync function). If `delivered` comes from Adisyo but no courier is assigned, the update is blocked and logged. `cancelled` status is still allowed without courier assignment.
+- **Files changed**: `/app/backend/routers/adisyo_webhook.py`, `/app/backend/services/adisyo_service.py`
 
+## Pending Issues (Prioritized)
 ### P2
 - "Neden AgrosJet?" static text update on RegisterPage + CourierKVKKPage
 - Webhook setup ping failure for agrosjet.net (HTML response handling)

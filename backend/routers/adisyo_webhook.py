@@ -165,6 +165,15 @@ async def process_order_event(event_data: dict, restaurant: dict, event_type: st
         if adisyo_order.get("orderCancelReason"):
             new_status = "cancelled"
         
+        # Kurye atanmadan "delivered" yapılmasını engelle
+        # Sadece iptal (cancelled) kuryesiz güncellenebilir
+        if new_status == "delivered" and not existing.get("courier_id"):
+            await ilog.warning(
+                f"Adisyo delivered engellendi (kurye atanmamış): order_id={order_id}, "
+                f"mevcut durum={current_status}, adisyo_statusId={adisyo_status_id}"
+            )
+            return {"success": True, "action": "skipped", "message": "Kurye atanmadan teslim edildi durumuna geçilemez"}
+        
         if current_status != new_status:
             update_data = {
                 "status": new_status,
@@ -172,15 +181,11 @@ async def process_order_event(event_data: dict, restaurant: dict, event_type: st
             }
             
             if new_status == "delivered":
-                # Türkiye saati (UTC+3)
-                turkey_tz = timezone(timedelta(hours=3))
-                update_data["delivered_at"] = datetime.now(turkey_tz).isoformat()
+                update_data["delivered_at"] = datetime.now(TURKEY_TZ).isoformat()
             elif new_status == "cancelled":
                 update_data["cancel_reason"] = adisyo_order.get("orderCancelReason", "Adisyo üzerinden iptal")
                 update_data["cancelled_by"] = "adisyo_webhook"
-                # Türkiye saati (UTC+3)
-                turkey_tz = timezone(timedelta(hours=3))
-                update_data["cancelled_at"] = datetime.now(turkey_tz).isoformat()
+                update_data["cancelled_at"] = datetime.now(TURKEY_TZ).isoformat()
             
             await db.orders.update_one(
                 {"adisyo_order_id": order_id},

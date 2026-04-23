@@ -602,6 +602,14 @@ async def sync_restaurant_orders(restaurant_id: str) -> dict:
             adisyo_status_id = adisyo_order.get("statusId", 1)
             if adisyo_status_id in [5, 6]:  # 5: Teslim Edildi, 6: İptal
                 new_status = map_adisyo_status(adisyo_status_id, "")
+                # Kurye atanmadan "delivered" yapılmasını engelle
+                if new_status == "delivered" and not existing.get("courier_id"):
+                    logger.warning(
+                        f"Adisyo sync: delivered engellendi (kurye atanmamış): "
+                        f"adisyo_order_id={adisyo_order_id}, mevcut durum={current_status}"
+                    )
+                    skipped_count += 1
+                    continue
                 if current_status != new_status:
                     await db.orders.update_one(
                         {"adisyo_order_id": adisyo_order_id},
