@@ -175,21 +175,35 @@ async def process_order_event(event_data: dict, restaurant: dict, event_type: st
             return {"success": True, "action": "skipped", "message": "Kurye atanmadan teslim edildi durumuna geçilemez"}
         
         if current_status != new_status:
+            now_ts = datetime.now(TURKEY_TZ).isoformat()
             update_data = {
                 "status": new_status,
-                "updated_at": datetime.now(TURKEY_TZ).isoformat()
+                "updated_at": now_ts
             }
             
+            history_note = f"Adisyo webhook: {current_status} → {new_status} (statusId={adisyo_status_id})"
             if new_status == "delivered":
-                update_data["delivered_at"] = datetime.now(TURKEY_TZ).isoformat()
+                update_data["delivered_at"] = now_ts
             elif new_status == "cancelled":
                 update_data["cancel_reason"] = adisyo_order.get("orderCancelReason", "Adisyo üzerinden iptal")
                 update_data["cancelled_by"] = "adisyo_webhook"
-                update_data["cancelled_at"] = datetime.now(TURKEY_TZ).isoformat()
+                update_data["cancelled_at"] = now_ts
+                history_note = f"Adisyo webhook: iptal ({adisyo_order.get('orderCancelReason', '-')})"
+            
+            history_entry = {
+                "status": new_status,
+                "timestamp": now_ts,
+                "actor_type": "adisyo_webhook",
+                "actor_name": "Adisyo",
+                "note": history_note
+            }
             
             await db.orders.update_one(
                 {"adisyo_order_id": order_id},
-                {"$set": update_data}
+                {
+                    "$set": update_data,
+                    "$push": {"status_history": history_entry}
+                }
             )
             
             await ilog.info(f"Adisyo sipariş güncellendi: order_id={order_id}, yeni durum: {new_status}")

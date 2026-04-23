@@ -74,6 +74,7 @@ Multi-tenant delivery management platform for restaurants, couriers, and adminis
 ## Completed - Adisyo Webhook Delivered-Without-Courier Fix (2026-04-24)
 - **Bug**: Adisyo `order.updated` webhook with `statusId=5` (Teslim Edildi) could set order to "delivered" even when no courier was assigned (`courier_id` is null). This happened when order was in "preparing" status.
 - **Fix**: Added `courier_id` check in both `adisyo_webhook.py` (process_order_event) and `adisyo_service.py` (sync function). If `delivered` comes from Adisyo but no courier is assigned, the update is blocked and logged. `cancelled` status is still allowed without courier assignment.
+- **Fix 2**: Webhook handler and sync function now write `status_history` entries with `actor_type: "adisyo_webhook"` / `"adisyo_sync"` and `actor_name: "Adisyo"`. Previously no history was recorded, making it impossible to distinguish Adisyo-triggered changes from courier actions.
 - **Files changed**: `/app/backend/routers/adisyo_webhook.py`, `/app/backend/services/adisyo_service.py`
 
 ## Pending Issues (Prioritized)

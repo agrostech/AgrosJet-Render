@@ -611,12 +611,23 @@ async def sync_restaurant_orders(restaurant_id: str) -> dict:
                     skipped_count += 1
                     continue
                 if current_status != new_status:
+                    now_ts = datetime.now(TURKEY_TZ).isoformat()
+                    history_entry = {
+                        "status": new_status,
+                        "timestamp": now_ts,
+                        "actor_type": "adisyo_sync",
+                        "actor_name": "Adisyo",
+                        "note": f"Adisyo sync: {current_status} → {new_status} (statusId={adisyo_status_id})"
+                    }
                     await db.orders.update_one(
                         {"adisyo_order_id": adisyo_order_id},
-                        {"$set": {
-                            "status": new_status,
-                            "updated_at": datetime.now(TURKEY_TZ).isoformat()
-                        }}
+                        {
+                            "$set": {
+                                "status": new_status,
+                                "updated_at": now_ts
+                            },
+                            "$push": {"status_history": history_entry}
+                        }
                     )
             skipped_count += 1
             continue
