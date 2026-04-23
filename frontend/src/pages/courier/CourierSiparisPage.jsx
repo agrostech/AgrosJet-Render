@@ -65,11 +65,11 @@ const ORDER_STATUS_CONFIG = {
 
 // Ödeme yöntemi (kurye paneline özel - icon ile)
 const PAYMENT_METHODS = {
-  cash: { label: "Nakit", icon: Banknote, color: "text-green-600", bg: "bg-green-50" },
-  card: { label: "Kart", icon: CreditCard, color: "text-blue-600", bg: "bg-blue-50" },
-  meal_card: { label: "Yemek Kartı", icon: CreditCard, color: "text-orange-600", bg: "bg-orange-50" },
-  online_meal_card: { label: "Online Y.K.", icon: CreditCard, color: "text-orange-600", bg: "bg-orange-50" },
-  online: { label: "Online", icon: CreditCard, color: "text-purple-600", bg: "bg-purple-50" },
+  cash: { label: "Nakit", icon: Banknote, color: "text-green-600", bg: "bg-green-50", badge: "bg-green-600 text-white", badgeLight: "bg-green-50 text-green-600" },
+  card: { label: "Kart", icon: CreditCard, color: "text-indigo-900", bg: "bg-indigo-50", badge: "bg-[#1e2a5e] text-white", badgeLight: "bg-indigo-50 text-indigo-900" },
+  meal_card: { label: "Yemek Kartı", icon: CreditCard, color: "text-orange-600", bg: "bg-orange-50", badge: "bg-yellow-500 text-white", badgeLight: "bg-yellow-50 text-yellow-700" },
+  online_meal_card: { label: "Online Y.K.", icon: CreditCard, color: "text-orange-600", bg: "bg-orange-50", badge: "bg-yellow-500 text-white", badgeLight: "bg-yellow-50 text-yellow-700" },
+  online: { label: "Online", icon: CreditCard, color: "text-purple-600", bg: "bg-purple-50", badge: "bg-purple-600 text-white", badgeLight: "bg-purple-100 text-purple-700" },
 };
 
 // Ödeme label'ını al
@@ -1222,15 +1222,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
                             {age && !step.delayMin && <span>· {age}</span>}
                           </span>
                           <span className="text-[11px] font-bold text-white flex items-center gap-2">
-                            {order.payment_method === 'online' ? (
-                              <span className="text-[10px] text-white/80">Online</span>
-                            ) : (
-                              <span className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                                order.payment_method === 'cash' ? 'bg-green-600 text-white' :
-                                order.payment_method === 'card' ? 'bg-blue-600 text-white' :
-                                'bg-yellow-500 text-white'
-                              }`}><PI className="w-3 h-3" />{getPaymentLabel(order)}</span>
-                            )}
+                            <span className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${pi.badge}`}><PI className="w-3 h-3" />{getPaymentLabel(order)}</span>
                             {formatCurrency(order.total_amount)}
                           </span>
                         </div>
@@ -1326,15 +1318,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
                               <div key={order.id} className="flex items-center">
                                 <User className="w-3 h-3 text-blue-400 flex-shrink-0 mr-1.5" />
                                 <span className="text-[12px] text-slate-600 truncate">{order.customer_name || order.delivery_address}</span>
-                                {order.payment_method !== 'online' ? (
-                                  <span className={`ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded flex-shrink-0 ${
-                                    order.payment_method === 'cash' ? 'bg-green-50 text-green-600' :
-                                    order.payment_method === 'card' ? 'bg-blue-50 text-blue-600' :
-                                    'bg-yellow-50 text-yellow-600'
-                                  }`}>{getPaymentLabel(order)} {formatCurrency(order.total_amount)}</span>
-                                ) : (
-                                  <span className="ml-auto text-[10px] text-slate-400 flex-shrink-0">{formatCurrency(order.total_amount)}</span>
-                                )}
+                                <span className={`ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded flex-shrink-0 ${(PAYMENT_METHODS[order.payment_method] || PAYMENT_METHODS.cash).badgeLight}`}>{getPaymentLabel(order)} {formatCurrency(order.total_amount)}</span>
                               </div>
                             ))}
                           </div>
@@ -1594,16 +1578,7 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
           )}
         </span>
         <span className="text-[11px] font-bold text-white flex items-center gap-2">
-          {order.payment_method === 'online' ? (
-            <span className="text-[10px] text-white/80">Online</span>
-          ) : (
-            <span className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-              order.payment_method === 'cash' ? 'bg-green-500 text-white' :
-              order.payment_method === 'card' ? 'bg-blue-500 text-white' :
-              (order.payment_method === 'meal_card' || order.payment_method === 'online_meal_card') ? 'bg-yellow-500 text-white' :
-              'bg-purple-500 text-white'
-            }`}><PI className="w-3 h-3" />{getPaymentLabel(order)}</span>
-          )}
+          <span className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${pi.badge}`}><PI className="w-3 h-3" />{getPaymentLabel(order)}</span>
           {formatCurrency(order.total_amount)}
         </span>
       </div>
