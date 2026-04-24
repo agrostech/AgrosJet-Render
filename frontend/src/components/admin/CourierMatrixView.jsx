@@ -314,7 +314,7 @@ export default function CourierMatrixView({ companyId, onCourierClick, refreshTr
                   Mola
                 </div>
               </th>
-              <th className="p-2 text-center font-semibold bg-indigo-100">
+              <th colSpan={3} className="p-2 text-center font-semibold bg-indigo-100">
                 <div className="flex items-center justify-center gap-1">
                   <Shield className="w-3 h-3" />
                   Yetkiler
@@ -347,8 +347,14 @@ export default function CourierMatrixView({ companyId, onCourierClick, refreshTr
               <th className="p-1.5 text-center text-[10px] text-muted-foreground bg-purple-50 border-r-2 border-slate-300">
                 Dk
               </th>
-              <th className="p-1.5 text-center text-[10px] text-muted-foreground bg-indigo-50">
+              <th className="p-1.5 text-center text-[10px] text-muted-foreground bg-indigo-50 border-r border-slate-300">
                 H.Değil
+              </th>
+              <th className="p-1.5 text-center text-[10px] text-muted-foreground bg-indigo-50 border-r border-slate-300">
+                Havuz
+              </th>
+              <th className="p-1.5 text-center text-[10px] text-muted-foreground bg-indigo-50">
+                Konum
               </th>
             </tr>
           </thead>
@@ -560,6 +566,54 @@ export default function CourierMatrixView({ companyId, onCourierClick, refreshTr
                       );
                     })()}
                   </td>
+
+                  {/* Yetkiler - Havuz */}
+                  <td className="p-1 text-center">
+                    {(() => {
+                      const value = courier.permissions?.pool_access ?? true;
+                      const cellKey = `${courier.id}-perm-pool_access`;
+                      const isUpdatingCell = updating[cellKey];
+                      
+                      return (
+                        <div
+                          className="cursor-pointer"
+                          onClick={() => !isUpdatingCell && handlePermissionToggle(courier.id, "pool_access", value)}
+                        >
+                          {isUpdatingCell ? (
+                            <RefreshCw className="w-3 h-3 animate-spin mx-auto text-slate-400" />
+                          ) : value ? (
+                            <Check className="w-4 h-4 mx-auto text-green-600" />
+                          ) : (
+                            <X className="w-4 h-4 mx-auto text-red-400" />
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </td>
+
+                  {/* Yetkiler - Konum Bildirimi */}
+                  <td className="p-1 text-center">
+                    {(() => {
+                      const value = courier.permissions?.location_alert_enabled ?? true;
+                      const cellKey = `${courier.id}-perm-location_alert_enabled`;
+                      const isUpdatingCell = updating[cellKey];
+                      
+                      return (
+                        <div
+                          className="cursor-pointer"
+                          onClick={() => !isUpdatingCell && handlePermissionToggle(courier.id, "location_alert_enabled", value)}
+                        >
+                          {isUpdatingCell ? (
+                            <RefreshCw className="w-3 h-3 animate-spin mx-auto text-slate-400" />
+                          ) : value ? (
+                            <Check className="w-4 h-4 mx-auto text-green-600" />
+                          ) : (
+                            <X className="w-4 h-4 mx-auto text-red-400" />
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </td>
                 </tr>
               );
             })}
@@ -664,21 +718,26 @@ function CourierMatrixCard({
           </div>
         </div>
 
-        <div className="ml-auto flex items-center gap-1 text-[10px]">
+        <div className="ml-auto flex items-center gap-1.5 text-[10px]">
           <Shield className="w-3 h-3 text-slate-400" />
-          {(() => {
-            const val = courier.permissions?.can_mark_not_ready ?? true;
-            const cellKey = `${courier.id}-perm-can_mark_not_ready`;
+          {[
+            { key: "can_mark_not_ready", label: "H.D" },
+            { key: "pool_access", label: "Havuz" },
+            { key: "location_alert_enabled", label: "Konum" },
+          ].map(perm => {
+            const val = courier.permissions?.[perm.key] ?? true;
+            const cellKey = `${courier.id}-perm-${perm.key}`;
             const isUp = updating[cellKey];
             return (
               <button
+                key={perm.key}
                 className={`px-1.5 py-0.5 rounded font-medium ${val ? "bg-green-100 text-green-700" : "bg-red-50 text-red-400"}`}
-                onClick={() => !isUp && onPermissionToggle(courier.id, "can_mark_not_ready", val)}
+                onClick={() => !isUp && onPermissionToggle(courier.id, perm.key, val)}
               >
-                {isUp ? <RefreshCw className="w-3 h-3 animate-spin" /> : (val ? "Aktif" : "Pasif")}
+                {isUp ? <RefreshCw className="w-3 h-3 animate-spin" /> : perm.label}
               </button>
             );
-          })()}
+          })}
         </div>
       </div>
     </div>
