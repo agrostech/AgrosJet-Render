@@ -785,6 +785,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       fetchOrders();
     } catch (err) {
       toast.error(err.response?.data?.detail || "Sipariş alınamadı");
+      fetchPoolOrders();
     } finally {
       setClaimingOrderId(null);
     }

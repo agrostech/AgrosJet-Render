@@ -369,18 +369,22 @@ async def claim_pool_order(order_id: str, courier_id: str = None):
     if not courier_id:
         raise HTTPException(status_code=400, detail="courier_id zorunlu")
 
-    # Sipariş kontrolü
-    order = await db.orders.find_one({"id": order_id}, {"_id": 0})
+    # Sipariş kontrolü - Atomic lock: sadece atanmamış siparişi yakala
+    order = await db.orders.find_one_and_update(
+        {"id": order_id, "courier_id": {"$in": [None, ""]}, "status": {"$in": ["pending", "preparing", "ready"]}},
+        {"$set": {"_pool_lock": courier_id}},
+    )
     if not order:
-        raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
-
-    # Zaten atanmış mı?
-    if order.get("courier_id"):
-        raise HTTPException(status_code=400, detail="Bu sipariş zaten bir kuryeye atanmış")
-
-    # Sipariş uygun durumda mı?
-    if order.get("status") not in ["pending", "preparing", "ready"]:
+        # Ya sipariş yok, ya atanmış, ya uygun durumda değil
+        check = await db.orders.find_one({"id": order_id}, {"_id": 0, "courier_id": 1, "status": 1})
+        if not check:
+            raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
+        if check.get("courier_id"):
+            raise HTTPException(status_code=409, detail="Bu sipariş başka bir kurye tarafından alındı")
         raise HTTPException(status_code=400, detail="Bu sipariş havuzdan alınamaz")
+
+    # _pool_lock temizle (geçici kilit)
+    await db.orders.update_one({"id": order_id}, {"$unset": {"_pool_lock": 1}})
 
     company_id = order.get("company_id")
 
