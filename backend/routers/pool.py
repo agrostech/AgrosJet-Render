@@ -248,12 +248,56 @@ async def get_pool_orders(
                 distance_filtered.append(order)
         filtered_orders = distance_filtered
 
+    # 9) Skor hesapla ve sırala
+    # Skor = (bekleme_puanı × 0.7) + (yakınlık_puanı × 0.3)
+    # Her iki puan da 0-100 arası normalize edilir
+    max_distance_for_score = max_dist if max_dist > 0 else 5000
+
+    # Önce tüm bekleme sürelerini hesapla (normalize için max'ı bulmak lazım)
+    wait_times = []
+    for order in filtered_orders:
+        created = order.get("created_at")
+        if created:
+            try:
+                created_dt = datetime.fromisoformat(created) if isinstance(created, str) else created
+                wait_minutes = max(0, (now - created_dt).total_seconds() / 60)
+            except (ValueError, TypeError):
+                wait_minutes = 0
+        else:
+            wait_minutes = 0
+        order["_wait_minutes"] = wait_minutes
+        wait_times.append(wait_minutes)
+
+    max_wait = max(wait_times) if wait_times else 1
+
+    for order in filtered_orders:
+        # Bekleme puanı normalize (0-100)
+        wait_score = (order["_wait_minutes"] / max_wait * 100) if max_wait > 0 else 0
+
+        # Yakınlık puanı (0-100)
+        dist = order.get("courier_distance")
+        if dist is not None and max_distance_for_score > 0:
+            proximity_score = max(0, (max_distance_for_score - dist) / max_distance_for_score) * 100
+        else:
+            proximity_score = 50
+
+        score = (wait_score * 0.7) + (proximity_score * 0.3)
+        order["pool_score"] = round(score, 1)
+        # Temizle
+        del order["_wait_minutes"]
+
+    filtered_orders.sort(key=lambda o: o.get("pool_score", 0), reverse=True)
+
+    # first_only: kuryenin aktif paketi yoksa sadece ilk paketi alabilir
+    first_only = active_count == 0
+
     return {
         "orders": filtered_orders,
         "pool_enabled": True,
         "courier_access": True,
         "active_count": active_count,
         "max_packages": max_packages,
+        "first_only": first_only,
         "settings": {
             "max_courier_distance": max_dist,
             "pending_threshold_minutes": threshold,
@@ -319,6 +363,18 @@ async def claim_pool_order(order_id: str, courier_id: str = None):
 
     if active_count >= max_packages:
         raise HTTPException(status_code=400, detail=f"Paket taşıma limitiniz doldu ({max_packages}/{max_packages})")
+
+    # İlk paket kuralı: aktif paketi yoksa sadece en yüksek skorlu paketi alabilir
+    if active_count == 0:
+        # Havuzdaki siparişleri aynı filtrelerle çekip skorla
+        pool_result = await get_pool_orders(company_id, courier_id=courier_id)
+        pool_orders = pool_result.get("orders", [])
+        if pool_orders and pool_orders[0].get("id") != order_id:
+            top_order = pool_orders[0]
+            raise HTTPException(
+                status_code=400,
+                detail=f"İlk paketiniz en öncelikli sipariş olmalıdır. Lütfen önce \"{top_order.get('restaurant_name', '')}\" siparişini alın."
+            )
 
     # Assign + Confirm (tek adımda)
     from routers.orders import assign_courier_core, update_order_status_core

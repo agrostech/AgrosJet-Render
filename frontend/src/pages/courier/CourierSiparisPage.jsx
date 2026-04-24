@@ -112,7 +112,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   // Havuz state
   const [poolOrders, setPoolOrders] = useState([]);
   const [poolLoading, setPoolLoading] = useState(false);
-  const [poolInfo, setPoolInfo] = useState({ pool_enabled: false, courier_access: true, active_count: 0, max_packages: 5 });
+  const [poolInfo, setPoolInfo] = useState({ pool_enabled: false, courier_access: true, active_count: 0, max_packages: 5, first_only: false });
   const [claimingOrderId, setClaimingOrderId] = useState(null);
   const [pendingClaimOrder, setPendingClaimOrder] = useState(null);
   const courierLocationRef = useRef({ lat: null, lng: null });
@@ -756,6 +756,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
         courier_access: res.data.courier_access ?? true,
         active_count: res.data.active_count ?? 0,
         max_packages: res.data.max_packages ?? 5,
+        first_only: res.data.first_only ?? false,
         reason: res.data.reason || null,
       });
     } catch (err) {
@@ -1145,22 +1146,26 @@ export default function CourierSiparisPage({ courierId, companyId }) {
             </div>
           ) : (
             <div className="space-y-2">
-              {poolOrders.map((order) => {
+              {poolOrders.map((order, idx) => {
                 const prepEnd = order.preparation_end_at ? new Date(order.preparation_end_at) : null;
                 const remainingMin = prepEnd ? Math.max(0, Math.round((prepEnd - Date.now()) / 60000)) : null;
                 const isReady = order.status === 'ready';
                 const pi = PAYMENT_METHODS[order.payment_method] || PAYMENT_METHODS.cash;
                 const PI = pi.icon;
                 const isAtLimit = poolInfo.active_count >= poolInfo.max_packages;
+                const isLocked = poolInfo.first_only && idx > 0;
 
                 return (
-                  <div key={order.id} className="rounded-lg border border-slate-200 bg-white overflow-hidden" data-testid={`pool-order-${order.id}`}>
+                  <div key={order.id} className={`rounded-lg border bg-white overflow-hidden ${idx === 0 && poolInfo.first_only ? 'border-cyan-300 ring-1 ring-cyan-200' : 'border-slate-200'}`} data-testid={`pool-order-${order.id}`}>
                     {/* Üst bar */}
                     <div className={`${isReady ? 'bg-green-500' : 'bg-amber-500'} px-3 py-1.5 flex items-center justify-between`}>
                       <span className="text-[11px] font-bold text-white flex items-center gap-1">
                         {isReady ? 'Hazır' : 'Hazırlanıyor'}
                         {remainingMin !== null && !isReady && (
                           <span> · {remainingMin} dk kaldı</span>
+                        )}
+                        {order.pool_score != null && (
+                          <span className="ml-1 bg-white/20 px-1.5 py-px rounded text-[9px]">#{idx + 1}</span>
                         )}
                       </span>
                       <span className="text-[11px] font-bold text-white flex items-center gap-2">
@@ -1193,22 +1198,28 @@ export default function CourierSiparisPage({ courierId, companyId }) {
                         </div>
                       )}
                       <div className="border-t border-slate-100 mt-2 mb-1.5" />
-                      <button
-                        onClick={() => handleClaimOrderConfirm(order)}
-                        disabled={claimingOrderId === order.id || isAtLimit}
-                        className={`w-full h-9 rounded-md text-white text-[12px] font-bold flex items-center justify-center gap-1.5 active:scale-[0.98] disabled:opacity-50 transition-all ${
-                          isAtLimit ? 'bg-slate-400' : 'bg-cyan-600 active:bg-cyan-700'
-                        }`}
-                        data-testid={`pool-claim-${order.id}`}
-                      >
-                        {claimingOrderId === order.id ? (
-                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                        ) : isAtLimit ? (
-                          <>Limit Doldu ({poolInfo.active_count}/{poolInfo.max_packages})</>
-                        ) : (
-                          <><Package className="w-3.5 h-3.5" /> Üzerime Al</>
-                        )}
-                      </button>
+                      {isLocked ? (
+                        <div className="w-full h-9 rounded-md bg-slate-100 text-slate-400 text-[12px] font-medium flex items-center justify-center gap-1.5">
+                          Önce #1 siparişi almalısınız
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => handleClaimOrderConfirm(order)}
+                          disabled={claimingOrderId === order.id || isAtLimit}
+                          className={`w-full h-9 rounded-md text-white text-[12px] font-bold flex items-center justify-center gap-1.5 active:scale-[0.98] disabled:opacity-50 transition-all ${
+                            isAtLimit ? 'bg-slate-400' : 'bg-cyan-600 active:bg-cyan-700'
+                          }`}
+                          data-testid={`pool-claim-${order.id}`}
+                        >
+                          {claimingOrderId === order.id ? (
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          ) : isAtLimit ? (
+                            <>Limit Doldu ({poolInfo.active_count}/{poolInfo.max_packages})</>
+                          ) : (
+                            <><Package className="w-3.5 h-3.5" /> Üzerime Al</>
+                          )}
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
