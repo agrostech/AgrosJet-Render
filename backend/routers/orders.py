@@ -2033,17 +2033,18 @@ async def get_available_couriers_for_restaurant(restaurant_id: str):
     
     blocked_couriers = restaurant.get("blocked_couriers", [])
     
-    # Restoranda aktif (atanmış ama teslim edilmemiş) siparişleri bul
+    # Restoranda sadece "confirmed" durumundaki siparişleri bul
+    # assigned (henüz onaylanmadı) ve on_the_way (yolda) olan kuryeler gösterilmez
     active_orders = await db.orders.find(
         {
             "restaurant_id": restaurant_id,
-            "status": {"$in": ["assigned", "confirmed", "on_the_way"]},
+            "status": "confirmed",
             "courier_id": {"$ne": None}
         },
         {"_id": 0, "courier_id": 1}
     ).to_list(100)
     
-    # Bu restorandan paketi olan kurye ID'lerini topla
+    # Bu restorandan onaylanmış paketi olan kurye ID'lerini topla
     couriers_with_packages = list(set(o.get("courier_id") for o in active_orders if o.get("courier_id")))
     
     if couriers_with_packages:
@@ -2110,11 +2111,11 @@ async def assign_courier_from_restaurant(restaurant_id: str, order_id: str, data
     if data.courier_id in blocked_couriers:
         raise HTTPException(status_code=400, detail="Bu kurye restoran tarafından engellenmiş")
     
-    # Restoranda aktif siparişleri kontrol et
+    # Restoranda sadece "confirmed" durumundaki siparişleri kontrol et
     active_orders = await db.orders.find(
         {
             "restaurant_id": restaurant_id,
-            "status": {"$in": ["assigned", "confirmed", "on_the_way"]},
+            "status": "confirmed",
             "courier_id": {"$ne": None}
         },
         {"_id": 0, "courier_id": 1}
@@ -2122,11 +2123,11 @@ async def assign_courier_from_restaurant(restaurant_id: str, order_id: str, data
     
     couriers_with_packages = list(set(o.get("courier_id") for o in active_orders if o.get("courier_id")))
     
-    # Eğer restoranda atanmış sipariş varsa, sadece o kuryelere atama yapılabilir
+    # Eğer restoranda onaylanmış paketi olan kurye varsa, sadece o kuryelere atama yapılabilir
     if couriers_with_packages and data.courier_id not in couriers_with_packages:
         raise HTTPException(
             status_code=400, 
-            detail="Bu restorandan sadece halihazırda paketi olan kuryelere atama yapabilirsiniz"
+            detail="Bu restorandan sadece onaylanmış paketi olan kuryelere atama yapabilirsiniz"
         )
     
     # Merkezi fonksiyon ile ata (fee hesaplanır ama restoran panelde gösterilmez)
@@ -3211,11 +3212,11 @@ async def get_couriers_with_eta_for_restaurant(restaurant_id: str):
         "longitude": restaurant.get("longitude")
     }
     
-    # Restoranda aktif siparişleri bul
+    # Restoranda sadece "confirmed" durumundaki siparişleri bul
     active_orders = await db.orders.find(
         {
             "restaurant_id": restaurant_id,
-            "status": {"$in": ["assigned", "confirmed", "on_the_way"]},
+            "status": "confirmed",
             "courier_id": {"$ne": None}
         },
         {"_id": 0, "courier_id": 1}
