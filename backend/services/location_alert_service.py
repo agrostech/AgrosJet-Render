@@ -27,9 +27,9 @@ async def check_stale_locations():
         stale_cutoff = now - timedelta(minutes=STALE_THRESHOLD_MINUTES)
         cooldown_cutoff = now - timedelta(minutes=NOTIFICATION_COOLDOWN_MINUTES)
 
-        # Aktif kuryeleri couriers tablosundan bul (status=active)
+        # Aktif kuryeleri couriers tablosundan bul (availability_status=active)
         active_couriers = await db.couriers.find(
-            {"status": "active"},
+            {"availability_status": "active"},
             {"_id": 0, "id": 1, "name": 1, "current_location": 1,
              "permissions": 1, "last_location_alert_at": 1}
         ).to_list(500)
