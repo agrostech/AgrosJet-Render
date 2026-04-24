@@ -232,11 +232,6 @@ export default function PerformansRaporu({ courierId, companyId }) {
                 <p className="text-lg font-bold">{stats.totalDeliveries}</p>
               </div>
             </div>
-            {stats.deliveryChampion && stats.deliveryChampion.totalDeliveries > 0 && (
-              <p className="text-[10px] text-muted-foreground text-right max-w-[140px]">
-                {leaderLabel}: {stats.deliveryChampion.name} ({stats.deliveryChampion.totalDeliveries})
-              </p>
-            )}
           </div>
 
           <div className="border-t border-slate-100" />
