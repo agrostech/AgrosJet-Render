@@ -778,7 +778,8 @@ async def get_courier_permissions(courier_id: str):
     
     default_permissions = {
         "can_mark_not_ready": True,
-        "pool_access": True
+        "pool_access": True,
+        "location_alert_enabled": True
     }
     
     saved = courier.get("permissions", {})

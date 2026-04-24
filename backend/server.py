@@ -491,6 +491,24 @@ async def lifespan(app: FastAPI):
     # --- MongoDB Yedekleme ---
     from services.backup_service import run_frequent_backup, run_daily_backup
     
+    # --- Konum Güncelliği Bildirimi ---
+    from services.location_alert_service import check_stale_locations
+    
+    async def location_alert_job():
+        try:
+            await check_stale_locations()
+        except Exception as e:
+            print(f"Location alert job error: {e}")
+    
+    scheduler.add_job(
+        location_alert_job,
+        'interval',
+        minutes=5,
+        id="location_alert_check",
+        name="Location Stale Alert (5dk)",
+        replace_existing=True
+    )
+    
     # 15 dakikada bir yedek (max 5 döngüsel)
     scheduler.add_job(
         run_frequent_backup,

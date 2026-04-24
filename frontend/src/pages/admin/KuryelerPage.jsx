@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { Switch } from "@/components/ui/switch";
-import { Search, UserPlus, UserCheck, UserX, Wallet, CreditCard, Banknote, Globe, UtensilsCrossed, Clock, Package, Coffee, LayoutGrid, List, Shield, CalendarDays, AlertTriangle } from "lucide-react";
+import { Search, UserPlus, UserCheck, UserX, Wallet, CreditCard, Banknote, Globe, UtensilsCrossed, Clock, Package, Coffee, LayoutGrid, List, Shield, CalendarDays, AlertTriangle, MapPin } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 
 import { useKuryeler } from "@/hooks/useKuryeler";
@@ -1053,6 +1053,23 @@ export default function KuryelerPage({ companyId }) {
                 checked={courierPermissions.pool_access !== false}
                 onCheckedChange={(checked) => setCourierPermissions(prev => ({ ...prev, pool_access: checked }))}
                 data-testid="pool-access-toggle"
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-slate-50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                  <MapPin className="w-5 h-5 text-red-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-sm">Konum Bildirimi</p>
+                  <p className="text-xs text-muted-foreground">Konum güncel değilse kuryeye bildirim gönder</p>
+                </div>
+              </div>
+              <Switch
+                checked={courierPermissions.location_alert_enabled !== false}
+                onCheckedChange={(checked) => setCourierPermissions(prev => ({ ...prev, location_alert_enabled: checked }))}
+                data-testid="location-alert-toggle"
               />
             </div>
           </div>
