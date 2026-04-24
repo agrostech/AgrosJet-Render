@@ -1231,36 +1231,34 @@ async def get_weekly_summary(company_id: str, week_start: str = None):
         end_dt = (day_date + timedelta(days=1)).replace(hour=close_hour, minute=close_min, second=59, microsecond=999999, tzinfo=turkey_tz)
         
         # O gün siparişi olan kurye sayısını hesapla (delivered_at ile)
-        # Önce o tarih aralığındaki tüm siparişleri çek
+        # Tarih aralığına göre filtrele
         all_day_orders = await db.orders.find({
             "company_id": company_id,
-            "status": "delivered"
-        }, {"_id": 0, "delivered_at": 1, "courier_id": 1}).to_list(5000)
+            "status": "delivered",
+            "courier_id": {"$in": courier_ids, "$ne": None},
+            "delivered_at": {"$gte": start_dt.isoformat(), "$lt": end_dt.isoformat()}
+        }, {"_id": 0, "courier_id": 1, "payment_method": 1, "total_amount": 1}).to_list(5000)
         
-        couriers_with_orders = set()
+        # Nakit veya kart toplamı > 0 olan kuryeleri say (couriers endpoint mantığıyla aynı)
+        from collections import defaultdict
+        courier_has_collectible = defaultdict(bool)
         for order in all_day_orders:
-            courier_id = order.get("courier_id")
-            if not courier_id:
+            cid = order.get("courier_id")
+            if not cid:
                 continue
-            delivered_at = order.get("delivered_at")
-            if delivered_at:
-                try:
-                    if isinstance(delivered_at, str):
-                        order_dt = datetime.fromisoformat(delivered_at.replace('Z', '+00:00'))
-                    elif isinstance(delivered_at, datetime):
-                        order_dt = delivered_at
-                    else:
-                        continue
-                    
-                    # Timezone yoksa Türkiye saati kabul et
-                    if order_dt.tzinfo is None:
-                        order_dt = order_dt.replace(tzinfo=turkey_tz)
-                    
-                    if start_dt <= order_dt < end_dt:
-                        couriers_with_orders.add(courier_id)
-                except Exception:
-                    continue
+            pm = order.get("payment_method", "")
+            if pm in ("cash", "card", "meal_card"):
+                courier_has_collectible[cid] = True
         
+        # Tahsilat veya mütabakat kaydı olan kuryeler de dahil
+        day_collections = await db.daily_mutabakat_collections.distinct(
+            "courier_id", {"company_id": company_id, "date": date_str}
+        )
+        day_processed = await db.daily_mutabakat_processed.distinct(
+            "courier_id", {"company_id": company_id, "date": date_str}
+        )
+        
+        couriers_with_orders = set(courier_has_collectible.keys()) | set(day_collections) | set(day_processed)
         total_with_orders = len(couriers_with_orders)
         
         # O gün tahsilat kaydı olan kurye sayısı
