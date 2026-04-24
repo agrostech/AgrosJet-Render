@@ -1133,7 +1133,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
             <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
               <Inbox className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
               <h3 className="font-semibold text-lg mb-1">Erişim Kapalı</h3>
-              <p className="text-sm text-muted-foreground">Havuz erişiminiz yönetici tarafından kapatılmış</p>
+              <p className="text-sm text-muted-foreground">{poolInfo.reason || "Havuz erişiminiz kapalı"}</p>
             </div>
           ) : poolInfo.pool_time_expired ? (
             <div className="border-2 border-dashed border-amber-300 rounded-lg p-8 text-center bg-amber-50">
