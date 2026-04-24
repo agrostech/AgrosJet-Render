@@ -777,7 +777,8 @@ async def get_courier_permissions(courier_id: str):
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
     
     default_permissions = {
-        "can_mark_not_ready": True
+        "can_mark_not_ready": True,
+        "pool_access": True
     }
     
     saved = courier.get("permissions", {})

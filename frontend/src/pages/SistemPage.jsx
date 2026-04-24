@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { SlidersHorizontal, Save, Mail, AlertCircle, Eye, EyeOff, ChevronDown, ChevronUp, Building2, Clock, Zap, FileText } from "lucide-react";
+import { SlidersHorizontal, Save, Mail, AlertCircle, Eye, EyeOff, ChevronDown, ChevronUp, Building2, Clock, Zap, FileText, Inbox } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { PageLoading, LoadingSpinner } from "@/components/ui/loading-spinner";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 
@@ -95,6 +96,18 @@ export default function SistemPage({ companyId }) {
   const [autoDispatchLoading, setAutoDispatchLoading] = useState(true);
   const [autoDispatchSaving, setAutoDispatchSaving] = useState(false);
 
+  // Pool Settings
+  const [poolExpanded, setPoolExpanded] = useState(false);
+  const [poolSettings, setPoolSettings] = useState({
+    enabled: false,
+    show_pending: true,
+    show_ready: false,
+    pending_threshold_minutes: 6,
+    max_courier_distance: 5000,
+  });
+  const [poolLoading, setPoolLoading] = useState(true);
+  const [poolSaving, setPoolSaving] = useState(false);
+
   // Optimize edilmiş varsayılan ayarlar
   const OPTIMIZED_DISPATCH_SETTINGS = {
     enabled: true,
@@ -138,6 +151,7 @@ export default function SistemPage({ companyId }) {
     fetchCompanyInfo();
     fetchEmailSettings();
     fetchAutoDispatchSettings();
+    fetchPoolSettings();
     fetchContractSettings();
   }, [companyId]);
 
@@ -305,6 +319,39 @@ export default function SistemPage({ companyId }) {
       }
     } finally {
       setAutoDispatchSaving(false);
+    }
+  };
+
+  // Pool Settings fetch/save
+  const fetchPoolSettings = async () => {
+    if (!companyId) return;
+    try {
+      const res = await axios.get(`${API}/pool/settings/${companyId}`);
+      setPoolSettings({
+        enabled: res.data.enabled || false,
+        show_pending: res.data.show_pending !== false,
+        show_ready: res.data.show_ready || false,
+        pending_threshold_minutes: res.data.pending_threshold_minutes ?? 6,
+        max_courier_distance: res.data.max_courier_distance ?? 5000,
+      });
+    } catch (err) {
+      console.error("Pool settings fetch error:", err);
+    } finally {
+      setPoolLoading(false);
+    }
+  };
+
+  const handlePoolSave = async () => {
+    setPoolSaving(true);
+    try {
+      await axios.put(`${API}/pool/settings/${companyId}`, poolSettings);
+      toast.success("Paket havuzu ayarları kaydedildi");
+    } catch (err) {
+      if (!err.handled) {
+        toast.error("Kaydetme başarısız");
+      }
+    } finally {
+      setPoolSaving(false);
     }
   };
 
@@ -967,6 +1014,163 @@ export default function SistemPage({ companyId }) {
                   {autoDispatchSaving ? "Kaydediliyor..." : "Ayarları Kaydet"}
                 </Button>
               </div>
+            </div>
+          )
+        )}
+      </div>
+
+      {/* Paket Havuzu Ayarları - Collapsible */}
+      <div className="border-2 border-border bg-white" data-testid="pool-settings-card">
+        <button 
+          type="button"
+          onClick={() => setPoolExpanded(!poolExpanded)}
+          className="w-full p-3 md:p-4 border-b-2 border-border bg-slate-50 flex items-center justify-between"
+        >
+          <div className="flex items-center gap-2">
+            <Inbox className="w-4 h-4 md:w-5 md:h-5 text-slate-600" />
+            <h3 className="font-semibold text-sm md:text-base">Paket Havuzu</h3>
+            {poolSettings.enabled && (
+              <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full hidden sm:inline">
+                Aktif
+              </span>
+            )}
+          </div>
+          {poolExpanded ? (
+            <ChevronUp className="w-5 h-5 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-muted-foreground" />
+          )}
+        </button>
+        
+        {poolExpanded && (
+          poolLoading ? (
+            <div className="py-8"><LoadingSpinner size="default" /></div>
+          ) : (
+            <div className="p-4 md:p-6 space-y-6">
+              {/* Ana Toggle */}
+              <div className="flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl border border-slate-200">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0">
+                    <Inbox className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-600" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-sm">Paket Havuzu</p>
+                    <p className="text-xs text-muted-foreground">Kuryeler atanmamış siparişleri görüp üzerlerine alabilir</p>
+                  </div>
+                </div>
+                <Switch 
+                  checked={poolSettings.enabled}
+                  onCheckedChange={(checked) => setPoolSettings(prev => ({ ...prev, enabled: checked }))}
+                  data-testid="pool-enabled-toggle"
+                />
+              </div>
+
+              {poolSettings.enabled && (
+                <div className="space-y-5">
+                  {/* Hangi Siparisler Gosterilsin */}
+                  <div className="space-y-4">
+                    <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Havuzda Gösterilecek Siparişler</h4>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Beklemede Checkbox */}
+                      <div className="p-3 sm:p-4 bg-white rounded-xl border border-slate-200 space-y-3">
+                        <div className="flex items-center gap-3">
+                          <Checkbox
+                            id="pool-show-pending"
+                            checked={poolSettings.show_pending}
+                            onCheckedChange={(checked) => setPoolSettings(prev => ({ ...prev, show_pending: !!checked }))}
+                            data-testid="pool-show-pending"
+                          />
+                          <Label htmlFor="pool-show-pending" className="font-medium text-sm cursor-pointer">
+                            Beklemede / Hazırlanıyor
+                          </Label>
+                        </div>
+                        {poolSettings.show_pending && (
+                          <div className="pl-7 space-y-2">
+                            <Label className="text-xs text-slate-600">Esik Suresi (dakika)</Label>
+                            <Input
+                              type="number"
+                              min="0"
+                              max="60"
+                              value={poolSettings.pending_threshold_minutes}
+                              onChange={(e) => setPoolSettings(prev => ({ ...prev, pending_threshold_minutes: parseInt(e.target.value) || 0 }))}
+                              className="h-9"
+                              data-testid="pool-threshold-minutes"
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              Kalan hazırlık süresi bu değerin altındaki siparişler havuzda gösterilir
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Hazırlandı Checkbox */}
+                      <div className="p-3 sm:p-4 bg-white rounded-xl border border-slate-200">
+                        <div className="flex items-center gap-3">
+                          <Checkbox
+                            id="pool-show-ready"
+                            checked={poolSettings.show_ready}
+                            onCheckedChange={(checked) => setPoolSettings(prev => ({ ...prev, show_ready: !!checked }))}
+                            data-testid="pool-show-ready"
+                          />
+                          <Label htmlFor="pool-show-ready" className="font-medium text-sm cursor-pointer">
+                            Hazırlandı
+                          </Label>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2 pl-7">
+                          Hazır olan siparişler havuzda gösterilir
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Kurye Uzaklik Limiti */}
+                  <div className="space-y-4">
+                    <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Kurye Uzaklik Limiti</h4>
+                    <div className="p-3 sm:p-4 bg-white rounded-xl border border-slate-200 space-y-3">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm">Maksimum Mesafe</p>
+                          <p className="text-xs text-muted-foreground">Bu mesafeden uzaktaki kuryeler havuzu göremez</p>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Input
+                          type="number"
+                          min="100"
+                          max="50000"
+                          step="100"
+                          value={poolSettings.max_courier_distance}
+                          onChange={(e) => setPoolSettings(prev => ({ ...prev, max_courier_distance: parseInt(e.target.value) || 0 }))}
+                          className="h-9"
+                          data-testid="pool-max-distance"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          {poolSettings.max_courier_distance >= 1000
+                            ? `${(poolSettings.max_courier_distance / 1000).toFixed(1)} km`
+                            : `${poolSettings.max_courier_distance} metre`
+                          }
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <Button 
+                onClick={handlePoolSave} 
+                disabled={poolSaving} 
+                className="w-full h-11 font-semibold"
+                data-testid="pool-save-btn"
+              >
+                {poolSaving ? "Kaydediliyor..." : "Ayarları Kaydet"}
+              </Button>
             </div>
           )
         )}

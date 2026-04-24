@@ -1038,6 +1038,23 @@ export default function KuryelerPage({ companyId }) {
                 onCheckedChange={(checked) => setCourierPermissions(prev => ({ ...prev, can_mark_not_ready: checked }))}
               />
             </div>
+
+            <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-slate-50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-cyan-100 flex items-center justify-center">
+                  <Package className="w-5 h-5 text-cyan-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-sm">Paket Havuzu Erişimi</p>
+                  <p className="text-xs text-muted-foreground">Kurye havuzdaki siparişleri görüp üzerine alabilir</p>
+                </div>
+              </div>
+              <Switch
+                checked={courierPermissions.pool_access !== false}
+                onCheckedChange={(checked) => setCourierPermissions(prev => ({ ...prev, pool_access: checked }))}
+                data-testid="pool-access-toggle"
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowPermissionsModal(false)}>

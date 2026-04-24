@@ -36,6 +36,7 @@ import {
   ChevronDown,
   ChevronUp,
   Sparkles,
+  Inbox,
 } from "lucide-react";
 
 // Ortak utility fonksiyonları import et
@@ -98,15 +99,22 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   const [showPaymentConfirmModal, setShowPaymentConfirmModal] = useState(false);
   const [showOnlineDeliveryConfirmModal, setShowOnlineDeliveryConfirmModal] = useState(false);
   const [pendingDeliveryOrder, setPendingDeliveryOrder] = useState(null);
-  const [viewMode, setViewMode] = useState("list"); // "list" | "route"
+  const [viewMode, setViewMode] = useState("list"); // "pool" | "list" | "route"
   const [expandedPickups, setExpandedPickups] = useState(new Set());
   const [showNotReadyModal, setShowNotReadyModal] = useState(false);
   const [pendingNotReadyOrder, setPendingNotReadyOrder] = useState(null);
-  const [permissions, setPermissions] = useState({ can_mark_not_ready: true });
+  const [permissions, setPermissions] = useState({ can_mark_not_ready: true, pool_access: true });
   const [smartRouteData, setSmartRouteData] = useState([]); // Akıllı rota adımları
   const [refreshCountdown, setRefreshCountdown] = useState(0);
   const [smartRouteTotalDistance, setSmartRouteTotalDistance] = useState(0);
   const wakeLockRef = useRef(null);
+
+  // Havuz state
+  const [poolOrders, setPoolOrders] = useState([]);
+  const [poolLoading, setPoolLoading] = useState(false);
+  const [poolInfo, setPoolInfo] = useState({ pool_enabled: false, courier_access: true, active_count: 0, max_packages: 5 });
+  const [claimingOrderId, setClaimingOrderId] = useState(null);
+  const courierLocationRef = useRef({ lat: null, lng: null });
 
   // Wake Lock API - ekranın kapanmasını önle ve arka plan işlemlerini sürdür
   const requestWakeLock = useCallback(async () => {
@@ -143,6 +151,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
           const { latitude, longitude } = msg.data;
           if (latitude && longitude) {
             lastLocationRef.current = { lat: latitude, lng: longitude, time: Date.now() };
+            courierLocationRef.current = { lat: latitude, lng: longitude };
           }
         }
       } catch (e) {}
@@ -728,26 +737,75 @@ export default function CourierSiparisPage({ courierId, companyId }) {
     }
   }, [courierId]);
 
+  // Havuz siparişlerini getir
+  const fetchPoolOrders = useCallback(async () => {
+    if (!companyId || !courierId) return;
+    setPoolLoading(true);
+    try {
+      const loc = courierLocationRef.current;
+      const params = { courier_id: courierId };
+      if (loc.lat && loc.lng) {
+        params.lat = loc.lat;
+        params.lng = loc.lng;
+      }
+      const res = await axios.get(`${API}/pool/orders/${companyId}`, { params });
+      setPoolOrders(res.data.orders || []);
+      setPoolInfo({
+        pool_enabled: res.data.pool_enabled ?? false,
+        courier_access: res.data.courier_access ?? true,
+        active_count: res.data.active_count ?? 0,
+        max_packages: res.data.max_packages ?? 5,
+        reason: res.data.reason || null,
+      });
+    } catch (err) {
+      console.log("Havuz yüklenemedi:", err.message);
+    } finally {
+      setPoolLoading(false);
+    }
+  }, [companyId, courierId]);
+
+  // Havuzdan sipariş al
+  const handleClaimOrder = async (orderId) => {
+    setClaimingOrderId(orderId);
+    try {
+      await axios.post(`${API}/pool/claim/${orderId}`, null, {
+        params: { courier_id: courierId }
+      });
+      toast.success("Sipariş havuzdan alındı");
+      fetchPoolOrders();
+      fetchOrders();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Sipariş alınamadı");
+    } finally {
+      setClaimingOrderId(null);
+    }
+  };
+
   useEffect(() => {
     if (courierId) {
       fetchOrders(false);
       
       // Yetkileri çek
       axios.get(`${API}/couriers/${courierId}/permissions`)
-        .then(res => setPermissions(res.data.permissions || { can_mark_not_ready: true }))
+        .then(res => setPermissions(res.data.permissions || { can_mark_not_ready: true, pool_access: true }))
         .catch(() => {});
       
       // Wake Lock al - ekranın kapanmasını önle
       requestWakeLock();
       
-      // Her 2 saniyede bir siparişleri güncelle
+      // Her 10 saniyede bir siparişleri güncelle
       const interval = setInterval(() => fetchOrders(false), 10000);
+      
+      // Havuz siparişlerini ilk yükle ve periyodik güncelle
+      fetchPoolOrders();
+      const poolInterval = setInterval(() => fetchPoolOrders(), 15000);
       
       // Sayfa tekrar görünür olduğunda hemen fetch yap (arka plandan dönünce)
       const handleVisibilityChange = async () => {
         if (document.visibilityState === 'visible') {
           console.log("Sayfa görünür oldu, siparişler yenileniyor...");
           fetchOrders(false);
+          fetchPoolOrders();
           
           // Wake Lock'ı yeniden al (arka plandan dönünce kaybolabilir)
           await requestWakeLock();
@@ -760,11 +818,12 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       
       return () => {
         clearInterval(interval);
+        clearInterval(poolInterval);
         document.removeEventListener('visibilitychange', handleVisibilityChange);
         releaseWakeLock();
       };
     }
-  }, [courierId, fetchOrders, requestWakeLock, releaseWakeLock]);
+  }, [courierId, fetchOrders, fetchPoolOrders, requestWakeLock, releaseWakeLock]);
 
   // Siparişi onayla (Gördüm)
   const handleConfirmOrder = async (orderId) => {
@@ -938,11 +997,33 @@ export default function CourierSiparisPage({ courierId, companyId }) {
 
   return (
     <div className="space-y-3" data-testid="courier-siparis-page">
-      {/* Görünüm Toggle - Liste / Rota */}
+      {/* Görünüm Toggle - Havuz / Siparişlerim / Rota */}
       <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-1 gap-1">
+        {/* Havuz sekmesi - sadece erişimi varsa göster */}
+        {poolInfo.pool_enabled && permissions.pool_access !== false && (
+          <button
+            onClick={() => { setViewMode("pool"); fetchPoolOrders(); }}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-md text-sm font-medium transition-all ${
+              viewMode === "pool"
+                ? "bg-white dark:bg-slate-600 text-cyan-700 dark:text-cyan-300 shadow-md border border-cyan-200 dark:border-cyan-500"
+                : "bg-slate-200/60 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-100"
+            }`}
+            data-testid="view-mode-pool"
+          >
+            <Inbox className="w-4 h-4" />
+            Havuz
+            {poolOrders.length > 0 && (
+              <span className={`px-1.5 py-0.5 rounded-full text-xs ${
+                viewMode === "pool" ? "bg-cyan-100 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-200" : "bg-slate-300 dark:bg-slate-600 text-slate-600 dark:text-slate-200"
+              }`}>
+                {poolOrders.length}
+              </span>
+            )}
+          </button>
+        )}
         <button
           onClick={() => setViewMode("list")}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition-all ${
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-md text-sm font-medium transition-all ${
             viewMode === "list"
               ? "bg-white dark:bg-slate-600 text-purple-700 dark:text-purple-300 shadow-md border border-purple-200 dark:border-purple-500"
               : "bg-slate-200/60 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-100"
@@ -950,7 +1031,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
           data-testid="view-mode-list"
         >
           <ClipboardList className="w-4 h-4" />
-          Liste
+          Siparişlerim
           {assignedOrders.length > 0 && (
             <span className={`px-1.5 py-0.5 rounded-full text-xs ${
               viewMode === "list" ? "bg-purple-100 dark:bg-purple-800 text-purple-700 dark:text-purple-200" : "bg-slate-300 dark:bg-slate-600 text-slate-600 dark:text-slate-200"
@@ -973,7 +1054,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
               setViewMode("route");
             }
           }}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition-all ${
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-md text-sm font-medium transition-all ${
             viewMode === "route"
               ? "bg-white dark:bg-slate-600 text-indigo-700 dark:text-indigo-300 shadow-md border border-indigo-200 dark:border-indigo-500"
               : "bg-slate-200/60 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-100"
@@ -1012,6 +1093,123 @@ export default function CourierSiparisPage({ courierId, companyId }) {
         <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-purple-600 dark:text-purple-400' : ''}`} />
         {refreshing ? 'Yenileniyor...' : refreshCountdown > 0 ? `Yenilendi · ${refreshCountdown}s sonra tekrar dene` : 'Siparişleri Yenile'}
       </button>
+
+      {/* Havuz Görünümü */}
+      {viewMode === "pool" && (
+        <div className="space-y-3" data-testid="pool-view">
+          {/* Kapasite bilgisi */}
+          <div className="flex items-center justify-between px-3 py-2 bg-slate-50 rounded-lg border border-slate-200">
+            <span className="text-xs text-slate-500">
+              Aktif paketleriniz: <span className="font-bold text-slate-700">{poolInfo.active_count}</span> / {poolInfo.max_packages}
+            </span>
+            <button
+              onClick={fetchPoolOrders}
+              disabled={poolLoading}
+              className="text-xs text-cyan-600 font-medium flex items-center gap-1"
+              data-testid="pool-refresh-btn"
+            >
+              <RefreshCw className={`w-3 h-3 ${poolLoading ? 'animate-spin' : ''}`} />
+              Yenile
+            </button>
+          </div>
+
+          {!poolInfo.pool_enabled ? (
+            <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
+              <Inbox className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
+              <h3 className="font-semibold text-lg mb-1">Havuz Kapalı</h3>
+              <p className="text-sm text-muted-foreground">Paket havuzu şirket tarafından aktif edilmemiş</p>
+            </div>
+          ) : poolInfo.courier_access === false ? (
+            <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
+              <Inbox className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
+              <h3 className="font-semibold text-lg mb-1">Erişim Kapalı</h3>
+              <p className="text-sm text-muted-foreground">Havuz erişiminiz yönetici tarafından kapatılmış</p>
+            </div>
+          ) : poolLoading && poolOrders.length === 0 ? (
+            <div className="py-12 text-center">
+              <RefreshCw className="w-6 h-6 mx-auto text-muted-foreground animate-spin mb-2" />
+              <p className="text-sm text-muted-foreground">Havuz yükleniyor...</p>
+            </div>
+          ) : poolOrders.length === 0 ? (
+            <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
+              <Inbox className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
+              <h3 className="font-semibold text-lg mb-1">Havuz Boş</h3>
+              <p className="text-sm text-muted-foreground">Şu anda havuzda uygun sipariş yok</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {poolOrders.map((order) => {
+                const prepEnd = order.preparation_end_at ? new Date(order.preparation_end_at) : null;
+                const remainingMin = prepEnd ? Math.max(0, Math.round((prepEnd - Date.now()) / 60000)) : null;
+                const isReady = order.status === 'ready';
+                const pi = PAYMENT_METHODS[order.payment_method] || PAYMENT_METHODS.cash;
+                const PI = pi.icon;
+                const isAtLimit = poolInfo.active_count >= poolInfo.max_packages;
+
+                return (
+                  <div key={order.id} className="rounded-lg border border-slate-200 bg-white overflow-hidden" data-testid={`pool-order-${order.id}`}>
+                    {/* Üst bar */}
+                    <div className={`${isReady ? 'bg-green-500' : 'bg-amber-500'} px-3 py-1.5 flex items-center justify-between`}>
+                      <span className="text-[11px] font-bold text-white flex items-center gap-1">
+                        {isReady ? 'Hazır' : 'Hazırlanıyor'}
+                        {remainingMin !== null && !isReady && (
+                          <span> · {remainingMin} dk kaldı</span>
+                        )}
+                      </span>
+                      <span className="text-[11px] font-bold text-white flex items-center gap-2">
+                        <span className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${pi.badge}`}>
+                          <PI className="w-3 h-3" />{getPaymentLabel(order)}
+                        </span>
+                        {formatCurrency(order.total_amount)}
+                      </span>
+                    </div>
+                    {/* İçerik */}
+                    <div className="px-3 py-2">
+                      <div className="flex items-center h-7">
+                        <Store className="w-3.5 h-3.5 text-orange-500 flex-shrink-0 mr-2" />
+                        <span className="text-[13px] font-semibold text-slate-800 truncate flex-1">{order.restaurant_name}</span>
+                        {order.courier_distance != null && (
+                          <span className="text-[11px] text-slate-400 flex-shrink-0 ml-2">
+                            {order.courier_distance >= 1000 ? `${(order.courier_distance / 1000).toFixed(1)} km` : `${order.courier_distance} m`}
+                          </span>
+                        )}
+                      </div>
+                      <div className="border-t border-dashed border-slate-200 my-1.5" />
+                      <div className="flex items-center h-7">
+                        <User className="w-3.5 h-3.5 text-blue-500 flex-shrink-0 mr-2" />
+                        <span className="text-[13px] text-slate-600 truncate flex-1">{order.customer_name || order.delivery_address || '-'}</span>
+                      </div>
+                      {order.delivery_address && order.customer_name && (
+                        <div className="flex items-center h-6">
+                          <MapPin className="w-3 h-3 text-slate-400 flex-shrink-0 mr-2" />
+                          <span className="text-[11px] text-slate-400 truncate">{order.delivery_address}</span>
+                        </div>
+                      )}
+                      <div className="border-t border-slate-100 mt-2 mb-1.5" />
+                      <button
+                        onClick={() => handleClaimOrder(order.id)}
+                        disabled={claimingOrderId === order.id || isAtLimit}
+                        className={`w-full h-9 rounded-md text-white text-[12px] font-bold flex items-center justify-center gap-1.5 active:scale-[0.98] disabled:opacity-50 transition-all ${
+                          isAtLimit ? 'bg-slate-400' : 'bg-cyan-600 active:bg-cyan-700'
+                        }`}
+                        data-testid={`pool-claim-${order.id}`}
+                      >
+                        {claimingOrderId === order.id ? (
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        ) : isAtLimit ? (
+                          <>Limit Doldu ({poolInfo.active_count}/{poolInfo.max_packages})</>
+                        ) : (
+                          <><Package className="w-3.5 h-3.5" /> Üzerime Al</>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Liste Görünümü */}
       {viewMode === "list" && (

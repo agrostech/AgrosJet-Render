@@ -77,6 +77,14 @@ Multi-tenant delivery management platform for restaurants, couriers, and adminis
 - **Fix 2**: Webhook handler and sync function now write `status_history` entries with `actor_type: "adisyo_webhook"` / `"adisyo_sync"` and `actor_name: "Adisyo"`. Previously no history was recorded, making it impossible to distinguish Adisyo-triggered changes from courier actions.
 - **Files changed**: `/app/backend/routers/adisyo_webhook.py`, `/app/backend/services/adisyo_service.py`
 
+## Completed - Paket Havuzu (Order Pool) System (2026-04-24)
+- **New Feature**: Couriers can see unassigned orders in a pool and claim them.
+- **Backend**: New router `/api/pool/` with settings CRUD, pool orders listing (filtered by status, prep time threshold, courier distance), and claim endpoint (assigns + auto-confirms to `confirmed`).
+- **System Settings**: "Paket Havuzu" collapsible card added below auto-dispatch. Settings: enabled toggle, show_pending/show_ready checkboxes, pending_threshold_minutes, max_courier_distance.
+- **Courier Permissions**: `pool_access` toggle added to permissions modal in KuryelerPage.
+- **Courier Panel**: 2-tab (Liste/Rota) → 3-tab (Havuz/Siparişlerim/Rota). Pool tab shows available orders with "Üzerime Al" button, package limit enforcement, distance display.
+- **Files**: `/app/backend/routers/pool.py` (new), `server.py`, `SistemPage.jsx`, `KuryelerPage.jsx`, `CourierSiparisPage.jsx`, `couriers.py`
+
 ## Pending Issues (Prioritized)
 ### P2
 - "Neden AgrosJet?" static text update on RegisterPage + CourierKVKKPage

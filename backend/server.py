@@ -694,6 +694,7 @@ from routers.motorcycles import router as motorcycles_router
 from routers.chat import router as chat_router
 from routers.restaurants import router as restaurants_router
 from routers.orders import router as orders_router
+from routers.pool import router as pool_router
 from routers.finance import router as finance_router
 from routers.hakedis import router as hakedis_router
 from routers.weekly_hakedis import router as weekly_hakedis_router
@@ -757,6 +758,7 @@ app.include_router(motorcycles_router)
 app.include_router(chat_router)
 app.include_router(restaurants_router)
 app.include_router(orders_router)
+app.include_router(pool_router)
 app.include_router(finance_router)
 app.include_router(hakedis_router)
 app.include_router(weekly_hakedis_router)
