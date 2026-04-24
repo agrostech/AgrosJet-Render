@@ -144,6 +144,15 @@ async def get_pool_orders(
         if not permissions.get("pool_access", True):
             return {"orders": [], "pool_enabled": True, "courier_access": False, "reason": "Havuz erişiminiz kapalı"}
 
+        # Kurye aktif mi? (mola veya çevrimdışı ise havuzu göremez)
+        courier_link = await db.company_couriers.find_one(
+            {"company_id": company_id, "courier_id": courier_id},
+            {"_id": 0, "status": 1}
+        )
+        courier_status = courier_link.get("status") if courier_link else None
+        if courier_status != "active":
+            return {"orders": [], "pool_enabled": True, "courier_access": False, "reason": "Havuzu görmek için aktif durumda olmalısınız"}
+
         # Kuryenin izin verilen ödeme yöntemleri
         courier_allowed_methods = courier.get("allowed_payment_methods", ["cash", "card", "online", "meal_card", "online_meal_card"])
 
