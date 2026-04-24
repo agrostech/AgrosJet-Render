@@ -114,6 +114,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   const [poolLoading, setPoolLoading] = useState(false);
   const [poolInfo, setPoolInfo] = useState({ pool_enabled: false, courier_access: true, active_count: 0, max_packages: 5 });
   const [claimingOrderId, setClaimingOrderId] = useState(null);
+  const [pendingClaimOrder, setPendingClaimOrder] = useState(null);
   const courierLocationRef = useRef({ lat: null, lng: null });
 
   // Wake Lock API - ekranın kapanmasını önle ve arka plan işlemlerini sürdür
@@ -764,9 +765,15 @@ export default function CourierSiparisPage({ courierId, companyId }) {
     }
   }, [companyId, courierId]);
 
-  // Havuzdan sipariş al
+  // Havuzdan sipariş alma onay modalını aç
+  const handleClaimOrderConfirm = (order) => {
+    setPendingClaimOrder(order);
+  };
+
+  // Havuzdan sipariş al (onaylandıktan sonra)
   const handleClaimOrder = async (orderId) => {
     setClaimingOrderId(orderId);
+    setPendingClaimOrder(null);
     try {
       await axios.post(`${API}/pool/claim/${orderId}`, null, {
         params: { courier_id: courierId }
@@ -1187,7 +1194,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
                       )}
                       <div className="border-t border-slate-100 mt-2 mb-1.5" />
                       <button
-                        onClick={() => handleClaimOrder(order.id)}
+                        onClick={() => handleClaimOrderConfirm(order)}
                         disabled={claimingOrderId === order.id || isAtLimit}
                         className={`w-full h-9 rounded-md text-white text-[12px] font-bold flex items-center justify-center gap-1.5 active:scale-[0.98] disabled:opacity-50 transition-all ${
                           isAtLimit ? 'bg-slate-400' : 'bg-cyan-600 active:bg-cyan-700'
@@ -1701,6 +1708,57 @@ export default function CourierSiparisPage({ courierId, companyId }) {
                 <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
               ) : null}
               Evet, Onayla
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Havuzdan Alma Onay Modalı */}
+      <Dialog open={!!pendingClaimOrder} onOpenChange={(open) => { if (!open) setPendingClaimOrder(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-cyan-700">
+              <Package className="w-5 h-5" />
+              Siparişi Üzerinize Alın
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            {pendingClaimOrder && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Store className="w-4 h-4 text-orange-500" />
+                  <span className="text-sm font-semibold">{pendingClaimOrder.restaurant_name}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <User className="w-4 h-4 text-blue-500" />
+                  <span className="text-sm">{pendingClaimOrder.customer_name || pendingClaimOrder.delivery_address || '-'}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold">{formatCurrency(pendingClaimOrder.total_amount)}</span>
+                  <span className="text-xs text-muted-foreground">({(PAYMENT_METHODS[pendingClaimOrder.payment_method] || PAYMENT_METHODS.cash).label})</span>
+                </div>
+              </div>
+            )}
+            <p className="text-sm text-muted-foreground mt-4">
+              Bu siparişi üzerinize alacaksınız. Onaylıyor musunuz?
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" className="flex-1" onClick={() => setPendingClaimOrder(null)}>
+              Vazgeç
+            </Button>
+            <Button
+              className="flex-1 bg-cyan-600 hover:bg-cyan-700"
+              onClick={() => pendingClaimOrder && handleClaimOrder(pendingClaimOrder.id)}
+              disabled={claimingOrderId === pendingClaimOrder?.id}
+              data-testid="pool-claim-confirm-btn"
+            >
+              {claimingOrderId === pendingClaimOrder?.id ? (
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Package className="w-4 h-4 mr-2" />
+              )}
+              Üzerime Al
             </Button>
           </div>
         </DialogContent>
