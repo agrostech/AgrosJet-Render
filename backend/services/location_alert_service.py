@@ -62,6 +62,20 @@ async def check_stale_locations():
             if not is_stale:
                 continue
 
+            # Çok eski konum → kurye muhtemelen uygulamayı tamamen kapatmış, bildirim anlamsız
+            # Sadece 2-30 dk arası eski konumlara bildirim gönder
+            if loc and loc.get("updated_at"):
+                try:
+                    loc_dt = datetime.fromisoformat(loc["updated_at"]) if isinstance(loc["updated_at"], str) else loc["updated_at"]
+                    minutes_since = (now - loc_dt).total_seconds() / 60
+                    if minutes_since > 30:
+                        continue
+                except (ValueError, TypeError):
+                    continue
+            else:
+                # Hiç konum bilgisi yoksa bildirim gönderme
+                continue
+
             # Spam engeli: son bildirimden 10 dk geçmiş mi
             last_alert = courier.get("last_location_alert_at")
             if last_alert:
