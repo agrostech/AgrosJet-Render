@@ -507,6 +507,9 @@ export function OrderDetailModal({
                             {entry.actor_type === 'auto' ? 'Otomatik' : 
                              entry.actor_type === 'admin' ? `${entry.actor_name}` :
                              entry.actor_type === 'courier' ? `${entry.actor_name}` :
+                             entry.actor_type === 'courier_pool' ? 'Paket Havuzu' :
+                             entry.actor_type === 'adisyo_webhook' ? 'Adisyo' :
+                             entry.actor_type === 'adisyo_sync' ? 'Adisyo' :
                              entry.actor_name || 'Sistem'}
                           </span>
                         </div>

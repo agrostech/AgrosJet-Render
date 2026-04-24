@@ -126,10 +126,12 @@ async def get_pool_orders(
         return {"orders": [], "pool_enabled": False, "reason": "Havuz kapalı"}
 
     # 2) Kurye havuz erişimi kontrolü
+    courier_allowed_methods = None
+    courier_blocked_restaurants = set()
     if courier_id:
         courier = await db.couriers.find_one(
             {"id": courier_id},
-            {"_id": 0, "permissions": 1, "max_packages": 1, "name": 1}
+            {"_id": 0, "permissions": 1, "max_packages": 1, "name": 1, "allowed_payment_methods": 1}
         )
         if not courier:
             raise HTTPException(status_code=404, detail="Kurye bulunamadı")
@@ -138,11 +140,15 @@ async def get_pool_orders(
         if not permissions.get("pool_access", True):
             return {"orders": [], "pool_enabled": True, "courier_access": False, "reason": "Havuz erişiminiz kapalı"}
 
-        # Kurye uzaklık kontrolü
-        max_dist = settings.get("max_courier_distance", 5000)
-        if lat is not None and lng is not None and max_dist > 0:
-            # Kurye konumunu daha sonra sipariş bazlı filtreleyeceğiz
-            pass
+        # Kuryenin izin verilen ödeme yöntemleri
+        courier_allowed_methods = courier.get("allowed_payment_methods", ["cash", "card", "online", "meal_card", "online_meal_card"])
+
+        # Kuryenin engellendiği restoranları bul
+        blocked_restaurants = await db.restaurants.find(
+            {"company_id": company_id, "blocked_couriers": courier_id},
+            {"_id": 0, "id": 1}
+        ).to_list(200)
+        courier_blocked_restaurants = set(r["id"] for r in blocked_restaurants)
 
         # Mevcut paket sayısı kontrolü (bilgi amaçlı)
         active_count = await db.orders.count_documents({
@@ -211,7 +217,21 @@ async def get_pool_orders(
 
         filtered_orders.append(order)
 
-    # 6) Kurye uzaklık filtresi
+    # 6) Ödeme yöntemi filtresi - kuryenin kapalı ödeme yöntemleri
+    if courier_allowed_methods is not None:
+        filtered_orders = [
+            o for o in filtered_orders
+            if o.get("payment_method", "cash") in courier_allowed_methods
+        ]
+
+    # 7) Restoran engel filtresi - kuryenin engellendiği restoranlar
+    if courier_blocked_restaurants:
+        filtered_orders = [
+            o for o in filtered_orders
+            if o.get("restaurant_id") not in courier_blocked_restaurants
+        ]
+
+    # 8) Kurye uzaklık filtresi
     max_dist = settings.get("max_courier_distance", 5000)
     if lat is not None and lng is not None and max_dist > 0:
         distance_filtered = []
@@ -308,7 +328,7 @@ async def claim_pool_order(order_id: str, courier_id: str = None):
         order=order,
         courier_id=courier_id,
         actor_type="courier_pool",
-        actor_name=courier.get("name", "Kurye"),
+        actor_name="Paket Havuzu",
         calculate_fee=True,
         send_push=False,  # Kendi aldığı için push gerekmez
     )
@@ -321,7 +341,7 @@ async def claim_pool_order(order_id: str, courier_id: str = None):
         order_id=order_id,
         new_status="confirmed",
         actor_type="courier_pool",
-        actor_name=courier.get("name", "Kurye"),
+        actor_name="Paket Havuzu",
         note="Havuzdan alındı",
         notify_platform=False,
     )

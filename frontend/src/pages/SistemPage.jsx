@@ -1087,7 +1087,7 @@ export default function SistemPage({ companyId }) {
                         </div>
                         {poolSettings.show_pending && (
                           <div className="pl-7 space-y-2">
-                            <Label className="text-xs text-slate-600">Esik Suresi (dakika)</Label>
+                            <Label className="text-xs text-slate-600">Eşik Süresi (dakika)</Label>
                             <Input
                               type="number"
                               min="0"
@@ -1124,9 +1124,9 @@ export default function SistemPage({ companyId }) {
                     </div>
                   </div>
 
-                  {/* Kurye Uzaklik Limiti */}
+                  {/* Kurye Uzaklık Limiti */}
                   <div className="space-y-4">
-                    <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Kurye Uzaklik Limiti</h4>
+                    <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Kurye Uzaklık Limiti</h4>
                     <div className="p-3 sm:p-4 bg-white rounded-xl border border-slate-200 space-y-3">
                       <div className="flex items-center gap-2 sm:gap-3">
                         <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
