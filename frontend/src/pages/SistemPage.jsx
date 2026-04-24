@@ -104,6 +104,7 @@ export default function SistemPage({ companyId }) {
     show_ready: false,
     pending_threshold_minutes: 6,
     max_courier_distance: 5000,
+    pool_access_duration: 10,
   });
   const [poolLoading, setPoolLoading] = useState(true);
   const [poolSaving, setPoolSaving] = useState(false);
@@ -333,6 +334,7 @@ export default function SistemPage({ companyId }) {
         show_ready: res.data.show_ready || false,
         pending_threshold_minutes: res.data.pending_threshold_minutes ?? 6,
         max_courier_distance: res.data.max_courier_distance ?? 5000,
+        pool_access_duration: res.data.pool_access_duration ?? 10,
       });
     } catch (err) {
       console.error("Pool settings fetch error:", err);
@@ -1156,6 +1158,36 @@ export default function SistemPage({ companyId }) {
                             ? `${(poolSettings.max_courier_distance / 1000).toFixed(1)} km`
                             : `${poolSettings.max_courier_distance} metre`
                           }
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Havuz Erişim Süresi */}
+                  <div className="space-y-4">
+                    <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Havuz Erişim Süresi</h4>
+                    <div className="p-3 sm:p-4 bg-white rounded-xl border border-slate-200 space-y-3">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+                          <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm">İlk Paketten Sonra Erişim Süresi</p>
+                          <p className="text-xs text-muted-foreground">Kurye ilk paketi aldıktan sonra havuza bu süre kadar daha erişebilir</p>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Input
+                          type="number"
+                          min="1"
+                          max="60"
+                          value={poolSettings.pool_access_duration}
+                          onChange={(e) => setPoolSettings(prev => ({ ...prev, pool_access_duration: parseInt(e.target.value) || 10 }))}
+                          className="h-9"
+                          data-testid="pool-access-duration"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Süre dolduktan sonra kurye mevcut paketlerini teslim etmeden havuza erişemez
                         </p>
                       </div>
                     </div>

@@ -36,6 +36,7 @@ class PoolSettingsUpdate(BaseModel):
     show_ready: bool = False
     pending_threshold_minutes: int = 6
     max_courier_distance: int = 5000  # metre
+    pool_access_duration: int = 10  # dakika - ilk paketten sonra havuza erişim süresi
 
 
 DEFAULT_POOL_SETTINGS = {
@@ -44,6 +45,7 @@ DEFAULT_POOL_SETTINGS = {
     "show_ready": False,
     "pending_threshold_minutes": 6,
     "max_courier_distance": 5000,
+    "pool_access_duration": 10,
 }
 
 
@@ -85,6 +87,7 @@ async def update_pool_settings(company_id: str, data: PoolSettingsUpdate):
         "show_ready": data.show_ready,
         "pending_threshold_minutes": data.pending_threshold_minutes,
         "max_courier_distance": data.max_courier_distance,
+        "pool_access_duration": data.pool_access_duration,
         "updated_at": datetime.now(TURKEY_TZ).isoformat(),
     }
     await db.system_settings.update_one(
@@ -131,7 +134,8 @@ async def get_pool_orders(
     if courier_id:
         courier = await db.couriers.find_one(
             {"id": courier_id},
-            {"_id": 0, "permissions": 1, "max_packages": 1, "name": 1, "allowed_payment_methods": 1}
+            {"_id": 0, "permissions": 1, "max_packages": 1, "name": 1,
+             "allowed_payment_methods": 1, "pool_first_claim_at": 1}
         )
         if not courier:
             raise HTTPException(status_code=404, detail="Kurye bulunamadı")
@@ -150,13 +154,31 @@ async def get_pool_orders(
         ).to_list(200)
         courier_blocked_restaurants = set(r["id"] for r in blocked_restaurants)
 
-        # Mevcut paket sayısı kontrolü (bilgi amaçlı)
+        # Mevcut paket sayısı kontrolü
         active_count = await db.orders.count_documents({
             "courier_id": courier_id,
             "company_id": company_id,
             "status": {"$in": ["assigned", "confirmed", "on_the_way"]}
         })
         max_packages = courier.get("max_packages", 5)
+
+        # Havuz erişim süresi kontrolü
+        # Aktif paketi var ve pool_first_claim_at kaydedilmişse süreyi kontrol et
+        pool_access_duration = settings.get("pool_access_duration", 10)
+        pool_first_claim = courier.get("pool_first_claim_at")
+        if active_count > 0 and pool_first_claim:
+            try:
+                claim_dt = datetime.fromisoformat(pool_first_claim) if isinstance(pool_first_claim, str) else pool_first_claim
+                elapsed = (datetime.now(TURKEY_TZ) - claim_dt).total_seconds() / 60
+                if elapsed > pool_access_duration:
+                    return {
+                        "orders": [], "pool_enabled": True, "courier_access": True,
+                        "active_count": active_count, "max_packages": max_packages,
+                        "first_only": False, "pool_time_expired": True,
+                        "reason": f"Havuz erişim süreniz doldu ({pool_access_duration} dk). Mevcut paketlerinizi teslim edin."
+                    }
+            except (ValueError, TypeError):
+                pass
     else:
         active_count = 0
         max_packages = 5
@@ -291,6 +313,13 @@ async def get_pool_orders(
     # first_only: kuryenin aktif paketi yoksa sadece ilk paketi alabilir
     first_only = active_count == 0
 
+    # Aktif paket yoksa pool_first_claim_at sıfırla (yeni tur için)
+    if active_count == 0 and courier_id:
+        await db.couriers.update_one(
+            {"id": courier_id, "pool_first_claim_at": {"$ne": None}},
+            {"$set": {"pool_first_claim_at": None}}
+        )
+
     return {
         "orders": filtered_orders,
         "pool_enabled": True,
@@ -375,6 +404,11 @@ async def claim_pool_order(order_id: str, courier_id: str = None):
                 status_code=400,
                 detail=f"İlk paketiniz en öncelikli sipariş olmalıdır. Lütfen önce \"{top_order.get('restaurant_name', '')}\" siparişini alın."
             )
+        # İlk claim → süre başlat
+        await db.couriers.update_one(
+            {"id": courier_id},
+            {"$set": {"pool_first_claim_at": datetime.now(TURKEY_TZ).isoformat()}}
+        )
 
     # Assign + Confirm (tek adımda)
     from routers.orders import assign_courier_core, update_order_status_core

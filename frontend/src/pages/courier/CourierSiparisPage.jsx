@@ -757,6 +757,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
         active_count: res.data.active_count ?? 0,
         max_packages: res.data.max_packages ?? 5,
         first_only: res.data.first_only ?? false,
+        pool_time_expired: res.data.pool_time_expired ?? false,
         reason: res.data.reason || null,
       });
     } catch (err) {
@@ -1132,6 +1133,12 @@ export default function CourierSiparisPage({ courierId, companyId }) {
               <Inbox className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
               <h3 className="font-semibold text-lg mb-1">Erişim Kapalı</h3>
               <p className="text-sm text-muted-foreground">Havuz erişiminiz yönetici tarafından kapatılmış</p>
+            </div>
+          ) : poolInfo.pool_time_expired ? (
+            <div className="border-2 border-dashed border-amber-300 rounded-lg p-8 text-center bg-amber-50">
+              <Clock className="w-12 h-12 mx-auto text-amber-400 mb-3" />
+              <h3 className="font-semibold text-lg mb-1 text-amber-700">Süre Doldu</h3>
+              <p className="text-sm text-amber-600">{poolInfo.reason || "Mevcut paketlerinizi teslim ettikten sonra havuza tekrar erişebilirsiniz."}</p>
             </div>
           ) : poolLoading && poolOrders.length === 0 ? (
             <div className="py-12 text-center">
