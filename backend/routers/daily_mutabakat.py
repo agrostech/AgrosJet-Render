@@ -1230,26 +1230,65 @@ async def get_weekly_summary(company_id: str, week_start: str = None):
         # Kapanış her zaman ertesi gün (gece işletmesi mantığı)
         end_dt = (day_date + timedelta(days=1)).replace(hour=close_hour, minute=close_min, second=59, microsecond=999999, tzinfo=turkey_tz)
         
-        # O gün siparişi olan kurye sayısını hesapla (delivered_at ile)
-        # Tarih aralığına göre filtrele
-        all_day_orders = await db.orders.find({
+        # O gün listede gösterilecek kurye sayısını hesapla
+        # couriers endpoint'indeki aynı filtreleme mantığı:
+        # cash_total veya card_total > 0 VEYA tahsilat/mütabakat kaydı var
+        day_orders = await db.orders.find({
             "company_id": company_id,
             "status": "delivered",
             "courier_id": {"$in": courier_ids, "$ne": None},
             "delivered_at": {"$gte": start_dt.isoformat(), "$lt": end_dt.isoformat()}
-        }, {"_id": 0, "courier_id": 1, "payment_method": 1, "total_amount": 1}).to_list(5000)
-        
-        # Nakit veya kart toplamı > 0 olan kuryeleri say (couriers endpoint mantığıyla aynı)
+        }, {"_id": 0, "courier_id": 1, "payment_method": 1, "total_amount": 1,
+            "restaurant_id": 1, "payment_details": 1}).to_list(5000)
+
+        # Restoran tahsilat ayarlarını çek
+        rest_ids_day = list(set(o.get("restaurant_id") for o in day_orders if o.get("restaurant_id")))
+        rest_collection_map = {}
+        if rest_ids_day:
+            rests = await db.restaurants.find(
+                {"id": {"$in": rest_ids_day}},
+                {"_id": 0, "id": 1, "collection_settings": 1}
+            ).to_list(500)
+            for r in rests:
+                cs = r.get("collection_settings", {})
+                rest_collection_map[r["id"]] = {
+                    "cash": cs.get("cash_collection", "courier") == "courier",
+                    "card": cs.get("card_collection", "courier") == "courier",
+                    "meal_card": cs.get("meal_card_collection", "courier") == "courier",
+                }
+
+        # Her kurye için tahsilatlı (nakit/kart > 0) kontrolü
+        courier_has_amount = set()
         from collections import defaultdict
-        courier_has_collectible = defaultdict(bool)
-        for order in all_day_orders:
+        courier_cash = defaultdict(float)
+        courier_card = defaultdict(float)
+
+        for order in day_orders:
             cid = order.get("courier_id")
             if not cid:
                 continue
-            pm = order.get("payment_method", "")
-            if pm in ("cash", "card", "meal_card"):
-                courier_has_collectible[cid] = True
-        
+            pm = (order.get("payment_method", "") or "").lower()
+            amount = order.get("total_amount", 0) or 0
+            rest_id = order.get("restaurant_id")
+            rc = rest_collection_map.get(rest_id, {"cash": True, "card": True, "meal_card": True})
+            payment_details = order.get("payment_details", {})
+
+            if pm == "mixed" or (payment_details.get("cash_amount", 0) > 0 and payment_details.get("card_amount", 0) > 0):
+                if rc.get("cash"):
+                    courier_cash[cid] += payment_details.get("cash_amount", 0) or 0
+                if rc.get("card"):
+                    courier_card[cid] += payment_details.get("card_amount", 0) or 0
+            elif pm == "cash" and rc.get("cash"):
+                courier_cash[cid] += amount
+            elif pm == "card" and rc.get("card"):
+                courier_card[cid] += amount
+            elif pm in ("meal_card", "online_meal_card") and rc.get("meal_card"):
+                courier_cash[cid] += amount  # meal_card tahsilat listesine dahil
+
+        for cid in courier_ids:
+            if courier_cash[cid] > 0 or courier_card[cid] > 0:
+                courier_has_amount.add(cid)
+
         # Tahsilat veya mütabakat kaydı olan kuryeler de dahil
         day_collections = await db.daily_mutabakat_collections.distinct(
             "courier_id", {"company_id": company_id, "date": date_str}
@@ -1257,8 +1296,8 @@ async def get_weekly_summary(company_id: str, week_start: str = None):
         day_processed = await db.daily_mutabakat_processed.distinct(
             "courier_id", {"company_id": company_id, "date": date_str}
         )
-        
-        couriers_with_orders = set(courier_has_collectible.keys()) | set(day_collections) | set(day_processed)
+
+        couriers_with_orders = courier_has_amount | set(day_collections) | set(day_processed)
         total_with_orders = len(couriers_with_orders)
         
         # O gün tahsilat kaydı olan kurye sayısı
