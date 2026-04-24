@@ -135,7 +135,7 @@ async def get_pool_orders(
         courier = await db.couriers.find_one(
             {"id": courier_id},
             {"_id": 0, "permissions": 1, "max_packages": 1, "name": 1,
-             "allowed_payment_methods": 1, "pool_first_claim_at": 1}
+             "allowed_payment_methods": 1, "pool_first_claim_at": 1, "pool_first_restaurant_id": 1}
         )
         if not courier:
             raise HTTPException(status_code=404, detail="Kurye bulunamadı")
@@ -179,9 +179,26 @@ async def get_pool_orders(
                     }
             except (ValueError, TypeError):
                 pass
+
+        # Restoran grubu filtresi: ilk paket alındıysa sadece aynı gruptaki restoranlar
+        pool_group_restaurant_ids = None
+        first_restaurant_id = courier.get("pool_first_restaurant_id")
+        if active_count > 0 and first_restaurant_id:
+            # Bu restoranın ait olduğu grupları bul
+            groups = await db.restaurant_groups.find(
+                {"company_id": company_id, "restaurant_ids": first_restaurant_id},
+                {"_id": 0, "restaurant_ids": 1}
+            ).to_list(50)
+            if groups:
+                # Tüm gruplardan restoran ID'lerini birleştir
+                allowed_ids = set()
+                for g in groups:
+                    allowed_ids.update(g.get("restaurant_ids", []))
+                pool_group_restaurant_ids = allowed_ids
     else:
         active_count = 0
         max_packages = 5
+        pool_group_restaurant_ids = None
 
     # 3) Durum filtreleri oluştur
     now = datetime.now(TURKEY_TZ)
@@ -253,7 +270,14 @@ async def get_pool_orders(
             if o.get("restaurant_id") not in courier_blocked_restaurants
         ]
 
-    # 8) Kurye uzaklık filtresi
+    # 8) Restoran grubu filtresi - ilk paket alındıysa sadece aynı gruptaki restoranlar
+    if pool_group_restaurant_ids is not None:
+        filtered_orders = [
+            o for o in filtered_orders
+            if o.get("restaurant_id") in pool_group_restaurant_ids
+        ]
+
+    # 9) Kurye uzaklık filtresi
     max_dist = settings.get("max_courier_distance", 5000)
     if lat is not None and lng is not None and max_dist > 0:
         distance_filtered = []
@@ -270,7 +294,7 @@ async def get_pool_orders(
                 distance_filtered.append(order)
         filtered_orders = distance_filtered
 
-    # 9) Skor hesapla ve sırala
+    # 10) Skor hesapla ve sırala
     # Skor = (bekleme_puanı × 0.7) + (yakınlık_puanı × 0.3)
     # Her iki puan da 0-100 arası normalize edilir
     max_distance_for_score = max_dist if max_dist > 0 else 5000
@@ -313,11 +337,11 @@ async def get_pool_orders(
     # first_only: kuryenin aktif paketi yoksa sadece ilk paketi alabilir
     first_only = active_count == 0
 
-    # Aktif paket yoksa pool_first_claim_at sıfırla (yeni tur için)
+    # Aktif paket yoksa pool_first_claim_at ve pool_first_restaurant_id sıfırla (yeni tur için)
     if active_count == 0 and courier_id:
         await db.couriers.update_one(
             {"id": courier_id, "pool_first_claim_at": {"$ne": None}},
-            {"$set": {"pool_first_claim_at": None}}
+            {"$set": {"pool_first_claim_at": None, "pool_first_restaurant_id": None}}
         )
 
     return {
@@ -404,10 +428,13 @@ async def claim_pool_order(order_id: str, courier_id: str = None):
                 status_code=400,
                 detail=f"İlk paketiniz en öncelikli sipariş olmalıdır. Lütfen önce \"{top_order.get('restaurant_name', '')}\" siparişini alın."
             )
-        # İlk claim → süre başlat
+        # İlk claim → süre başlat + restoran grubunu kaydet
         await db.couriers.update_one(
             {"id": courier_id},
-            {"$set": {"pool_first_claim_at": datetime.now(TURKEY_TZ).isoformat()}}
+            {"$set": {
+                "pool_first_claim_at": datetime.now(TURKEY_TZ).isoformat(),
+                "pool_first_restaurant_id": order.get("restaurant_id"),
+            }}
         )
 
     # Assign + Confirm (tek adımda)
