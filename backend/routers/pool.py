@@ -134,7 +134,7 @@ async def get_pool_orders(
     if courier_id:
         courier = await db.couriers.find_one(
             {"id": courier_id},
-            {"_id": 0, "permissions": 1, "max_packages": 1, "name": 1,
+            {"_id": 0, "permissions": 1, "max_packages": 1, "name": 1, "status": 1,
              "allowed_payment_methods": 1, "pool_first_claim_at": 1, "pool_first_restaurant_id": 1}
         )
         if not courier:
@@ -145,11 +145,7 @@ async def get_pool_orders(
             return {"orders": [], "pool_enabled": True, "courier_access": False, "reason": "Havuz erişiminiz kapalı"}
 
         # Kurye aktif mi? (mola veya çevrimdışı ise havuzu göremez)
-        courier_link = await db.company_couriers.find_one(
-            {"company_id": company_id, "courier_id": courier_id},
-            {"_id": 0, "status": 1}
-        )
-        courier_status = courier_link.get("status") if courier_link else None
+        courier_status = courier.get("status")
         if courier_status != "active":
             return {"orders": [], "pool_enabled": True, "courier_access": False, "reason": "Havuzu görmek için aktif durumda olmalısınız"}
 
