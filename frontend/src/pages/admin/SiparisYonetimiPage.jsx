@@ -1392,10 +1392,8 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                                 else if (extApp.includes("migros")) platform = "migros";
                               }
                               
-                              if (['getir','trendyol','migros','yemeksepeti'].includes(platform)) {
+                              if (['getir','trendyol','migros','yemeksepeti','adisyo','sepettakip'].includes(platform)) {
                                 return <img src={`/images/platforms/${platform}.png`} alt={platform} className="w-4 h-4 rounded-full flex-shrink-0 object-cover" />;
-                              } else if (platform === 'adisyo') {
-                                return <span className="w-4 h-4 rounded-full flex-shrink-0 bg-blue-500 text-white text-[8px] font-bold flex items-center justify-center">A</span>;
                               }
                               return null;
                             })()}
