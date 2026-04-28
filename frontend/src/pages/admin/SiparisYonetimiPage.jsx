@@ -1380,15 +1380,25 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                         {/* Üst Kısım: Restoran + Mesafe + Ödeme + Ücret + Zaman */}
                         <div className="flex items-center justify-between px-2.5 py-1.5 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-700/30 rounded-t-lg">
                           <div className="flex items-center gap-1 min-w-0 flex-1">
-                            {(order.source || order.platform) && ['getir','trendyol','migros','yemeksepeti'].includes(order.source || order.platform) ? (
-                              <img 
-                                src={`/images/platforms/${order.source || order.platform}.png`} 
-                                alt={order.source || order.platform}
-                                className="w-4 h-4 rounded-full flex-shrink-0 object-cover"
-                              />
-                            ) : (order.source || order.platform) === 'adisyo' ? (
-                              <span className="w-4 h-4 rounded-full flex-shrink-0 bg-blue-500 text-white text-[8px] font-bold flex items-center justify-center">A</span>
-                            ) : null}
+                            {(() => {
+                              // Gerçek platformu belirle (Adisyo üzerinden gelen marketplace siparişleri dahil)
+                              const extApp = (order.external_app_name || order.adisyo_raw?.externalAppName || "").toLowerCase();
+                              const src = order.source || order.platform || "";
+                              let platform = src;
+                              if (src === "adisyo" && extApp) {
+                                if (extApp.includes("yemeksepeti") || extApp.includes("ys")) platform = "yemeksepeti";
+                                else if (extApp.includes("trendyol")) platform = "trendyol";
+                                else if (extApp.includes("getir")) platform = "getir";
+                                else if (extApp.includes("migros")) platform = "migros";
+                              }
+                              
+                              if (['getir','trendyol','migros','yemeksepeti'].includes(platform)) {
+                                return <img src={`/images/platforms/${platform}.png`} alt={platform} className="w-4 h-4 rounded-full flex-shrink-0 object-cover" />;
+                              } else if (platform === 'adisyo') {
+                                return <span className="w-4 h-4 rounded-full flex-shrink-0 bg-blue-500 text-white text-[8px] font-bold flex items-center justify-center">A</span>;
+                              }
+                              return null;
+                            })()}
                             <span className="px-1.5 py-0.5 bg-slate-700 text-white text-[10px] font-semibold rounded min-w-0" title={order.restaurant_name}>
                               {order.restaurant_name || "-"}
                             </span>
