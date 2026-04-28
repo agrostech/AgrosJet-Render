@@ -266,49 +266,34 @@ export default function IptalSiparislerPage({ companyId, onOrderSelect, isSuperA
 
   return (
     <div className="space-y-4">
-      {/* Compact Filters */}
+      {/* Filtreler */}
       <Card>
-        <CardContent className="p-3">
-          <div className="flex flex-wrap items-end gap-2">
-            {/* Restaurant */}
-            <div className="min-w-[120px] flex-1 max-w-[180px]">
-              <Label className="text-xs text-muted-foreground mb-1 block">Restoran</Label>
+        <CardContent className="p-3 space-y-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+            <div>
+              <Label className="text-[10px] text-muted-foreground mb-1 block">Restoran</Label>
               <Select value={restaurantFilter} onValueChange={setRestaurantFilter}>
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue placeholder="Tümü" />
-                </SelectTrigger>
+                <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Tümü" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tümü</SelectItem>
-                  {restaurants.map(r => (
-                    <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
-                  ))}
+                  {restaurants.map(r => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
-            
-            {/* Courier */}
-            <div className="min-w-[120px] flex-1 max-w-[180px]">
-              <Label className="text-xs text-muted-foreground mb-1 block">Kurye</Label>
+            <div>
+              <Label className="text-[10px] text-muted-foreground mb-1 block">Kurye</Label>
               <Select value={courierFilter} onValueChange={setCourierFilter}>
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue placeholder="Tümü" />
-                </SelectTrigger>
+                <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Tümü" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tümü</SelectItem>
-                  {couriers.map(c => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                  ))}
+                  {couriers.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
-            
-            {/* Payment */}
-            <div className="min-w-[100px] flex-1 max-w-[140px]">
-              <Label className="text-xs text-muted-foreground mb-1 block">Ödeme</Label>
+            <div>
+              <Label className="text-[10px] text-muted-foreground mb-1 block">Ödeme</Label>
               <Select value={paymentFilter} onValueChange={setPaymentFilter}>
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue placeholder="Tümü" />
-                </SelectTrigger>
+                <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Tümü" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tümü</SelectItem>
                   <SelectItem value="cash">Nakit</SelectItem>
@@ -318,55 +303,23 @@ export default function IptalSiparislerPage({ companyId, onOrderSelect, isSuperA
                 </SelectContent>
               </Select>
             </div>
-            
-            {/* Start Date */}
-            <div className="min-w-[140px] flex-1 max-w-[180px]">
-              <Label className="text-xs text-muted-foreground mb-1 block">Başlangıç</Label>
-              <Input 
-                type="datetime-local" 
-                value={startDateTime} 
-                onChange={(e) => setStartDateTime(e.target.value)}
-                className="h-8 text-xs"
-              />
+            <div>
+              <Label className="text-[10px] text-muted-foreground mb-1 block">Başlangıç</Label>
+              <Input type="datetime-local" value={startDateTime} onChange={(e) => setStartDateTime(e.target.value)} className="h-8 text-xs" />
             </div>
-            
-            {/* End Date */}
-            <div className="min-w-[140px] flex-1 max-w-[180px]">
-              <Label className="text-xs text-muted-foreground mb-1 block">Bitiş</Label>
-              <Input 
-                type="datetime-local" 
-                value={endDateTime} 
-                onChange={(e) => setEndDateTime(e.target.value)}
-                className="h-8 text-xs"
-              />
+            <div>
+              <Label className="text-[10px] text-muted-foreground mb-1 block">Bitiş</Label>
+              <Input type="datetime-local" value={endDateTime} onChange={(e) => setEndDateTime(e.target.value)} className="h-8 text-xs" />
             </div>
-            
-            {/* Action Buttons */}
-            <div className="flex gap-1.5">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={clearFilters}
-                className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground"
-                title="Temizle"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-              </Button>
-              <Button 
-                onClick={handleFilter} 
-                disabled={loading}
-                size="sm"
-                className="h-8 px-3 text-xs gap-1.5"
-                data-testid="filter-cancelled-orders-btn"
-              >
-                {loading ? (
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <Search className="w-3.5 h-3.5" />
-                )}
-                Filtrele
-              </Button>
-            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={handleFilter} disabled={loading} size="sm" className="h-8 flex-1 sm:flex-none sm:w-auto px-4 text-xs gap-1.5" data-testid="filter-cancelled-orders-btn">
+              {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
+              Filtrele
+            </Button>
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8 px-2 text-xs text-muted-foreground" title="Temizle">
+              <RefreshCw className="w-3.5 h-3.5" />
+            </Button>
           </div>
         </CardContent>
       </Card>
