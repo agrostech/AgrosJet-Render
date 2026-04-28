@@ -414,80 +414,70 @@ export default function IptalSiparislerPage({ companyId, onOrderSelect, isSuperA
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b-2 border-primary">
-                      <th className="text-left p-2 font-bold text-xs">Restoran</th>
-                      <th className="text-left p-2 font-bold text-xs">Müşteri</th>
-                      <th className="text-left p-2 font-bold text-xs">Sipariş Zamanı</th>
-                      <th className="text-left p-2 font-bold text-xs">Adres</th>
-                      <th className="text-left p-2 font-bold text-xs">Mesafe</th>
-                      <th className="text-left p-2 font-bold text-xs">Ücret</th>
-                      <th className="text-left p-2 font-bold text-xs">Ödeme</th>
-                      <th className="text-left p-2 font-bold text-xs">Kurye</th>
-                      <th className="text-left p-2 font-bold text-xs">Durum</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginatedOrders.map((order) => (
-                      <tr 
-                        key={order.id}
-                        className="border-b hover:bg-slate-50 cursor-pointer transition-colors"
-                        onClick={() => onOrderSelect && onOrderSelect(order)}
-                      >
-                        <td className="p-2">
-                          <span className="font-medium">{order.restaurant_name || "-"}</span>
-                        </td>
-                        <td className="p-2">
-                          <div>
-                            <span>{order.customer_name || "-"}</span>
-                            {order.customer_phone && (
-                              <div className="text-xs text-muted-foreground font-mono">{order.customer_phone}</div>
-                            )}
-                          </div>
-                        </td>
-                        <td className="p-2 text-xs">
-                          {formatDate(order.created_at)}
-                        </td>
-                        <td className="p-2 text-xs max-w-[200px]" title={order.delivery_address}>
-                          <div className="line-clamp-3">{order.delivery_address || "-"}</div>
-                        </td>
-                        <td className="p-2 text-xs whitespace-nowrap">
+              <div className="space-y-2">
+                {paginatedOrders.map((order) => (
+                  <div 
+                    key={order.id}
+                    className="bg-white border border-red-100 rounded-lg shadow-sm hover:shadow-md hover:border-red-200 transition-all cursor-pointer"
+                    onClick={() => onOrderSelect && onOrderSelect(order)}
+                    data-testid={`order-card-${order.id}`}
+                  >
+                    {/* Üst Bar: Restoran + Mesafe + Ödeme + Tutar + Tarih + İptal Badge */}
+                    <div className="flex items-center justify-between px-2.5 py-1.5 border-b border-red-50 bg-red-50/50 rounded-t-lg">
+                      <div className="flex items-center gap-1 min-w-0 flex-1 flex-wrap">
+                        <span className="px-1.5 py-0.5 bg-slate-700 text-white text-[10px] font-semibold rounded truncate max-w-[140px]" title={order.restaurant_name}>
+                          {order.restaurant_name || "-"}
+                        </span>
+                        <span className="text-[9px] text-slate-500 flex-shrink-0">
                           {(() => {
                             const dist = calculateDistance(order);
-                            return dist ? `${dist.toFixed(1)} km` : "-";
+                            return dist ? `${dist.toFixed(1)} km` : "";
                           })()}
-                        </td>
-                        <td className="p-2 font-semibold line-through text-muted-foreground">
-                          {order.total_amount?.toFixed(2) || "0.00"} ₺
-                        </td>
-                        <td className="p-2">
-                          <span className={`px-2 py-0.5 text-xs rounded ${
-                            order.payment_method === 'cash' ? 'bg-emerald-100 text-emerald-700' : 
-                            order.payment_method === 'card' ? 'bg-blue-100 text-blue-700' : 
-                            (order.payment_method === 'meal_card' || order.payment_method === 'online_meal_card') ? 'bg-orange-100 text-orange-700' :
-                            'bg-purple-100 text-purple-700'
-                          }`}>
-                            {order.payment_method === 'cash' ? 'Nakit' : 
-                             order.payment_method === 'card' ? 'Kart' : 
-                             (order.payment_method === 'meal_card' || order.payment_method === 'online_meal_card') ? (order.payment_method_detail || 'Yemek Kartı') : 
-                             'Online'}
-                          </span>
-                        </td>
-                        <td className="p-2 text-xs">
-                          {order.courier_name || "-"}
-                        </td>
-                        <td className="p-2">
-                          <span className="px-2 py-0.5 text-xs rounded bg-red-100 text-red-700 flex items-center gap-1 w-fit">
-                            <XCircle className="w-3 h-3" />
-                            İptal
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        </span>
+                        <span className={`px-1 py-0.5 text-[9px] font-medium rounded flex-shrink-0 ${
+                          order.payment_method === 'cash' ? 'bg-emerald-100 text-emerald-700' : 
+                          order.payment_method === 'card' ? 'bg-blue-100 text-blue-700' : 
+                          (order.payment_method === 'meal_card' || order.payment_method === 'online_meal_card') ? 'bg-orange-100 text-orange-700' :
+                          'bg-purple-100 text-purple-700'
+                        }`}>
+                          {order.payment_method === 'cash' ? 'Nakit' : 
+                           order.payment_method === 'card' ? 'Kart' : 
+                           (order.payment_method === 'meal_card' || order.payment_method === 'online_meal_card') ? (order.payment_method_detail || 'Y.Kartı') : 
+                           'Online'}
+                        </span>
+                        <span className="text-[11px] font-bold text-slate-400 line-through flex-shrink-0">{order.total_amount?.toFixed(2) || "0.00"} ₺</span>
+                      </div>
+                      <div className="flex items-center gap-1 flex-shrink-0 ml-1">
+                        <span className="text-[9px] text-slate-500 font-medium">{formatDate(order.created_at)}</span>
+                        <span className="px-1.5 py-0.5 text-[9px] rounded bg-red-100 text-red-700 flex items-center gap-0.5 font-semibold">
+                          <XCircle className="w-2.5 h-2.5" />İptal
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Orta: Müşteri + Telefon + Adres */}
+                    <div className="px-2.5 py-1.5 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-xs text-slate-800">{order.customer_name || "-"}</span>
+                        {order.customer_phone && (
+                          <a href={`tel:${order.customer_phone}`} className="text-[10px] text-blue-600 font-mono" onClick={(e) => e.stopPropagation()}>
+                            {order.customer_phone}
+                          </a>
+                        )}
+                      </div>
+                      {order.delivery_address && (
+                        <p className="text-[11px] text-slate-500 line-clamp-2 leading-snug">{order.delivery_address}</p>
+                      )}
+                    </div>
+
+                    {/* Alt Bar: Kurye */}
+                    {order.courier_name && (
+                      <div className="px-2.5 py-1 border-t border-red-50 bg-slate-50/30 rounded-b-lg">
+                        <span className="text-[11px] text-slate-600 font-medium">{order.courier_name}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
               
               {/* Pagination Controls */}

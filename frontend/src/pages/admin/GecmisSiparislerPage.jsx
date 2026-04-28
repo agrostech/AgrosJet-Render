@@ -496,109 +496,92 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b-2 border-primary">
-                      <th className="text-left p-2 font-bold text-xs">Restoran</th>
-                      <th className="text-left p-2 font-bold text-xs">Müşteri</th>
-                      <th className="text-left p-2 font-bold text-xs">Tarih</th>
-                      <th className="text-left p-2 font-bold text-xs">Adres</th>
-                      <th className="text-left p-2 font-bold text-xs">Mesafe</th>
-                      <th className="text-left p-2 font-bold text-xs">Tutar</th>
-                      <th className="text-left p-2 font-bold text-xs">Ödeme</th>
-                      <th className="text-left p-2 font-bold text-xs">Kurye</th>
-                      {isSuperAdmin && <th className="text-right p-2 font-bold text-xs">Ücretler</th>}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginatedOrders.map((order) => (
-                      <tr 
-                        key={order.id}
-                        className="border-b hover:bg-slate-50 cursor-pointer transition-colors"
-                        onClick={() => onOrderSelect && onOrderSelect(order)}
-                      >
-                        <td className="p-2">
-                          <span className="font-medium text-xs">{order.restaurant_name || "-"}</span>
-                        </td>
-                        <td className="p-2">
-                          <div>
-                            <span className="text-xs">{order.customer_name || "-"}</span>
-                            {order.customer_phone && (
-                              <div className="text-xs text-muted-foreground font-mono">{order.customer_phone}</div>
-                            )}
-                          </div>
-                        </td>
-                        <td className="p-2 text-xs whitespace-nowrap">
-                          {formatDate(order.created_at)}
-                        </td>
-                        <td className="p-2 text-xs max-w-[150px]" title={order.delivery_address}>
-                          <div className="line-clamp-2">{order.delivery_address || "-"}</div>
-                        </td>
-                        <td className="p-2 text-xs whitespace-nowrap">
+              <div className="space-y-2">
+                {paginatedOrders.map((order) => (
+                  <div 
+                    key={order.id}
+                    className="bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer"
+                    onClick={() => onOrderSelect && onOrderSelect(order)}
+                    data-testid={`order-card-${order.id}`}
+                  >
+                    {/* Üst Bar: Restoran + Mesafe + Ödeme + Tutar + Tarih */}
+                    <div className="flex items-center justify-between px-2.5 py-1.5 border-b border-slate-100 bg-slate-50/50 rounded-t-lg">
+                      <div className="flex items-center gap-1 min-w-0 flex-1 flex-wrap">
+                        <span className="px-1.5 py-0.5 bg-slate-700 text-white text-[10px] font-semibold rounded truncate max-w-[140px]" title={order.restaurant_name}>
+                          {order.restaurant_name || "-"}
+                        </span>
+                        <span className="text-[9px] text-slate-500 flex-shrink-0">
                           {order.distance_km ? `${order.distance_km.toFixed(1)} km` : (() => {
                             const dist = calculateDistance(order);
-                            return dist ? `${dist.toFixed(1)} km` : "-";
+                            return dist ? `${dist.toFixed(1)} km` : "";
                           })()}
-                        </td>
-                        <td className="p-2 text-xs font-semibold whitespace-nowrap">
-                          {order.total_amount?.toFixed(2) || "0.00"} ₺
-                        </td>
-                        <td className="p-2">
-                          <PaymentBadge 
-                            paymentMethod={order.payment_method}
-                            paymentMethodDetail={order.payment_method_detail}
-                            paymentDetails={order.payment_details}
-                            totalAmount={order.total_amount}
-                            showAmount={false}
-                          />
-                        </td>
-                        <td className="p-2 text-xs">
-                          {order.courier_name || "-"}
-                        </td>
-                        {isSuperAdmin && (
-                          <td className="p-2 text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <div className="text-xs space-y-0.5">
-                                {order.courier_id && (
-                                  <div className="font-medium">
-                                    <span className="text-foreground">Kurye Hakediş:</span>{" "}
-                                    <span style={{color: '#dc2626'}}>{order.courier_fee ? `${order.courier_fee.toFixed(2)}₺` : "-"}</span>
-                                  </div>
-                                )}
-                                <div className="font-medium">
-                                  <span className="text-foreground">Taşıma Bedeli:</span>{" "}
-                                  <span style={{color: '#16a34a'}}>{order.restaurant_fee ? `${order.restaurant_fee.toFixed(2)}₺` : "-"}</span>
-                                </div>
-                                {order.restaurant_kdv > 0 && (
-                                  <div className="font-medium">
-                                    <span className="text-foreground">Taşıma Bedeli KDV:</span>{" "}
-                                    <span style={{color: '#16a34a'}}>{order.restaurant_kdv.toFixed(2)}₺</span>
-                                  </div>
-                                )}
-                                {order.pos_commission > 0 && (
-                                  <div className="font-medium">
-                                    <span className="text-foreground">POS Komisyonu:</span>{" "}
-                                    <span style={{color: '#16a34a'}}>{order.pos_commission.toFixed(2)}₺</span>
-                                  </div>
-                                )}
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0 hover:bg-slate-100"
-                                onClick={(e) => handleOpenFeeEdit(order, e)}
-                                data-testid={`edit-fees-btn-${order.id}`}
-                              >
-                                <Pencil className="w-3 h-3 text-slate-500" />
-                              </Button>
-                            </div>
-                          </td>
+                        </span>
+                        <PaymentBadge 
+                          paymentMethod={order.payment_method}
+                          paymentMethodDetail={order.payment_method_detail}
+                          paymentDetails={order.payment_details}
+                          totalAmount={order.total_amount}
+                          showAmount={false}
+                        />
+                        <span className="text-[11px] font-bold text-slate-800 flex-shrink-0">{order.total_amount?.toFixed(2) || "0.00"} ₺</span>
+                      </div>
+                      <span className="text-[9px] text-slate-500 font-medium flex-shrink-0 ml-1">{formatDate(order.created_at)}</span>
+                    </div>
+
+                    {/* Orta: Müşteri + Telefon + Adres */}
+                    <div className="px-2.5 py-1.5 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-xs text-slate-800">{order.customer_name || "-"}</span>
+                        {order.customer_phone && (
+                          <a href={`tel:${order.customer_phone}`} className="text-[10px] text-blue-600 font-mono" onClick={(e) => e.stopPropagation()}>
+                            {order.customer_phone}
+                          </a>
                         )}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                      </div>
+                      {order.delivery_address && (
+                        <p className="text-[11px] text-slate-500 line-clamp-2 leading-snug">{order.delivery_address}</p>
+                      )}
+                    </div>
+
+                    {/* Alt Bar: Kurye + Ücretler */}
+                    <div className="flex items-center justify-between px-2.5 py-1.5 border-t border-slate-100 bg-slate-50/30 rounded-b-lg">
+                      <span className="text-[11px] text-slate-600">
+                        {order.courier_name ? (
+                          <span className="font-medium">{order.courier_name}</span>
+                        ) : (
+                          <span className="text-slate-400">Kurye atanmadı</span>
+                        )}
+                      </span>
+                      {isSuperAdmin && (
+                        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center gap-2 text-[10px]">
+                            {order.courier_id && order.courier_fee > 0 && (
+                              <span><span className="text-slate-500">K:</span> <span className="text-red-600 font-semibold">{order.courier_fee.toFixed(2)}₺</span></span>
+                            )}
+                            {order.restaurant_fee > 0 && (
+                              <span><span className="text-slate-500">R:</span> <span className="text-green-600 font-semibold">{order.restaurant_fee.toFixed(2)}₺</span></span>
+                            )}
+                            {order.restaurant_kdv > 0 && (
+                              <span><span className="text-slate-500">KDV:</span> <span className="text-green-600 font-semibold">{order.restaurant_kdv.toFixed(2)}₺</span></span>
+                            )}
+                            {order.pos_commission > 0 && (
+                              <span><span className="text-slate-500">POS:</span> <span className="text-green-600 font-semibold">{order.pos_commission.toFixed(2)}₺</span></span>
+                            )}
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 hover:bg-slate-100"
+                            onClick={(e) => handleOpenFeeEdit(order, e)}
+                            data-testid={`edit-fees-btn-${order.id}`}
+                          >
+                            <Pencil className="w-3 h-3 text-slate-500" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
               
               {/* Pagination Controls */}
