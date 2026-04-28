@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
+import { PdfViewerModal } from "@/components/ui/pdf-viewer-modal";
 import { 
   ChevronLeft, ChevronRight, FileText, Store, Download, Trash2, 
   Eye, Loader2, Upload, Check, Receipt, Package
@@ -423,49 +424,19 @@ export default function KesilenFaturalarTab({ companyId, adminId, adminName }) {
         </>
       )}
 
-      {/* View Invoice Modal */}
-      <Dialog open={showViewModal} onOpenChange={setShowViewModal}>
-        <DialogContent className="max-w-4xl max-h-[90vh]">
-          <DialogHeader>
-            <DialogTitle>Fatura Önizleme</DialogTitle>
-          </DialogHeader>
-          
-          {viewingInvoice && (
-            <div className="flex-1 overflow-auto">
-              {viewingInvoice.extension === "pdf" ? (
-                <iframe
-                  src={`data:application/pdf;base64,${viewingInvoice.file_data}`}
-                  className="w-full h-[70vh]"
-                  title="Fatura"
-                />
-              ) : (
-                <img
-                  src={`data:image/${viewingInvoice.extension};base64,${viewingInvoice.file_data}`}
-                  alt="Fatura"
-                  className="max-w-full max-h-[70vh] mx-auto"
-                />
-              )}
-            </div>
-          )}
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowViewModal(false)}>
-              Kapat
-            </Button>
-            {viewingInvoice && (
-              <Button onClick={() => {
-                const link = document.createElement("a");
-                link.href = `data:application/${viewingInvoice.extension};base64,${viewingInvoice.file_data}`;
-                link.download = viewingInvoice.filename;
-                link.click();
-              }}>
-                <Download className="w-4 h-4 mr-2" />
-                İndir
-              </Button>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* View Invoice Modal - PdfViewerModal */}
+      {viewingInvoice && (
+        <PdfViewerModal
+          file={viewingInvoice ? {
+            url: viewingInvoice.extension === "pdf"
+              ? `data:application/pdf;base64,${viewingInvoice.file_data}`
+              : `data:image/${viewingInvoice.extension};base64,${viewingInvoice.file_data}`,
+            fileName: viewingInvoice.filename || "Fatura",
+            contentType: viewingInvoice.extension === "pdf" ? "application/pdf" : `image/${viewingInvoice.extension}`,
+          } : null}
+          onClose={() => { setShowViewModal(false); setViewingInvoice(null); }}
+        />
+      )}
 
       {/* Delete Confirmation */}
       <ConfirmModal
