@@ -7,8 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { RefreshCw, Package, Search, ChevronLeft, ChevronRight, Pencil, Loader2 } from "lucide-react";
+import { RefreshCw, Package, Search, ChevronLeft, ChevronRight, Pencil, Loader2, MapPin } from "lucide-react";
 import { PaymentBadge } from "@/components/shared/PaymentDetailPopover";
+import { LocationCorrectionModal } from "@/components/admin/LocationCorrectionModal";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -28,6 +29,9 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
   
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // Location correction modal
+  const [showLocationModal, setShowLocationModal] = useState(false);
   
   // Filter states
   const [restaurants, setRestaurants] = useState([]);
@@ -398,6 +402,16 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
             <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8 px-2 text-xs text-muted-foreground" title="Temizle">
               <RefreshCw className="w-3.5 h-3.5" />
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowLocationModal(true)}
+              className="h-8 px-3 text-xs gap-1.5 ml-auto"
+              data-testid="location-correction-btn"
+            >
+              <MapPin className="w-3.5 h-3.5" />
+              Konum Düzeltmeleri
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -684,6 +698,13 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Konum Düzeltme Modalı */}
+      <LocationCorrectionModal
+        open={showLocationModal}
+        onOpenChange={setShowLocationModal}
+        companyId={companyId}
+      />
     </div>
   );
 }

@@ -129,6 +129,24 @@ async def insert_order(order_data: dict) -> dict:
             order_data["manual_transfer_mode"] = True  # Manuel mod işareti
             logger.info(f"Manuel aktarım modu - sipariş restoran teslimatı olarak işaretlendi: {order_data.get('id')}")
     
+    # Otomatik konum düzeltme: adres havuzunda eşleşme varsa konumu güncelle
+    source = order_data.get("source", "")
+    ext_app = (order_data.get("external_app_name") or "").lower()
+    marketplace_apps = ["yemeksepeti", "ys", "trendyol", "getir", "migros"]
+    is_marketplace = any(mp in ext_app for mp in marketplace_apps)
+    
+    if source in ("adisyo", "sepettakip", "manual", "", None) and not is_marketplace:
+        company_id_for_loc = order_data.get("company_id")
+        customer_name = order_data.get("customer_name")
+        delivery_address = order_data.get("delivery_address")
+        if company_id_for_loc and customer_name and delivery_address:
+            from routers.location_corrections import auto_correct_location
+            corrected = await auto_correct_location(company_id_for_loc, customer_name, delivery_address)
+            if corrected:
+                order_data["delivery_location"] = corrected
+                order_data["location_auto_corrected"] = True
+                logger.info(f"Konum otomatik düzeltildi: order={order_data.get('id')}, customer={customer_name}")
+    
     # Siparişi ekle
     await db.orders.insert_one(order_data)
     

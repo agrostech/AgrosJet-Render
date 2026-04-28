@@ -85,6 +85,13 @@ Multi-tenant delivery management platform for restaurants, couriers, and adminis
 - **Courier Panel**: 2-tab (Liste/Rota) → 3-tab (Havuz/Siparişlerim/Rota). Pool tab shows available orders with "Üzerime Al" button, package limit enforcement, distance display.
 - **Files**: `/app/backend/routers/pool.py` (new), `server.py`, `SistemPage.jsx`, `KuryelerPage.jsx`, `CourierSiparisPage.jsx`, `couriers.py`
 
+## Completed - Konum Düzeltme Sistemi (2026-04-29)
+- **New Feature**: Admin teslim edilmiş siparişlerin GPS konumlarını harita üzerinden düzeltebilir.
+- **Auto-Correction**: Düzeltilen konum `address_corrections` havuzuna kaydedilir. Aynı müşteri adı + adres ile yeni sipariş geldiğinde otomatik doğru konum atanır.
+- **Filtreler**: Sadece Adisyo/SepetTakip/Manuel siparişler (marketplace hariç)
+- **Hook**: `insert_order()` merkezi fonksiyonunda auto-correction devreye girer
+- **Files**: `/app/backend/routers/location_corrections.py`, `/app/backend/services/credit_service.py`, `/app/frontend/src/components/admin/LocationCorrectionModal.jsx`, `GecmisSiparislerPage.jsx`
+
 ## Pending Issues (Prioritized)
 ### P2
 - "Neden AgrosJet?" static text update on RegisterPage + CourierKVKKPage
