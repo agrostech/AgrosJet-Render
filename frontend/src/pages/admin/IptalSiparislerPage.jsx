@@ -29,6 +29,7 @@ export default function IptalSiparislerPage({ companyId, onOrderSelect, isSuperA
   const [restaurantFilter, setRestaurantFilter] = useState("all");
   const [courierFilter, setCourierFilter] = useState("all");
   const [paymentFilter, setPaymentFilter] = useState("all");
+  const [sourceFilter, setSourceFilter] = useState("all");
   
   // Date filters with defaults
   const getDefaultDates = useCallback((companyData) => {
@@ -80,6 +81,11 @@ export default function IptalSiparislerPage({ companyId, onOrderSelect, isSuperA
         result = result.filter(o => o.payment_method === filters.payment);
       }
       
+      // Source/channel filter
+      if (filters.source !== "all") {
+        result = result.filter(o => (o.source || o.platform || "manual") === filters.source);
+      }
+      
       // Date range filter
       if (filters.startDateTime && filters.endDateTime) {
         const start = new Date(filters.startDateTime);
@@ -106,6 +112,7 @@ export default function IptalSiparislerPage({ companyId, onOrderSelect, isSuperA
       restaurant: restaurantFilter,
       courier: courierFilter,
       payment: paymentFilter,
+      source: sourceFilter,
       startDateTime,
       endDateTime
     });
@@ -202,6 +209,7 @@ export default function IptalSiparislerPage({ companyId, onOrderSelect, isSuperA
     setRestaurantFilter("all");
     setCourierFilter("all");
     setPaymentFilter("all");
+    setSourceFilter("all");
     const defaults = getDefaultDates(company);
     setStartDateTime(defaults.startDateTime);
     setEndDateTime(defaults.endDateTime);
@@ -211,6 +219,7 @@ export default function IptalSiparislerPage({ companyId, onOrderSelect, isSuperA
       restaurant: "all",
       courier: "all",
       payment: "all",
+      source: "all",
       startDateTime: defaults.startDateTime,
       endDateTime: defaults.endDateTime
     });
@@ -269,7 +278,7 @@ export default function IptalSiparislerPage({ companyId, onOrderSelect, isSuperA
       {/* Filtreler */}
       <Card>
         <CardContent className="p-3 space-y-3">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
             <div>
               <Label className="text-[10px] text-muted-foreground mb-1 block">Restoran</Label>
               <Select value={restaurantFilter} onValueChange={setRestaurantFilter}>
@@ -300,6 +309,21 @@ export default function IptalSiparislerPage({ companyId, onOrderSelect, isSuperA
                   <SelectItem value="card">Kart</SelectItem>
                   <SelectItem value="meal_card">Yemek Kartı</SelectItem>
                   <SelectItem value="online">Online</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-[10px] text-muted-foreground mb-1 block">Kanal</Label>
+              <Select value={sourceFilter} onValueChange={setSourceFilter}>
+                <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Tümü" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tümü</SelectItem>
+                  <SelectItem value="adisyo">Adisyo</SelectItem>
+                  <SelectItem value="getir">Getir</SelectItem>
+                  <SelectItem value="trendyol">Trendyol</SelectItem>
+                  <SelectItem value="yemeksepeti">Yemeksepeti</SelectItem>
+                  <SelectItem value="migros">Migros</SelectItem>
+                  <SelectItem value="manual">Manuel</SelectItem>
                 </SelectContent>
               </Select>
             </div>
