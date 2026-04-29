@@ -193,8 +193,9 @@ export function LocationCorrectionModal({ open, onOpenChange, companyId }) {
               key={`${selectedOrder?.id}-${mapCenter[0]}-${mapCenter[1]}`}
             >
               <TileLayer
-                attribution='&copy; OpenStreetMap'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&copy; CartoDB'
+                url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                subdomains="abcd"
               />
               <MapClickHandler onLocationSelect={setSelectedLocation} />
               {selectedLocation && (

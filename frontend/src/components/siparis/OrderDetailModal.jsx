@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { 
   MapPin, Phone, Clock, User, Bike, Store, Package, 
-  Navigation, XCircle, Map, BellOff, Edit2, Check, X as XIcon, RefreshCw
+  Navigation, XCircle, Map, BellOff, Edit2, Check, X as XIcon, RefreshCw, Search
 } from "lucide-react";
 import { 
   ORDER_STATUSES, 
@@ -41,6 +41,8 @@ export function OrderDetailModal({
   const [newLocation, setNewLocation] = useState(null);
   const [savingLocation, setSavingLocation] = useState(false);
   const editMarkerRef = useRef(null);
+  const searchInputRef = useRef(null);
+  const searchAutocompleteRef = useRef(null);
 
   // Modal kapandığında cleanup
   useEffect(() => {
@@ -116,9 +118,7 @@ export function OrderDetailModal({
         attributionControl: false
       }).setView([deliveryLat, deliveryLng], 15);
       
-      const tileUrl = document.documentElement.classList.contains('dark')
-        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-        : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+      const tileUrl = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
       L.tileLayer(tileUrl, {
         subdomains: 'abcd',
         maxZoom: 19
@@ -207,6 +207,41 @@ export function OrderDetailModal({
           editMarkerRef.current = newMarker;
           setNewLocation({ lat: e.latlng.lat, lng: e.latlng.lng });
         });
+        // Google Places Autocomplete init
+        setTimeout(() => {
+          const input = searchInputRef.current;
+          if (input && window.google?.maps?.places) {
+            if (searchAutocompleteRef.current) {
+              window.google.maps.event.clearInstanceListeners(searchAutocompleteRef.current);
+            }
+            const autocomplete = new window.google.maps.places.Autocomplete(input, {
+              componentRestrictions: { country: "tr" },
+              types: ["geocode", "establishment"],
+            });
+            autocomplete.addListener("place_changed", () => {
+              const place = autocomplete.getPlace();
+              if (place.geometry?.location) {
+                const lat = place.geometry.location.lat();
+                const lng = place.geometry.location.lng();
+                map.setView([lat, lng], 17);
+                // Marker ekle
+                const L = window.L;
+                if (editMarkerRef.current) map.removeLayer(editMarkerRef.current);
+                const marker = L.marker([lat, lng], {
+                  icon: L.divIcon({
+                    className: '',
+                    html: `<div style="background: #ef4444; width: 18px; height: 18px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.4);"></div>`,
+                    iconSize: [18, 18],
+                    iconAnchor: [9, 9]
+                  })
+                }).addTo(map);
+                editMarkerRef.current = marker;
+                setNewLocation({ lat, lng });
+              }
+            });
+            searchAutocompleteRef.current = autocomplete;
+          }
+        }, 200);
       }, 100);
     }
   };
@@ -561,7 +596,7 @@ export function OrderDetailModal({
               <div className="flex items-center justify-between">
                 {editingLocation ? (
                   <div className="flex items-center gap-2 w-full">
-                    <span className="text-xs text-red-600 font-medium flex-1">Haritaya tıklayarak yeni konum seçin</span>
+                    <span className="text-xs text-red-600 font-medium flex-1">Haritaya tıklayarak veya arama yaparak konum seçin</span>
                     <Button
                       variant="outline"
                       size="sm"
@@ -593,6 +628,19 @@ export function OrderDetailModal({
                   </Button>
                 )}
               </div>
+
+              {editingLocation && (
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    placeholder="Adres ara..."
+                    className="w-full h-8 pl-8 pr-3 text-xs border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    data-testid="location-address-search"
+                  />
+                </div>
+              )}
 
               {newLocation && (
                 <div className="text-xs text-muted-foreground font-mono bg-slate-50 px-2 py-1 rounded">
