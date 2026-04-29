@@ -169,11 +169,15 @@ export function OrderDetailModal({
   // Konum düzenleme modu
   const toggleEditLocation = () => {
     if (editingLocation) {
-      // İptal
+      // İptal — click listener'ı kaldır
       setEditingLocation(false);
       setNewLocation(null);
-      if (editMarkerRef.current && orderMapInstanceRef.current) {
-        orderMapInstanceRef.current.removeLayer(editMarkerRef.current);
+      const map = orderMapInstanceRef.current;
+      if (map) {
+        map.off('click');
+      }
+      if (editMarkerRef.current && map) {
+        map.removeLayer(editMarkerRef.current);
         editMarkerRef.current = null;
       }
     } else {
@@ -182,6 +186,8 @@ export function OrderDetailModal({
       setNewLocation(null);
       const map = orderMapInstanceRef.current;
       if (map) {
+        // Harita boyutunu zorla güncelle
+        setTimeout(() => map.invalidateSize(), 50);
         map.on('click', (e) => {
           const L = window.L;
           if (editMarkerRef.current) {
@@ -211,16 +217,35 @@ export function OrderDetailModal({
         longitude: newLocation.lng,
       });
       toast.success("Konum güncellendi");
+      // Click listener'ı temizle
+      const map = orderMapInstanceRef.current;
+      if (map) map.off('click');
       setEditingLocation(false);
       setNewLocation(null);
-      if (editMarkerRef.current && orderMapInstanceRef.current) {
-        orderMapInstanceRef.current.removeLayer(editMarkerRef.current);
+      if (editMarkerRef.current && map) {
+        map.removeLayer(editMarkerRef.current);
         editMarkerRef.current = null;
       }
-      // Order objesi güncelle
-      if (order.delivery_location) {
-        order.delivery_location.latitude = newLocation.lat;
-        order.delivery_location.longitude = newLocation.lng;
+      // Haritayı yeni konuma kaydır + mavi marker güncelle
+      if (map && window.L) {
+        const L = window.L;
+        // Eski mavi marker'ları temizle
+        map.eachLayer((layer) => {
+          if (layer instanceof L.Marker) {
+            map.removeLayer(layer);
+          }
+        });
+        // Yeni mavi marker ekle
+        const deliveryIcon = L.divIcon({
+          className: 'order-marker',
+          html: `<div style="background: #3b82f6; width: 15px; height: 15px; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 4px rgba(0,0,0,0.3);"></div>`,
+          iconSize: [15, 15],
+          iconAnchor: [7.5, 7.5]
+        });
+        L.marker([newLocation.lat, newLocation.lng], { icon: deliveryIcon })
+          .addTo(map)
+          .bindPopup(`<b>Teslimat Adresi (Düzeltildi)</b><br>${order.delivery_address}`);
+        map.setView([newLocation.lat, newLocation.lng], 16);
       }
       if (onStatusUpdated) onStatusUpdated();
     } catch (err) {
