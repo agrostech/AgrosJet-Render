@@ -175,6 +175,7 @@ export function OrderDetailModal({
       const map = orderMapInstanceRef.current;
       if (map) {
         map.off('click');
+        setTimeout(() => map.invalidateSize(), 50);
       }
       if (editMarkerRef.current && map) {
         map.removeLayer(editMarkerRef.current);
@@ -184,12 +185,14 @@ export function OrderDetailModal({
       // Düzenleme moduna geç
       setEditingLocation(true);
       setNewLocation(null);
-      const map = orderMapInstanceRef.current;
-      if (map) {
-        // Harita boyutunu zorla güncelle
-        setTimeout(() => map.invalidateSize(), 50);
+      // Harita hazır değilse bekle
+      setTimeout(() => {
+        const map = orderMapInstanceRef.current;
+        if (!map) return;
+        map.invalidateSize();
         map.on('click', (e) => {
           const L = window.L;
+          if (!L) return;
           if (editMarkerRef.current) {
             map.removeLayer(editMarkerRef.current);
           }
@@ -204,7 +207,7 @@ export function OrderDetailModal({
           editMarkerRef.current = newMarker;
           setNewLocation({ lat: e.latlng.lat, lng: e.latlng.lng });
         });
-      }
+      }, 100);
     }
   };
 
@@ -597,11 +600,13 @@ export function OrderDetailModal({
                 </div>
               )}
 
-              <div 
-                ref={orderMapRef}
-                className={`w-full h-[350px] rounded-lg border ${editingLocation ? 'border-red-300 ring-1 ring-red-200' : ''}`}
-                style={{ zIndex: 1 }}
-              />
+              <div className={`rounded-lg ${editingLocation ? 'ring-2 ring-red-300' : ''}`}>
+                <div 
+                  ref={orderMapRef}
+                  className="w-full h-[350px] rounded-lg border"
+                  style={{ zIndex: 1 }}
+                />
+              </div>
               
               <a 
                 href={`https://www.google.com/maps/dir/?api=1&destination=${order.delivery_location?.latitude},${order.delivery_location?.longitude}`}
