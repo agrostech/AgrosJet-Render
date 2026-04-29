@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { 
   MapPin, Phone, Clock, User, Bike, Store, Package, 
-  Navigation, XCircle, Map, BellOff
+  Navigation, XCircle, Map, BellOff, Edit2, Check, X as XIcon, RefreshCw
 } from "lucide-react";
 import { 
   ORDER_STATUSES, 
@@ -17,6 +17,8 @@ import {
   formatTime, 
   formatCurrency 
 } from "@/utils/orderUtils";
+
+import { toast } from "sonner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -35,6 +37,10 @@ export function OrderDetailModal({
   const [activeTab, setActiveTab] = useState("details");
   const orderMapRef = useRef(null);
   const orderMapInstanceRef = useRef(null);
+  const [editingLocation, setEditingLocation] = useState(false);
+  const [newLocation, setNewLocation] = useState(null);
+  const [savingLocation, setSavingLocation] = useState(false);
+  const editMarkerRef = useRef(null);
 
   // Modal kapandığında cleanup
   useEffect(() => {
@@ -159,6 +165,70 @@ export function OrderDetailModal({
     const timer = setTimeout(initOrderMap, 150);
     return () => clearTimeout(timer);
   }, [activeTab, order]);
+
+  // Konum düzenleme modu
+  const toggleEditLocation = () => {
+    if (editingLocation) {
+      // İptal
+      setEditingLocation(false);
+      setNewLocation(null);
+      if (editMarkerRef.current && orderMapInstanceRef.current) {
+        orderMapInstanceRef.current.removeLayer(editMarkerRef.current);
+        editMarkerRef.current = null;
+      }
+    } else {
+      // Düzenleme moduna geç
+      setEditingLocation(true);
+      setNewLocation(null);
+      const map = orderMapInstanceRef.current;
+      if (map) {
+        map.on('click', (e) => {
+          const L = window.L;
+          if (editMarkerRef.current) {
+            map.removeLayer(editMarkerRef.current);
+          }
+          const newMarker = L.marker([e.latlng.lat, e.latlng.lng], {
+            icon: L.divIcon({
+              className: '',
+              html: `<div style="background: #ef4444; width: 18px; height: 18px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.4);"></div>`,
+              iconSize: [18, 18],
+              iconAnchor: [9, 9]
+            })
+          }).addTo(map);
+          editMarkerRef.current = newMarker;
+          setNewLocation({ lat: e.latlng.lat, lng: e.latlng.lng });
+        });
+      }
+    }
+  };
+
+  const saveNewLocation = async () => {
+    if (!newLocation || !order) return;
+    setSavingLocation(true);
+    try {
+      await axios.put(`${API}/location-corrections/${companyId}/orders/${order.id}`, {
+        latitude: newLocation.lat,
+        longitude: newLocation.lng,
+      });
+      toast.success("Konum güncellendi");
+      setEditingLocation(false);
+      setNewLocation(null);
+      if (editMarkerRef.current && orderMapInstanceRef.current) {
+        orderMapInstanceRef.current.removeLayer(editMarkerRef.current);
+        editMarkerRef.current = null;
+      }
+      // Order objesi güncelle
+      if (order.delivery_location) {
+        order.delivery_location.latitude = newLocation.lat;
+        order.delivery_location.longitude = newLocation.lng;
+      }
+      if (onStatusUpdated) onStatusUpdated();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Konum güncellenemedi");
+    } finally {
+      setSavingLocation(false);
+    }
+  };
 
   // Super Admin durum değiştirme
   const handleSuperAdminStatusChange = async (newStatus) => {
@@ -459,9 +529,52 @@ export function OrderDetailModal({
           {/* Konum Sekmesi */}
           <TabsContent value="location" className="flex-1 mt-4">
             <div className="space-y-3">
+              {/* Düzenle butonları */}
+              <div className="flex items-center justify-between">
+                {editingLocation ? (
+                  <div className="flex items-center gap-2 w-full">
+                    <span className="text-xs text-red-600 font-medium flex-1">Haritaya tıklayarak yeni konum seçin</span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={toggleEditLocation}
+                      className="h-7 px-2 text-xs"
+                    >
+                      <XIcon className="w-3 h-3 mr-1" /> İptal
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={saveNewLocation}
+                      disabled={!newLocation || savingLocation}
+                      className="h-7 px-2 text-xs bg-green-600 hover:bg-green-700"
+                      data-testid="save-map-location-btn"
+                    >
+                      {savingLocation ? <RefreshCw className="w-3 h-3 mr-1 animate-spin" /> : <Check className="w-3 h-3 mr-1" />}
+                      Kaydet
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={toggleEditLocation}
+                    className="h-7 px-3 text-xs gap-1.5"
+                    data-testid="edit-location-btn"
+                  >
+                    <Edit2 className="w-3 h-3" /> Konumu Düzenle
+                  </Button>
+                )}
+              </div>
+
+              {newLocation && (
+                <div className="text-xs text-muted-foreground font-mono bg-slate-50 px-2 py-1 rounded">
+                  Yeni konum: {newLocation.lat.toFixed(6)}, {newLocation.lng.toFixed(6)}
+                </div>
+              )}
+
               <div 
                 ref={orderMapRef}
-                className="w-full h-[350px] rounded-lg border"
+                className={`w-full h-[350px] rounded-lg border ${editingLocation ? 'border-red-300 ring-1 ring-red-200' : ''}`}
                 style={{ zIndex: 1 }}
               />
               
