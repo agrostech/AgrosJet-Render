@@ -42,17 +42,27 @@ async def get_orders_for_correction(
     # Marketplace dışı siparişler
     marketplace_apps = ["yemeksepeti", "ys", "trendyol", "getir", "migros"]
     
+    source_filter = {"$or": [
+        {"source": {"$in": ["adisyo", "sepettakip", "manual"]}},
+        {"source": {"$exists": False}},
+        {"source": None},
+    ]}
+    
     query = {
         "company_id": company_id,
         "status": "delivered",
-        "source": {"$in": ["adisyo", "sepettakip", "manual", None]},
     }
-
+    
     if search:
-        query["$or"] = [
-            {"customer_name": {"$regex": search, "$options": "i"}},
-            {"delivery_address": {"$regex": search, "$options": "i"}},
+        query["$and"] = [
+            source_filter,
+            {"$or": [
+                {"customer_name": {"$regex": search, "$options": "i"}},
+                {"delivery_address": {"$regex": search, "$options": "i"}},
+            ]}
         ]
+    else:
+        query.update(source_filter)
 
     orders_raw = await db.orders.find(
         query,

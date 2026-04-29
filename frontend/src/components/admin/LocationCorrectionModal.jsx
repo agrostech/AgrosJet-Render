@@ -47,7 +47,8 @@ export function LocationCorrectionModal({ open, onOpenChange, companyId }) {
       const res = await axios.get(`${API}/location-corrections/${companyId}/orders`, { params });
       setOrders(res.data.orders || []);
     } catch (err) {
-      toast.error("Siparişler yüklenemedi");
+      console.error("Location correction fetch error:", err.response?.status, err.response?.data);
+      toast.error(err.response?.data?.detail || "Siparişler yüklenemedi");
     } finally {
       setLoading(false);
     }
