@@ -42,6 +42,7 @@ import {
   ChevronLeft,
   Check,
   RefreshCw,
+  Camera,
 } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
@@ -132,6 +133,10 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
 
   // Submission state
   const [submitting, setSubmitting] = useState(false);
+
+  // Receipt upload state
+  const [receiptAnalyzing, setReceiptAnalyzing] = useState(false);
+  const receiptInputRef = useRef(null);
 
   // Google Places Autocomplete ref
   const autocompleteRef = useRef(null);
@@ -396,6 +401,51 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
 
   const handleBack = () => {
     setCurrentStep((prev) => Math.max(prev - 1, 0));
+  };
+
+  // Fiş ile sipariş bilgisi doldurma
+  const handleReceiptUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setReceiptAnalyzing(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      const res = await axios.post(`${API}/receipt/analyze`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      
+      const data = res.data;
+      
+      // Form alanlarını doldur
+      if (data.customer_name) setCustomerName(data.customer_name);
+      if (data.customer_phone) setCustomerPhone(data.customer_phone);
+      if (data.delivery_address) setDeliveryAddress(data.delivery_address);
+      if (data.total_amount) setManualAmount(String(data.total_amount));
+      if (data.order_note) setNotes(data.order_note);
+      if (data.delivery_location) setDeliveryLocation(data.delivery_location);
+      
+      // Ödeme yöntemi
+      if (data.payment_method) {
+        setPaymentMethod(data.payment_method);
+      }
+      
+      // Ürün notu
+      setManualAmountNote("Ürün");
+      
+      // Müşteri bilgileri adımına geç
+      setCurrentStep(1);
+      
+      toast.success("Fiş analiz edildi, bilgiler dolduruldu");
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Fiş analiz edilemedi");
+    } finally {
+      setReceiptAnalyzing(false);
+      // Input'u sıfırla
+      if (receiptInputRef.current) receiptInputRef.current.value = "";
+    }
   };
 
   // Handle payment selection
@@ -989,6 +1039,38 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
 
         {/* Step Indicator */}
         <StepIndicator currentStep={currentStep} steps={steps} />
+
+        {/* Fiş ile Doldur butonu - sadece ilk adımda göster */}
+        {currentStep === 0 && (
+          <div className="px-6 pt-3">
+            <input
+              ref={receiptInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={handleReceiptUpload}
+            />
+            <Button
+              variant="outline"
+              className="w-full h-10 gap-2 border-dashed border-2 border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400"
+              onClick={() => receiptInputRef.current?.click()}
+              disabled={receiptAnalyzing}
+              data-testid="receipt-upload-btn"
+            >
+              {receiptAnalyzing ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  Fiş analiz ediliyor...
+                </>
+              ) : (
+                <>
+                  <Camera className="w-4 h-4" />
+                  Fiş ile Sipariş Oluştur
+                </>
+              )}
+            </Button>
+          </div>
+        )}
 
         {/* Step Content */}
         <div className="px-6">

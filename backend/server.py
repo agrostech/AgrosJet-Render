@@ -714,6 +714,7 @@ from routers.restaurants import router as restaurants_router
 from routers.orders import router as orders_router
 from routers.pool import router as pool_router
 from routers.location_corrections import router as location_corrections_router
+from routers.receipt import router as receipt_router
 from routers.finance import router as finance_router
 from routers.hakedis import router as hakedis_router
 from routers.weekly_hakedis import router as weekly_hakedis_router
@@ -779,6 +780,7 @@ app.include_router(restaurants_router)
 app.include_router(orders_router)
 app.include_router(pool_router)
 app.include_router(location_corrections_router)
+app.include_router(receipt_router)
 app.include_router(finance_router)
 app.include_router(hakedis_router)
 app.include_router(weekly_hakedis_router)
