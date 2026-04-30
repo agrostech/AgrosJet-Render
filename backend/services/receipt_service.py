@@ -45,18 +45,13 @@ JSON formatı (başka bir şey yazma, sadece JSON):
 async def analyze_receipt(image_base64: str) -> dict:
     """
     Fiş fotoğrafını GPT-4o ile analiz eder.
-    
-    Args:
-        image_base64: Base64 encoded fiş fotoğrafı
-        
-    Returns:
-        Yapılandırılmış sipariş bilgisi dict
     """
-    if not EMERGENT_KEY:
-        raise ValueError("EMERGENT_LLM_KEY tanımlanmamış")
+    api_key = EMERGENT_KEY or os.environ.get("EMERGENT_LLM_KEY")
+    if not api_key:
+        raise ValueError("EMERGENT_LLM_KEY tanımlanmamış. Railway environment variables'a ekleyin.")
 
     chat = LlmChat(
-        api_key=EMERGENT_KEY,
+        api_key=api_key,
         session_id=f"receipt-{uuid.uuid4().hex[:8]}",
         system_message=RECEIPT_ANALYSIS_PROMPT,
     ).with_model("openai", "gpt-4o")
