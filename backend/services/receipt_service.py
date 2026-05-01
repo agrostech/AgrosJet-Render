@@ -20,7 +20,7 @@ RECEIPT_ANALYSIS_PROMPT = """Sen bir fiş/adisyon okuma asistanısın. Gönderil
 
 Kurallar:
 - Sadece fişte yazan bilgileri çıkar, tahmin yapma
-- Telefon numarasını olduğu gibi yaz
+- Telefon numarasını fişte yazan şekliyle AYNEN yaz. "/" işareti, boşluk veya sipariş kodu varsa HİÇBİR karakteri atma. Örnek: "02123653403 / 1185552156" → aynen böyle yaz
 - Adres bilgisini tam olarak yaz
 - Tutar olarak İNDİRİM SONRASI son toplam tutarı yaz (varsa indirimli tutar)
 - Ödeme yöntemi: "cash" (nakit), "card" (kredi kartı), "online" (online ödeme) olarak belirle
@@ -32,7 +32,7 @@ Kurallar:
 JSON formatı (başka bir şey yazma, sadece JSON):
 {
   "customer_name": "Müşteri adı",
-  "customer_phone": "Telefon numarası",
+  "customer_phone": "Telefon numarasını fişte yazdığı gibi aynen yaz",
   "delivery_address": "Tam teslimat adresi",
   "total_amount": 0.00,
   "payment_method": "online",

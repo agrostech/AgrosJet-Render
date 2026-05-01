@@ -22,6 +22,51 @@ logger = logging.getLogger(__name__)
 GOOGLE_MAPS_KEY = os.environ.get("GOOGLE_MAPS_API_KEY", os.environ.get("REACT_APP_GOOGLE_MAPS_API_KEY", ""))
 
 
+def normalize_receipt_phone(phone: str) -> str:
+    """
+    Fişteki telefon numarasını DTMF uyumlu formata çevirir.
+    
+    Örnekler:
+    - "02123653403 / 1185552156" → "02123653403,1185552156"
+    - "5553337766" → "05553337766"
+    - "0212 365 34 03/1185552156" → "02123653403,1185552156"
+    - "02123653403" → "02123653403"
+    """
+    if not phone:
+        return phone
+    
+    # Boşlukları ve tireleri kaldır
+    clean = phone.replace(" ", "").replace("-", "").replace("(", "").replace(")", "")
+    
+    # "/" ayırıcıyı DTMF pause (,) formatına çevir
+    if "/" in clean:
+        clean = clean.replace("/", ",")
+    
+    # Birden fazla virgülü teke düşür
+    while ",," in clean:
+        clean = clean.replace(",,", ",")
+    
+    # Parçalara ayır ve her parçayı kontrol et
+    parts = clean.split(",")
+    normalized_parts = []
+    
+    for i, part in enumerate(parts):
+        part = part.strip()
+        if not part:
+            continue
+        if i == 0:
+            # Ana numara — başında 0 yoksa ekle
+            if part.startswith("5") and len(part) == 10:
+                part = "0" + part
+            elif part.startswith("2") and len(part) == 10:
+                part = "0" + part
+            elif part.startswith("3") and len(part) == 10:
+                part = "0" + part
+        normalized_parts.append(part)
+    
+    return ",".join(normalized_parts)
+
+
 @router.post("/analyze")
 async def analyze_receipt_endpoint(
     file: UploadFile = File(...),
@@ -52,6 +97,11 @@ async def analyze_receipt_endpoint(
     except Exception as e:
         logger.error(f"Fiş analiz hatası: {e}")
         raise HTTPException(status_code=500, detail="Fiş analiz edilemedi")
+
+    # Telefon numarasını normalize et
+    raw_phone = result.get("customer_phone", "")
+    if raw_phone:
+        result["customer_phone"] = normalize_receipt_phone(raw_phone)
 
     # Adres → Koordinat (Google Geocoding)
     location = None
