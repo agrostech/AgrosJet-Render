@@ -103,6 +103,11 @@ Multi-tenant delivery management platform for restaurants, couriers, and adminis
 - Yemeksepeti Chrome extension
 - "Stop Count" capacity logic
 - Caller ID integration
+- "Neden AgrosJet?" statik metin guncellemesi (RegisterPage + CourierKVKKPage) - P2
+- Sistem Panel webhook setup ping hatasi (agrosjet.net) - P2
+
+## Recent Fixes (2026-02)
+- Getir webhook order_id=None hatasi: ID icin fallback alanlari eklendi (id, orderId, _id, clientOrderId, order_id). Tam payload integration_logs.data alanina yaziliyor (debug icin). Bos/ping istekleri 500 yerine 200 donuyor. Test: /app/backend/tests/test_getir_webhook_id_fallback.py
 
 ## Key API Endpoints
 - POST /api/auth/courier/login (returns contract_accepted, fesih_accepted, document_status)

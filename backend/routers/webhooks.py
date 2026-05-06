@@ -90,15 +90,35 @@ async def getir_order_webhook(
             await _save_log("getir", "ERROR", "JSON parse hatası")
             raise HTTPException(status_code=400, detail="Geçersiz JSON")
         
-        logger.info(f"Getir sipariş webhook alındı: order_id={webhook_data.get('id')}")
-        await _save_log("getir", "INFO", f"Webhook alındı: order_id={webhook_data.get('id')}")
+        # Sipariş ID - Getir farklı field'larda gönderebilir (id / orderId / _id / clientOrderId)
+        getir_order_id = (
+            webhook_data.get("id")
+            or webhook_data.get("orderId")
+            or webhook_data.get("_id")
+            or webhook_data.get("clientOrderId")
+            or webhook_data.get("order_id")
+        )
         
-        # Sipariş ID kontrol
-        getir_order_id = webhook_data.get("id")
+        # Tam payload'ı debug için logla (Getir gerçek payload yapısını görmek için)
+        logger.info(f"Getir sipariş webhook alındı: order_id={getir_order_id}, payload_keys={list(webhook_data.keys())}")
+        await _save_log(
+            "getir", "INFO",
+            f"Webhook alındı: order_id={getir_order_id}",
+            data={"payload": webhook_data, "headers_keys": list(webhook_data.keys())}
+        )
+        
         if not getir_order_id:
-            logger.warning("Getir webhook: Sipariş ID bulunamadı")
-            await _save_log("getir", "WARNING", "Sipariş ID bulunamadı")
-            return {"status": "error", "message": "Sipariş ID bulunamadı"}
+            logger.warning(f"Getir webhook: Sipariş ID bulunamadı, payload={webhook_data}")
+            await _save_log(
+                "getir", "WARNING",
+                "Sipariş ID bulunamadı - payload formatı beklenenden farklı",
+                data={"payload": webhook_data}
+            )
+            # Getir test/ping istekleri için 200 dön (webhook setup başarılı görünmesi için)
+            return {"status": "ok", "message": "Sipariş ID bulunamadı (test/ping olabilir)", "action": "skipped"}
+        
+        # ID'yi normalize et — downstream kod (convert + getir_raw) `id` field'ını okur
+        webhook_data["id"] = getir_order_id
         
         # Restoran bilgisini Getir verisinden al
         getir_restaurant_id = webhook_data.get("restaurant", {}).get("id") or webhook_data.get("restaurantId")
@@ -202,11 +222,28 @@ async def getir_cancel_webhook(
         logger.info(f"Getir iptal webhook alındı: data={webhook_data}")
         
         # Sipariş ID - Getir farklı field'larda gönderebilir
-        getir_order_id = webhook_data.get("id") or webhook_data.get("orderId") or webhook_data.get("order_id")
+        getir_order_id = (
+            webhook_data.get("id")
+            or webhook_data.get("orderId")
+            or webhook_data.get("_id")
+            or webhook_data.get("clientOrderId")
+            or webhook_data.get("order_id")
+        )
+        
+        await _save_log(
+            "getir", "INFO",
+            f"İptal webhook alındı: order_id={getir_order_id}",
+            data={"payload": webhook_data}
+        )
         
         if not getir_order_id:
-            logger.warning("Getir iptal webhook: Sipariş ID bulunamadı")
-            return {"status": "error", "message": "Sipariş ID bulunamadı"}
+            logger.warning(f"Getir iptal webhook: Sipariş ID bulunamadı, payload={webhook_data}")
+            await _save_log(
+                "getir", "WARNING",
+                "İptal webhook: Sipariş ID bulunamadı",
+                data={"payload": webhook_data}
+            )
+            return {"status": "ok", "message": "Sipariş ID bulunamadı", "action": "skipped"}
         
         # Siparişi bul
         existing = await db.orders.find_one({"getir_order_id": getir_order_id})
