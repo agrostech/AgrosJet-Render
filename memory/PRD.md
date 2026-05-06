@@ -93,21 +93,19 @@ Multi-tenant delivery management platform for restaurants, couriers, and adminis
 - **Files**: `/app/backend/routers/location_corrections.py`, `/app/backend/services/credit_service.py`, `/app/frontend/src/components/admin/LocationCorrectionModal.jsx`, `GecmisSiparislerPage.jsx`
 
 ## Pending Issues (Prioritized)
-### P2
-- "Neden AgrosJet?" static text update on RegisterPage + CourierKVKKPage
-- Webhook setup ping failure for agrosjet.net (HTML response handling)
+(P2 görevleri kullanıcı tarafından kalıcı olarak iptal edildi — yapılmayacak)
 
 ## Upcoming/Future
-- Nilvera e-Fatura entegrasyonu (analiz tamamlandi, tevkifat destekli)
+- Nilvera e-Fatura entegrasyonu (analiz tamamlandi, tevkifat destekli) — P1
 - Native Courier App improvements (Map / Proximity Engine)
 - Yemeksepeti Chrome extension
 - "Stop Count" capacity logic
 - Caller ID integration
-- "Neden AgrosJet?" statik metin guncellemesi (RegisterPage + CourierKVKKPage) - P2
-- Sistem Panel webhook setup ping hatasi (agrosjet.net) - P2
 
 ## Recent Fixes (2026-02)
 - Getir webhook order_id=None hatasi: ID icin fallback alanlari eklendi (id, orderId, _id, clientOrderId, order_id). Tam payload integration_logs.data alanina yaziliyor (debug icin). Bos/ping istekleri 500 yerine 200 donuyor. Test: /app/backend/tests/test_getir_webhook_id_fallback.py
+- Kesilen Faturalar geçen hafta TypeError: Restoran pricing alanları None olunca patlama düzeltildi (issued_invoices.py — None-safe pattern).
+- Paket onaylanmama cezası: dispatcher.add_shift_violation artık apply_penalty_if_needed çağırıyor → ceza/transaction otomatik oluşuyor. Test: /app/backend/tests/test_package_not_confirmed_penalty.py
 
 ## Key API Endpoints
 - POST /api/auth/courier/login (returns contract_accepted, fesih_accepted, document_status)
