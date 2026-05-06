@@ -141,9 +141,9 @@ async def get_week_summary(company_id: str, week_start: str, week_end: str):
             return per_package_price or 0.0
         elif pricing_type == "per_km" and km_ranges:
             for km_range in km_ranges:
-                min_km = km_range.get("min_km", 0)
+                min_km = km_range.get("min_km") or 0
                 max_km = km_range.get("max_km")
-                price = km_range.get("price", 0)
+                price = km_range.get("price") or 0
                 if max_km is None:
                     if distance_km >= min_km:
                         return price
@@ -206,10 +206,10 @@ async def get_week_summary(company_id: str, week_start: str, week_end: str):
                 "order_count": 0,
                 "total_delivery_fee": 0,
                 "total_amount": 0,
-                "kdv_rate": rest_kdv_rate,
-                "pricing_type": rest_info.get("pricing_type", "per_package"),
-                "per_package_price": rest_info.get("per_package_price", 0),
-                "km_ranges": rest_info.get("km_ranges", [])
+                "kdv_rate": rest_kdv_rate if rest_kdv_rate is not None else 10,
+                "pricing_type": rest_info.get("pricing_type") or "per_package",
+                "per_package_price": rest_info.get("per_package_price") or 0,
+                "km_ranges": rest_info.get("km_ranges") or []
             }
         
         # Taşıma ücreti - önce siparişte kayıtlı değere bak
@@ -217,7 +217,7 @@ async def get_week_summary(company_id: str, week_start: str, week_end: str):
         
         # Eğer siparişte ücret yoksa, restoran ayarlarından hesapla
         rest_data = restaurant_totals[rid]
-        if order_delivery_fee == 0 and (rest_data["per_package_price"] > 0 or rest_data["km_ranges"]):
+        if order_delivery_fee == 0 and ((rest_data["per_package_price"] or 0) > 0 or rest_data["km_ranges"]):
             distance_km = calculate_distance(
                 order.get("restaurant_location"),
                 order.get("delivery_location")
