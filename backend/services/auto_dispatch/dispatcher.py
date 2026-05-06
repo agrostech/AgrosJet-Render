@@ -577,15 +577,21 @@ async def add_shift_violation(
     order_id: str = None
 ):
     """
-    Vardiya ihlali kaydı ekler.
+    Vardiya ihlali kaydı ekler ve (aktifse) ceza uygular.
+    Merkezi log_violation/apply_penalty_if_needed mantığı ile uyumlu.
     """
     # Mevcut sistemle uyumlu format
     violation_labels = {
         "package_not_confirmed": "Paketi onaylamadı"
     }
     
+    # Türkiye saati (diğer ihlallerle tutarlı olsun)
+    turkey_tz = timezone(timedelta(hours=3))
+    now_turkey_iso = datetime.now(turkey_tz).isoformat()
+    
+    violation_id = str(__import__("uuid").uuid4())
     violation = {
-        "id": str(__import__("uuid").uuid4()),
+        "id": violation_id,
         "company_id": company_id,
         "entity_type": "courier",
         "entity_id": courier_id,
@@ -596,11 +602,34 @@ async def add_shift_violation(
             "order_id": order_id,
             "description": description
         },
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": now_turkey_iso,
         "resolved": False
     }
     
     await db.shift_violations.insert_one(violation)
+    violation.pop("_id", None)
+    
+    # Ceza uygula (eğer penalty_settings'te aktifse)
+    try:
+        from routers.shift_violations import apply_penalty_if_needed
+        penalty_result = await apply_penalty_if_needed(
+            company_id=company_id,
+            entity_type="courier",
+            entity_id=courier_id,
+            entity_name=courier_name,
+            violation_type=violation_type,
+            violation_id=violation_id
+        )
+        if penalty_result:
+            violation["penalty_amount"] = penalty_result["amount"]
+            violation["penalty_transaction_id"] = penalty_result["transaction_id"]
+            logger.info(
+                f"Ceza uygulandı: courier={courier_name}, type={violation_type}, "
+                f"amount={penalty_result['amount']}"
+            )
+    except Exception as e:
+        logger.exception(f"Ceza uygulama hatası: {e}")
+    
     return violation
 
 
