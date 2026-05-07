@@ -696,6 +696,7 @@ from routers.zimmet import router as zimmet_router
 from routers.accounting import router as accounting_router
 from routers.shifts import router as shifts_router
 from routers.invoices import router as invoices_router
+from routers.payout_requests import router as payout_requests_router
 from routers.documents import router as documents_router
 from routers.jetpuan import router as jetpuan_router
 from routers.notifications import router as notifications_router
@@ -762,6 +763,7 @@ app.include_router(zimmet_router)
 app.include_router(accounting_router)
 app.include_router(shifts_router)
 app.include_router(invoices_router)
+app.include_router(payout_requests_router)
 app.include_router(documents_router)
 app.include_router(jetpuan_router)
 app.include_router(notifications_router)

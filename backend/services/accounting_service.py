@@ -44,14 +44,15 @@ async def get_entity_transactions(entity_type: str, entity_id: str, skip: int = 
             tx["invoice_verified"] = verified_invoice is not None
     
     # Calculate balance using aggregation (optimized)
-    # payment_out/given = borç artırır (pozitif bakiye)
-    # payment_in/received = borç azaltır (negatif bakiye)
+    # payment_out/given = borç artırır (pozitif bakiye = kurye borçlu)
+    # payment_in/received/earning = borç azaltır (negatif bakiye = kurye alacaklı)
+    # NOT: "earning" yeni otomatik hakediş tipi (sipariş teslim edildiğinde yazılır)
     pipeline = [
         {"$match": {"entity_type": entity_type, "entity_id": entity_id}},
         {"$group": {
             "_id": None,
             "total_out": {"$sum": {"$cond": [{"$in": ["$type", ["payment_out", "given"]]}, "$amount", 0]}},
-            "total_in": {"$sum": {"$cond": [{"$in": ["$type", ["payment_in", "received"]]}, "$amount", 0]}}
+            "total_in": {"$sum": {"$cond": [{"$in": ["$type", ["payment_in", "received", "earning"]]}, "$amount", 0]}}
         }}
     ]
     balance_result = await db.transactions.aggregate(pipeline).to_list(1)
@@ -72,14 +73,12 @@ async def calculate_total_balance(entity_type: str, entity_ids: list) -> float:
     if not entity_ids:
         return 0
     
-    # payment_out/given = borç artırır (pozitif bakiye)
-    # payment_in/received = borç azaltır (negatif bakiye)
     pipeline = [
         {"$match": {"entity_type": entity_type, "entity_id": {"$in": entity_ids}}},
         {"$group": {
             "_id": None,
             "total_out": {"$sum": {"$cond": [{"$in": ["$type", ["payment_out", "given"]]}, "$amount", 0]}},
-            "total_in": {"$sum": {"$cond": [{"$in": ["$type", ["payment_in", "received"]]}, "$amount", 0]}}
+            "total_in": {"$sum": {"$cond": [{"$in": ["$type", ["payment_in", "received", "earning"]]}, "$amount", 0]}}
         }}
     ]
     result = await db.transactions.aggregate(pipeline).to_list(1)
@@ -93,15 +92,12 @@ async def calculate_balance_breakdown(entity_type: str, entity_ids: list) -> dic
     if not entity_ids:
         return {"positive": 0, "negative": 0, "balance": 0}
     
-    # Calculate individual balances for each entity
-    # payment_out/given = borç artırır (pozitif bakiye)
-    # payment_in/received = borç azaltır (negatif bakiye)
     pipeline = [
         {"$match": {"entity_type": entity_type, "entity_id": {"$in": entity_ids}}},
         {"$group": {
             "_id": "$entity_id",
             "total_out": {"$sum": {"$cond": [{"$in": ["$type", ["payment_out", "given"]]}, "$amount", 0]}},
-            "total_in": {"$sum": {"$cond": [{"$in": ["$type", ["payment_in", "received"]]}, "$amount", 0]}}
+            "total_in": {"$sum": {"$cond": [{"$in": ["$type", ["payment_in", "received", "earning"]]}, "$amount", 0]}}
         }},
         {"$project": {
             "_id": 1,
@@ -140,7 +136,7 @@ async def calculate_entity_balances_map(entity_type: str, entity_ids: list) -> d
         {"$group": {
             "_id": "$entity_id",
             "total_out": {"$sum": {"$cond": [{"$in": ["$type", ["payment_out", "given"]]}, "$amount", 0]}},
-            "total_in": {"$sum": {"$cond": [{"$in": ["$type", ["payment_in", "received"]]}, "$amount", 0]}}
+            "total_in": {"$sum": {"$cond": [{"$in": ["$type", ["payment_in", "received", "earning"]]}, "$amount", 0]}}
         }},
         {"$project": {
             "_id": 1,

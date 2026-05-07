@@ -157,8 +157,14 @@ class InstallmentProductCreate(BaseModel):
     courier_id: str
     company_id: str
     name: str
-    installment_amount: float
-    installment_count: int
+    # Tip: "fixed" (mevcut) veya "percent" (yeni yüzdeli)
+    installment_type: Optional[str] = "fixed"
+    # Fixed tip alanları (eski uyumluluk için zorunlu görünür ama percent'te 0 olur)
+    installment_amount: float = 0
+    installment_count: int = 0
+    # Percent tip alanları
+    total_amount: Optional[float] = None  # Toplam borç
+    withdrawal_percent: Optional[float] = None  # Her ödeme talebinde kesilecek yüzde (0-100)
     admin_id: str
     admin_name: str
 

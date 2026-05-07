@@ -5,7 +5,11 @@ const formatMoney = (amount) => {
 };
 
 export default function InstallmentSection({ installmentProducts, installmentsExpanded, setInstallmentsExpanded }) {
-  const totalRemainingInstallments = installmentProducts.reduce((sum, p) => sum + p.remaining_installments, 0);
+  const totalRemainingInstallments = installmentProducts.reduce((sum, p) => {
+    if ((p.installment_type || "fixed") === "percent") return sum;
+    return sum + (p.remaining_installments || 0);
+  }, 0);
+  const percentCount = installmentProducts.filter(p => (p.installment_type || "fixed") === "percent").length;
   
   if (installmentProducts.length === 0) return null;
 
@@ -21,6 +25,11 @@ export default function InstallmentSection({ installmentProducts, installmentsEx
           {totalRemainingInstallments > 0 && (
             <span className="text-[10px] sm:text-xs bg-purple-100 text-purple-700 px-1.5 sm:px-2 py-0.5 rounded-full font-medium">
               {totalRemainingInstallments} taksit
+            </span>
+          )}
+          {percentCount > 0 && (
+            <span className="text-[10px] sm:text-xs bg-amber-100 text-amber-700 px-1.5 sm:px-2 py-0.5 rounded-full font-medium">
+              {percentCount} yüzdeli
             </span>
           )}
         </div>
@@ -42,6 +51,50 @@ export default function InstallmentSection({ installmentProducts, installmentsEx
 }
 
 function InstallmentProductItem({ product }) {
+  const isPercent = (product.installment_type || "fixed") === "percent";
+  
+  if (isPercent) {
+    const totalAmount = product.total_amount || 0;
+    const paidAmount = product.paid_amount || 0;
+    const remainingAmount = product.remaining_amount ?? (totalAmount - paidAmount);
+    const progressPercent = totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0;
+    
+    return (
+      <div className="p-3 sm:p-4 bg-amber-50/50">
+        <div className="flex items-center justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <p className="font-semibold text-sm truncate">{product.name}</p>
+              <span className="text-[10px] bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded font-medium flex-shrink-0">
+                %{product.withdrawal_percent}
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Toplam: {formatMoney(totalAmount)}
+            </p>
+          </div>
+          <div className="text-right shrink-0">
+            <p className="text-sm font-semibold text-amber-700">
+              {progressPercent.toFixed(0)}%
+            </p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">
+              Kalan: {formatMoney(remainingAmount)}
+            </p>
+          </div>
+        </div>
+        <div className="mt-2 bg-amber-100 rounded-full h-1.5 sm:h-2">
+          <div 
+            className="bg-amber-600 h-1.5 sm:h-2 rounded-full transition-all"
+            style={{ width: `${Math.min(100, progressPercent)}%` }}
+          />
+        </div>
+        <p className="text-[10px] text-amber-700 mt-1.5 italic">
+          Her ödeme talebinde %{product.withdrawal_percent} taksit kesintisi otomatik uygulanır
+        </p>
+      </div>
+    );
+  }
+  
   return (
     <div className="p-3 sm:p-4">
       <div className="flex items-center justify-between gap-2">

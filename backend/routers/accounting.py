@@ -865,27 +865,55 @@ async def create_installment_product(
     courier_id: str, 
     data: InstallmentProductCreate
 ):
-    """Create a new installment product for a courier"""
+    """Create a new installment product for a courier (fixed or percent type)"""
     # Verify courier exists
     courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0})
     if not courier:
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
     
-    product = {
-        "id": str(uuid.uuid4()),
-        "courier_id": courier_id,
-        "company_id": data.company_id,
-        "name": data.name,
-        "installment_amount": data.installment_amount,
-        "installment_count": data.installment_count,
-        "remaining_installments": data.installment_count,
-        "total_amount": data.installment_amount * data.installment_count,
-        "paid_amount": 0,
-        "is_completed": False,
-        "created_at": get_turkey_now(),
-        "created_by_admin_id": data.admin_id,
-        "created_by_admin_name": data.admin_name
-    }
+    inst_type = (data.installment_type or "fixed").lower()
+    if inst_type not in ("fixed", "percent"):
+        raise HTTPException(status_code=400, detail="Taksit tipi geçersiz (fixed | percent)")
+    
+    if inst_type == "fixed":
+        if data.installment_amount <= 0 or data.installment_count <= 0:
+            raise HTTPException(status_code=400, detail="Sabit taksit için tutar ve sayı zorunlu")
+        product = {
+            "id": str(uuid.uuid4()),
+            "courier_id": courier_id,
+            "company_id": data.company_id,
+            "name": data.name,
+            "installment_type": "fixed",
+            "installment_amount": data.installment_amount,
+            "installment_count": data.installment_count,
+            "remaining_installments": data.installment_count,
+            "total_amount": data.installment_amount * data.installment_count,
+            "paid_amount": 0,
+            "is_completed": False,
+            "created_at": get_turkey_now(),
+            "created_by_admin_id": data.admin_id,
+            "created_by_admin_name": data.admin_name
+        }
+    else:  # percent
+        if not data.total_amount or data.total_amount <= 0:
+            raise HTTPException(status_code=400, detail="Yüzdeli taksit için toplam borç zorunlu")
+        if not data.withdrawal_percent or data.withdrawal_percent <= 0 or data.withdrawal_percent > 100:
+            raise HTTPException(status_code=400, detail="Çekim yüzdesi 1-100 arasında olmalı")
+        product = {
+            "id": str(uuid.uuid4()),
+            "courier_id": courier_id,
+            "company_id": data.company_id,
+            "name": data.name,
+            "installment_type": "percent",
+            "total_amount": float(data.total_amount),
+            "withdrawal_percent": float(data.withdrawal_percent),
+            "paid_amount": 0,
+            "remaining_amount": float(data.total_amount),
+            "is_completed": False,
+            "created_at": get_turkey_now(),
+            "created_by_admin_id": data.admin_id,
+            "created_by_admin_name": data.admin_name
+        }
     
     await db.installment_products.insert_one(product)
     
@@ -900,9 +928,11 @@ async def create_installment_product(
         "entity_name": courier["name"],
         "details": {
             "product_name": data.name,
-            "installment_amount": data.installment_amount,
-            "installment_count": data.installment_count,
-            "total_amount": product["total_amount"]
+            "installment_type": inst_type,
+            "total_amount": product.get("total_amount"),
+            "withdrawal_percent": product.get("withdrawal_percent"),
+            "installment_amount": product.get("installment_amount"),
+            "installment_count": product.get("installment_count")
         }
     })
     

@@ -87,7 +87,14 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
   // Taksitli Ürün State'leri
   const [showInstallmentModal, setShowInstallmentModal] = useState(false);
   const [installmentProducts, setInstallmentProducts] = useState([]);
-  const [newProduct, setNewProduct] = useState({ name: "", installment_amount: "", installment_count: "" });
+  const [newProduct, setNewProduct] = useState({ 
+    name: "", 
+    installment_type: "fixed",
+    installment_amount: "", 
+    installment_count: "",
+    total_amount: "",
+    withdrawal_percent: ""
+  });
   const [addingProduct, setAddingProduct] = useState(false);
   const [payingInstallment, setPayingInstallment] = useState(null);
   const [installmentDate, setInstallmentDate] = useState("");
@@ -122,27 +129,54 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
     e.preventDefault();
     if (!selectedEntity) return;
     
-    const amount = parseFloat(newProduct.installment_amount);
-    const count = parseInt(newProduct.installment_count);
+    const inst_type = newProduct.installment_type || "fixed";
     
-    if (!newProduct.name || amount <= 0 || count <= 0) {
-      toast.error("Lütfen tüm alanları doldurun");
+    // Validation
+    if (!newProduct.name) {
+      toast.error("Ürün adı zorunlu");
       return;
+    }
+    
+    let payload = {
+      courier_id: selectedEntity.id,
+      company_id: companyId,
+      name: newProduct.name,
+      installment_type: inst_type,
+      admin_id: adminId,
+      admin_name: adminName,
+      installment_amount: 0,
+      installment_count: 0
+    };
+    
+    if (inst_type === "fixed") {
+      const amount = parseFloat(newProduct.installment_amount);
+      const count = parseInt(newProduct.installment_count);
+      if (amount <= 0 || count <= 0 || isNaN(amount) || isNaN(count)) {
+        toast.error("Tutar ve sayı zorunlu (>0)");
+        return;
+      }
+      payload.installment_amount = amount;
+      payload.installment_count = count;
+    } else {
+      const total = parseFloat(newProduct.total_amount);
+      const percent = parseFloat(newProduct.withdrawal_percent);
+      if (total <= 0 || percent <= 0 || percent > 100 || isNaN(total) || isNaN(percent)) {
+        toast.error("Toplam borç ve yüzde (1-100) zorunlu");
+        return;
+      }
+      payload.total_amount = total;
+      payload.withdrawal_percent = percent;
     }
 
     setAddingProduct(true);
     try {
-      await axios.post(`${API}/couriers/${selectedEntity.id}/installment-products`, {
-        courier_id: selectedEntity.id,
-        company_id: companyId,
-        name: newProduct.name,
-        installment_amount: amount,
-        installment_count: count,
-        admin_id: adminId,
-        admin_name: adminName
-      });
+      await axios.post(`${API}/couriers/${selectedEntity.id}/installment-products`, payload);
       toast.success("Taksitli ürün eklendi");
-      setNewProduct({ name: "", installment_amount: "", installment_count: "" });
+      setNewProduct({ 
+        name: "", installment_type: "fixed",
+        installment_amount: "", installment_count: "",
+        total_amount: "", withdrawal_percent: ""
+      });
       setShowInstallmentModal(false);
       fetchInstallmentProducts(selectedEntity.id);
     } catch (err) {

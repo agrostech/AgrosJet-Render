@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { Calculator, AlertTriangle } from "lucide-react";
+import { Calculator, AlertTriangle, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageLoading } from "@/components/ui/loading-spinner";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
@@ -8,7 +8,8 @@ import {
   InstallmentSection, 
   TransactionTable, 
   TransactionMobileList,
-  InvoiceMessageModal 
+  InvoiceMessageModal,
+  PayoutRequestModal
 } from "@/components/courier/muhasebe";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -37,6 +38,9 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
   // Confirm Modal State
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingDeleteInvoiceId, setPendingDeleteInvoiceId] = useState(null);
+  
+  // Payout Request Modal
+  const [showPayoutModal, setShowPayoutModal] = useState(false);
 
   const fetchTransactions = async (append = false) => {
     try {
@@ -265,7 +269,7 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
       <div className="border-2 border-border bg-white">
         {/* Header */}
         <div className="p-4 border-b-2 border-border">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-primary/10">
                 <Calculator className="w-5 h-5 text-primary" />
@@ -275,11 +279,21 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
                 <p className="text-sm text-muted-foreground">İşlem geçmişiniz ve bakiyeniz</p>
               </div>
             </div>
-            <div className={`text-right px-4 py-2 rounded-lg ${getBalanceBg(balance)}`}>
-              <p className="text-xs text-muted-foreground">Güncel Bakiye</p>
-              <p className="text-xl font-bold font-mono ${getBalanceColor(balance)}">
-                {balance === 0 ? '0 TL' : formatMoney(balance)}
-              </p>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => setShowPayoutModal(true)}
+                className="gap-2 h-10"
+                data-testid="open-payout-request-btn"
+              >
+                <Wallet className="w-4 h-4" />
+                Ödeme İste
+              </Button>
+              <div className={`text-right px-4 py-2 rounded-lg ${getBalanceBg(balance)}`}>
+                <p className="text-xs text-muted-foreground">Güncel Bakiye</p>
+                <p className={`text-xl font-bold font-mono ${getBalanceColor(balance)}`}>
+                  {balance === 0 ? '0 TL' : formatMoney(balance)}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -387,6 +401,17 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
         description="Bu faturayı silmek istediğinize emin misiniz?"
         onConfirm={confirmDeleteInvoice}
         variant="danger"
+      />
+
+      {/* Payout Request Modal */}
+      <PayoutRequestModal
+        open={showPayoutModal}
+        onOpenChange={setShowPayoutModal}
+        courierId={courierId}
+        onSuccess={() => {
+          fetchTransactions();
+          fetchInstallmentProducts();
+        }}
       />
     </div>
   );

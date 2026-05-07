@@ -11,6 +11,7 @@ import HaftalikHakedisTab from "./muhasebe/HaftalikHakedisTab";
 import GunlukMutabakatTab from "./muhasebe/GunlukMutabakatTab";
 import YoneticiMutabakatTab from "./muhasebe/YoneticiMutabakatTab";
 import RestoranMutabakatTab from "./muhasebe/RestoranMutabakatTab";
+import OdemeTalepleriTab from "./muhasebe/OdemeTalepleriTab";
 
 const TABS = [
   { key: "kuryeler", label: "Kuryeler", icon: Users },
@@ -19,6 +20,7 @@ const TABS = [
   { key: "kurye-mutabakat", label: "Kurye Mütabakat", icon: Bike },
   { key: "restoran-mutabakat", label: "Restoran Mütabakat", icon: Store },
   { key: "yonetici-mutabakat", label: "Yönetici Mütabakat", icon: UserCog },
+  { key: "odeme-talepleri", label: "Ödeme Talepleri", icon: Wallet },
   { key: "haftalik-hakedis", label: "Haftalık Hakediş", icon: FileSpreadsheet },
   { key: "kurye-faturalari", label: "Kurye Faturaları", icon: Receipt },
   { key: "isletme-faturalari", label: "Restoran Faturaları", icon: Receipt },
@@ -38,6 +40,7 @@ export default function MuhasebePage({ companyId, adminId, adminName, companyLog
     "kurye-mutabakat": "muhasebe_kurye_mutabakat",
     "restoran-mutabakat": "muhasebe_restoran_mutabakat",
     "yonetici-mutabakat": "muhasebe_yonetici_mutabakat",
+    "odeme-talepleri": "muhasebe_odeme_talepleri",
     "haftalik-hakedis": "muhasebe_haftalik_hakedis",
     "kurye-faturalari": "muhasebe_kurye_faturalari",
     "isletme-faturalari": "muhasebe_isletme_faturalari",
@@ -168,6 +171,7 @@ export default function MuhasebePage({ companyId, adminId, adminName, companyLog
         {activeTab === "kurye-faturalari" && <FaturalarTab companyId={companyId} adminId={adminId} adminName={adminName} isSuperAdmin={isSuperAdmin} />}
         {activeTab === "isletme-faturalari" && <IsletmeFaturalariTab companyId={companyId} adminId={adminId} adminName={adminName} isSuperAdmin={isSuperAdmin} />}
         {activeTab === "haftalik-hakedis" && <HaftalikHakedisTab companyId={companyId} />}
+        {activeTab === "odeme-talepleri" && <OdemeTalepleriTab companyId={companyId} adminId={adminId} adminName={adminName} />}
         {activeTab === "kurye-mutabakat" && <GunlukMutabakatTab companyId={companyId} adminId={adminId} adminName={adminName} isSuperAdmin={isSuperAdmin} />}
         {activeTab === "yonetici-mutabakat" && <YoneticiMutabakatTab companyId={companyId} currentUser={{ id: adminId, name: adminName, role: isSuperAdmin ? 'superadmin' : 'admin' }} />}
         {activeTab === "restoran-mutabakat" && <RestoranMutabakatTab companyId={companyId} />}
