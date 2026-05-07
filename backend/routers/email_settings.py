@@ -30,6 +30,7 @@ class EmailSettingsCreate(BaseModel):
     notify_evrak: bool = True         # Evrak yüklemeleri
     notify_jetpuan: bool = True       # Market siparişleri
     notify_fesih: bool = True         # Fesih süreçleri
+    notify_payout_request: bool = True  # Kurye ödeme talepleri
     # Otomatik atama bildirimleri
     notify_shift_violation: bool = False  # Vardiya ihlalleri
     notify_auto_cancel: bool = False      # Otomatik iptal
@@ -61,6 +62,7 @@ async def get_email_settings(company_id: str):
         "notify_evrak": settings.get("notify_evrak", True),
         "notify_jetpuan": settings.get("notify_jetpuan", True),
         "notify_fesih": settings.get("notify_fesih", True),
+        "notify_payout_request": settings.get("notify_payout_request", True),
         # Otomatik atama bildirimleri (varsayılan kapalı)
         "notify_shift_violation": settings.get("notify_shift_violation", False),
         "notify_auto_cancel": settings.get("notify_auto_cancel", False),
@@ -89,6 +91,7 @@ async def save_email_settings(company_id: str, data: EmailSettingsCreate):
             "notify_evrak": data.notify_evrak,
             "notify_jetpuan": data.notify_jetpuan,
             "notify_fesih": data.notify_fesih,
+            "notify_payout_request": data.notify_payout_request,
             "notify_shift_violation": data.notify_shift_violation,
             "notify_auto_cancel": data.notify_auto_cancel,
             "updated_at": now
@@ -118,6 +121,7 @@ async def save_email_settings(company_id: str, data: EmailSettingsCreate):
             "notify_evrak": data.notify_evrak,
             "notify_jetpuan": data.notify_jetpuan,
             "notify_fesih": data.notify_fesih,
+            "notify_payout_request": data.notify_payout_request,
             "notify_shift_violation": data.notify_shift_violation,
             "notify_auto_cancel": data.notify_auto_cancel,
             "created_at": now

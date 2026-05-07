@@ -362,6 +362,28 @@ async def create_payout_request(
     )
     
     payout_request.pop("_id", None)
+    
+    # Admin'e bildirim gönder (sistem ayarında açık ise email + dashboard)
+    try:
+        from routers.notifications import create_notification
+        await create_notification({
+            "company_id": company_id,
+            "type": "payout_request",
+            "title": "Yeni Ödeme Talebi",
+            "message": f"{courier.get('name', 'Kurye')} {requested_amount:.2f} TL ödeme talebi oluşturdu",
+            "entity_type": "courier",
+            "entity_id": courier_id,
+            "entity_name": courier.get("name", ""),
+            "action_url": "/admin/muhasebe?tab=odeme-talepleri",
+            "metadata": {
+                "request_id": request_id,
+                "requested_amount": float(requested_amount),
+                "courier_phone": courier.get("phone", "")
+            }
+        })
+    except Exception as e:
+        logger.error(f"Payout request notification error: {e}")
+    
     return {
         "message": "Ödeme talebiniz oluşturuldu, yöneticinin onayını bekliyor",
         "request": payout_request
@@ -461,17 +483,41 @@ async def approve_payout_request(
     admin_id = payload.get("sub") or ""
     admin_name = payload.get("name") or payload.get("username") or "Admin"
     
-    request_doc = await db.payout_requests.find_one({"id": request_id}, {"_id": 0})
+    # Atomic claim — race condition koruması
+    # Aynı talebi 2 admin aynı anda onaylarsa sadece 1'i geçer
+    request_doc = await db.payout_requests.find_one_and_update(
+        {"id": request_id, "status": "pending"},
+        {"$set": {"status": "approving", "approving_admin_id": admin_id}},
+        return_document=False
+    )
     if not request_doc:
-        raise HTTPException(status_code=404, detail="Talep bulunamadı")
+        # Ya yok ya da artık pending değil
+        existing = await db.payout_requests.find_one({"id": request_id}, {"_id": 0})
+        if not existing:
+            raise HTTPException(status_code=404, detail="Talep bulunamadı")
+        if existing.get("status") in ("approved", "approving"):
+            raise HTTPException(status_code=400, detail="Talep zaten onaylanmış veya onaylanıyor")
+        if existing.get("status") == "cancelled":
+            raise HTTPException(status_code=400, detail="Talep iptal edilmiş")
+        raise HTTPException(status_code=400, detail="Talep onaylanamaz")
     
-    if request_doc.get("status") == "approved":
-        raise HTTPException(status_code=400, detail="Talep zaten onaylanmış")
+    # request_doc burada artık güncellenmiş hali (return_document=False ile öncesi geldi)
+    # Detayları yeniden çek
+    request_doc = await db.payout_requests.find_one({"id": request_id}, {"_id": 0})
     
     if approved_amount <= 0:
+        # Atomic claim'i geri al
+        await db.payout_requests.update_one(
+            {"id": request_id, "status": "approving"},
+            {"$set": {"status": "pending"}, "$unset": {"approving_admin_id": ""}}
+        )
         raise HTTPException(status_code=400, detail="Onay tutarı 0'dan büyük olmalı")
     
     if approved_amount > request_doc["requested_amount"]:
+        await db.payout_requests.update_one(
+            {"id": request_id, "status": "approving"},
+            {"$set": {"status": "pending"}, "$unset": {"approving_admin_id": ""}}
+        )
         raise HTTPException(
             status_code=400,
             detail=f"Onay tutarı talepten ({request_doc['requested_amount']:.2f}) büyük olamaz"
@@ -483,6 +529,10 @@ async def approve_payout_request(
     # Bakiye kontrolü (yine kontrol et — onay sırasında yeni transactionlar oluşmuş olabilir)
     balance = await _calculate_courier_balance(courier_id)
     if approved_amount > balance:
+        await db.payout_requests.update_one(
+            {"id": request_id, "status": "approving"},
+            {"$set": {"status": "pending"}, "$unset": {"approving_admin_id": ""}}
+        )
         raise HTTPException(
             status_code=400,
             detail=f"Onay tutarı kurye bakiyesini ({balance:.2f}) aşıyor"
@@ -513,6 +563,7 @@ async def approve_payout_request(
     
     # Transaction 1: Hakediş ödemesi (payment_out: alacak kapatır = balance pozitif tarafa)
     # NOT: earning total_in'e yazılıyor, ödeme total_out'a yazılarak alacak azalır
+    # is_hakedis=False çünkü kurye fatura yüklemesi gerekmiyor (zaten payout request'te yüklendi)
     tx_payment = {
         "id": str(uuid.uuid4()),
         "entity_type": "courier",
@@ -521,7 +572,7 @@ async def approve_payout_request(
         "type": "payment_out",
         "amount": cash_payout,
         "description": f"Hakediş ödemesi (Talep #{request_id[:8]})",
-        "is_hakedis": True,
+        "is_hakedis": False,
         "admin_id": admin_id,
         "admin_name": admin_name,
         "created_at": now_iso,
@@ -624,3 +675,56 @@ async def approve_payout_request(
         "transaction_ids": transaction_ids,
         "courier_name": courier_name
     }
+
+
+@router.delete("/{request_id}")
+async def cancel_payout_request(
+    request_id: str,
+    payload: dict = Depends(require_auth)
+):
+    """
+    Kurye kendi pending talebini iptal eder.
+    - Sadece talep sahibi kurye iptal edebilir
+    - Sadece status='pending' talepler iptal edilebilir
+    - İptal edilince ilgili fatura R2'den ve invoices koleksiyonundan silinir
+    """
+    request_doc = await db.payout_requests.find_one({"id": request_id}, {"_id": 0})
+    if not request_doc:
+        raise HTTPException(status_code=404, detail="Talep bulunamadı")
+    
+    # Ownership: sadece kendi talebini iptal edebilir (admin de iptal edemiyor — kullanıcı kararı)
+    if payload.get("sub") != request_doc.get("courier_id"):
+        raise HTTPException(status_code=403, detail="Sadece kendi talebinizi iptal edebilirsiniz")
+    
+    if request_doc.get("status") != "pending":
+        raise HTTPException(
+            status_code=400,
+            detail="Sadece bekleyen talepler iptal edilebilir"
+        )
+    
+    # Atomic claim — başka admin onaylamaya çalışıyor olabilir
+    claimed = await db.payout_requests.find_one_and_update(
+        {"id": request_id, "status": "pending"},
+        {"$set": {"status": "cancelling"}}
+    )
+    if not claimed:
+        raise HTTPException(status_code=400, detail="Talep şu an işlem görüyor, iptal edilemez")
+    
+    # Fatura sil (R2 + invoices koleksiyonu)
+    invoice_id = request_doc.get("invoice_id")
+    if invoice_id:
+        invoice = await db.invoices.find_one({"id": invoice_id}, {"_id": 0})
+        if invoice:
+            # R2'den sil
+            if invoice.get("storage_type") == "r2" and invoice.get("r2_key"):
+                try:
+                    from services.r2_storage import delete_file_from_r2
+                    await delete_file_from_r2(invoice["r2_key"])
+                except Exception as e:
+                    logger.error(f"R2 fatura silinemedi: {e}")
+            await db.invoices.delete_one({"id": invoice_id})
+    
+    # Talebi sil (audit için durum 'cancelled' olarak da bırakılabilir, ama kullanıcı 'direkt sil' dedi)
+    await db.payout_requests.delete_one({"id": request_id})
+    
+    return {"message": "Talep ve fatura iptal edildi"}

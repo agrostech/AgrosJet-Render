@@ -63,8 +63,8 @@ async def credit_courier_earning(order: dict) -> dict | None:
         "company_id": company_id,
         "type": "earning",  # Otomatik hakediş tipi (balance hesabında payment_in gibi davranır)
         "amount": float(courier_fee),
-        "description": f"Sipariş hakedişi #{order_number} - {restaurant_name}",
-        "is_hakedis": True,
+        "description": restaurant_name,
+        "is_hakedis": False,
         "auto_generated": True,
         "order_id": order_id,
         "order_number": order_number,

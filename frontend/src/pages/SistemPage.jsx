@@ -57,6 +57,7 @@ export default function SistemPage({ companyId }) {
     notify_evrak: true,
     notify_jetpuan: true,
     notify_fesih: true,
+    notify_payout_request: true,
     // Otomatik atama bildirimleri
     notify_shift_violation: false,
     notify_auto_cancel: false
@@ -236,6 +237,7 @@ export default function SistemPage({ companyId }) {
           notify_evrak: res.data.notify_evrak !== false,
           notify_jetpuan: res.data.notify_jetpuan !== false,
           notify_fesih: res.data.notify_fesih !== false,
+          notify_payout_request: res.data.notify_payout_request !== false,
           notify_shift_violation: res.data.notify_shift_violation || false,
           notify_auto_cancel: res.data.notify_auto_cancel || false
         });
@@ -1318,6 +1320,18 @@ export default function SistemPage({ companyId }) {
                       <Switch 
                         checked={emailSettings.notify_fesih}
                         onCheckedChange={(checked) => setEmailSettings({...emailSettings, notify_fesih: checked})}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded border">
+                      <div>
+                        <p className="text-sm font-medium">Kurye Ödeme Talepleri</p>
+                        <p className="text-xs text-muted-foreground">Kurye yeni ödeme talebi oluşturduğunda</p>
+                      </div>
+                      <Switch 
+                        checked={emailSettings.notify_payout_request}
+                        onCheckedChange={(checked) => setEmailSettings({...emailSettings, notify_payout_request: checked})}
+                        data-testid="toggle-notify-payout-request"
                       />
                     </div>
 

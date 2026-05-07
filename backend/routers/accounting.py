@@ -437,9 +437,9 @@ async def create_transaction(
 
 
 @router.get("/transactions/courier/{courier_id}")
-async def get_courier_transactions(courier_id: str, skip: int = 0, limit: int = 10):
-    """Get paginated transactions for a courier"""
-    return await get_entity_transactions("courier", courier_id, skip, limit)
+async def get_courier_transactions(courier_id: str, skip: int = 0, limit: int = 10, category: str = None):
+    """Get paginated transactions for a courier (optional category filter)"""
+    return await get_entity_transactions("courier", courier_id, skip, limit, category)
 
 @router.get("/transactions/business/{business_id}")
 async def get_business_transactions(business_id: str, skip: int = 0, limit: int = 10):

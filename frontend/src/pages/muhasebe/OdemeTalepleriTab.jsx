@@ -42,10 +42,18 @@ function ApproveModal({ open, onOpenChange, request, onApproved, adminId, adminN
     try {
       const res = await axios.get(`${API}/payout-requests/${request.id}/invoice`);
       setInvoiceData(res.data);
-      setShowPdf(true);
+      // Onay modal'ını kapat, PDF'yi aç (PDF kapanınca tekrar açılacak)
+      onOpenChange(false);
+      setTimeout(() => setShowPdf(true), 100);
     } catch (err) {
       toast.error(err.response?.data?.detail || "Fatura yüklenemedi");
     }
+  };
+
+  const handleClosePdf = () => {
+    setShowPdf(false);
+    // PDF kapanınca onay modal'ını geri aç (state ve girilen tutar korunur)
+    setTimeout(() => onOpenChange(true), 100);
   };
 
   const numeric = parseFloat(approvedAmount) || 0;
@@ -204,7 +212,7 @@ function ApproveModal({ open, onOpenChange, request, onApproved, adminId, adminN
                 }
               : null
           }
-          onClose={() => setShowPdf(false)}
+          onClose={handleClosePdf}
         />
       )}
     </>

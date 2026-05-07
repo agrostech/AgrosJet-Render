@@ -423,6 +423,7 @@ async def create_notification(
                 "jetpuan_siparis": "notify_jetpuan",
                 "fesih_3_gun": "notify_fesih",
                 "fesih_yarin": "notify_fesih",
+                "payout_request": "notify_payout_request",
             }
             setting_key = type_to_setting.get(notification_type)
             if setting_key and not settings.get(setting_key, True):

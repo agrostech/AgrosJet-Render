@@ -41,11 +41,16 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
   
   // Payout Request Modal
   const [showPayoutModal, setShowPayoutModal] = useState(false);
+  
+  // Filter
+  const [activeCategory, setActiveCategory] = useState(null); // null=Tümü
 
   const fetchTransactions = async (append = false) => {
     try {
       const skip = append ? transactions.length : 0;
-      const res = await axios.get(`${API}/transactions/courier/${courierId}?skip=${skip}&limit=10`);
+      const params = new URLSearchParams({ skip, limit: 10 });
+      if (activeCategory) params.set("category", activeCategory);
+      const res = await axios.get(`${API}/transactions/courier/${courierId}?${params.toString()}`);
       
       if (append) {
         setTransactions(prev => [...prev, ...res.data.transactions]);
@@ -119,6 +124,15 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
       fetchCompanyInfo();
     }
   }, [courierId, companyId]);
+  
+  // Filtre değişince listeyi sıfırdan yükle
+  useEffect(() => {
+    if (courierId) {
+      setLoading(true);
+      fetchTransactions(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeCategory]);
 
   const loadMore = () => {
     setLoadingMore(true);
@@ -275,7 +289,7 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
                 <Calculator className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h2 className="font-heading font-bold text-xl">Muhasebe</h2>
+                <h2 className="font-heading font-bold text-xl">JetCüzdan</h2>
                 <p className="text-sm text-muted-foreground">İşlem geçmişiniz ve bakiyeniz</p>
               </div>
             </div>
@@ -319,8 +333,30 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
         />
 
         {/* Transaction History */}
-        <div className="p-3 sm:p-4 bg-slate-50 border-b border-border">
+        <div className="p-3 sm:p-4 bg-slate-50 border-b border-border space-y-3">
           <h3 className="font-semibold text-sm sm:text-base">İşlem Geçmişi ({totalCount})</h3>
+          {/* Kategori filtreleri */}
+          <div className="flex flex-wrap gap-1.5">
+            {[
+              { key: null, label: "Tümü", color: "bg-slate-200 text-slate-800", activeColor: "bg-slate-700 text-white" },
+              { key: "earning", label: "Hakediş", color: "bg-green-100 text-green-800", activeColor: "bg-green-600 text-white" },
+              { key: "payout", label: "Ödeme", color: "bg-blue-100 text-blue-800", activeColor: "bg-blue-600 text-white" },
+              { key: "installment", label: "Taksit", color: "bg-purple-100 text-purple-800", activeColor: "bg-purple-600 text-white" },
+              { key: "mutabakat", label: "Mütabakat", color: "bg-red-100 text-red-800", activeColor: "bg-red-600 text-white" },
+              { key: "manual", label: "Manuel", color: "bg-slate-100 text-slate-700", activeColor: "bg-slate-600 text-white" }
+            ].map((c) => (
+              <button
+                key={c.key || "all"}
+                onClick={() => setActiveCategory(c.key)}
+                className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                  activeCategory === c.key ? c.activeColor : c.color + " hover:opacity-80"
+                }`}
+                data-testid={`filter-${c.key || "all"}`}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
         </div>
         
         {transactions.length === 0 ? (

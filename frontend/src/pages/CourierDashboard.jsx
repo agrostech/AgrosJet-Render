@@ -44,7 +44,7 @@ const formatCourierName = (name) => {
 const getBottomBarItems = (basePath) => [
   { path: basePath, label: "Siparişler", icon: ClipboardList, key: "siparis" },
   { path: `${basePath}/vardiyalar`, label: "Vardiyalar", icon: Clock, key: "vardiya" },
-  { path: `${basePath}/muhasebe`, label: "Muhasebe", icon: Calculator, key: "muhasebe" },
+  { path: `${basePath}/muhasebe`, label: "JetCüzdan", icon: Calculator, key: "muhasebe" },
   { path: `${basePath}/raporlar`, label: "Raporlar", icon: BarChart3, key: "raporlar" },
 ];
 

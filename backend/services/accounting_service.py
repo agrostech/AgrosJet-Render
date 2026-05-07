@@ -24,12 +24,47 @@ async def get_entity_name(entity_type: str, entity_id: str) -> str:
     return "Bilinmeyen"
 
 
-async def get_entity_transactions(entity_type: str, entity_id: str, skip: int = 0, limit: int = 10):
-    """Get transactions and calculate balance for an entity"""
-    total_count = await db.transactions.count_documents({"entity_type": entity_type, "entity_id": entity_id})
+async def get_entity_transactions(entity_type: str, entity_id: str, skip: int = 0, limit: int = 10, category: str = None):
+    """
+    Get transactions and calculate balance for an entity.
+    
+    category filter (opsiyonel):
+        - 'earning': type=earning (sipariş hakedişi)
+        - 'payout': payout_request_id var, installment_product_id yok
+        - 'installment': installment_product_id var
+        - 'mutabakat': mutabakat_date var veya description'da 'mütabakat'/'eksik'
+        - 'manual': yukarıdakilerin hiçbiri
+    """
+    base_query = {"entity_type": entity_type, "entity_id": entity_id}
+    
+    # Kategori filtresi (server-side)
+    query = dict(base_query)
+    if category == "earning":
+        query["type"] = "earning"
+    elif category == "payout":
+        query["payout_request_id"] = {"$ne": None, "$exists": True}
+        query["installment_product_id"] = {"$in": [None]}
+    elif category == "installment":
+        query["installment_product_id"] = {"$ne": None, "$exists": True}
+    elif category == "mutabakat":
+        query["$or"] = [
+            {"mutabakat_date": {"$ne": None, "$exists": True}},
+            {"description": {"$regex": "mütabakat|mutabakat|eksik", "$options": "i"}}
+        ]
+    elif category == "manual":
+        # earning, payout, installment, mutabakat olmayan
+        query["type"] = {"$nin": ["earning"]}
+        query["$and"] = [
+            {"$or": [{"payout_request_id": {"$in": [None]}}, {"payout_request_id": {"$exists": False}}]},
+            {"$or": [{"installment_product_id": {"$in": [None]}}, {"installment_product_id": {"$exists": False}}]},
+            {"$or": [{"mutabakat_date": {"$in": [None]}}, {"mutabakat_date": {"$exists": False}}]},
+            {"description": {"$not": {"$regex": "mütabakat|mutabakat|eksik", "$options": "i"}}}
+        ]
+    
+    total_count = await db.transactions.count_documents(query)
     
     transactions = await db.transactions.find(
-        {"entity_type": entity_type, "entity_id": entity_id},
+        query,
         {"_id": 0}
     ).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
     
@@ -44,11 +79,9 @@ async def get_entity_transactions(entity_type: str, entity_id: str, skip: int = 
             tx["invoice_verified"] = verified_invoice is not None
     
     # Calculate balance using aggregation (optimized)
-    # payment_out/given = borç artırır (pozitif bakiye = kurye borçlu)
-    # payment_in/received/earning = borç azaltır (negatif bakiye = kurye alacaklı)
-    # NOT: "earning" yeni otomatik hakediş tipi (sipariş teslim edildiğinde yazılır)
+    # NOT: balance hesabı ÜLKE ÇAPLI (kategori filtre uygulanmaz, gerçek bakiye)
     pipeline = [
-        {"$match": {"entity_type": entity_type, "entity_id": entity_id}},
+        {"$match": base_query},
         {"$group": {
             "_id": None,
             "total_out": {"$sum": {"$cond": [{"$in": ["$type", ["payment_out", "given"]]}, "$amount", 0]}},
