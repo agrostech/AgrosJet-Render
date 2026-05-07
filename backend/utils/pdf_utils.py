@@ -137,19 +137,28 @@ def add_page_numbers(writer: PdfWriter) -> PdfWriter:
     """Add 'Sayfa X / Y' to the bottom center of every page."""
     total = len(writer.pages)
     for i in range(total):
-        page = writer.pages[i]
-        pw = float(page.mediabox.width)
-        ph = float(page.mediabox.height)
+        try:
+            page = writer.pages[i]
+            pw = float(page.mediabox.width)
+            ph = float(page.mediabox.height)
+            
+            # Boyut sağlık kontrolü — bozuk PDF'lerde mediabox 0 olabilir
+            if pw <= 0 or ph <= 0:
+                continue
 
-        overlay_buf = io.BytesIO()
-        c = rl_canvas.Canvas(overlay_buf, pagesize=(pw, ph))
-        c.setFont("TRSans" if _FONTS_AVAILABLE else "Helvetica", 9)
-        c.setFillColorRGB(0.45, 0.45, 0.45)
-        c.drawRightString(pw - 20, 15, f"Sayfa {i + 1} / {total}")
-        c.save()
-        overlay_buf.seek(0)
+            overlay_buf = io.BytesIO()
+            c = rl_canvas.Canvas(overlay_buf, pagesize=(pw, ph))
+            c.setFont("TRSans" if _FONTS_AVAILABLE else "Helvetica", 9)
+            c.setFillColorRGB(0.45, 0.45, 0.45)
+            c.drawRightString(pw - 20, 15, f"Sayfa {i + 1} / {total}")
+            c.save()
+            overlay_buf.seek(0)
 
-        overlay_reader = PdfReader(overlay_buf)
-        page.merge_page(overlay_reader.pages[0])
+            overlay_reader = PdfReader(overlay_buf)
+            page.merge_page(overlay_reader.pages[0])
+        except Exception as e:
+            # Tek bir sayfa bozuksa overall PDF'i bozma — sayfa numarasız geçsin
+            print(f"add_page_numbers sayfa {i+1} hatası: {e}")
+            continue
 
     return writer

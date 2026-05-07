@@ -366,21 +366,16 @@ async def create_payout_request(
     # Admin'e bildirim gönder (sistem ayarında açık ise email + dashboard)
     try:
         from routers.notifications import create_notification
-        await create_notification({
-            "company_id": company_id,
-            "type": "payout_request",
-            "title": "Yeni Ödeme Talebi",
-            "message": f"{courier.get('name', 'Kurye')} {requested_amount:.2f} TL ödeme talebi oluşturdu",
-            "entity_type": "courier",
-            "entity_id": courier_id,
-            "entity_name": courier.get("name", ""),
-            "action_url": "/admin/muhasebe?tab=odeme-talepleri",
-            "metadata": {
-                "request_id": request_id,
-                "requested_amount": float(requested_amount),
-                "courier_phone": courier.get("phone", "")
-            }
-        })
+        await create_notification(
+            company_id=company_id,
+            notification_type="payout_request",
+            title="Yeni Ödeme Talebi",
+            message=f"{courier.get('name', 'Kurye')} {requested_amount:.2f} TL ödeme talebi oluşturdu",
+            entity_type="courier",
+            entity_id=courier_id,
+            actor_id=courier_id,
+            actor_role="courier"
+        )
     except Exception as e:
         logger.error(f"Payout request notification error: {e}")
     

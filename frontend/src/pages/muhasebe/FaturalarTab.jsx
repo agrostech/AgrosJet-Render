@@ -174,7 +174,8 @@ export default function FaturalarTab({ companyId, adminId, adminName, isSuperAdm
         onNext={handleNextMonth}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {/* 1. satır: Aylık Faturalar (full width) */}
+      <div className="grid grid-cols-1 gap-4">
         <MonthInvoicesCard
           invoices={monthInvoices}
           selectedInvoices={selectedInvoices}
@@ -186,7 +187,10 @@ export default function FaturalarTab({ companyId, adminId, adminName, isSuperAdm
           onVerify={verifyInvoice}
           onVerifyWithAmount={handleVerifyWithAmount}
         />
+      </div>
 
+      {/* 2. satır: Kuryeler + Kurye Faturaları (yan yana) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <CouriersListCard
           couriers={couriersSummary}
           selectedCourier={selectedCourier}

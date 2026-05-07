@@ -243,9 +243,10 @@ export default function OdemeTalepleriTab({ companyId, adminId, adminName }) {
     if (!companyId) return;
     try {
       const res = await axios.get(`${API}/issued-invoices/${companyId}/weeks`);
-      const w = res.data.weeks || [];
+      const raw = Array.isArray(res.data) ? res.data : (res.data.weeks || []);
+      // WeekSelector `label` field'ı bekliyor; backend `week_label` döndürüyor → map et
+      const w = raw.map((x) => ({ ...x, label: x.label || x.week_label }));
       setWeeks(w);
-      // Bu haftayı default seç
       const current = w.find((x) => x.is_current) || w[0];
       if (current) setSelectedWeek(current);
     } catch (err) {
