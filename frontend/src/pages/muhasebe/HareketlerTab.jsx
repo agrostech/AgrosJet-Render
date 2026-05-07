@@ -120,6 +120,38 @@ export default function HareketlerTab({ companyId }) {
         </span>
       );
     }
+    if (action === 'installment_product_created') {
+      const isPercent = details?.installment_type === 'percent';
+      return (
+        <span className="inline-flex items-center gap-1">
+          <Plus className="w-3 h-3 text-purple-600" />
+          <span className="text-purple-700 font-medium">
+            {isPercent ? "Yüzdeli Taksit Eklendi" : "Taksitli Ürün Eklendi"}
+          </span>
+          {details?.product_name && (
+            <span className="text-xs text-muted-foreground ml-1">
+              ({details.product_name}
+              {isPercent && details.withdrawal_percent ? ` — %${details.withdrawal_percent}` : ""}
+              {!isPercent && details.installment_amount && details.installment_count
+                ? ` — ${formatCurrency(details.installment_amount)} × ${details.installment_count}`
+                : ""}
+              )
+            </span>
+          )}
+        </span>
+      );
+    }
+    if (action === 'installment_product_deleted') {
+      return (
+        <span className="inline-flex items-center gap-1">
+          <Minus className="w-3 h-3 text-red-600" />
+          <span className="text-red-700 font-medium">Taksitli Ürün Silindi</span>
+          {details?.product_name && (
+            <span className="text-xs text-muted-foreground ml-1">({details.product_name})</span>
+          )}
+        </span>
+      );
+    }
     if (action === 'transaction_updated') {
       const oldAmount = details?.old_amount;
       const newAmount = details?.new_amount;
