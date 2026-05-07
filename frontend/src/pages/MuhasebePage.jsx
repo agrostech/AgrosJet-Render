@@ -21,10 +21,10 @@ const TABS = [
   { key: "restoran-mutabakat", label: "Restoran Mütabakat", icon: Store },
   { key: "yonetici-mutabakat", label: "Yönetici Mütabakat", icon: UserCog },
   { key: "odeme-talepleri", label: "Ödeme Talepleri", icon: Wallet },
-  // Haftalık Hakediş ve Kurye Faturaları gizlendi (yeni payout request sistemi devreye alındı)
-  // Eski sisteme dönmek için aşağıdaki satırların yorumunu kaldırın:
+  // Haftalık Hakediş gizlendi (yeni payout request sistemi devreye alındı)
+  // Eski sisteme dönmek için aşağıdaki satırın yorumunu kaldırın:
   // { key: "haftalik-hakedis", label: "Haftalık Hakediş", icon: FileSpreadsheet },
-  // { key: "kurye-faturalari", label: "Kurye Faturaları", icon: Receipt },
+  { key: "kurye-faturalari", label: "Kurye Faturaları", icon: Receipt },
   { key: "isletme-faturalari", label: "Restoran Faturaları", icon: Receipt },
   { key: "hareketler", label: "Hareketler", icon: History },
 ];

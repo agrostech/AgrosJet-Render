@@ -7,7 +7,7 @@ import { PdfViewerModal } from "@/components/ui/pdf-viewer-modal";
 import { useFaturalar } from "@/hooks/useFaturalar";
 import { MonthSelector } from "@/components/faturalar/MonthSelector";
 import { MonthInvoicesCard } from "@/components/faturalar/MonthInvoicesCard";
-import { MissingInvoicesCard } from "@/components/faturalar/MissingInvoicesCard";
+// MissingInvoicesCard kaldırıldı (yeni payout request sistemi devreye alındı, eksik fatura kartına ihtiyaç yok)
 import { CouriersListCard } from "@/components/faturalar/CouriersListCard";
 import { CourierInvoicesCard } from "@/components/faturalar/CourierInvoicesCard";
 
@@ -185,12 +185,6 @@ export default function FaturalarTab({ companyId, adminId, adminName, isSuperAdm
           onDownload={downloadSingle}
           onVerify={verifyInvoice}
           onVerifyWithAmount={handleVerifyWithAmount}
-        />
-
-        <MissingInvoicesCard 
-          missingInvoices={missingInvoices} 
-          isSuperAdmin={isSuperAdmin}
-          onDismiss={dismissMissingInvoice}
         />
 
         <CouriersListCard
