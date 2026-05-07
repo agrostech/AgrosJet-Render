@@ -135,6 +135,8 @@ export function MonthInvoicesCard({
                       <p className={`font-semibold text-sm font-mono flex-shrink-0 ${invoice.is_shortfall_invoice ? 'text-amber-600' : 'text-red-600'}`}>
                         {invoice.is_shortfall_invoice && invoice.shortfall_amount 
                           ? formatMoney(invoice.shortfall_amount)
+                          : invoice.is_payout_invoice && invoice.verified_amount
+                          ? formatMoney(invoice.verified_amount)
                           : invoice.transaction_amount ? formatMoney(invoice.transaction_amount) : '-'}
                       </p>
                     </div>
@@ -190,9 +192,11 @@ export function MonthInvoicesCard({
                       <p className={`font-semibold text-sm font-mono ${invoice.is_shortfall_invoice ? 'text-amber-600' : 'text-red-600'}`}>
                         {invoice.is_shortfall_invoice && invoice.shortfall_amount 
                           ? formatMoney(invoice.shortfall_amount)
+                          : invoice.is_payout_invoice && invoice.verified_amount
+                          ? formatMoney(invoice.verified_amount)
                           : invoice.transaction_amount ? formatMoney(invoice.transaction_amount) : '-'}
                       </p>
-                      {invoice.verified && invoice.verified_amount && (
+                      {invoice.verified && invoice.verified_amount && !invoice.is_payout_invoice && (
                         <p className="text-xs text-green-600">
                           Onaylanan: {formatMoney(invoice.verified_amount)}
                         </p>

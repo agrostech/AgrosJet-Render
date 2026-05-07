@@ -141,7 +141,9 @@ export function CourierInvoicesCard({ selectedCourier, invoices, loading, onView
                       </div>
                       <div className="text-right flex-shrink-0">
                         <p className="font-semibold text-sm font-mono text-red-600">
-                          {invoice.transaction_amount ? formatMoney(invoice.transaction_amount) : '-'}
+                          {invoice.is_payout_invoice && invoice.verified_amount
+                            ? formatMoney(invoice.verified_amount)
+                            : invoice.transaction_amount ? formatMoney(invoice.transaction_amount) : '-'}
                         </p>
                       </div>
                       <div className="flex items-center gap-1 flex-shrink-0">

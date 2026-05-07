@@ -849,6 +849,33 @@ async def get_couriers_invoice_summary(company_id: str, year: int = None, month:
     return summary
 
 
+@router.get("/{invoice_id}/preview")
+async def preview_invoice_base64(invoice_id: str, payload: dict = Depends(require_auth)):
+    """Get invoice as base64 (for in-page modal preview, auth required)"""
+    import base64
+    invoice = await db.invoices.find_one({"id": invoice_id}, {"_id": 0})
+    if not invoice:
+        raise HTTPException(status_code=404, detail="Fatura bulunamadı")
+    
+    # Ownership: kurye sadece kendi faturalarını görebilir, admin hepsini
+    role = (payload or {}).get("role")
+    if role not in ("admin", "superadmin", "systemadmin"):
+        if payload.get("sub") != invoice.get("courier_id"):
+            raise HTTPException(status_code=403, detail="Bu faturaya erişim yetkiniz yok")
+    
+    if invoice.get("storage_type") == "r2" and invoice.get("r2_key"):
+        content = await download_file_from_r2(invoice["r2_key"])
+        if content is None:
+            raise HTTPException(status_code=404, detail="Fatura dosyası bulunamadı")
+        file_ext = os.path.splitext(invoice["file_name"].lower())[1].lstrip(".")
+        return {
+            "filename": invoice.get("file_name", "fatura"),
+            "file_data": base64.b64encode(content).decode("utf-8"),
+            "extension": file_ext or "pdf"
+        }
+    raise HTTPException(status_code=404, detail="Fatura erişilebilir değil")
+
+
 @router.get("/download/{invoice_id}")
 async def download_invoice(invoice_id: str):
     """Download a single invoice - supports both R2 and local storage"""

@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import { toast } from "sonner";
 import { AlertTriangle, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageLoading } from "@/components/ui/loading-spinner";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
+import { PdfViewerModal } from "@/components/ui/pdf-viewer-modal";
 import { 
   InstallmentSection, 
   TransactionTable, 
@@ -41,6 +43,9 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
   
   // Payout Request Modal
   const [showPayoutModal, setShowPayoutModal] = useState(false);
+  
+  // Invoice Preview (PDF modal)
+  const [previewInvoice, setPreviewInvoice] = useState(null);
   
   // Filter
   const [activeCategory, setActiveCategory] = useState(null); // null=Tümü
@@ -239,8 +244,13 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
     }
   };
 
-  const handleDownloadInvoice = (invoiceId) => {
-    window.open(`${API}/invoices/download/${invoiceId}`, '_blank');
+  const handleDownloadInvoice = async (invoiceId) => {
+    try {
+      const res = await axios.get(`${API}/invoices/${invoiceId}/preview`);
+      setPreviewInvoice(res.data);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Fatura yüklenemedi");
+    }
   };
 
   const openInvoiceMessageModal = (amount) => {
@@ -449,6 +459,20 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
           fetchTransactions();
           fetchInstallmentProducts();
         }}
+      />
+      
+      {/* PDF Viewer */}
+      <PdfViewerModal
+        file={
+          previewInvoice
+            ? {
+                url: `data:application/${previewInvoice.extension === "pdf" ? "pdf" : "octet-stream"};base64,${previewInvoice.file_data}`,
+                fileName: previewInvoice.filename || "fatura.pdf",
+                contentType: previewInvoice.extension === "pdf" ? "application/pdf" : "image/jpeg"
+              }
+            : null
+        }
+        onClose={() => setPreviewInvoice(null)}
       />
     </div>
   );
