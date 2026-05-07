@@ -291,35 +291,33 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
 
       {/* Main Card */}
       <div className="border-2 border-border bg-white">
-        {/* Header */}
+        {/* Header — tek satırda title + bakiye, mobilde alta tam genişlikte Ödeme İste */}
         <div className="p-4 border-b-2 border-border">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-primary/10">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-primary/10 flex-shrink-0">
                 <Wallet className="w-5 h-5 text-primary" />
               </div>
-              <div>
-                <h2 className="font-heading font-bold text-xl">JetCüzdan</h2>
-                <p className="text-sm text-muted-foreground">İşlem geçmişiniz ve bakiyeniz</p>
+              <div className="min-w-0">
+                <h2 className="font-heading font-bold text-xl truncate">JetCüzdan</h2>
+                <p className="text-xs text-muted-foreground truncate">Bakiye ve işlemleriniz</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                onClick={() => setShowPayoutModal(true)}
-                className="gap-2 h-10"
-                data-testid="open-payout-request-btn"
-              >
-                <Wallet className="w-4 h-4" />
-                Ödeme İste
-              </Button>
-              <div className={`text-right px-4 py-2 rounded-lg ${getBalanceBg(balance)}`}>
-                <p className="text-xs text-muted-foreground">Güncel Bakiye</p>
-                <p className={`text-xl font-bold font-mono ${getBalanceColor(balance)}`}>
-                  {balance === 0 ? '0 TL' : formatMoney(balance)}
-                </p>
-              </div>
+            <div className="text-right flex-shrink-0">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Bakiye</p>
+              <p className={`text-xl font-bold font-mono leading-tight ${getBalanceColor(balance)}`}>
+                {balance === 0 ? '0 TL' : formatMoney(balance)}
+              </p>
             </div>
           </div>
+          <Button
+            onClick={() => setShowPayoutModal(true)}
+            className="w-full mt-3 gap-2 h-11"
+            data-testid="open-payout-request-btn"
+          >
+            <Wallet className="w-4 h-4" />
+            Ödeme İste
+          </Button>
         </div>
 
         {/* Eksik Fatura Uyarısı - Minimal */}
@@ -343,29 +341,38 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
         />
 
         {/* Transaction History */}
-        <div className="p-3 sm:p-4 bg-slate-50 border-b border-border space-y-3">
-          <h3 className="font-semibold text-sm sm:text-base">İşlem Geçmişi ({totalCount})</h3>
-          {/* Kategori filtreleri */}
-          <div className="flex flex-wrap gap-1.5">
+        <div className="p-3 sm:p-4 bg-slate-50 border-b border-border">
+          <div className="flex items-center justify-between mb-2.5">
+            <h3 className="font-semibold text-sm sm:text-base">İşlem Geçmişi</h3>
+            <span className="text-xs text-muted-foreground tabular-nums">{totalCount} işlem</span>
+          </div>
+          {/* Kategori filtreleri — scrollable single row, modern minimal */}
+          <div className="flex gap-1.5 overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 scrollbar-hide pb-0.5">
             {[
-              { key: null, label: "Tümü", color: "bg-slate-200 text-slate-800", activeColor: "bg-slate-700 text-white" },
-              { key: "earning", label: "Hakediş", color: "bg-green-100 text-green-800", activeColor: "bg-green-600 text-white" },
-              { key: "payout", label: "Ödeme", color: "bg-blue-100 text-blue-800", activeColor: "bg-blue-600 text-white" },
-              { key: "installment", label: "Taksit", color: "bg-purple-100 text-purple-800", activeColor: "bg-purple-600 text-white" },
-              { key: "mutabakat", label: "Mütabakat", color: "bg-red-100 text-red-800", activeColor: "bg-red-600 text-white" },
-              { key: "manual", label: "Manuel", color: "bg-slate-100 text-slate-700", activeColor: "bg-slate-600 text-white" }
-            ].map((c) => (
-              <button
-                key={c.key || "all"}
-                onClick={() => setActiveCategory(c.key)}
-                className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
-                  activeCategory === c.key ? c.activeColor : c.color + " hover:opacity-80"
-                }`}
-                data-testid={`filter-${c.key || "all"}`}
-              >
-                {c.label}
-              </button>
-            ))}
+              { key: null, label: "Tümü", dot: "bg-slate-500" },
+              { key: "earning", label: "Hakediş", dot: "bg-green-500" },
+              { key: "payout", label: "Ödeme", dot: "bg-blue-500" },
+              { key: "installment", label: "Taksit", dot: "bg-purple-500" },
+              { key: "mutabakat", label: "Mütabakat", dot: "bg-red-500" },
+              { key: "manual", label: "Manuel", dot: "bg-slate-400" }
+            ].map((c) => {
+              const active = activeCategory === c.key;
+              return (
+                <button
+                  key={c.key || "all"}
+                  onClick={() => setActiveCategory(c.key)}
+                  className={`flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full border transition-all ${
+                    active
+                      ? "bg-foreground text-background border-foreground"
+                      : "bg-white text-foreground border-border hover:border-foreground/40"
+                  }`}
+                  data-testid={`filter-${c.key || "all"}`}
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full ${c.dot} ${active ? "opacity-100" : "opacity-80"}`} />
+                  {c.label}
+                </button>
+              );
+            })}
           </div>
         </div>
         
