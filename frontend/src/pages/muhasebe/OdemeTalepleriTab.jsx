@@ -63,8 +63,7 @@ function ApproveModal({ open, onOpenChange, request, onApproved, adminId, adminN
     try {
       const formData = new FormData();
       formData.append("approved_amount", numeric);
-      formData.append("admin_id", adminId || "");
-      formData.append("admin_name", adminName || "");
+      // admin_id ve admin_name JWT token'dan alınıyor (backend tarafı)
       const res = await axios.post(`${API}/payout-requests/${request.id}/approve`, formData);
       toast.success(`Onaylandı: ${formatMoney(res.data.cash_payout)} ödendi`);
       onOpenChange(false);

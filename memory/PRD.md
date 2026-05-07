@@ -107,6 +107,18 @@ Multi-tenant delivery management platform for restaurants, couriers, and adminis
 - Kesilen Faturalar geçen hafta TypeError: Restoran pricing alanları None olunca patlama düzeltildi (issued_invoices.py — None-safe pattern).
 - Paket onaylanmama cezası: dispatcher.add_shift_violation artık apply_penalty_if_needed çağırıyor → ceza/transaction otomatik oluşuyor. Test: /app/backend/tests/test_package_not_confirmed_penalty.py
 
+## NEW: Kurye Ödeme Talep Sistemi (2026-02)
+- **Otomatik hakediş**: Sipariş "delivered" → courier_fee transaction olarak yazılır (type="earning", idempotent). Cancel/revert çalışıyor.
+- **Yeni transaction tipi**: `earning` (accounting_service tüm aggregations'larında payment_in/received gibi total_in tarafında).
+- **Yeni koleksiyon**: `payout_requests` (kurye talepleri, fatura zorunlu, status: pending|approved).
+- **Yeni endpoint'ler**: `/api/payout-requests/courier/{id}/can-request|history`, `/courier/{id}` (POST), `/company/{id}`, `/{id}/invoice|approve`.
+- **Kurallar**: min 1000 TL, 24h cooldown, mütabakat blokeri (kuryenin sipariş gününde işlenmemiş kayıt yoksa), bakiye ≤ talep, sadece PDF fatura.
+- **Yüzdeli Taksit (yeni)**: `installment_products.installment_type="percent"` + `total_amount` + `withdrawal_percent`. Onay sırasında otomatik kesilir, kalan borçtan büyük olamaz. Eski "fixed" tip korundu (geri uyumlu).
+- **Onay flow**: Admin manuel approved_amount girer → (varsa) %x taksit kesintisi + payment_out cash → 2 transaction yazılır. Push notification gönderilir.
+- **Audit-trail**: admin_id/name approve sırasında JWT token'dan alınır (Form yerine). Kurye route'larında ownership kontrolü.
+- **UI**: Kurye Muhasebe sayfasında "Ödeme İste" butonu + modal. Admin Muhasebe → "Ödeme Talepleri" hibrit sekme (Bekleyen + Onaylanmış, fatura preview, onay modal).
+- **Test**: 18-test pytest suite + 2 native test, hepsi PASS. /app/backend/tests/test_payout_full_pytest.py
+
 ## Key API Endpoints
 - POST /api/auth/courier/login (returns contract_accepted, fesih_accepted, document_status)
 - GET /api/companies/logo/{filename}

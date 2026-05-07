@@ -115,7 +115,7 @@ async def main():
         assert bal == 1500.0
         print(f"✅ Test 5a: _calculate_courier_balance pozitif döner: {bal} TL alacak")
         
-        result = await can_request_payout(courier_id)
+        result = await can_request_payout(courier_id, payload={"sub": courier_id, "role": "courier"})
         assert result["can_request"] is True, f"can_request=False, reason={result['reason']}"
         assert result["balance"] == 1500.0
         assert result["active_installment"] is not None
@@ -135,7 +135,7 @@ async def main():
                 return self._content
         
         try:
-            await create_payout_request(courier_id, 500.0, FakeUploadFile("test.pdf", b"%PDF-1.4 fake"))
+            await create_payout_request(courier_id, 500.0, FakeUploadFile("test.pdf", b"%PDF-1.4 fake"), payload={"sub": courier_id, "role": "courier"})
             assert False, "Min tutar altında geçti"
         except Exception as e:
             assert "1000" in str(e) or "minimum" in str(e).lower()
@@ -143,7 +143,7 @@ async def main():
         
         # === TEST 7: PDF olmayan dosya reddedilir ===
         try:
-            await create_payout_request(courier_id, 1200.0, FakeUploadFile("test.jpg", b"fake"))
+            await create_payout_request(courier_id, 1200.0, FakeUploadFile("test.jpg", b"fake"), payload={"sub": courier_id, "role": "courier"})
             assert False, "JPG kabul edildi"
         except Exception as e:
             assert "PDF" in str(e)
@@ -151,7 +151,7 @@ async def main():
         
         # === TEST 8: Bakiye üzeri talep reddedilir ===
         try:
-            await create_payout_request(courier_id, 5000.0, FakeUploadFile("test.pdf", b"%PDF-1.4"))
+            await create_payout_request(courier_id, 5000.0, FakeUploadFile("test.pdf", b"%PDF-1.4"), payload={"sub": courier_id, "role": "courier"})
             assert False, "Bakiye üzeri geçti"
         except Exception as e:
             assert "bakiyenizi" in str(e).lower() or "aşıyor" in str(e).lower() or "Maksimum" in str(e)

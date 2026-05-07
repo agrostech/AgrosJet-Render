@@ -81,7 +81,7 @@ async def main():
         result = await approve_payout_request(
             request_id=request_id,
             approved_amount=4000.0,
-            admin_id="admin1", admin_name="Admin"
+            payload={"sub": "admin1", "name": "Admin", "role": "admin"}
         )
         
         # Beklenenler:
@@ -146,7 +146,7 @@ async def main():
         
         # === TEST: 2. kez onay reddedilir ===
         try:
-            await approve_payout_request(request_id, 1000.0, "admin1", "Admin")
+            await approve_payout_request(request_id, 1000.0, payload={"sub": "admin1", "name": "Admin", "role": "admin"})
             assert False, "Çift onay geçti"
         except Exception as e:
             assert "zaten" in str(e)
@@ -164,7 +164,7 @@ async def main():
             "status": "pending", "created_at": datetime.now(TURKEY_TZ).isoformat()
         })
         try:
-            await approve_payout_request(request2_id, 2000.0, "admin1", "Admin")
+            await approve_payout_request(request2_id, 2000.0, payload={"sub": "admin1", "name": "Admin", "role": "admin"})
             assert False, "Onay > talep geçti"
         except Exception as e:
             assert "büyük olamaz" in str(e) or "talepten" in str(e)

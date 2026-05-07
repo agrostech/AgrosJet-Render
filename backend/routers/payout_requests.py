@@ -4,7 +4,7 @@ Kurye Ödeme Talepleri (Payout Requests)
 - Admin onaylar (manuel tutar girer)
 - Yüzdeli taksit varsa otomatik kesilir
 """
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends, Request
 from datetime import datetime, timezone, timedelta
 from typing import Optional
 import uuid
@@ -15,7 +15,6 @@ from utils.database import db
 from utils.helpers import get_turkey_now, TURKEY_TZ
 from utils.jwt_utils import require_auth, require_admin
 from services.r2_storage import upload_file_to_r2, download_file_from_r2
-from services.accounting_service import get_entity_transactions
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/payout-requests", tags=["Ödeme Talepleri"], dependencies=[Depends(require_auth)])
@@ -169,14 +168,29 @@ async def _check_cooldown(courier_id: str) -> dict:
     return {"blocked": False}
 
 
+def _ensure_courier_owner_or_admin(payload: dict, courier_id: str):
+    """
+    Caller bu courier_id'nin sahibi mi yoksa admin mi?
+    Aksi halde 403.
+    """
+    role = (payload or {}).get("role")
+    sub = (payload or {}).get("sub")
+    if role in ("admin", "superadmin", "systemadmin"):
+        return
+    if sub == courier_id:
+        return
+    raise HTTPException(status_code=403, detail="Bu işlem için yetkiniz yok")
+
+
 # ========== Endpoints ==========
 
 @router.get("/courier/{courier_id}/can-request")
-async def can_request_payout(courier_id: str):
+async def can_request_payout(courier_id: str, payload: dict = Depends(require_auth)):
     """
     Pre-check endpoint:
     Kurye talep oluşturabilir mi? Bakiye, taksit, mütabakat, cooldown kontrolü.
     """
+    _ensure_courier_owner_or_admin(payload, courier_id)
     courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "company_id": 1, "name": 1})
     if not courier:
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
@@ -218,7 +232,8 @@ async def can_request_payout(courier_id: str):
 async def create_payout_request(
     courier_id: str,
     requested_amount: float = Form(...),
-    file: UploadFile = File(...)
+    file: UploadFile = File(...),
+    payload: dict = Depends(require_auth)
 ):
     """
     Kurye ödeme talebi oluştur.
@@ -227,6 +242,7 @@ async def create_payout_request(
     - 24h cooldown
     - Geçmişte işlenmemiş tahsilat varsa blok
     """
+    _ensure_courier_owner_or_admin(payload, courier_id)
     if requested_amount < MIN_PAYOUT_AMOUNT:
         raise HTTPException(status_code=400, detail=f"Minimum talep tutarı {MIN_PAYOUT_AMOUNT:.0f} TL")
     
@@ -353,8 +369,9 @@ async def create_payout_request(
 
 
 @router.get("/courier/{courier_id}/history")
-async def get_courier_payout_history(courier_id: str, limit: int = 50):
+async def get_courier_payout_history(courier_id: str, limit: int = 50, payload: dict = Depends(require_auth)):
     """Kurye kendi taleplerini listeler"""
+    _ensure_courier_owner_or_admin(payload, courier_id)
     requests = await db.payout_requests.find(
         {"courier_id": courier_id},
         {"_id": 0}
@@ -428,8 +445,7 @@ async def get_payout_request_invoice(request_id: str):
 async def approve_payout_request(
     request_id: str,
     approved_amount: float = Form(...),
-    admin_id: str = Form(...),
-    admin_name: str = Form(...)
+    payload: dict = Depends(require_admin)
 ):
     """
     Admin: talep onayı.
@@ -437,9 +453,14 @@ async def approve_payout_request(
     - approved_amount ≤ requested_amount ve ≤ kurye bakiyesi olmalı
     - Yüzdeli aktif taksit varsa: deduction = approved_amount × percent
     - Transactions:
-        1) payment_in (hakediş ödemesi): amount = approved_amount - deduction, is_hakedis=True
-        2) payment_in (taksit kesintisi): amount = deduction (varsa)
+        1) payment_out (hakediş ödemesi): amount = approved_amount - deduction, is_hakedis=True
+        2) payment_out (taksit kesintisi): amount = deduction (varsa)
+    
+    admin_id ve admin_name JWT token'dan alınır (audit-trail integrity).
     """
+    admin_id = payload.get("sub") or ""
+    admin_name = payload.get("name") or payload.get("username") or "Admin"
+    
     request_doc = await db.payout_requests.find_one({"id": request_id}, {"_id": 0})
     if not request_doc:
         raise HTTPException(status_code=404, detail="Talep bulunamadı")
