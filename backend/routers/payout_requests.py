@@ -363,6 +363,25 @@ async def create_payout_request(
     
     payout_request.pop("_id", None)
     
+    # Activity log
+    try:
+        from routers.accounting import create_activity_log
+        await create_activity_log({
+            "company_id": company_id,
+            "admin_id": courier_id,
+            "admin_name": courier.get("name", ""),
+            "action": "payout_request_created",
+            "entity_type": "courier",
+            "entity_id": courier_id,
+            "entity_name": courier.get("name", ""),
+            "details": {
+                "request_id": request_id,
+                "requested_amount": float(requested_amount)
+            }
+        })
+    except Exception as e:
+        logger.error(f"Activity log error: {e}")
+    
     # Admin'e bildirim gönder (sistem ayarında açık ise email + dashboard)
     try:
         from routers.notifications import create_notification
@@ -660,6 +679,28 @@ async def approve_payout_request(
         }}
     )
     
+    # Activity log
+    try:
+        from routers.accounting import create_activity_log
+        await create_activity_log({
+            "company_id": company_id,
+            "admin_id": admin_id,
+            "admin_name": admin_name,
+            "action": "payout_request_approved",
+            "entity_type": "courier",
+            "entity_id": courier_id,
+            "entity_name": courier_name,
+            "details": {
+                "request_id": request_id,
+                "requested_amount": float(request_doc["requested_amount"]),
+                "approved_amount": float(approved_amount),
+                "installment_deduction": float(deduction),
+                "cash_payout": float(cash_payout)
+            }
+        })
+    except Exception as e:
+        logger.error(f"Activity log error (approve): {e}")
+    
     # Push notification
     try:
         from services.push_notification_service import send_push_notification
@@ -738,5 +779,24 @@ async def cancel_payout_request(
     
     # Talebi sil (audit için durum 'cancelled' olarak da bırakılabilir, ama kullanıcı 'direkt sil' dedi)
     await db.payout_requests.delete_one({"id": request_id})
+    
+    # Activity log
+    try:
+        from routers.accounting import create_activity_log
+        await create_activity_log({
+            "company_id": request_doc["company_id"],
+            "admin_id": request_doc["courier_id"],
+            "admin_name": request_doc.get("courier_name", ""),
+            "action": "payout_request_cancelled",
+            "entity_type": "courier",
+            "entity_id": request_doc["courier_id"],
+            "entity_name": request_doc.get("courier_name", ""),
+            "details": {
+                "request_id": request_id,
+                "requested_amount": float(request_doc["requested_amount"])
+            }
+        })
+    except Exception as e:
+        logger.error(f"Activity log error (cancel): {e}")
     
     return {"message": "Talep ve fatura iptal edildi"}

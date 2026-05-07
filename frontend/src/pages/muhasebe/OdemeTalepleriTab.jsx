@@ -434,10 +434,11 @@ function RequestsTable({ requests, loading, view, onApprove, onPreviewInvoice, p
                   <th className="text-right p-3 font-semibold">Onay</th>
                   <th className="text-right p-3 font-semibold">Taksit</th>
                   <th className="text-right p-3 font-semibold">Ödenen</th>
+                  <th className="text-left p-3 font-semibold">Onay Zamanı</th>
                 </>
               )}
               {view === "pending" && <th className="text-right p-3 font-semibold">Aktif Taksit</th>}
-              <th className="text-center p-3 font-semibold w-[180px]">İşlem</th>
+              <th className="text-center p-3 font-semibold w-[110px]">İşlem</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200">
@@ -460,6 +461,9 @@ function RequestsTable({ requests, loading, view, onApprove, onPreviewInvoice, p
                     <td className="p-3 text-right font-mono font-bold text-green-700 whitespace-nowrap">
                       {formatMoney(r.cash_payout_amount)}
                     </td>
+                    <td className="p-3 text-xs text-green-700 whitespace-nowrap">
+                      {formatDateTime(r.approved_at)}
+                    </td>
                   </>
                 )}
                 {view === "pending" && (
@@ -475,20 +479,7 @@ function RequestsTable({ requests, loading, view, onApprove, onPreviewInvoice, p
                 )}
                 <td className="p-3 text-center whitespace-nowrap">
                   <div className="flex items-center justify-center gap-1.5">
-                    {r.invoice_id && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => onPreviewInvoice(r.id)}
-                        disabled={previewLoading}
-                        className="gap-1 h-8"
-                        data-testid={`preview-invoice-btn-${r.id}`}
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        Fatura
-                      </Button>
-                    )}
-                    {view === "pending" ? (
+                    {view === "pending" && (
                       <Button
                         size="sm"
                         onClick={() => onApprove(r)}
@@ -498,10 +489,19 @@ function RequestsTable({ requests, loading, view, onApprove, onPreviewInvoice, p
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         Onayla
                       </Button>
-                    ) : (
-                      <span className="text-xs text-green-700 font-medium">
-                        {formatDateTime(r.approved_at)}
-                      </span>
+                    )}
+                    {r.invoice_id && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => onPreviewInvoice(r.id)}
+                        disabled={previewLoading}
+                        className="h-8 w-8 p-0"
+                        title="Faturayı Görüntüle"
+                        data-testid={`preview-invoice-btn-${r.id}`}
+                      >
+                        <Eye className="w-4 h-4 text-blue-600" />
+                      </Button>
                     )}
                   </div>
                 </td>

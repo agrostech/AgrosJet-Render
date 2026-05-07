@@ -174,6 +174,47 @@ export default function HareketlerTab({ companyId }) {
         </span>
       );
     }
+    if (action === 'payout_request_created') {
+      return (
+        <span className="inline-flex items-center gap-1">
+          <Plus className="w-3 h-3 text-blue-600" />
+          <span className="text-blue-700 font-medium">Ödeme Talebi Oluşturuldu</span>
+          {details?.requested_amount !== undefined && (
+            <span className="text-xs text-muted-foreground ml-1">
+              ({formatCurrency(details.requested_amount)})
+            </span>
+          )}
+        </span>
+      );
+    }
+    if (action === 'payout_request_approved') {
+      return (
+        <span className="inline-flex items-center gap-1">
+          <Plus className="w-3 h-3 text-green-600" />
+          <span className="text-green-700 font-medium">Ödeme Talebi Onaylandı</span>
+          {details?.approved_amount !== undefined && (
+            <span className="text-xs text-muted-foreground ml-1">
+              ({formatCurrency(details.approved_amount)}
+              {details.installment_deduction > 0 && ` − Taksit ${formatCurrency(details.installment_deduction)}`}
+              )
+            </span>
+          )}
+        </span>
+      );
+    }
+    if (action === 'payout_request_cancelled') {
+      return (
+        <span className="inline-flex items-center gap-1">
+          <Minus className="w-3 h-3 text-red-600" />
+          <span className="text-red-700 font-medium">Ödeme Talebi İptal Edildi</span>
+          {details?.requested_amount !== undefined && (
+            <span className="text-xs text-muted-foreground ml-1">
+              ({formatCurrency(details.requested_amount)})
+            </span>
+          )}
+        </span>
+      );
+    }
     return action;
   };
 
