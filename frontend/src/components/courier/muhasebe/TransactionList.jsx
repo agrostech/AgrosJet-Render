@@ -13,6 +13,8 @@ const formatDate = (dateStr) => {
 
 const canDeleteInvoice = (invoice) => {
   if (!invoice?.uploaded_at) return false;
+  // Payout request faturaları silinemez (talep iptal akışı üzerinden silinir)
+  if (invoice?.is_payout_invoice) return false;
   const uploadedAt = new Date(invoice.uploaded_at);
   const now = new Date();
   const hoursPassed = (now - uploadedAt) / (1000 * 60 * 60);

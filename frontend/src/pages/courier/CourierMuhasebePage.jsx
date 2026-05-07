@@ -444,6 +444,7 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
         open={showPayoutModal}
         onOpenChange={setShowPayoutModal}
         courierId={courierId}
+        companyInfo={companyInfo}
         onSuccess={() => {
           fetchTransactions();
           fetchInstallmentProducts();

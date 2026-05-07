@@ -4,7 +4,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { PdfViewerModal } from "@/components/ui/pdf-viewer-modal";
-import { Wallet, Upload, Loader2, FileText, AlertTriangle, CheckCircle2, X, History, Trash2, Eye } from "lucide-react";
+import InvoiceMessageModal from "./InvoiceMessageModal";
+import { Wallet, Upload, Loader2, FileText, AlertTriangle, CheckCircle2, X, History, Trash2, Eye, Send } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -21,7 +22,7 @@ const formatDateTime = (s) => {
   }
 };
 
-export default function PayoutRequestModal({ open, onOpenChange, courierId, onSuccess }) {
+export default function PayoutRequestModal({ open, onOpenChange, courierId, companyInfo, onSuccess }) {
   const [activeTab, setActiveTab] = useState("new"); // 'new' | 'history'
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -32,6 +33,7 @@ export default function PayoutRequestModal({ open, onOpenChange, courierId, onSu
   const [file, setFile] = useState(null);
   const [cancelling, setCancelling] = useState(null);
   const [previewInvoice, setPreviewInvoice] = useState(null);
+  const [showInvoiceMessage, setShowInvoiceMessage] = useState(false);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -88,9 +90,17 @@ export default function PayoutRequestModal({ open, onOpenChange, courierId, onSu
     try {
       const res = await axios.get(`${API}/payout-requests/${requestId}/invoice`);
       setPreviewInvoice(res.data);
+      // Ana modal'ı kapat (PDF kapanınca tekrar açılacak)
+      onOpenChange(false);
     } catch (err) {
       toast.error(err.response?.data?.detail || "Fatura yüklenemedi");
     }
+  };
+  
+  const handleClosePreview = () => {
+    setPreviewInvoice(null);
+    // Ana modal'ı geri aç
+    setTimeout(() => onOpenChange(true), 100);
   };
 
   const handleFileSelect = (e) => {
@@ -251,9 +261,26 @@ export default function PayoutRequestModal({ open, onOpenChange, courierId, onSu
                     className="w-full px-3 py-2 border-2 border-border rounded-md focus:outline-none focus:border-primary text-base"
                     data-testid="payout-amount-input"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Minimum: {info.min_amount} TL — Maksimum: {formatMoney(info.max_amount)}
-                  </p>
+                  <div className="flex items-center justify-between mt-1">
+                    <p className="text-xs text-muted-foreground">
+                      Min: {info.min_amount} TL — Max: {formatMoney(info.max_amount)}
+                    </p>
+                    {numericAmount > 0 && companyInfo && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          // Ana modal'ı kapatıp WhatsApp modal'ı aç
+                          onOpenChange(false);
+                          setTimeout(() => setShowInvoiceMessage(true), 100);
+                        }}
+                        className="text-[11px] text-green-700 hover:text-green-800 underline flex items-center gap-1 font-medium"
+                        data-testid="kolay-fatura-btn"
+                      >
+                        <Send className="w-3 h-3" />
+                        Kolay Fatura İste
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {numericAmount > 0 && (
@@ -432,7 +459,21 @@ export default function PayoutRequestModal({ open, onOpenChange, courierId, onSu
               }
             : null
         }
-        onClose={() => setPreviewInvoice(null)}
+        onClose={handleClosePreview}
+      />
+      
+      {/* Kolay Fatura — WhatsApp mesajı */}
+      <InvoiceMessageModal
+        open={showInvoiceMessage}
+        onOpenChange={(o) => {
+          setShowInvoiceMessage(o);
+          if (!o) {
+            // WhatsApp modal kapanınca ana payout modal'ı geri aç
+            setTimeout(() => onOpenChange(true), 100);
+          }
+        }}
+        selectedAmount={numericAmount}
+        companyInfo={companyInfo}
       />
     </Dialog>
   );
