@@ -189,7 +189,7 @@ export default function YoneticiMutabakatTab({ companyId, currentUser }) {
   return (
     <div className="space-y-4" data-testid="yonetici-mutabakat-tab">
       {/* Özet Kartları */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         <Card className="border bg-white shadow-sm">
           <CardContent className="p-4 text-center">
             <Users className="w-5 h-5 mx-auto mb-2 text-slate-500" />
