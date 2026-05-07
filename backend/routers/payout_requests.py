@@ -405,6 +405,8 @@ async def get_courier_payout_history(courier_id: str, limit: int = 50, payload: 
 async def get_company_payout_requests(
     company_id: str,
     status: Optional[str] = None,  # "pending" | "approved" | None (hepsi)
+    week_start: Optional[str] = None,  # ISO datetime, talep created_at filter (pending) veya approved_at (approved)
+    week_end: Optional[str] = None,
     limit: int = 100,
     skip: int = 0
 ):
@@ -412,6 +414,11 @@ async def get_company_payout_requests(
     query = {"company_id": company_id}
     if status:
         query["status"] = status
+    
+    # Hafta filtresi (pending → created_at, approved → approved_at)
+    if week_start and week_end:
+        date_field = "approved_at" if status == "approved" else "created_at"
+        query[date_field] = {"$gte": week_start, "$lt": week_end}
     
     total = await db.payout_requests.count_documents(query)
     requests = await db.payout_requests.find(
@@ -433,13 +440,23 @@ async def get_company_payout_requests(
     return {"requests": requests, "total": total, "limit": limit, "skip": skip}
 
 
-@router.get("/{request_id}/invoice", dependencies=[Depends(require_admin)])
-async def get_payout_request_invoice(request_id: str):
-    """Admin: talebin faturasını base64 olarak getir (önizleme için)"""
+@router.get("/{request_id}/invoice")
+async def get_payout_request_invoice(request_id: str, payload: dict = Depends(require_auth)):
+    """
+    Talebin faturasını base64 olarak getir (önizleme için).
+    - Admin: tüm talepleri görebilir
+    - Kurye: sadece kendi talebini görebilir
+    """
     import base64
     request_doc = await db.payout_requests.find_one({"id": request_id}, {"_id": 0})
     if not request_doc:
         raise HTTPException(status_code=404, detail="Talep bulunamadı")
+    
+    # Ownership kontrolü
+    role = (payload or {}).get("role")
+    if role not in ("admin", "superadmin", "systemadmin"):
+        if payload.get("sub") != request_doc.get("courier_id"):
+            raise HTTPException(status_code=403, detail="Bu talebin faturasına erişim yetkiniz yok")
     
     invoice_id = request_doc.get("invoice_id")
     if not invoice_id:

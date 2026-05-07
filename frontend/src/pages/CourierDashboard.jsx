@@ -3,7 +3,7 @@ import { useNavigate, Routes, Route, Link, useLocation, useSearchParams, usePara
 import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, Clock, Calculator, Package, FileText, ShoppingBag, GraduationCap, Bike, MoreHorizontal, ClipboardList, Check, Coffee, XCircle, BarChart3, ChevronDown, Shield, Moon, Sun, Loader2 } from "lucide-react";
+import { Menu, X, LogOut, Clock, Calculator, Package, FileText, ShoppingBag, GraduationCap, Bike, MoreHorizontal, ClipboardList, Check, Coffee, XCircle, BarChart3, ChevronDown, Shield, Moon, Sun, Loader2, Wallet } from "lucide-react";
 import CourierSidebar from "@/components/courier/CourierSidebar";
 import { BreakModal } from "@/components/courier/BreakModal";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -44,7 +44,7 @@ const formatCourierName = (name) => {
 const getBottomBarItems = (basePath) => [
   { path: basePath, label: "Siparişler", icon: ClipboardList, key: "siparis" },
   { path: `${basePath}/vardiyalar`, label: "Vardiyalar", icon: Clock, key: "vardiya" },
-  { path: `${basePath}/muhasebe`, label: "JetCüzdan", icon: Calculator, key: "muhasebe" },
+  { path: `${basePath}/muhasebe`, label: "JetCüzdan", icon: Wallet, key: "muhasebe" },
   { path: `${basePath}/raporlar`, label: "Raporlar", icon: BarChart3, key: "raporlar" },
 ];
 

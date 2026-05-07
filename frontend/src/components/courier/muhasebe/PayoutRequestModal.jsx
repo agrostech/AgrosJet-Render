@@ -3,6 +3,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { PdfViewerModal } from "@/components/ui/pdf-viewer-modal";
 import { Wallet, Upload, Loader2, FileText, AlertTriangle, CheckCircle2, X, History, Trash2, Eye } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -30,6 +31,7 @@ export default function PayoutRequestModal({ open, onOpenChange, courierId, onSu
   const [amount, setAmount] = useState("");
   const [file, setFile] = useState(null);
   const [cancelling, setCancelling] = useState(null);
+  const [previewInvoice, setPreviewInvoice] = useState(null);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -79,6 +81,15 @@ export default function PayoutRequestModal({ open, onOpenChange, courierId, onSu
       toast.error(err.response?.data?.detail || "İptal edilemedi");
     } finally {
       setCancelling(null);
+    }
+  };
+
+  const handlePreviewInvoice = async (requestId) => {
+    try {
+      const res = await axios.get(`${API}/payout-requests/${requestId}/invoice`);
+      setPreviewInvoice(res.data);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Fatura yüklenemedi");
     }
   };
 
@@ -329,10 +340,14 @@ export default function PayoutRequestModal({ open, onOpenChange, courierId, onSu
                         <div className="flex items-center gap-2 mt-0.5">
                           {statusBadge(req.status)}
                           {req.invoice_id && (
-                            <span className="text-[10px] text-slate-600 flex items-center gap-1">
-                              <FileText className="w-3 h-3" />
-                              Faturalı
-                            </span>
+                            <button
+                              onClick={() => handlePreviewInvoice(req.id)}
+                              className="text-[10px] text-blue-600 hover:text-blue-800 underline flex items-center gap-1"
+                              data-testid={`preview-invoice-${req.id}`}
+                            >
+                              <Eye className="w-3 h-3" />
+                              Faturayı Görüntüle
+                            </button>
                           )}
                         </div>
                       </div>
@@ -405,6 +420,20 @@ export default function PayoutRequestModal({ open, onOpenChange, courierId, onSu
           </DialogFooter>
         )}
       </DialogContent>
+      
+      {/* PDF Viewer */}
+      <PdfViewerModal
+        file={
+          previewInvoice
+            ? {
+                url: `data:application/pdf;base64,${previewInvoice.file_data}`,
+                fileName: previewInvoice.filename || "fatura.pdf",
+                contentType: "application/pdf"
+              }
+            : null
+        }
+        onClose={() => setPreviewInvoice(null)}
+      />
     </Dialog>
   );
 }

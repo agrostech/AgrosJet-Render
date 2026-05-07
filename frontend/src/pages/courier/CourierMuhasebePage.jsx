@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { Calculator, AlertTriangle, Wallet } from "lucide-react";
+import { AlertTriangle, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageLoading } from "@/components/ui/loading-spinner";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
@@ -286,7 +286,7 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-primary/10">
-                <Calculator className="w-5 h-5 text-primary" />
+                <Wallet className="w-5 h-5 text-primary" />
               </div>
               <div>
                 <h2 className="font-heading font-bold text-xl">JetCüzdan</h2>
