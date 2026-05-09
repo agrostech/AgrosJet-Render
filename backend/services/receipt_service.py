@@ -16,7 +16,6 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY")
 MODEL_NAME = "gemini-2.5-flash"  # 2.5 free tier daha geniş; quota error'da 1.5-flash'a fallback
 FALLBACK_MODEL_NAME = "gemini-1.5-flash"
 
