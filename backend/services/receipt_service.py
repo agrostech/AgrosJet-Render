@@ -16,7 +16,9 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-MODEL_NAME = "gemini-2.0-flash"
+EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY")
+MODEL_NAME = "gemini-2.5-flash"  # 2.5 free tier daha geniş; quota error'da 1.5-flash'a fallback
+FALLBACK_MODEL_NAME = "gemini-1.5-flash"
 
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
@@ -100,33 +102,53 @@ async def analyze_receipt(image_base64: str) -> dict:
     else:
         mime_type = "image/jpeg"
 
-    model = genai.GenerativeModel(
-        MODEL_NAME,
-        system_instruction=RECEIPT_ANALYSIS_PROMPT,
-        generation_config={
-            "temperature": 0.1,
-            "max_output_tokens": 1024,
-            "response_mime_type": "application/json"
-        }
-    )
-
     image_part = {"mime_type": mime_type, "data": image_bytes}
     user_text = "Bu fiş fotoğrafını analiz et ve sipariş bilgilerini JSON olarak döndür."
 
+    def _call_gemini(model_name: str):
+        model = genai.GenerativeModel(
+            model_name,
+            system_instruction=RECEIPT_ANALYSIS_PROMPT,
+            generation_config={
+                "temperature": 0.1,
+                "max_output_tokens": 1024,
+                "response_mime_type": "application/json"
+            }
+        )
+        return model.generate_content([user_text, image_part])
+
     # google.generativeai SDK senkron — executor ile async wrap
     loop = asyncio.get_event_loop()
-    try:
-        response = await loop.run_in_executor(
-            None,
-            lambda: model.generate_content([user_text, image_part])
-        )
-    except Exception as e:
-        logger.exception(f"Gemini API hatası: {e}")
-        raise ValueError(f"Fiş analiz hatası: {str(e)}")
+    response = None
+    last_error = None
+    
+    # Önce 2.5-flash, kota dolu ise 1.5-flash
+    for model_name in (MODEL_NAME, FALLBACK_MODEL_NAME):
+        try:
+            response = await loop.run_in_executor(None, lambda mn=model_name: _call_gemini(mn))
+            if response and (response.text or "").strip():
+                break
+        except Exception as e:
+            last_error = e
+            err_str = str(e).lower()
+            # Quota / rate-limit / 429 → fallback model'e geç
+            if "429" in err_str or "quota" in err_str or "rate" in err_str:
+                logger.warning(f"Gemini {model_name} quota dolu, fallback deneniyor: {str(e)[:100]}")
+                continue
+            # Başka hata → fallback'e değer mi? deneyelim
+            logger.warning(f"Gemini {model_name} hatası: {str(e)[:100]}")
+            continue
+    
+    if response is None or not (response.text or "").strip():
+        # Tüm modeller başarısız oldu
+        msg = "Fiş analiz servisi şu an yoğun, lütfen birkaç saniye sonra tekrar deneyin"
+        if last_error:
+            err_str = str(last_error).lower()
+            if "quota" in err_str or "429" in err_str:
+                msg = "Günlük analiz limiti doldu, lütfen yarın tekrar deneyin (Gemini Free Tier 1500/gün)"
+        raise ValueError(msg)
 
     text = (response.text or "").strip()
-    if not text:
-        raise ValueError("Gemini boş yanıt döndü")
 
     try:
         return _parse_json_response(text)
