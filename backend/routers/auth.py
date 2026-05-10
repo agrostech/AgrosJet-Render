@@ -53,6 +53,7 @@ class ResetPassword(BaseModel):
 class AdminLogin(BaseModel):
     username: str
     password: str
+    remember_me: bool = False
 
 
 # --- Courier Auth ---
@@ -563,7 +564,7 @@ async def login_admin(request: Request, data: AdminLogin):
         "company": company,
         "accessible_companies": accessible_companies,
         "email": admin.get("email"),
-        "token": create_token(admin["id"], resolved_role, {"company_id": primary_company_id, "is_system": is_system, "is_super": is_super})
+        "token": create_token(admin["id"], resolved_role, {"company_id": primary_company_id, "is_system": is_system, "is_super": is_super}, remember_me=data.remember_me)
     }
 
 

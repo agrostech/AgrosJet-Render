@@ -9,16 +9,18 @@ from fastapi import HTTPException, Request
 # Secret key for JWT signing - production'da .env'den alınmalı
 JWT_SECRET = os.environ.get("JWT_SECRET", "agrosjet-32-jwt-secret-key-change-in-production")
 JWT_ALGORITHM = "HS256"
-JWT_EXPIRY_HOURS = 72  # 3 gün
+JWT_EXPIRY_HOURS = 72  # 3 gün (varsayılan)
+JWT_REMEMBER_ME_HOURS = 24 * 30  # 30 gün ("Beni Hatırla" işaretli)
 
 
-def create_token(user_id: str, role: str, extra: dict = None) -> str:
-    """JWT token üret"""
+def create_token(user_id: str, role: str, extra: dict = None, remember_me: bool = False) -> str:
+    """JWT token üret. remember_me=True ise 30 gün geçerli."""
+    hours = JWT_REMEMBER_ME_HOURS if remember_me else JWT_EXPIRY_HOURS
     payload = {
         "sub": user_id,
         "role": role,
         "iat": datetime.now(timezone.utc),
-        "exp": datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRY_HOURS),
+        "exp": datetime.now(timezone.utc) + timedelta(hours=hours),
     }
     if extra:
         payload.update(extra)

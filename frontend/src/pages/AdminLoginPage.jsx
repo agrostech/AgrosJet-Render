@@ -36,7 +36,7 @@ export default function AdminLoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await axios.post(`${API}/auth/admin/login`, formData);
+      const res = await axios.post(`${API}/auth/admin/login`, { ...formData, remember_me: rememberMe });
       const sessionData = {
         ...res.data,
         rememberMe,
