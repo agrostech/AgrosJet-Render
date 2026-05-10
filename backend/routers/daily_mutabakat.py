@@ -131,11 +131,14 @@ async def get_order_totals_for_courier(company_id: str, courier_id: str, start_d
     """
     # Teslim edilmiş siparişleri getir
     # delivered_at alanı ile filtreleme (teslim tarihi)
+    # NOT: delivered_at TR-timezone ISO string olarak saklandığı için string karşılaştırması güvenli
+    # Coarse pre-filter ile hızlı veritabanı sorgusu + binlerce siparişi olan kuryelerde 1000 limit bug'ını önler
     orders = await db.orders.find({
         "company_id": company_id,
         "courier_id": courier_id,
-        "status": "delivered"
-    }, {"_id": 0, "id": 1, "payment_method": 1, "total_amount": 1, "restaurant_name": 1, "restaurant_id": 1, "delivered_at": 1, "payment_details": 1}).to_list(1000)
+        "status": "delivered",
+        "delivered_at": {"$gte": start_dt.isoformat(), "$lt": end_dt.isoformat()}
+    }, {"_id": 0, "id": 1, "payment_method": 1, "total_amount": 1, "restaurant_name": 1, "restaurant_id": 1, "delivered_at": 1, "payment_details": 1}).to_list(None)
     
     # Restoranların tahsilat ayarlarını çek
     restaurant_ids = list(set(o.get("restaurant_id") for o in orders if o.get("restaurant_id")))
@@ -291,7 +294,8 @@ async def get_courier_orders_detail(company_id: str, courier_id: str, start_dt: 
     orders = await db.orders.find({
         "company_id": company_id,
         "courier_id": courier_id,
-        "status": "delivered"
+        "status": "delivered",
+        "delivered_at": {"$gte": start_dt.isoformat(), "$lt": end_dt.isoformat()}
     }, {
         "_id": 0, 
         "id": 1,
@@ -304,7 +308,7 @@ async def get_courier_orders_detail(company_id: str, courier_id: str, start_dt: 
         "payment_details": 1,
         "delivered_at": 1,
         "created_at": 1
-    }).to_list(1000)
+    }).to_list(None)
     
     cash_orders = []
     card_orders = []

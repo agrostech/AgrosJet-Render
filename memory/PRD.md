@@ -106,6 +106,7 @@ Multi-tenant delivery management platform for restaurants, couriers, and adminis
 - Getir webhook order_id=None hatasi: ID icin fallback alanlari eklendi (id, orderId, _id, clientOrderId, order_id). Tam payload integration_logs.data alanina yaziliyor (debug icin). Bos/ping istekleri 500 yerine 200 donuyor. Test: /app/backend/tests/test_getir_webhook_id_fallback.py
 - Kesilen Faturalar geçen hafta TypeError: Restoran pricing alanları None olunca patlama düzeltildi (issued_invoices.py — None-safe pattern).
 - Paket onaylanmama cezası: dispatcher.add_shift_violation artık apply_penalty_if_needed çağırıyor → ceza/transaction otomatik oluşuyor. Test: /app/backend/tests/test_package_not_confirmed_penalty.py
+- **Kurye Mütabakat 1000+ teslim bug'ı (2026-05-10, P0)**: 1111 teslim edilen siparişi olan kurye (Nazif Toprak) Cumartesi 299.95₺ nakit (Fast Coffee) admin ekranında görünmüyordu. `daily_mutabakat.py:get_order_totals_for_courier` ve `get_courier_orders_detail` `to_list(1000)` ile sınırlanıp en eski 1000 sipariş çekildiği için son günler düşüyordu. Fix: query'ye `delivered_at` ISO string range filter + `to_list(None)`. Regression test: `/app/backend/tests/test_daily_mutabakat_high_volume_courier.py`
 
 ## NEW: Kurye Ödeme Talep Sistemi (2026-02)
 - **Otomatik hakediş**: Sipariş "delivered" → courier_fee transaction olarak yazılır (type="earning", idempotent). Cancel/revert çalışıyor.
