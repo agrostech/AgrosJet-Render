@@ -144,6 +144,29 @@ async def _check_unprocessed_collections(courier_id: str) -> dict:
     
     unprocessed = order_days - processed_days
     
+    # Sahte engel filtresi: O gün kuryenin gerçekten mütabakata düşen
+    # nakit/kart toplamı yoksa (örn. tüm siparişler cash_collection=restaurant
+    # olan restoranlardan veya hepsi online ise) o gün engelleyici sayılmaz.
+    # Kurye Mütabakat sayfası ile birebir aynı mantık (restaurant_collection_map filtresi).
+    if unprocessed:
+        # Lazy import: circular import riskini önlemek için fonksiyon içinde import
+        from routers.daily_mutabakat import get_order_totals_for_courier, get_company_settings, calculate_date_range
+        settings = await get_company_settings(company_id)
+        real_unprocessed = []
+        for day in unprocessed:
+            try:
+                start_dt, end_dt = calculate_date_range(day, settings["opening_time"], settings["closing_time"])
+                totals = await get_order_totals_for_courier(company_id, courier_id, start_dt, end_dt)
+                if (totals.get("cash_total", 0) > 0
+                        or totals.get("card_total", 0) > 0
+                        or totals.get("meal_card_total", 0) > 0):
+                    real_unprocessed.append(day)
+            except Exception as e:
+                logger.warning(f"_check_unprocessed_collections: gün hesaplaması başarısız {day}: {e}")
+                # Hata durumunda güvenli taraf: o günü engelleyici say
+                real_unprocessed.append(day)
+        unprocessed = set(real_unprocessed)
+    
     if unprocessed:
         return {
             "blocked": True,
