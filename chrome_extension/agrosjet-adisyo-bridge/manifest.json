@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "AgrosJet Adisyo Köprüsü",
+  "version": "1.0.0",
+  "description": "Adisyo panelindeki siparişleri otomatik olarak AgrosJet'e aktarır.",
+  "permissions": ["storage", "activeTab"],
+  "host_permissions": [
+    "https://app.adisyo.com/*",
+    "https://*.adisyo.com/*",
+    "https://*.preview.emergentagent.com/*",
+    "https://*.agrosjet.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://app.adisyo.com/*", "https://*.adisyo.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_start",
+      "world": "MAIN",
+      "all_frames": true
+    },
+    {
+      "matches": ["https://app.adisyo.com/*", "https://*.adisyo.com/*"],
+      "js": ["bridge.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "AgrosJet Adisyo Köprüsü"
+  },
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  }
+}

@@ -110,6 +110,16 @@ Multi-tenant delivery management platform for restaurants, couriers, and adminis
 - **Payout "Tamamlanmamış mütabakat" sahte engel bug'ı (2026-05-10, P0)**: `payout_requests.py:_check_unprocessed_collections` o gün sipariş yapılmış AMA mütabakata düşen tutar 0 olan günleri (örn. tüm siparişler `cash_collection: restaurant` olan restoranlardan veya hepsi online) yanlışlıkla "blocked" sayıyordu. Nazif için 10 gün sahte engelden 2 gerçek alınmamış güne düşürüldü. Fix: her unprocessed day için `get_order_totals_for_courier` çağırılır, `cash_total + card_total + meal_card_total > 0` olan günler engelleyici sayılır (Kurye Mütabakat sayfası ile birebir aynı `restaurant_collection_map` filtresi). Regression test: `/app/backend/tests/test_payout_unprocessed_zero_settlement.py`
 - **Admin "Beni Hatırla" gerçek anlamda 30 gün (2026-05-10)**: Daha önce JWT her durumda 72 saat geçerliydi → "Beni Hatırla" işaretli olsa bile 3 gün sonra kullanıcı 401 ile logout oluyordu. Fix: `jwt_utils.create_token`'a `remember_me` parametresi eklendi (True → 720 saat = 30 gün, False → 72 saat). `AdminLogin` modeline `remember_me: bool = False` field, `AdminLoginPage.jsx` POST body'sine `remember_me` flag eklendi. Curl testi: True → 720h, False → 72h ✅. Frontend e2e test: PASS ✅
 
+## NEW: Adisyo Chrome Extension Köprüsü (2026-05-10, AYRI ENTEGRASYON)
+- Adisyo'nun entegrasyon vermediği restoranlar için (örn. Terra Pizza) ek yol.
+- **Backend (yeni, AYRI)**: `/api/adisyo-scrape/orders` endpoint'i, `routers/adisyo_scrape.py`. Mevcut Adisyo webhook entegrasyonuna dokunmadan paralel çalışır.
+- **Source ayrımı**: webhook'tan gelen siparişler `source: "adisyo"`, Chrome extension'dan gelenler `source: "adisyo_scrape"`. İkisi karıştırılmaz; aynı `adisyo_order_id` her iki kanaldan gelse de duplicate olmaz.
+- **Idempotent upsert**: `adisyo_order_id` unique anahtar; kurye atanmış (`assigned/confirmed/on_the_way/delivered`) statüde ezilmez, iptal her zaman uygulanır.
+- **Items minimal**: Ürün listesi çekilmez (kullanıcı talebi); her sipariş tek satır "Adisyo Siparişi" + total_amount.
+- **Field mapping**: `restaurantCustomer.{name,surname,phone,address,note,town}` → ShiftJet customer fields, `paramObject.coordinate` "lat,lng|..." → delivery_location, `paymentTypeName` → payment_method, `externalAppId` (15=Trendyol, 21=YS DeliveryHero, 9=Getir) human-readable.
+- **Chrome Extension** (`/app/chrome_extension/agrosjet-adisyo-bridge/`): Manifest v3, MAIN-world content.js XHR/fetch hook, ISOLATED bridge.js postMessage bridge, background.js service worker config + POST forward, popup.html ayarlar (backend_url + restaurant_id + bearer token).
+- **Test**: 3 pytest PASS (`test_adisyo_scrape.py` — payload convert, idempotency, kurye atanmış ezme koruması).
+
 ## NEW: Kurye Ödeme Talep Sistemi (2026-02)
 - **Otomatik hakediş**: Sipariş "delivered" → courier_fee transaction olarak yazılır (type="earning", idempotent). Cancel/revert çalışıyor.
 - **Yeni transaction tipi**: `earning` (accounting_service tüm aggregations'larında payment_in/received gibi total_in tarafında).

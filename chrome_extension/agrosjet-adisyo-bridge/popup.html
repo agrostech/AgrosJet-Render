@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <title>AgrosJet Adisyo Köprüsü</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      width: 340px;
+      margin: 0;
+      padding: 16px;
+      background: #0f172a;
+      color: #e2e8f0;
+    }
+    h1 {
+      font-size: 14px;
+      margin: 0 0 12px 0;
+      color: #38bdf8;
+      letter-spacing: 0.5px;
+    }
+    .field { margin-bottom: 10px; }
+    label {
+      display: block;
+      font-size: 11px;
+      color: #94a3b8;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    input {
+      width: 100%;
+      box-sizing: border-box;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 8px 10px;
+      color: #e2e8f0;
+      font-size: 12px;
+      outline: none;
+    }
+    input:focus { border-color: #38bdf8; }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #38bdf8;
+      color: #0f172a;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    button.secondary {
+      background: #334155;
+      color: #e2e8f0;
+    }
+    button:hover { opacity: 0.9; }
+    .status {
+      margin-top: 12px;
+      padding: 8px 10px;
+      background: #1e293b;
+      border-radius: 6px;
+      font-size: 11px;
+      color: #94a3b8;
+      min-height: 14px;
+      word-break: break-all;
+    }
+    .ok { color: #22c55e; }
+    .err { color: #ef4444; }
+    .hint {
+      font-size: 10px;
+      color: #64748b;
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <h1>AgrosJet · Adisyo Köprüsü</h1>
+
+  <div class="field">
+    <label>Backend URL</label>
+    <input id="backend_url" placeholder="https://logo-deployment-test-1.preview.emergentagent.com" />
+  </div>
+
+  <div class="field">
+    <label>Restaurant ID (AgrosJet UUID)</label>
+    <input id="restaurant_id" placeholder="7b14b5ec-2ef3-4f69-9197-53b09264589e" />
+  </div>
+
+  <div class="field">
+    <label>Bearer Token</label>
+    <input id="token" placeholder="eyJ..." />
+  </div>
+
+  <button id="save">Kaydet</button>
+  <button id="test" class="secondary" style="margin-top:6px">Bağlantıyı Test Et</button>
+
+  <div id="status" class="status">Hazır</div>
+
+  <div class="hint">
+    Adisyo panelini (app.adisyo.com) açın; eklenti otomatik olarak siparişleri arka planda
+    AgrosJet'e iletecektir. Yeni sipariş geldiğinde ikon üzerinde sayaç görünür.
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
