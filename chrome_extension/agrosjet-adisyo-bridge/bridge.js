@@ -1,35 +1,26 @@
 /**
- * bridge.js - Çalışma alanı: ISOLATED (extension content script context)
- *
- * Görev: content.js (MAIN world) tarafından `window.postMessage` ile yollanan
- * Adisyo response'larını alır ve `chrome.runtime.sendMessage` ile background.js'e
- * iletir (background AgrosJet backend'e POST eder).
+ * bridge.js (ISOLATED) — v1.3
+ * content.js (MAIN) ↔ background.js köprüsü
  */
 (function () {
   window.addEventListener("message", (event) => {
     if (!event || !event.data) return;
     if (event.data.source !== "agrosjet-adisyo-hook") return;
-    const payload = event.data.payload;
-    if (!Array.isArray(payload)) {
-      // Bazen response { Data: [...] } şeklinde olabilir
-      if (payload && Array.isArray(payload.Data)) {
-        forwardOrders(payload.Data);
-      } else if (payload && Array.isArray(payload.data)) {
-        forwardOrders(payload.data);
-      }
-      return;
-    }
-    forwardOrders(payload);
-  });
-
-  function forwardOrders(orders) {
-    if (!orders || !orders.length) return;
+    const orders = event.data.payload;
+    const url = event.data.url || "";
+    if (!Array.isArray(orders) || !orders.length) return;
+    console.log("[AgrosJet Bridge] background'a " + orders.length + " sipariş gönderiliyor");
     try {
-      chrome.runtime.sendMessage({ type: "ADISYO_ORDERS", orders }, () => {
-        // ignore response
+      chrome.runtime.sendMessage({ type: "ADISYO_ORDERS", orders, url }, (res) => {
+        if (chrome.runtime.lastError) {
+          console.warn("[AgrosJet Bridge] sendMessage err:", chrome.runtime.lastError.message);
+          return;
+        }
+        console.log("[AgrosJet Bridge] backend yanıt:", res);
       });
     } catch (e) {
-      console.warn("[AgrosJet bridge] sendMessage failed", e);
+      console.warn("[AgrosJet Bridge] sendMessage exception", e);
     }
-  }
+  });
+  console.log("[AgrosJet Bridge] isolated context aktif");
 })();

@@ -1,29 +1,52 @@
 /**
- * content.js - Çalışma alanı: MAIN world (sayfanın kendi JS context'i)
+ * content.js (MAIN world) — v1.3
  *
- * Görev: Adisyo panelindeki XMLHttpRequest ve fetch çağrılarını intercept et,
- * "GetOrdersForList" çağrılarının response body'sini yakala ve postMessage ile
- * isolated content script (bridge.js) tarafına yolla.
+ * Adisyo panelindeki XHR ve fetch çağrılarını intercept eder.
+ * Sipariş listesi endpoint'leri (Adisyo bunları farklı isimlerle çağırabilir):
+ *   - GetOrdersForList
+ *   - GetOrders
+ *   - OrderList
+ *   - GetOrderList
  *
- * NOT: Manifest v3 + world:"MAIN" sayesinde bu script doğrudan sayfanın
- * window/fetch'ine erişebilir. chrome.* API'lerine erişemez; o yüzden
- * bridge.js üzerinden köprü kurulur.
+ * Yakalanan response'ları postMessage ile bridge.js'e iletir.
+ * Debug için console'a tüm intercept'ler loglanır.
  */
 (function () {
   if (window.__AGROSJET_ADISYO_HOOKED__) return;
   window.__AGROSJET_ADISYO_HOOKED__ = true;
 
-  const TARGET_PATH = "GetOrdersForList"; // Adisyo endpoint adı
+  const PATH_REGEX = /(GetOrdersForList|GetOrderList|GetOrders|OrderList|orders\/list|listOrders)/i;
 
   function safeJSON(text) {
     try { return JSON.parse(text); } catch { return null; }
   }
 
-  function postToBridge(data) {
+  function looksLikeOrderArray(arr) {
+    if (!Array.isArray(arr) || arr.length === 0) return false;
+    const first = arr[0];
+    return first && (
+      typeof first.id !== "undefined" ||
+      typeof first.orderNumber !== "undefined" ||
+      typeof first.OrderNumber !== "undefined"
+    );
+  }
+
+  function extractOrders(parsed) {
+    if (!parsed) return null;
+    if (looksLikeOrderArray(parsed)) return parsed;
+    if (parsed.Data && looksLikeOrderArray(parsed.Data)) return parsed.Data;
+    if (parsed.data && looksLikeOrderArray(parsed.data)) return parsed.data;
+    if (parsed.result && looksLikeOrderArray(parsed.result)) return parsed.result;
+    if (parsed.Result && looksLikeOrderArray(parsed.Result)) return parsed.Result;
+    return null;
+  }
+
+  function postToBridge(orders, url) {
     try {
-      window.postMessage({ source: "agrosjet-adisyo-hook", payload: data }, "*");
+      console.log("[AgrosJet Adisyo Bridge] " + orders.length + " sipariş yakalandı (" + url + ")");
+      window.postMessage({ source: "agrosjet-adisyo-hook", payload: orders, url: url }, "*");
     } catch (e) {
-      // ignore
+      console.warn("[AgrosJet Adisyo Bridge] postMessage hatası", e);
     }
   }
 
@@ -38,12 +61,17 @@
     this.addEventListener("load", function () {
       try {
         const url = this.__agrosjet_url || "";
-        if (url && url.indexOf(TARGET_PATH) !== -1) {
-          const body = this.responseText;
-          const parsed = safeJSON(body);
-          if (parsed) postToBridge(parsed);
+        if (url && PATH_REGEX.test(url)) {
+          console.log("[AgrosJet Adisyo Bridge] XHR match → " + url);
+          const parsed = safeJSON(this.responseText);
+          const orders = extractOrders(parsed);
+          if (orders && orders.length) {
+            postToBridge(orders, url);
+          } else {
+            console.log("[AgrosJet Adisyo Bridge] response içinde sipariş array'i yok, raw=", parsed);
+          }
         }
-      } catch (e) { /* ignore */ }
+      } catch (e) { console.warn("[AgrosJet] XHR handler error", e); }
     });
     return origSend.apply(this, arguments);
   };
@@ -54,16 +82,22 @@
     const resp = await origFetch.apply(this, arguments);
     try {
       const url = (typeof input === "string") ? input : (input && input.url) || "";
-      if (url && url.indexOf(TARGET_PATH) !== -1) {
+      if (url && PATH_REGEX.test(url)) {
+        console.log("[AgrosJet Adisyo Bridge] fetch match → " + url);
         const clone = resp.clone();
         clone.text().then((txt) => {
           const parsed = safeJSON(txt);
-          if (parsed) postToBridge(parsed);
+          const orders = extractOrders(parsed);
+          if (orders && orders.length) {
+            postToBridge(orders, url);
+          } else {
+            console.log("[AgrosJet Adisyo Bridge] response içinde sipariş array'i yok, raw=", parsed);
+          }
         }).catch(() => {});
       }
-    } catch (e) { /* ignore */ }
+    } catch (e) { console.warn("[AgrosJet] fetch handler error", e); }
     return resp;
   };
 
-  console.log("[AgrosJet Adisyo Bridge] hooks installed");
+  console.log("[AgrosJet Adisyo Bridge] hooks installed (v1.3)");
 })();
