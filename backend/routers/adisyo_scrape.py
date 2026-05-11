@@ -71,6 +71,10 @@ class AdisyoScrapeOrder(BaseModel):
     paymentType: Optional[int] = None
     paymentTypeName: Optional[str] = ""
     externalAppId: Optional[int] = None
+    orderType: Optional[int] = None  # 1=masa, 2=self, 3=paket
+    deliveryType: Optional[int] = None  # 1=içeride, 2=teslimat
+    tableId: Optional[int] = None  # dolu ise masa siparişi
+    tableName: Optional[str] = None
     insertDate: Optional[str] = None
     updateDate: Optional[str] = None
     restaurantCustomer: Optional[dict] = None
@@ -183,6 +187,40 @@ def _build_delivery_address(rc: Optional[dict]) -> tuple:
     delivery_address = ", ".join(filter(None, address_parts)) or "Adres belirtilmemiş"
     notes = (rc.get("note") or "").strip()
     return (delivery_address, notes)
+
+
+def _should_skip_order(item: dict) -> Optional[str]:
+    """
+    Adisyo'dan gelen siparişi AgrosJet'e aktarmamamız gereken durumları kontrol eder.
+    Skip edilmesi gereken durum varsa sebep string'i döner; aksi halde None.
+
+    Kabul kriterleri (HEPSİ true olmalı):
+      1. tableId boş (masa siparişi değil)
+      2. deliveryType == 2 (teslimat)
+      3. orderType == 3 (paket)
+      4. restaurantCustomer.address dolu (boş string veya None değil)
+
+    NOT: externalAppId null olsa bile (telefonla alınıp POS'a girilen paket
+    sipariş) adres doluysa kabul edilir — kurye gerekirse AgrosJet kullanılır.
+    """
+    table_id = item.get("tableId")
+    if table_id is not None and table_id != 0:
+        return f"masa_siparisi (tableId={table_id})"
+
+    delivery_type = item.get("deliveryType")
+    if delivery_type is not None and delivery_type != 2:
+        return f"teslimat_disi (deliveryType={delivery_type})"
+
+    order_type = item.get("orderType")
+    if order_type is not None and order_type != 3:
+        return f"paket_disi (orderType={order_type})"
+
+    rc = item.get("restaurantCustomer") or {}
+    address = (rc.get("address") or "").strip()
+    if not address:
+        return "adres_yok"
+
+    return None
 
 
 def _convert_scraped_to_shiftjet(adisyo_item: dict, restaurant: dict) -> dict:
@@ -335,12 +373,26 @@ async def receive_scraped_orders(batch: AdisyoScrapeBatch, payload: dict = Depen
     updated = 0
     skipped = 0
     cancelled = 0
+    skipped_non_delivery = 0  # Masa/POS/adres yok gibi atlanan kayıtlar
     errors = []
 
     for adisyo_item in batch.orders:
         item_dict = adisyo_item.dict()
         adisyo_order_id = item_dict.get("id")
         if not adisyo_order_id:
+            continue
+
+        # Guard: masa / POS / adressiz siparişleri AgrosJet'e aktarma
+        skip_reason = _should_skip_order(item_dict)
+        if skip_reason:
+            # Daha önce yanlışlıkla aktarılmış olabilir — şimdi varsa dokunma (geçmiş korunur)
+            existing_check = await db.orders.find_one(
+                {"adisyo_order_id": adisyo_order_id, "source": "adisyo_scrape"},
+                {"_id": 0, "id": 1}
+            )
+            if not existing_check:
+                logger.info(f"adisyo-scrape skip: id={adisyo_order_id} reason={skip_reason}")
+            skipped_non_delivery += 1
             continue
 
         try:
@@ -397,6 +449,7 @@ async def receive_scraped_orders(batch: AdisyoScrapeBatch, payload: dict = Depen
         "updated": updated,
         "skipped": skipped,
         "cancelled": cancelled,
+        "skipped_non_delivery": skipped_non_delivery,
         "errors": errors,
         "received": len(batch.orders),
     }
