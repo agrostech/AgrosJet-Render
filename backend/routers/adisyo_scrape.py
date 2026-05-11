@@ -232,8 +232,20 @@ def _convert_scraped_to_shiftjet(adisyo_item: dict, restaurant: dict) -> dict:
     )
 
     insert_iso = adisyo_item.get("insertDate")
+    # Adisyo GetOrdersForList endpoint'i insertDate'i timezone bilgisi olmadan
+    # UTC olarak yolluyor (ör: "2026-05-11T12:37:00.000"). Bunu naive UTC kabul
+    # edip TR (+03:00)'a çevirmemiz lazım, aksi halde sipariş 3 saat geri görünür.
     try:
-        created_at = ensure_turkey_timezone(insert_iso) if insert_iso else get_turkey_now()
+        if insert_iso:
+            iso_clean = str(insert_iso).strip()
+            # Eğer timezone bilgisi yoksa Z (UTC) olarak işaretle
+            if "+" not in iso_clean and not iso_clean.endswith("Z") and "-" not in iso_clean[-6:]:
+                iso_clean = iso_clean + "Z"
+            # Şimdi TR-aware datetime'a çevir
+            _dt = datetime.fromisoformat(iso_clean.replace("Z", "+00:00"))
+            created_at = _dt.astimezone(TURKEY_TZ).isoformat()
+        else:
+            created_at = get_turkey_now()
     except Exception:
         created_at = get_turkey_now()
 
