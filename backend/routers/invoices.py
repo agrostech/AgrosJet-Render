@@ -901,11 +901,21 @@ async def download_invoice(invoice_id: str):
             '.heif': 'image/heif'
         }
         content_type = content_types.get(file_ext, 'application/octet-stream')
-        
+
+        # HTTP header latin-1 ile sınırlı: TR karakterleri için RFC 5987 filename* kullan
+        raw_name = invoice["file_name"]
+        try:
+            ascii_name = raw_name.encode("ascii", "ignore").decode("ascii") or "invoice"
+        except Exception:
+            ascii_name = "invoice"
+        from urllib.parse import quote
+        utf8_name = quote(raw_name, safe="")
+        content_disposition = f'attachment; filename="{ascii_name}"; filename*=UTF-8\'\'{utf8_name}'
+
         return Response(
             content=file_content,
             media_type=content_type,
-            headers={"Content-Disposition": f'attachment; filename="{invoice["file_name"]}"'}
+            headers={"Content-Disposition": content_disposition}
         )
     else:
         # Legacy local file storage
@@ -1065,11 +1075,20 @@ async def download_bulk_invoices(data: BulkPdfRequest):
         pdf_buffer.seek(0)
         
         pdf_filename = f"Kurye{month_name}Faturalar.pdf"
-        
+
+        # HTTP header latin-1 ile sınırlı: TR karakterleri için RFC 5987 filename* kullan
+        try:
+            ascii_filename = pdf_filename.encode("ascii", "ignore").decode("ascii") or "Kurye-Faturalar.pdf"
+        except Exception:
+            ascii_filename = "Kurye-Faturalar.pdf"
+        from urllib.parse import quote
+        utf8_filename = quote(pdf_filename, safe="")
+        content_disposition = f"attachment; filename=\"{ascii_filename}\"; filename*=UTF-8''{utf8_filename}"
+
         return StreamingResponse(
             pdf_buffer,
             media_type="application/pdf",
-            headers={"Content-Disposition": f"attachment; filename={pdf_filename}"}
+            headers={"Content-Disposition": content_disposition}
         )
     except HTTPException:
         raise
