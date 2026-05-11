@@ -237,15 +237,16 @@ def _convert_scraped_to_shiftjet(adisyo_item: dict, restaurant: dict) -> dict:
     except Exception:
         created_at = get_turkey_now()
 
-    # Hazırlık süresi: restoran default'u (varsa). Scrape'de item bazlı detay yok,
-    # bu yüzden product_preparation_times kullanılamaz — restoran tabanı.
-    prep_time = int(restaurant.get("preparation_time", 15) or 15)
-    try:
-        from datetime import datetime as _dt
-        _start = _dt.fromisoformat(created_at)
-        preparation_end_at = (_start + timedelta(minutes=prep_time)).isoformat()
-    except Exception:
-        preparation_end_at = None
+    # Hazırlık süresi: webhook ile aynı mantık (NOW + prep_time).
+    # Adisyo'nun insertDate'i geçmişte olabilir (geç aktarım) — bu yüzden NOW kullanılır,
+    # böylece sipariş AgrosJet'e düştüğü ANDAN itibaren hazırlık geri sayımı başlar.
+    # calculate_preparation_time burada async dışında olduğu için manuel hesap:
+    standard_prep = int(restaurant.get("preparation_time", 15) or 15)
+    # Ürün bazlı süre: scrape items minimal (tek satır), bilinmeyen ürün → ek 0
+    # (webhook bile bilinmeyen ürün için 0 ek döner; standart süre yeter)
+    prep_time = standard_prep
+    now_tr = datetime.now(TURKEY_TZ)
+    preparation_end_at = (now_tr + timedelta(minutes=prep_time)).isoformat()
 
     return {
         "id": str(uuid.uuid4()),

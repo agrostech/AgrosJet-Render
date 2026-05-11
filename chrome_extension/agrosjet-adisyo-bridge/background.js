@@ -1,17 +1,23 @@
 /**
- * background.js (service worker) — v1.1
+ * background.js (service worker) — v1.6
  *
- * Yeni akış:
- *  1) Kullanıcı popup'a giriş yapar (username + password). Eklenti
- *     /api/auth/admin/login çağırır, remember_me=true ile 30 günlük token alır.
- *  2) Token + accessible_companies + restaurants storage'a kaydedilir.
- *  3) Kullanıcı popup'tan tek tıkla şirket + restoran seçer.
- *  4) Adisyo panelindeki siparişler otomatik backend'e iletilir.
+ * Akış:
+ *  1) Restoran user'ı popup'tan login olur (remember_me=true → 30 gün token).
+ *  2) chrome.alarms ile periyodik tick (varsayılan 1 dakika, popup'tan ayarlanabilir).
+ *  3) Her tick:
+ *     - Adisyo tab'i açıksa: chrome.tabs.reload → sayfa F5 olur,
+ *       content.js GetOrdersForList'i yakalar, background'a iletir, biz POST'larız.
+ *     - Adisyo tab'i kapalıysa: skip (kullanıcıya status'ta gösterilir).
+ *  4) Son tick zamanı storage.local'a yazılır; popup açıldığında geri sayım gösterilir.
  *
- * Backend URL hardcoded: https://api.agrosjet.com
+ * Backend URL hardcoded: https://api.agrosjet.app
  */
 
 const DEFAULT_BACKEND = "https://api.agrosjet.app";
+const ALARM_NAME = "agrosjet-poll-tick";
+const DEFAULT_POLL_SECONDS = 60;
+const MIN_POLL_SECONDS = 30;
+const MAX_POLL_SECONDS = 300;
 
 const SENT_CACHE = new Map();
 const CACHE_TTL_MS = 30 * 1000;
@@ -25,10 +31,14 @@ function cleanupCache() {
 
 async function getConfig() {
   return new Promise((resolve) => {
-    chrome.storage.sync.get(["backend_url", "token", "restaurant_id", "user_name", "company_name"], (cfg) => {
-      cfg.backend_url = cfg.backend_url || DEFAULT_BACKEND;
-      resolve(cfg || {});
-    });
+    chrome.storage.sync.get(
+      ["backend_url", "token", "restaurant_id", "restaurant_name", "user_name", "company_name", "company_id", "poll_seconds"],
+      (cfg) => {
+        cfg.backend_url = cfg.backend_url || DEFAULT_BACKEND;
+        cfg.poll_seconds = cfg.poll_seconds || DEFAULT_POLL_SECONDS;
+        resolve(cfg || {});
+      }
+    );
   });
 }
 
@@ -178,14 +188,113 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     case "LOGOUT":
       logout().then(sendResponse).catch((e) => sendResponse({ ok: false, error: String(e) }));
       return true;
+    case "TRIGGER_REFRESH":
+      triggerRefresh().then(sendResponse).catch((e) => sendResponse({ ok: false, error: String(e) }));
+      return true;
+    case "SET_POLL_SECONDS":
+      setPollSeconds(msg.seconds).then(sendResponse).catch((e) => sendResponse({ ok: false, error: String(e) }));
+      return true;
+    case "GET_TICK_INFO":
+      getTickInfo().then(sendResponse).catch((e) => sendResponse({ error: String(e) }));
+      return true;
   }
   return false;
 });
 
-chrome.runtime.onInstalled.addListener(() => {
-  console.log("[AgrosJet Adisyo Bridge v1.1] installed");
-  // Default backend URL set
-  chrome.storage.sync.get(["backend_url"], (cfg) => {
-    if (!cfg.backend_url) chrome.storage.sync.set({ backend_url: DEFAULT_BACKEND });
+
+/* ============== Alarm + Refresh Mekanizması ============== */
+
+async function setLastTickNow() {
+  return new Promise((res) => {
+    chrome.storage.local.set({ last_tick_ts: Date.now() }, res);
   });
+}
+
+async function getLastTickTs() {
+  return new Promise((res) => {
+    chrome.storage.local.get(["last_tick_ts"], (d) => res(d.last_tick_ts || 0));
+  });
+}
+
+async function getTickInfo() {
+  const cfg = await getConfig();
+  const last = await getLastTickTs();
+  const intervalMs = cfg.poll_seconds * 1000;
+  const elapsed = Date.now() - last;
+  const remaining = Math.max(0, intervalMs - elapsed);
+  // Adisyo tab açık mı?
+  const tabs = await chrome.tabs.query({ url: ["https://app.adisyo.com/*", "https://*.adisyo.com/*"] });
+  return {
+    poll_seconds: cfg.poll_seconds,
+    last_tick_ts: last,
+    next_in_ms: remaining,
+    adisyo_tab_open: tabs.length > 0,
+    adisyo_tab_count: tabs.length,
+  };
+}
+
+async function setPollSeconds(seconds) {
+  let s = parseInt(seconds, 10) || DEFAULT_POLL_SECONDS;
+  if (s < MIN_POLL_SECONDS) s = MIN_POLL_SECONDS;
+  if (s > MAX_POLL_SECONDS) s = MAX_POLL_SECONDS;
+  await new Promise((r) => chrome.storage.sync.set({ poll_seconds: s }, r));
+  await rescheduleAlarm(s);
+  return { ok: true, poll_seconds: s };
+}
+
+async function rescheduleAlarm(seconds) {
+  try {
+    await chrome.alarms.clear(ALARM_NAME);
+  } catch {}
+  // chrome.alarms minimum periodInMinutes = 0.5 (30 sn) — Chrome 117+
+  const periodInMinutes = Math.max(0.5, (seconds || DEFAULT_POLL_SECONDS) / 60);
+  chrome.alarms.create(ALARM_NAME, { delayInMinutes: periodInMinutes, periodInMinutes });
+  console.log(`[AgrosJet] alarm set: every ${periodInMinutes.toFixed(2)} min (${seconds}s)`);
+}
+
+async function triggerRefresh() {
+  /**
+   * Adisyo tab'ini yenile. content.js sayfa açıldıktan sonra GetOrdersForList
+   * yakalayıp background'a iletir; biz forwardOrders ile AgrosJet'e POST'larız.
+   *
+   * Adisyo tab kapalıysa: hiçbir şey yapmaz, UI'da "Adisyo tab kapalı" gösterilir.
+   */
+  await setLastTickNow();
+  const cfg = await getConfig();
+  if (!cfg.token || !cfg.restaurant_id) {
+    return { ok: false, error: "config_missing" };
+  }
+  try {
+    const tabs = await chrome.tabs.query({ url: ["https://app.adisyo.com/*", "https://*.adisyo.com/*"] });
+    if (!tabs.length) {
+      return { ok: false, error: "no_adisyo_tab" };
+    }
+    // İlk açık tab'i reload et (birden fazla varsa hepsi: ama performans için tek)
+    const tab = tabs[0];
+    await chrome.tabs.reload(tab.id);
+    console.log(`[AgrosJet] tab ${tab.id} reloaded`);
+    return { ok: true, tab_id: tab.id, tab_count: tabs.length };
+  } catch (e) {
+    console.warn("[AgrosJet] triggerRefresh error", e);
+    return { ok: false, error: String(e) };
+  }
+}
+
+chrome.alarms.onAlarm.addListener(async (alarm) => {
+  if (alarm.name !== ALARM_NAME) return;
+  console.log("[AgrosJet] alarm tick → trigger refresh");
+  await triggerRefresh();
+});
+
+chrome.runtime.onInstalled.addListener(async () => {
+  console.log("[AgrosJet Adisyo Bridge v1.6] installed");
+  const cfg = await getConfig();
+  if (!cfg.backend_url) chrome.storage.sync.set({ backend_url: DEFAULT_BACKEND });
+  if (!cfg.poll_seconds) chrome.storage.sync.set({ poll_seconds: DEFAULT_POLL_SECONDS });
+  await rescheduleAlarm(cfg.poll_seconds || DEFAULT_POLL_SECONDS);
+});
+
+chrome.runtime.onStartup.addListener(async () => {
+  const cfg = await getConfig();
+  await rescheduleAlarm(cfg.poll_seconds || DEFAULT_POLL_SECONDS);
 });

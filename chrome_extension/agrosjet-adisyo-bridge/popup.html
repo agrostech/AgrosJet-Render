@@ -14,6 +14,7 @@
       --primary-fg: #0b1224;
       --ok: #22c55e;
       --err: #ef4444;
+      --warn: #f59e0b;
     }
     * { box-sizing: border-box; }
     body {
@@ -35,12 +36,12 @@
       display: block; font-size: 10px; color: var(--muted);
       margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;
     }
-    input {
+    input, select {
       width: 100%; background: var(--panel); color: var(--text);
       border: 1px solid var(--line); border-radius: 6px;
       padding: 8px 10px; font-size: 12px; outline: none;
     }
-    input:focus { border-color: var(--primary); }
+    input:focus, select:focus { border-color: var(--primary); }
     button {
       width: 100%; padding: 10px; background: var(--primary); color: var(--primary-fg);
       border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 12px;
@@ -57,6 +58,7 @@
     }
     .ok { color: var(--ok); }
     .err { color: var(--err); }
+    .warn { color: var(--warn); }
     .info-card {
       background: var(--panel); border: 1px solid var(--line);
       border-radius: 8px; padding: 12px 14px; margin-bottom: 12px;
@@ -65,15 +67,47 @@
     .info-card .value { font-size: 14px; font-weight: 600; margin-top: 3px; }
     .info-card .sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
     .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
-    .dot.ok { background: var(--ok); }
+    .dot.ok { background: var(--ok); animation: pulse 2s infinite; }
+    .dot.warn { background: var(--warn); }
+    .dot.err { background: var(--err); }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6); }
+      50% { box-shadow: 0 0 0 4px rgba(34, 197, 94, 0); }
+    }
     .hint { font-size: 10px; color: #64748b; margin-top: 10px; line-height: 1.4; }
     .hidden { display: none !important; }
+
+    /* Sayaç dairesi */
+    .timer-card {
+      background: var(--panel); border: 1px solid var(--line);
+      border-radius: 12px; padding: 14px; margin-bottom: 12px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .timer-ring {
+      position: relative; width: 72px; height: 72px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .timer-ring svg { transform: rotate(-90deg); width: 72px; height: 72px; }
+    .timer-ring circle { fill: none; stroke-width: 6; }
+    .timer-ring .bg { stroke: #1f2c4a; }
+    .timer-ring .fg { stroke: var(--primary); stroke-linecap: round; transition: stroke-dashoffset 0.5s linear; }
+    .timer-ring .num {
+      position: absolute; font-size: 18px; font-weight: 700; color: var(--text);
+    }
+    .timer-info { flex: 1; }
+    .timer-info .lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; }
+    .timer-info .val { font-size: 13px; font-weight: 600; margin-top: 2px; }
+    .timer-info .sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+    .row { display: flex; gap: 8px; align-items: center; }
+    .row select { flex: 1; }
+    .row .lbl-inline { font-size: 11px; color: var(--muted); min-width: 70px; }
   </style>
 </head>
 <body>
   <div class="header">
     <div class="brand">AgrosJet · Adisyo Köprüsü</div>
-    <div class="badge" id="versionBadge">v1.5</div>
+    <div class="badge" id="versionBadge">v1.6</div>
   </div>
 
   <!-- LOGIN VIEW -->
@@ -95,21 +129,44 @@
   <!-- ACTIVE VIEW -->
   <div id="activeView" class="hidden">
     <div class="info-card">
-      <div class="label"><span class="dot ok"></span>Bağlantı Aktif</div>
+      <div class="label"><span class="dot ok" id="statusDot"></span><span id="statusLabel">Aktif</span></div>
       <div class="value" id="restaurantNameVal">—</div>
       <div class="sub" id="companyNameVal">—</div>
     </div>
 
-    <div class="info-card">
-      <div class="label">Giriş Yapan</div>
-      <div class="value" id="userNameVal" style="font-size:13px">—</div>
+    <div class="timer-card">
+      <div class="timer-ring">
+        <svg>
+          <circle class="bg" cx="36" cy="36" r="30" />
+          <circle class="fg" id="timerArc" cx="36" cy="36" r="30" stroke-dasharray="188.5" stroke-dashoffset="0" />
+        </svg>
+        <div class="num" id="timerNum">60</div>
+      </div>
+      <div class="timer-info">
+        <div class="lbl">Sonraki Yenileme</div>
+        <div class="val" id="timerStatus">—</div>
+        <div class="sub" id="tabStatus">—</div>
+      </div>
     </div>
 
+    <div class="field">
+      <label>Yenileme Sıklığı</label>
+      <div class="row">
+        <select id="intervalSelect">
+          <option value="30">30 saniye</option>
+          <option value="60" selected>1 dakika</option>
+          <option value="120">2 dakika</option>
+          <option value="180">3 dakika</option>
+          <option value="300">5 dakika</option>
+        </select>
+      </div>
+    </div>
+
+    <button id="refreshNowBtn">Şimdi Yenile</button>
     <button id="logoutBtn" class="secondary">Çıkış Yap</button>
 
     <div class="hint">
-      Adisyo panelini (app.adisyo.com) açtığınızda yeni siparişler otomatik olarak AgrosJet'e iletilir.
-      İkon üzerinde yeşil sayaç yeni aktarılan sipariş sayısını gösterir.
+      <b>Çalışma şekli:</b> Belirlediğiniz aralıkta Adisyo paneli otomatik yenilenir (F5) ve yeni siparişler AgrosJet'e iletilir. Adisyo sekmesi açık olmalı.
     </div>
   </div>
 
