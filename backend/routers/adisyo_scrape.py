@@ -291,13 +291,20 @@ async def receive_scraped_orders(batch: AdisyoScrapeBatch, payload: dict = Depen
     if not restaurant:
         raise HTTPException(status_code=404, detail="Restoran bulunamadı")
 
-    # 2) İstek atan kullanıcının bu şirkete erişimi var mı? (basit kontrol)
+    # 2) İstek atan kullanıcının bu restorana erişimi var mı?
     company_id = restaurant.get("company_id")
     role = (payload or {}).get("role")
     token_company = (payload or {}).get("company_id")
+    token_restaurant = (payload or {}).get("restaurant_id")
     if role not in ("systemadmin", "superadmin"):
-        if token_company and company_id and token_company != company_id:
-            raise HTTPException(status_code=403, detail="Bu restorana erişim yetkiniz yok")
+        if role == "restaurant":
+            # Restoran user'ı sadece kendi restoranına post atabilir
+            if token_restaurant and token_restaurant != batch.restaurant_id:
+                raise HTTPException(status_code=403, detail="Bu restorana erişim yetkiniz yok")
+        else:
+            # Admin / kurye: aynı şirket olmalı
+            if token_company and company_id and token_company != company_id:
+                raise HTTPException(status_code=403, detail="Bu restorana erişim yetkiniz yok")
 
     created = 0
     updated = 0

@@ -98,7 +98,7 @@ async function forwardOrders(orders) {
 
 async function login({ username, password }) {
   const backend = DEFAULT_BACKEND;
-  const url = backend.replace(/\/$/, "") + "/api/auth/admin/login";
+  const url = backend.replace(/\/$/, "") + "/api/restaurant-users/login";
   const resp = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -109,35 +109,20 @@ async function login({ username, password }) {
   if (!resp.ok) {
     return { ok: false, error: (data && data.detail) || ("HTTP " + resp.status) };
   }
-  // Token + kullanıcı info kaydet
+  // Token + restoran bilgisi kaydet — restoran kullanıcı tek restorana bağlı, dropdown'a gerek yok
   await new Promise((res) => {
     chrome.storage.sync.set({
       backend_url: backend,
       token: data.token,
       user_name: data.name,
       role: data.role,
+      restaurant_id: data.restaurant_id,
+      restaurant_name: data.restaurant_name,
       company_id: data.company_id,
-      company_name: (data.company && data.company.name) || "",
-      accessible_companies: data.accessible_companies || [],
+      company_name: data.company_name || "",
     }, res);
   });
   return { ok: true, user: data };
-}
-
-async function listRestaurants(companyId) {
-  const cfg = await getConfig();
-  if (!cfg.token) return { ok: false, error: "not_logged_in" };
-  const url = cfg.backend_url.replace(/\/$/, "") + "/api/restaurants/" + companyId;
-  try {
-    const resp = await fetch(url, { headers: { "Authorization": "Bearer " + cfg.token } });
-    const text = await resp.text();
-    let data = null; try { data = JSON.parse(text); } catch {}
-    if (!resp.ok) return { ok: false, error: (data && data.detail) || ("HTTP " + resp.status) };
-    const list = (Array.isArray(data) ? data : []).map((r) => ({ id: r.id, name: r.name }));
-    return { ok: true, restaurants: list };
-  } catch (e) {
-    return { ok: false, error: String(e) };
-  }
 }
 
 async function saveRestaurant({ restaurant_id, restaurant_name, company_id, company_name }) {
@@ -157,14 +142,13 @@ async function getState() {
     restaurant_id: cfg.restaurant_id || "",
     restaurant_name: cfg.restaurant_name || "",
     backend_url: cfg.backend_url,
-    accessible_companies: cfg.accessible_companies || [],
   };
 }
 
 async function logout() {
   await new Promise((res) => {
     chrome.storage.sync.remove(
-      ["token", "user_name", "role", "company_id", "company_name", "restaurant_id", "restaurant_name", "accessible_companies"],
+      ["token", "user_name", "role", "company_id", "company_name", "restaurant_id", "restaurant_name"],
       res
     );
   });
@@ -182,12 +166,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       return true;
     case "LOGIN":
       login(msg).then(sendResponse);
-      return true;
-    case "LIST_RESTAURANTS":
-      listRestaurants(msg.company_id).then(sendResponse);
-      return true;
-    case "SAVE_RESTAURANT":
-      saveRestaurant(msg).then(sendResponse);
       return true;
     case "GET_STATE":
       getState().then(sendResponse);

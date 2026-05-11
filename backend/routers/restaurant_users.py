@@ -35,6 +35,7 @@ class RestaurantUserUpdate(BaseModel):
 class RestaurantUserLogin(BaseModel):
     username: str
     password: str
+    remember_me: bool = False
 
 
 # --- Auth ---
@@ -84,7 +85,7 @@ async def login_restaurant_user(request: Request, data: RestaurantUserLogin):
         "restaurant_name": restaurant["name"],
         "company_id": restaurant["company_id"],
         "company_name": company["name"] if company else None,
-        "token": create_token(user["id"], "restaurant", {"restaurant_id": user["restaurant_id"], "company_id": restaurant["company_id"]})
+        "token": create_token(user["id"], "restaurant", {"restaurant_id": user["restaurant_id"], "company_id": restaurant["company_id"]}, remember_me=data.remember_me)
     }
 
 

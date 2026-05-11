@@ -35,12 +35,12 @@
       display: block; font-size: 10px; color: var(--muted);
       margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;
     }
-    input, select {
+    input {
       width: 100%; background: var(--panel); color: var(--text);
       border: 1px solid var(--line); border-radius: 6px;
       padding: 8px 10px; font-size: 12px; outline: none;
     }
-    input:focus, select:focus { border-color: var(--primary); }
+    input:focus { border-color: var(--primary); }
     button {
       width: 100%; padding: 10px; background: var(--primary); color: var(--primary-fg);
       border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 12px;
@@ -57,18 +57,15 @@
     }
     .ok { color: var(--ok); }
     .err { color: var(--err); }
-    .row { display: flex; gap: 8px; }
-    .row > * { flex: 1; }
     .info-card {
       background: var(--panel); border: 1px solid var(--line);
-      border-radius: 8px; padding: 10px 12px; margin-bottom: 12px;
+      border-radius: 8px; padding: 12px 14px; margin-bottom: 12px;
     }
     .info-card .label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; }
-    .info-card .value { font-size: 13px; font-weight: 600; margin-top: 2px; }
-    .info-card .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
-    .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; }
+    .info-card .value { font-size: 14px; font-weight: 600; margin-top: 3px; }
+    .info-card .sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+    .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
     .dot.ok { background: var(--ok); }
-    .dot.err { background: var(--err); }
     .hint { font-size: 10px; color: #64748b; margin-top: 10px; line-height: 1.4; }
     .hidden { display: none !important; }
   </style>
@@ -76,14 +73,14 @@
 <body>
   <div class="header">
     <div class="brand">AgrosJet · Adisyo Köprüsü</div>
-    <div class="badge" id="versionBadge">v1.1</div>
+    <div class="badge" id="versionBadge">v1.2</div>
   </div>
 
   <!-- LOGIN VIEW -->
   <div id="loginView">
     <div class="field">
-      <label>Kullanıcı Adı</label>
-      <input id="username" placeholder="admin" autocomplete="username" />
+      <label>Restoran Kullanıcı Adı</label>
+      <input id="username" placeholder="restoran kullanıcı adı" autocomplete="username" />
     </div>
     <div class="field">
       <label>Şifre</label>
@@ -91,37 +88,28 @@
     </div>
     <button id="loginBtn">Giriş Yap</button>
     <div class="hint">
-      AgrosJet hesabınızla giriş yapın. Token 30 gün boyunca geçerli kalır.
+      AgrosJet restoran panel hesabınızla giriş yapın. 30 gün boyunca tekrar girmenize gerek kalmaz.
     </div>
   </div>
 
-  <!-- CONFIG VIEW -->
-  <div id="configView" class="hidden">
+  <!-- ACTIVE VIEW -->
+  <div id="activeView" class="hidden">
     <div class="info-card">
-      <div class="label">Giriş Yapan</div>
-      <div class="value" id="userNameVal">—</div>
+      <div class="label"><span class="dot ok"></span>Bağlantı Aktif</div>
+      <div class="value" id="restaurantNameVal">—</div>
       <div class="sub" id="companyNameVal">—</div>
     </div>
 
-    <div class="field" id="companyField">
-      <label>Şirket</label>
-      <select id="companySelect"></select>
+    <div class="info-card">
+      <div class="label">Giriş Yapan</div>
+      <div class="value" id="userNameVal" style="font-size:13px">—</div>
     </div>
 
-    <div class="field">
-      <label>Restoran</label>
-      <select id="restaurantSelect">
-        <option value="">Yükleniyor…</option>
-      </select>
-    </div>
-
-    <button id="saveBtn">Kaydet & Aktif Et</button>
     <button id="logoutBtn" class="secondary">Çıkış Yap</button>
 
-    <div class="info-card" style="margin-top:12px; display:none" id="activeCard">
-      <div class="label"><span class="dot ok"></span>Aktif</div>
-      <div class="value" id="activeRestVal">—</div>
-      <div class="sub">Adisyo panelinde sipariş listesi açıkken otomatik aktarım çalışır.</div>
+    <div class="hint">
+      Adisyo panelini (app.adisyo.com) açtığınızda yeni siparişler otomatik olarak AgrosJet'e iletilir.
+      İkon üzerinde yeşil sayaç yeni aktarılan sipariş sayısını gösterir.
     </div>
   </div>
 
