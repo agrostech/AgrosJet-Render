@@ -11,7 +11,7 @@
  * Backend URL hardcoded: https://api.agrosjet.com
  */
 
-const DEFAULT_BACKEND = "https://api.agrosjet.com";
+const DEFAULT_BACKEND = "https://api.agrosjet.app";
 
 const SENT_CACHE = new Map();
 const CACHE_TTL_MS = 30 * 1000;
@@ -97,32 +97,37 @@ async function forwardOrders(orders) {
 /* ============== Auth helpers (popup'tan çağrılır) ============== */
 
 async function login({ username, password }) {
-  const backend = DEFAULT_BACKEND;
-  const url = backend.replace(/\/$/, "") + "/api/restaurant-users/login";
-  const resp = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password, remember_me: true }),
-  });
-  const text = await resp.text();
-  let data = null; try { data = JSON.parse(text); } catch {}
-  if (!resp.ok) {
-    return { ok: false, error: (data && data.detail) || ("HTTP " + resp.status) };
+  try {
+    const backend = DEFAULT_BACKEND;
+    const url = backend.replace(/\/$/, "") + "/api/restaurant-users/login";
+    const resp = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password, remember_me: true }),
+    });
+    const text = await resp.text();
+    let data = null; try { data = JSON.parse(text); } catch {}
+    if (!resp.ok) {
+      return { ok: false, error: (data && data.detail) || ("HTTP " + resp.status) };
+    }
+    // Token + restoran bilgisi kaydet — restoran kullanıcı tek restorana bağlı, dropdown'a gerek yok
+    await new Promise((res) => {
+      chrome.storage.sync.set({
+        backend_url: backend,
+        token: data.token,
+        user_name: data.name,
+        role: data.role,
+        restaurant_id: data.restaurant_id,
+        restaurant_name: data.restaurant_name,
+        company_id: data.company_id,
+        company_name: data.company_name || "",
+      }, res);
+    });
+    return { ok: true, user: data };
+  } catch (e) {
+    console.error("[AgrosJet bridge] login error", e);
+    return { ok: false, error: "Bağlantı hatası: " + (e && e.message ? e.message : String(e)) };
   }
-  // Token + restoran bilgisi kaydet — restoran kullanıcı tek restorana bağlı, dropdown'a gerek yok
-  await new Promise((res) => {
-    chrome.storage.sync.set({
-      backend_url: backend,
-      token: data.token,
-      user_name: data.name,
-      role: data.role,
-      restaurant_id: data.restaurant_id,
-      restaurant_name: data.restaurant_name,
-      company_id: data.company_id,
-      company_name: data.company_name || "",
-    }, res);
-  });
-  return { ok: true, user: data };
 }
 
 async function saveRestaurant({ restaurant_id, restaurant_name, company_id, company_name }) {
@@ -162,16 +167,16 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (!msg || !msg.type) return false;
   switch (msg.type) {
     case "ADISYO_ORDERS":
-      forwardOrders(msg.orders).then((r) => sendResponse(r || {}));
+      forwardOrders(msg.orders).then((r) => sendResponse(r || {})).catch((e) => sendResponse({ error: String(e) }));
       return true;
     case "LOGIN":
-      login(msg).then(sendResponse);
+      login(msg).then(sendResponse).catch((e) => sendResponse({ ok: false, error: String(e) }));
       return true;
     case "GET_STATE":
-      getState().then(sendResponse);
+      getState().then(sendResponse).catch((e) => sendResponse({ error: String(e) }));
       return true;
     case "LOGOUT":
-      logout().then(sendResponse);
+      logout().then(sendResponse).catch((e) => sendResponse({ ok: false, error: String(e) }));
       return true;
   }
   return false;

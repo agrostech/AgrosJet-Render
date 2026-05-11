@@ -5,7 +5,7 @@ Adisyo'nun entegrasyon vermediği restoranlar için Chrome eklentisi.
 
 ## 🚀 Kurulum (30 saniye)
 
-1. **İndir**: https://api.agrosjet.com/api/adisyo-scrape/extension/download
+1. **İndir**: https://api.agrosjet.app/api/adisyo-scrape/extension/download
 2. **Zip'i çıkart**: `agrosjet-adisyo-bridge` klasörü oluşur.
 3. Chrome → `chrome://extensions` → **Geliştirici modu**'nu aç.
 4. **Paketlenmemiş öğe yükle** → çıkardığın klasörü seç.
@@ -28,7 +28,7 @@ Adisyo'nun entegrasyon vermediği restoranlar için Chrome eklentisi.
 
 ## 🔌 Çalışma Prensibi
 
-- Backend URL **hardcoded**: `https://api.agrosjet.com`
+- Backend URL **hardcoded**: `https://api.agrosjet.app`
 - Eklenti `app.adisyo.com` panelinde `GetOrdersForList` XHR/fetch çağrılarını intercept eder.
 - Her sipariş `adisyo_order_id` üzerinden idempotent upsert — duplicate olmaz.
 - Mevcut Adisyo webhook entegrasyonundan **tamamen bağımsız** çalışır.
