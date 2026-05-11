@@ -4,105 +4,128 @@
   <meta charset="utf-8" />
   <title>AgrosJet Adisyo Köprüsü</title>
   <style>
+    :root {
+      --bg: #0b1224;
+      --panel: #131e36;
+      --line: #1f2c4a;
+      --muted: #94a3b8;
+      --text: #e2e8f0;
+      --primary: #38bdf8;
+      --primary-fg: #0b1224;
+      --ok: #22c55e;
+      --err: #ef4444;
+    }
+    * { box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       width: 340px;
       margin: 0;
       padding: 16px;
-      background: #0f172a;
-      color: #e2e8f0;
+      background: var(--bg);
+      color: var(--text);
     }
-    h1 {
-      font-size: 14px;
-      margin: 0 0 12px 0;
-      color: #38bdf8;
-      letter-spacing: 0.5px;
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px;
     }
+    .brand { font-size: 13px; font-weight: 600; color: var(--primary); letter-spacing: 0.4px; }
+    .badge { font-size: 10px; color: var(--muted); background: var(--panel); border-radius: 4px; padding: 2px 6px; }
     .field { margin-bottom: 10px; }
     label {
-      display: block;
-      font-size: 11px;
-      color: #94a3b8;
-      margin-bottom: 4px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      display: block; font-size: 10px; color: var(--muted);
+      margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;
     }
-    input {
-      width: 100%;
-      box-sizing: border-box;
-      background: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 6px;
-      padding: 8px 10px;
-      color: #e2e8f0;
-      font-size: 12px;
-      outline: none;
+    input, select {
+      width: 100%; background: var(--panel); color: var(--text);
+      border: 1px solid var(--line); border-radius: 6px;
+      padding: 8px 10px; font-size: 12px; outline: none;
     }
-    input:focus { border-color: #38bdf8; }
+    input:focus, select:focus { border-color: var(--primary); }
     button {
-      width: 100%;
-      padding: 10px;
-      background: #38bdf8;
-      color: #0f172a;
-      border: none;
-      border-radius: 6px;
-      font-weight: 600;
-      cursor: pointer;
-      font-size: 12px;
-      margin-top: 4px;
+      width: 100%; padding: 10px; background: var(--primary); color: var(--primary-fg);
+      border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 12px;
     }
     button.secondary {
-      background: #334155;
-      color: #e2e8f0;
+      background: transparent; color: var(--muted);
+      border: 1px solid var(--line); margin-top: 6px; font-weight: 500;
     }
-    button:hover { opacity: 0.9; }
+    button:hover { opacity: 0.92; }
     .status {
-      margin-top: 12px;
-      padding: 8px 10px;
-      background: #1e293b;
-      border-radius: 6px;
-      font-size: 11px;
-      color: #94a3b8;
-      min-height: 14px;
-      word-break: break-all;
+      margin-top: 10px; padding: 8px 10px; background: var(--panel);
+      border-radius: 6px; font-size: 11px; color: var(--muted);
+      min-height: 14px; word-break: break-word;
     }
-    .ok { color: #22c55e; }
-    .err { color: #ef4444; }
-    .hint {
-      font-size: 10px;
-      color: #64748b;
-      margin-top: 8px;
-      line-height: 1.4;
+    .ok { color: var(--ok); }
+    .err { color: var(--err); }
+    .row { display: flex; gap: 8px; }
+    .row > * { flex: 1; }
+    .info-card {
+      background: var(--panel); border: 1px solid var(--line);
+      border-radius: 8px; padding: 10px 12px; margin-bottom: 12px;
     }
+    .info-card .label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; }
+    .info-card .value { font-size: 13px; font-weight: 600; margin-top: 2px; }
+    .info-card .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; }
+    .dot.ok { background: var(--ok); }
+    .dot.err { background: var(--err); }
+    .hint { font-size: 10px; color: #64748b; margin-top: 10px; line-height: 1.4; }
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
-  <h1>AgrosJet · Adisyo Köprüsü</h1>
-
-  <div class="field">
-    <label>Backend URL</label>
-    <input id="backend_url" placeholder="https://logo-deployment-test-1.preview.emergentagent.com" />
+  <div class="header">
+    <div class="brand">AgrosJet · Adisyo Köprüsü</div>
+    <div class="badge" id="versionBadge">v1.1</div>
   </div>
 
-  <div class="field">
-    <label>Restaurant ID (AgrosJet UUID)</label>
-    <input id="restaurant_id" placeholder="7b14b5ec-2ef3-4f69-9197-53b09264589e" />
+  <!-- LOGIN VIEW -->
+  <div id="loginView">
+    <div class="field">
+      <label>Kullanıcı Adı</label>
+      <input id="username" placeholder="admin" autocomplete="username" />
+    </div>
+    <div class="field">
+      <label>Şifre</label>
+      <input id="password" type="password" placeholder="••••••" autocomplete="current-password" />
+    </div>
+    <button id="loginBtn">Giriş Yap</button>
+    <div class="hint">
+      AgrosJet hesabınızla giriş yapın. Token 30 gün boyunca geçerli kalır.
+    </div>
   </div>
 
-  <div class="field">
-    <label>Bearer Token</label>
-    <input id="token" placeholder="eyJ..." />
+  <!-- CONFIG VIEW -->
+  <div id="configView" class="hidden">
+    <div class="info-card">
+      <div class="label">Giriş Yapan</div>
+      <div class="value" id="userNameVal">—</div>
+      <div class="sub" id="companyNameVal">—</div>
+    </div>
+
+    <div class="field" id="companyField">
+      <label>Şirket</label>
+      <select id="companySelect"></select>
+    </div>
+
+    <div class="field">
+      <label>Restoran</label>
+      <select id="restaurantSelect">
+        <option value="">Yükleniyor…</option>
+      </select>
+    </div>
+
+    <button id="saveBtn">Kaydet & Aktif Et</button>
+    <button id="logoutBtn" class="secondary">Çıkış Yap</button>
+
+    <div class="info-card" style="margin-top:12px; display:none" id="activeCard">
+      <div class="label"><span class="dot ok"></span>Aktif</div>
+      <div class="value" id="activeRestVal">—</div>
+      <div class="sub">Adisyo panelinde sipariş listesi açıkken otomatik aktarım çalışır.</div>
+    </div>
   </div>
 
-  <button id="save">Kaydet</button>
-  <button id="test" class="secondary" style="margin-top:6px">Bağlantıyı Test Et</button>
-
-  <div id="status" class="status">Hazır</div>
-
-  <div class="hint">
-    Adisyo panelini (app.adisyo.com) açın; eklenti otomatik olarak siparişleri arka planda
-    AgrosJet'e iletecektir. Yeni sipariş geldiğinde ikon üzerinde sayaç görünür.
-  </div>
+  <div id="status" class="status">Yükleniyor…</div>
 
   <script src="popup.js"></script>
 </body>

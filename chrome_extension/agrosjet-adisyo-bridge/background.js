@@ -1,18 +1,19 @@
 /**
- * background.js (service worker)
+ * background.js (service worker) — v1.1
  *
- * Görev: bridge.js'ten gelen Adisyo orderlarını AgrosJet backend'ine forward eder.
+ * Yeni akış:
+ *  1) Kullanıcı popup'a giriş yapar (username + password). Eklenti
+ *     /api/auth/admin/login çağırır, remember_me=true ile 30 günlük token alır.
+ *  2) Token + accessible_companies + restaurants storage'a kaydedilir.
+ *  3) Kullanıcı popup'tan tek tıkla şirket + restoran seçer.
+ *  4) Adisyo panelindeki siparişler otomatik backend'e iletilir.
  *
- * chrome.storage.sync üzerinde tutulan ayarlar:
- *   - backend_url  (ör. https://logo-deployment-test-1.preview.emergentagent.com)
- *   - token        (Bearer token, admin veya restoran giriş tokenı)
- *   - restaurant_id (AgrosJet UUID)
- *
- * Throttle: aynı sipariş ID'leri 30 sn içinde tekrar yollanırsa atlanır
- * (idempotency zaten backend'de var, ek savunma).
+ * Backend URL hardcoded: https://api.agrosjet.com
  */
 
-const SENT_CACHE = new Map(); // adisyo_order_id -> last_sent_ts
+const DEFAULT_BACKEND = "https://api.agrosjet.com";
+
+const SENT_CACHE = new Map();
 const CACHE_TTL_MS = 30 * 1000;
 
 function cleanupCache() {
@@ -24,16 +25,23 @@ function cleanupCache() {
 
 async function getConfig() {
   return new Promise((resolve) => {
-    chrome.storage.sync.get(["backend_url", "token", "restaurant_id"], (cfg) => resolve(cfg || {}));
+    chrome.storage.sync.get(["backend_url", "token", "restaurant_id", "user_name", "company_name"], (cfg) => {
+      cfg.backend_url = cfg.backend_url || DEFAULT_BACKEND;
+      resolve(cfg || {});
+    });
   });
+}
+
+function setBadge(text, color) {
+  try {
+    chrome.action.setBadgeBackgroundColor({ color: color || "#059669" });
+    chrome.action.setBadgeText({ text: String(text || "") });
+  } catch (e) { /* ignore */ }
 }
 
 async function forwardOrders(orders) {
   const cfg = await getConfig();
-  if (!cfg.backend_url || !cfg.token || !cfg.restaurant_id) {
-    console.warn("[AgrosJet bridge] config eksik:", {
-      hasBackend: !!cfg.backend_url, hasToken: !!cfg.token, hasRestaurant: !!cfg.restaurant_id,
-    });
+  if (!cfg.token || !cfg.restaurant_id) {
     return { skipped: "no_config" };
   }
 
@@ -49,7 +57,6 @@ async function forwardOrders(orders) {
   if (!filtered.length) return { skipped: "throttled" };
 
   const url = cfg.backend_url.replace(/\/$/, "") + "/api/adisyo-scrape/orders";
-
   try {
     const resp = await fetch(url, {
       method: "POST",
@@ -57,10 +64,7 @@ async function forwardOrders(orders) {
         "Content-Type": "application/json",
         "Authorization": "Bearer " + cfg.token,
       },
-      body: JSON.stringify({
-        restaurant_id: cfg.restaurant_id,
-        orders: filtered,
-      }),
+      body: JSON.stringify({ restaurant_id: cfg.restaurant_id, orders: filtered }),
     });
     const text = await resp.text();
     let data = null; try { data = JSON.parse(text); } catch {}
@@ -68,57 +72,137 @@ async function forwardOrders(orders) {
 
     if (resp.ok) {
       filtered.forEach((o) => SENT_CACHE.set(o.id, now));
-      updateBadge(data || {});
+      const c = (data && data.created) || 0;
+      const u = (data && data.updated) || 0;
+      const total = c + u;
+      if (total > 0) {
+        setBadge(String(total), "#059669");
+        setTimeout(() => setBadge(""), 5000);
+      }
+    } else if (resp.status === 401) {
+      // Token süresi dolmuş
+      setBadge("!", "#dc2626");
+      chrome.storage.sync.remove(["token"]);
     } else {
-      // auth hatasında badge'i yandan göster
-      chrome.action.setBadgeBackgroundColor({ color: "#dc2626" });
-      chrome.action.setBadgeText({ text: "!" });
+      setBadge("!", "#dc2626");
     }
     return data;
   } catch (e) {
     console.error("[AgrosJet bridge] fetch error", e);
-    chrome.action.setBadgeBackgroundColor({ color: "#dc2626" });
-    chrome.action.setBadgeText({ text: "!" });
+    setBadge("!", "#dc2626");
     return { error: String(e) };
   }
 }
 
-function updateBadge(summary) {
-  const c = summary.created || 0;
-  const u = summary.updated || 0;
-  const total = c + u;
-  if (total > 0) {
-    chrome.action.setBadgeBackgroundColor({ color: "#059669" });
-    chrome.action.setBadgeText({ text: String(total) });
-    setTimeout(() => chrome.action.setBadgeText({ text: "" }), 5000);
+/* ============== Auth helpers (popup'tan çağrılır) ============== */
+
+async function login({ username, password }) {
+  const backend = DEFAULT_BACKEND;
+  const url = backend.replace(/\/$/, "") + "/api/auth/admin/login";
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password, remember_me: true }),
+  });
+  const text = await resp.text();
+  let data = null; try { data = JSON.parse(text); } catch {}
+  if (!resp.ok) {
+    return { ok: false, error: (data && data.detail) || ("HTTP " + resp.status) };
+  }
+  // Token + kullanıcı info kaydet
+  await new Promise((res) => {
+    chrome.storage.sync.set({
+      backend_url: backend,
+      token: data.token,
+      user_name: data.name,
+      role: data.role,
+      company_id: data.company_id,
+      company_name: (data.company && data.company.name) || "",
+      accessible_companies: data.accessible_companies || [],
+    }, res);
+  });
+  return { ok: true, user: data };
+}
+
+async function listRestaurants(companyId) {
+  const cfg = await getConfig();
+  if (!cfg.token) return { ok: false, error: "not_logged_in" };
+  const url = cfg.backend_url.replace(/\/$/, "") + "/api/restaurants/" + companyId;
+  try {
+    const resp = await fetch(url, { headers: { "Authorization": "Bearer " + cfg.token } });
+    const text = await resp.text();
+    let data = null; try { data = JSON.parse(text); } catch {}
+    if (!resp.ok) return { ok: false, error: (data && data.detail) || ("HTTP " + resp.status) };
+    const list = (Array.isArray(data) ? data : []).map((r) => ({ id: r.id, name: r.name }));
+    return { ok: true, restaurants: list };
+  } catch (e) {
+    return { ok: false, error: String(e) };
   }
 }
 
+async function saveRestaurant({ restaurant_id, restaurant_name, company_id, company_name }) {
+  await new Promise((res) => {
+    chrome.storage.sync.set({ restaurant_id, restaurant_name, company_id, company_name }, res);
+  });
+  return { ok: true };
+}
+
+async function getState() {
+  const cfg = await getConfig();
+  return {
+    logged_in: !!cfg.token,
+    user_name: cfg.user_name || "",
+    company_id: cfg.company_id || "",
+    company_name: cfg.company_name || "",
+    restaurant_id: cfg.restaurant_id || "",
+    restaurant_name: cfg.restaurant_name || "",
+    backend_url: cfg.backend_url,
+    accessible_companies: cfg.accessible_companies || [],
+  };
+}
+
+async function logout() {
+  await new Promise((res) => {
+    chrome.storage.sync.remove(
+      ["token", "user_name", "role", "company_id", "company_name", "restaurant_id", "restaurant_name", "accessible_companies"],
+      res
+    );
+  });
+  setBadge("");
+  return { ok: true };
+}
+
+/* ============== Message handler ============== */
+
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (msg && msg.type === "ADISYO_ORDERS" && Array.isArray(msg.orders)) {
-    forwardOrders(msg.orders).then((res) => sendResponse(res || {})).catch(() => sendResponse({}));
-    return true; // async response
+  if (!msg || !msg.type) return false;
+  switch (msg.type) {
+    case "ADISYO_ORDERS":
+      forwardOrders(msg.orders).then((r) => sendResponse(r || {}));
+      return true;
+    case "LOGIN":
+      login(msg).then(sendResponse);
+      return true;
+    case "LIST_RESTAURANTS":
+      listRestaurants(msg.company_id).then(sendResponse);
+      return true;
+    case "SAVE_RESTAURANT":
+      saveRestaurant(msg).then(sendResponse);
+      return true;
+    case "GET_STATE":
+      getState().then(sendResponse);
+      return true;
+    case "LOGOUT":
+      logout().then(sendResponse);
+      return true;
   }
-  if (msg && msg.type === "TEST_HEALTH") {
-    (async () => {
-      const cfg = await getConfig();
-      if (!cfg.backend_url || !cfg.token) {
-        sendResponse({ ok: false, error: "config_missing" });
-        return;
-      }
-      try {
-        const url = cfg.backend_url.replace(/\/$/, "") + "/api/adisyo-scrape/health";
-        const r = await fetch(url, { headers: { "Authorization": "Bearer " + cfg.token } });
-        const t = await r.text();
-        sendResponse({ ok: r.ok, status: r.status, body: t.slice(0, 300) });
-      } catch (e) {
-        sendResponse({ ok: false, error: String(e) });
-      }
-    })();
-    return true;
-  }
+  return false;
 });
 
 chrome.runtime.onInstalled.addListener(() => {
-  console.log("[AgrosJet Adisyo Bridge] installed");
+  console.log("[AgrosJet Adisyo Bridge v1.1] installed");
+  // Default backend URL set
+  chrome.storage.sync.get(["backend_url"], (cfg) => {
+    if (!cfg.backend_url) chrome.storage.sync.set({ backend_url: DEFAULT_BACKEND });
+  });
 });

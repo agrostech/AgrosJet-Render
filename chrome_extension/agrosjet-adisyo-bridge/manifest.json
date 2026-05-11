@@ -1,14 +1,15 @@
 {
   "manifest_version": 3,
   "name": "AgrosJet Adisyo Köprüsü",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Adisyo panelindeki siparişleri otomatik olarak AgrosJet'e aktarır.",
   "permissions": ["storage", "activeTab"],
   "host_permissions": [
     "https://app.adisyo.com/*",
     "https://*.adisyo.com/*",
-    "https://*.preview.emergentagent.com/*",
-    "https://*.agrosjet.com/*"
+    "https://api.agrosjet.com/*",
+    "https://*.agrosjet.com/*",
+    "https://*.preview.emergentagent.com/*"
   ],
   "content_scripts": [
     {
