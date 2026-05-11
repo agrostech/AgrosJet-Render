@@ -22,6 +22,7 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime, timezone, timedelta
 import logging
+import os
 import uuid
 
 from utils.database import db
@@ -393,3 +394,21 @@ async def get_restaurant_info(restaurant_id: str, payload: dict = Depends(requir
 async def health(payload: dict = Depends(require_auth)):
     """Eklentinin backend'e erişebildiğini doğrulamak için basit ping"""
     return {"ok": True, "service": "adisyo-scrape", "now": get_turkey_now()}
+
+
+# Public download endpoint (auth GEREK YOK — eklenti zip dosyası)
+public_router = APIRouter(prefix="/api/adisyo-scrape", tags=["Adisyo Scrape (Chrome Ext)"])
+
+
+@public_router.get("/extension/download")
+async def download_extension():
+    """Chrome eklentisinin zip paketini indir (auth gerektirmez)"""
+    from fastapi.responses import FileResponse
+    zip_path = "/app/chrome_extension/agrosjet-adisyo-bridge.zip"
+    if not os.path.exists(zip_path):
+        raise HTTPException(status_code=404, detail="Eklenti paketi bulunamadı")
+    return FileResponse(
+        zip_path,
+        media_type="application/zip",
+        filename="agrosjet-adisyo-bridge.zip",
+    )

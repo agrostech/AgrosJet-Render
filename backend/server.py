@@ -731,6 +731,7 @@ from routers.integration_stores import router as integration_stores_router
 from routers.sepettakip import router as sepettakip_router
 from routers.adisyo_webhook import router as adisyo_webhook_router
 from routers.adisyo_scrape import router as adisyo_scrape_router
+from routers.adisyo_scrape import public_router as adisyo_scrape_public_router
 from routers.migros import router as migros_router
 from routers.getir import router as getir_router
 from routers.courier_status_logs import router as courier_status_logs_router
@@ -804,6 +805,7 @@ app.include_router(integration_stores_router)
 app.include_router(sepettakip_router)
 app.include_router(adisyo_webhook_router)
 app.include_router(adisyo_scrape_router)
+app.include_router(adisyo_scrape_public_router)
 app.include_router(migros_router)
 app.include_router(getir_router)
 app.include_router(courier_status_logs_router)
