@@ -237,6 +237,16 @@ def _convert_scraped_to_shiftjet(adisyo_item: dict, restaurant: dict) -> dict:
     except Exception:
         created_at = get_turkey_now()
 
+    # Hazırlık süresi: restoran default'u (varsa). Scrape'de item bazlı detay yok,
+    # bu yüzden product_preparation_times kullanılamaz — restoran tabanı.
+    prep_time = int(restaurant.get("preparation_time", 15) or 15)
+    try:
+        from datetime import datetime as _dt
+        _start = _dt.fromisoformat(created_at)
+        preparation_end_at = (_start + timedelta(minutes=prep_time)).isoformat()
+    except Exception:
+        preparation_end_at = None
+
     return {
         "id": str(uuid.uuid4()),
         "order_number": f"ADY-{adisyo_item.get('orderNumber', adisyo_item.get('id'))}",
@@ -259,6 +269,8 @@ def _convert_scraped_to_shiftjet(adisyo_item: dict, restaurant: dict) -> dict:
         "payment_method": payment_info["method"],
         "payment_method_detail": payment_info.get("detail"),
         "status": status,
+        "preparation_time": prep_time,
+        "preparation_end_at": preparation_end_at,
         "notes": customer_note,
         "source": "adisyo_scrape",  # mevcut "adisyo" webhook source'undan ayrı
         "created_at": created_at,

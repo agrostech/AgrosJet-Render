@@ -119,6 +119,15 @@ Multi-tenant delivery management platform for restaurants, couriers, and adminis
 - **Field mapping**: `restaurantCustomer.{name,surname,phone,address,note,town}` → ShiftJet customer fields, `paramObject.coordinate` "lat,lng|..." → delivery_location, `paymentTypeName` → payment_method, `externalAppId` (15=Trendyol, 21=YS DeliveryHero, 9=Getir) human-readable.
 - **Chrome Extension** (`/app/chrome_extension/agrosjet-adisyo-bridge/`): Manifest v3, MAIN-world content.js XHR/fetch hook, ISOLATED bridge.js postMessage bridge, background.js service worker config + POST forward, popup.html ayarlar (backend_url + restaurant_id + bearer token).
 - **Test**: 3 pytest PASS (`test_adisyo_scrape.py` — payload convert, idempotency, kurye atanmış ezme koruması).
+- **v1.5 güncellemesi (2026-05-11)**:
+  - Backend: `preparation_time` (restoran default) + `preparation_end_at` (created_at + prep_time) otomatik set ediliyor → frontend countdown çalışır.
+  - Backend: restaurant-users login endpoint'ine `remember_me=true` → 30 günlük token.
+  - Backend: Restoran user rolü için cross-restaurant erişim kontrolü (403).
+  - Extension: Restoran user (admin değil) ile direkt login, dropdown'lar kaldırıldı, sadece 2 alan.
+  - Extension: WebSocket/SignalR hook eklendi + 20 sn periyodik polling → F5'siz otomatik akış.
+  - Extension: Network hataları için try/catch + verbose console logging.
+  - Extension: AgrosJet logosu (16/32/48/128) eklendi.
+  - Extension: `https://api.agrosjet.app` hardcoded.
 
 ## NEW: Kurye Ödeme Talep Sistemi (2026-02)
 - **Otomatik hakediş**: Sipariş "delivered" → courier_fee transaction olarak yazılır (type="earning", idempotent). Cancel/revert çalışıyor.
