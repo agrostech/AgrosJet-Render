@@ -420,6 +420,21 @@ export function CourierDetailModal({
             <div className="flex items-center justify-between mb-2 flex-wrap gap-1">
               <span className="text-xs font-medium text-slate-700">Bugünkü Çalışma</span>
               <div className="flex items-center gap-2 flex-wrap">
+                {todayShifts.length > 0 && (
+                  <span
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"
+                    title="Bugünkü vardiya (ardışık vardiyalar birleştirildi)"
+                    data-testid="courier-today-shifts"
+                  >
+                    <Calendar className="w-3 h-3" />
+                    {mergeConsecutiveShifts(todayShifts).map((s, i) => (
+                      <span key={i}>
+                        {i > 0 && ", "}
+                        {s.start}-{s.end}
+                      </span>
+                    ))}
+                  </span>
+                )}
                 <span
                   className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200"
                   title="Bugünkü iş günü içinde toplam paket (yoldakiler + teslim edilenler dahil, iptaller hariç)"
