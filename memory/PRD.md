@@ -190,3 +190,7 @@ Multi-tenant delivery management platform for restaurants, couriers, and adminis
 - Expo / Firebase (Push Notifications)
 - VatanSMS (SMS - API ayarlari sistem panelinden girilir)
 - Nilvera (e-Fatura - henuz entegre edilmedi, analiz tamamlandi)
+
+## CHANGELOG
+- 2026-02: JetCüzdan earning açıklaması güncellendi: `İşletme Adı - Müşteri Adı siparişi hakediş` formatı (`services/courier_earning_service.py`). Müşteri adı boşsa `İşletme Adı siparişi hakediş` olarak kaydedilir. Test: `tests/test_courier_earning_description.py`.
+

@@ -55,6 +55,12 @@ async def credit_courier_earning(order: dict) -> dict | None:
     # Sipariş bilgileri (description için)
     order_number = order.get("order_number") or order_id[:8]
     restaurant_name = order.get("restaurant_name") or "Restoran"
+    customer_name = (order.get("customer_name") or "").strip()
+    
+    if customer_name:
+        description = f"{restaurant_name} - {customer_name} siparişi hakediş"
+    else:
+        description = f"{restaurant_name} siparişi hakediş"
     
     transaction = {
         "id": str(uuid.uuid4()),
@@ -63,7 +69,8 @@ async def credit_courier_earning(order: dict) -> dict | None:
         "company_id": company_id,
         "type": "earning",  # Otomatik hakediş tipi (balance hesabında payment_in gibi davranır)
         "amount": float(courier_fee),
-        "description": restaurant_name,
+        "description": description,
+        "customer_name": customer_name,
         "is_hakedis": False,
         "auto_generated": True,
         "order_id": order_id,
