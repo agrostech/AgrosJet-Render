@@ -1105,7 +1105,22 @@ async def get_courier_pricing_profiles(courier_id: str):
     )
     if not courier:
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
-    return {"profiles": get_all_profiles(courier)}
+    profiles = get_all_profiles(courier)
+    profile_1_type = courier.get("pricing_type")
+    is_tiered_lock = (profile_1_type == "tiered")
+    # allowed_types: P2-P5 için kabul edilen pricing_type'lar
+    if is_tiered_lock:
+        allowed_types = ["tiered"]
+    elif profile_1_type in ("per_package", "per_km"):
+        allowed_types = ["per_package", "per_km"]
+    else:
+        # Profil 1 hourly veya null → diğer profilleri serbest bırak
+        allowed_types = ["per_package", "per_km", "tiered", "hourly"]
+    return {
+        "profiles": profiles,
+        "profile_1_type": profile_1_type,
+        "allowed_types_for_other_profiles": allowed_types,
+    }
 
 
 @router.put("/couriers/{courier_id}/pricing-profiles/{profile_no}")
@@ -1122,9 +1137,43 @@ async def update_courier_pricing_profile(
     if profile_no < 1 or profile_no > 5:
         raise HTTPException(status_code=400, detail="Profil numarası 1-5 arasında olmalı")
 
-    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "id": 1})
+    courier = await db.couriers.find_one(
+        {"id": courier_id},
+        {"_id": 0, "id": 1, "pricing_type": 1, "pricing_profiles": 1}
+    )
     if not courier:
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+
+    # Tip uyumluluğu kontrolü
+    # Kural: Profil 1 'tiered' ise → tüm profiller 'tiered' olmalı
+    #        Profil 1 'tiered' DEĞİL ise → P2-P5 'tiered' olamaz
+    def _is_tiered(t):
+        return t == "tiered"
+
+    if profile_no == 1:
+        # Profil 1 değişiyor — mevcut P2-P5 uyumlu mu?
+        profiles = courier.get("pricing_profiles") or {}
+        if isinstance(profiles, dict):
+            for key, cfg in profiles.items():
+                if not cfg:
+                    continue
+                other_type = (cfg or {}).get("pricing_type")
+                if not other_type:
+                    continue
+                if _is_tiered(data.pricing_type) != _is_tiered(other_type):
+                    raise HTTPException(
+                        status_code=409,
+                        detail=f"Profil {key} '{other_type}' tipinde. Yeni Profil 1 tipi ('{data.pricing_type}') ile uyumsuz. Önce Profil {key}'i temizleyin veya uyumlu tipte güncelleyin."
+                    )
+    else:
+        # P2-P5 set ediliyor — Profil 1'in tipiyle uyumlu olmalı
+        profile_1_type = courier.get("pricing_type")
+        if profile_1_type:
+            if _is_tiered(profile_1_type) != _is_tiered(data.pricing_type):
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Profil 1 '{profile_1_type}' tipinde. Profil {profile_no} de aynı kategoride olmalı (kademeli ise kademeli, değilse kademeli olamaz)."
+                )
 
     if profile_no == 1:
         # Mevcut endpoint ile aynı davranış

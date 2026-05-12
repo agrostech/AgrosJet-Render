@@ -126,7 +126,8 @@ Multi-tenant delivery management platform for restaurants, couriers, and adminis
   - `KuryelerPage.jsx`: Ücretlendirme modal'ında 5 sekme (P1 Std, P2, P3, P4, P5). Tab değişince form alanları o profilden hidrate olur, mevcut form cache'lenir.
   - `RestoranlarPage.jsx`: Ücretlendirme modal'ın en üstüne mavi "Kurye Ödeme Profili" kartı + dropdown eklendi.
 - **tiered_pricing_service**: Kademeli kaydırma artık her sipariş için kendi restoranının profilini okur (multi-profil-aware).
-- **Test**: 5 pytest + 10 HTTP integration test PASS (test_courier_pricing_profile.py + test_courier_pricing_profile_http.py).
+- **Test**: 5 pytest unit + 10 HTTP integration test + 9 senaryolu tip kilitleme testi PASS (test_courier_pricing_profile.py + test_courier_pricing_profile_http.py + test_courier_pricing_type_lock.py).
+- **Tip kilitleme (2026-05-12 sonradan eklendi)**: Profil 1 `tiered` ise tüm profillerin `tiered` olması ZORUNLU; Profil 1 `tiered` DEĞİL ise P2-P5 `tiered` OLAMAZ. Backend 400/409 hatası, frontend RadioGroup disabled+uyarı banner.
 - **Risk yönetimi**: Mevcut sipariş akışı için Profil 1 her zaman default — `courier_pricing_profile` field'ı olmayan eski restoranlar otomatik Profil 1 kullanır → 0 regression.
 
 ## NEW: Adisyo Chrome Extension Köprüsü (2026-05-10, AYRI ENTEGRASYON)

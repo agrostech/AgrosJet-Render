@@ -74,6 +74,7 @@ export default function KuryelerPage({ companyId }) {
   // 5 profil için aktif tab + cache
   const [activeProfile, setActiveProfile] = useState(1);
   const [allProfiles, setAllProfiles] = useState({});
+  const [allowedTypes, setAllowedTypes] = useState(["per_package", "per_km", "tiered", "hourly"]);
   
   // Payment Methods Modal State
   const [showPaymentMethodsModal, setShowPaymentMethodsModal] = useState(false);
@@ -254,9 +255,11 @@ export default function KuryelerPage({ companyId }) {
       const res = await axios.get(`${API}/couriers/${courier.id}/pricing-profiles`);
       const profiles = res.data.profiles || {};
       setAllProfiles(profiles);
+      setAllowedTypes(res.data.allowed_types_for_other_profiles || ["per_package", "per_km", "tiered", "hourly"]);
       loadProfileToForm(profiles["1"]);
     } catch (err) {
       setAllProfiles({});
+      setAllowedTypes(["per_package", "per_km", "tiered", "hourly"]);
       loadProfileToForm(null);
     }
     setShowPricingModal(true);
@@ -769,21 +772,26 @@ export default function KuryelerPage({ companyId }) {
           </div>
 
           <div className="space-y-4 py-4">
+            {activeProfile !== 1 && allowedTypes.length < 4 && (
+              <div className="text-[11px] p-2 rounded bg-amber-50 border border-amber-200 text-amber-800">
+                Profil 1 <b>{allowedTypes.includes("tiered") ? "kademeli" : "kademeli olmayan"}</b> tip kullandığı için bu profilde sadece uyumlu seçenekler aktiftir.
+              </div>
+            )}
             <RadioGroup value={pricingType} onValueChange={setPricingType}>
-              <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-slate-50 cursor-pointer">
-                <RadioGroupItem value="per_package" id="courier_per_package" />
+              <div className={`flex items-center space-x-2 p-3 border rounded-lg cursor-pointer ${activeProfile !== 1 && !allowedTypes.includes("per_package") ? "opacity-40 pointer-events-none" : "hover:bg-slate-50"}`}>
+                <RadioGroupItem value="per_package" id="courier_per_package" disabled={activeProfile !== 1 && !allowedTypes.includes("per_package")} />
                 <Label htmlFor="courier_per_package" className="cursor-pointer flex-1">
                   Paket Başı
                 </Label>
               </div>
-              <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-slate-50 cursor-pointer">
-                <RadioGroupItem value="per_km" id="courier_per_km" />
+              <div className={`flex items-center space-x-2 p-3 border rounded-lg cursor-pointer ${activeProfile !== 1 && !allowedTypes.includes("per_km") ? "opacity-40 pointer-events-none" : "hover:bg-slate-50"}`}>
+                <RadioGroupItem value="per_km" id="courier_per_km" disabled={activeProfile !== 1 && !allowedTypes.includes("per_km")} />
                 <Label htmlFor="courier_per_km" className="cursor-pointer flex-1">
                   KM Aralığı
                 </Label>
               </div>
-              <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-orange-50 cursor-pointer border-orange-200">
-                <RadioGroupItem value="tiered" id="courier_tiered" />
+              <div className={`flex items-center space-x-2 p-3 border rounded-lg cursor-pointer border-orange-200 ${activeProfile !== 1 && !allowedTypes.includes("tiered") ? "opacity-40 pointer-events-none" : "hover:bg-orange-50"}`}>
+                <RadioGroupItem value="tiered" id="courier_tiered" disabled={activeProfile !== 1 && !allowedTypes.includes("tiered")} />
                 <Label htmlFor="courier_tiered" className="cursor-pointer flex-1">
                   Kademeli Paket Başı
                 </Label>
