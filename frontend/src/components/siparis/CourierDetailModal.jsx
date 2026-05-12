@@ -327,7 +327,7 @@ export function CourierDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-[420px] sm:max-w-[550px] lg:max-w-[650px] p-4 sm:p-6 overflow-hidden">
+      <DialogContent className="w-[95vw] max-w-[420px] sm:max-w-[550px] lg:max-w-[650px] p-4 sm:p-6 max-h-[90vh] overflow-y-auto overflow-x-hidden">
         <DialogHeader className="pb-1 sm:pb-2 pr-8">
           <DialogTitle className="text-base sm:text-lg flex items-center gap-2">
             <Bike className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
@@ -434,7 +434,7 @@ export function CourierDetailModal({
             <div className="text-xs text-muted-foreground mb-1 px-1">
               Siparişler ({courierOrders.length})
             </div>
-            <div className="space-y-1 max-h-[310px] overflow-y-auto overflow-x-hidden w-full">
+            <div className="space-y-1 sm:max-h-[310px] sm:overflow-y-auto overflow-x-hidden w-full">
               {courierOrders.length === 0 ? (
                 <div className="text-center py-3 text-muted-foreground text-xs">
                   Aktif sipariş yok
