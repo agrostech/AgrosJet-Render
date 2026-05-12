@@ -92,6 +92,85 @@ async def get_courier_by_id(courier_id: str):
     return courier
 
 
+@router.get("/couriers/{courier_id}/today-package-count")
+async def get_courier_today_package_count(courier_id: str, company_id: Optional[str] = None):
+    """
+    Şirketin mevcut iş gününde (bugün açılış → yarın kapanış)
+    kuryenin toplam paket sayısı.
+    İptaller hariç (yoldakiler + teslim edilenler + diğer aktif durumlar dahil).
+    """
+    from datetime import datetime, timedelta, timezone
+    
+    # company_id verilmediyse kuryeden çöz
+    if not company_id:
+        courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "company_id": 1})
+        if courier and courier.get("company_id"):
+            company_id = courier["company_id"]
+        else:
+            rel = await db.company_couriers.find_one(
+                {"courier_id": courier_id, "status": {"$in": ["approved", "active"]}, "is_active": {"$ne": False}},
+                {"_id": 0, "company_id": 1}
+            )
+            if rel:
+                company_id = rel["company_id"]
+    
+    if not company_id:
+        return {"count": 0, "business_date": None, "start": None, "end": None}
+    
+    # Şirket çalışma saatleri
+    company = await db.companies.find_one(
+        {"id": company_id}, {"_id": 0, "opening_time": 1, "closing_time": 1}
+    )
+    opening_time = (company or {}).get("opening_time", "06:00")
+    closing_time = (company or {}).get("closing_time", "06:00")
+    
+    open_h, open_m = (int(x) for x in opening_time.split(":"))
+    close_h, close_m = (int(x) for x in closing_time.split(":"))
+    
+    turkey_tz = timezone(timedelta(hours=3))
+    now = datetime.now(turkey_tz)
+    
+    # Bugünün açılış saati
+    opening_today = now.replace(hour=open_h, minute=open_m, second=0, microsecond=0)
+    
+    # Şu an bugünün açılışından önce mi? → İş günü dün
+    if now < opening_today:
+        business_date = (now - timedelta(days=1)).date()
+    else:
+        business_date = now.date()
+    
+    base_dt = datetime(business_date.year, business_date.month, business_date.day, tzinfo=turkey_tz)
+    start_dt = base_dt.replace(hour=open_h, minute=open_m)
+    end_dt = (base_dt + timedelta(days=1)).replace(hour=close_h, minute=close_m)
+    
+    # Sayım: iptaller hariç, kuryenin atandığı tüm paketler (yoldakiler + teslim edilenler dahil)
+    # assigned_at iş günü içinde olmalı (assigned_at yoksa created_at fallback)
+    iso_start = start_dt.isoformat()
+    iso_end = end_dt.isoformat()
+    
+    count = await db.orders.count_documents({
+        "company_id": company_id,
+        "courier_id": courier_id,
+        "status": {"$ne": "cancelled"},
+        "$or": [
+            {"assigned_at": {"$gte": iso_start, "$lt": iso_end}},
+            {"$and": [
+                {"assigned_at": {"$in": [None, ""]}},
+                {"created_at": {"$gte": iso_start, "$lt": iso_end}}
+            ]}
+        ]
+    })
+    
+    return {
+        "count": count,
+        "business_date": business_date.strftime("%Y-%m-%d"),
+        "start": iso_start,
+        "end": iso_end,
+        "opening_time": opening_time,
+        "closing_time": closing_time
+    }
+
+
 @router.get("/couriers/{courier_id}/companies")
 async def get_courier_companies(courier_id: str):
     """Kuryenin bağlı olduğu şirketleri döndür"""

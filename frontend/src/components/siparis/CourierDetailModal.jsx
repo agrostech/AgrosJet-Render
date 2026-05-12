@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Bike, Clock, Calendar, Battery, BatteryLow, BatteryMedium, BatteryFull, BatteryCharging, Zap } from "lucide-react";
+import { Bike, Clock, Calendar, Battery, BatteryLow, BatteryMedium, BatteryFull, BatteryCharging, Zap, Package } from "lucide-react";
 import { 
   ORDER_STATUSES, 
   getLocationTimeAgo, 
@@ -91,6 +91,7 @@ export function CourierDetailModal({
   const [todayShifts, setTodayShifts] = useState([]);
   const [workLogs, setWorkLogs] = useState({ logs: [], total_active_hours: 0 });
   const [courier, setCourier] = useState(initialCourier);
+  const [todayPackageCount, setTodayPackageCount] = useState(null);
   
   // Initial courier değiştiğinde state'i güncelle
   useEffect(() => {
@@ -147,6 +148,25 @@ export function CourierDetailModal({
     
     fetchWorkLogs();
   }, [open, courier?.id]);
+
+  // Bugünkü toplam paket sayısı (şirket iş günü: bugün açılış → yarın kapanış, iptaller hariç)
+  useEffect(() => {
+    if (!open || !courier?.id) return;
+    
+    const fetchPackageCount = async () => {
+      try {
+        const params = company?.id ? `?company_id=${company.id}` : "";
+        const res = await axios.get(`${API}/couriers/${courier.id}/today-package-count${params}`);
+        setTodayPackageCount(res.data?.count ?? 0);
+      } catch (err) {
+        setTodayPackageCount(null);
+      }
+    };
+    
+    fetchPackageCount();
+    const intervalId = setInterval(fetchPackageCount, 30000);
+    return () => clearInterval(intervalId);
+  }, [open, courier?.id, company?.id]);
 
   // Bugünkü vardiyaları al
   useEffect(() => {
@@ -397,11 +417,21 @@ export function CourierDetailModal({
           
           {/* Bugünkü Çalışma Özeti */}
           <div className="px-2 py-2 bg-slate-50 rounded border border-slate-200">
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-2 flex-wrap gap-1">
               <span className="text-xs font-medium text-slate-700">Bugünkü Çalışma</span>
-              <span className="text-xs font-semibold text-slate-800">
-                {workLogs.total_active_hours?.toFixed(2) || '0.00'} saat aktif
-              </span>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200"
+                  title="Bugünkü iş günü içinde toplam paket (yoldakiler + teslim edilenler dahil, iptaller hariç)"
+                  data-testid="courier-today-package-count"
+                >
+                  <Package className="w-3 h-3" />
+                  {todayPackageCount ?? "—"} paket
+                </span>
+                <span className="text-xs font-semibold text-slate-800">
+                  {workLogs.total_active_hours?.toFixed(2) || '0.00'} saat aktif
+                </span>
+              </div>
             </div>
             {workLogs.logs && workLogs.logs.length > 0 ? (
               <div className="flex flex-wrap gap-1">
