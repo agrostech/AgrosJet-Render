@@ -35,6 +35,26 @@ from .detour import should_combine_orders, calculate_detour, calculate_multi_ord
 TURKEY_TZ = timezone(timedelta(hours=3))
 
 
+def _extract_delivery_from_cycle_entry(entry):
+    """
+    `assigned_in_this_cycle` entry'sinden delivery_location'ı çıkarır.
+    Yeni format: {"delivery_location": {...}, "restaurant_location": {...}}
+    Eski format (geriye dönük): doğrudan {"lat":..., "lng":...} sözlüğü
+    """
+    if not entry:
+        return None
+    if isinstance(entry, dict) and "delivery_location" in entry:
+        return entry.get("delivery_location")
+    return entry
+
+
+def _extract_restaurant_from_cycle_entry(entry):
+    """`assigned_in_this_cycle` entry'sinden restaurant_location'ı çıkarır (yoksa None)."""
+    if isinstance(entry, dict) and "restaurant_location" in entry:
+        return entry.get("restaurant_location")
+    return None
+
+
 async def check_break_assignment_restriction(courier_id: str, company_id: str) -> Dict:
     """
     Kuryenin mola sırasına girip girmediğini ve molasına kaç dakika kaldığını kontrol eder.
@@ -238,7 +258,7 @@ async def get_courier_active_orders(courier_id: str, company_id: str) -> List[Di
             "company_id": company_id,
             "status": {"$in": ACTIVE_ORDER_STATUSES}
         },
-        {"_id": 0, "id": 1, "status": 1, "delivery_location": 1}
+        {"_id": 0, "id": 1, "status": 1, "delivery_location": 1, "restaurant_location": 1}
     ).to_list(100)
     
     return orders
@@ -295,7 +315,9 @@ async def is_courier_eligible(
     detour_check_enabled: bool = True,
     detour_skip_distance: Optional[float] = None,
     order_payment_method: Optional[str] = None,
-    excluded_courier_ids: Optional[List[str]] = None
+    excluded_courier_ids: Optional[List[str]] = None,
+    group_min_distance_enabled: bool = False,
+    group_min_distance: Optional[float] = None
 ) -> Tuple[bool, str, Dict]:
     """
     Kuryenin aday olup olmadığını kontrol eder.
@@ -307,7 +329,7 @@ async def is_courier_eligible(
         target_restaurant_location: Hedef siparişin restoran konumu (detour için)
         target_delivery_location: Hedef siparişin teslimat konumu (detour için)
         max_detour: Maksimum izin verilen rota sapması (metre)
-        assigned_in_this_cycle: Bu döngüde atanan siparişler {courier_id: [delivery_location_list]}
+        assigned_in_this_cycle: Bu döngüde atanan siparişler {courier_id: [{"delivery_location":..., "restaurant_location":...}]}
         same_location_radius: Aynı konum sayılacak mesafe (metre)
         same_location_max_packages: Aynı konumda maksimum paket limiti
         angle_check_enabled: Açı kontrolü aktif mi
@@ -317,6 +339,8 @@ async def is_courier_eligible(
         detour_skip_distance: Bu mesafeden yakın paketler için detour kontrolü atlanır
         order_payment_method: Siparişin ödeme türü (cash, card, online, meal_card, online_meal_card)
         excluded_courier_ids: Bu siparişe atanmaması gereken kurye ID'leri (otomatik iptal edilenler)
+        group_min_distance_enabled: Restoran grubu minimum mesafe kuralı aktif mi
+        group_min_distance: Minimum mesafe (metre) - hem yeni hem mevcut paketlerin restoran→teslimat mesafesi bu değerin altındaysa pickup birleştirme yapılmaz
     
     Returns:
         (eligible: bool, reason: str, extra_data: dict)
@@ -368,8 +392,9 @@ async def is_courier_eligible(
     max_packages = courier.get("max_packages", DEFAULT_MAX_PACKAGES)
     active_orders = await get_courier_active_orders(courier_id, company_id)
     db_active_count = len(active_orders)
-    cycle_assigned_locations = assigned_in_this_cycle.get(courier_id, [])
-    cycle_assigned_count = len(cycle_assigned_locations)
+    cycle_entries = assigned_in_this_cycle.get(courier_id, [])
+    cycle_assigned_count = len(cycle_entries)
+    cycle_assigned_locations = [_extract_delivery_from_cycle_entry(e) for e in cycle_entries]
     total_active_count = db_active_count + cycle_assigned_count
     
     # "Aynı konum" kontrolü - limit aşılabilir mi?
@@ -426,6 +451,40 @@ async def is_courier_eligible(
         )
         if not compatible:
             return False, f"Restoran grubu uyumsuz: {reason}", {}
+    
+    # RESTORAN GRUBU MİNİMUM MESAFE KURALI (PICKUP AŞAMASI - EK KONTROL)
+    # Sadece kuryede yolda paket YOKsa ve aktif paketler varsa (=birleştirme durumu)
+    # Yeni paketin VE mevcut tüm paketlerin restoran→teslimat mesafesi min değerin altındaysa
+    # aynı grupta olsalar bile birleştirme yapılmaz - kurye hızlı boşalsın.
+    if (
+        group_min_distance_enabled
+        and group_min_distance
+        and group_min_distance > 0
+        and on_way_count == 0
+        and (db_active_count > 0 or cycle_assigned_count > 0)
+        and target_restaurant_location
+        and target_delivery_location
+    ):
+        new_pkg_dist = calculate_distance_meters(target_restaurant_location, target_delivery_location)
+        if new_pkg_dist is not None and new_pkg_dist < group_min_distance:
+            return False, f"Grup min mesafe: yeni paket {new_pkg_dist:.0f}m < {group_min_distance}m", {}
+        
+        # Mevcut tüm paketlerin restoran→teslimat mesafeleri
+        existing_pkgs = []
+        for order in active_orders:
+            existing_pkgs.append((order.get("restaurant_location"), order.get("delivery_location")))
+        for entry in cycle_entries:
+            existing_pkgs.append((
+                _extract_restaurant_from_cycle_entry(entry),
+                _extract_delivery_from_cycle_entry(entry),
+            ))
+        
+        for rest_loc, del_loc in existing_pkgs:
+            if not rest_loc or not del_loc:
+                continue
+            ex_dist = calculate_distance_meters(rest_loc, del_loc)
+            if ex_dist is not None and ex_dist < group_min_distance:
+                return False, f"Grup min mesafe: mevcut paket {ex_dist:.0f}m < {group_min_distance}m", {}
     
     # ROTA SAPMASI (DETOUR) VE AÇI KONTROLÜ
     # Pickup aşamasında (yolda paketi yok) ve aktif siparişi varken (DB veya döngü içi)
@@ -555,7 +614,9 @@ async def get_eligible_couriers(
     detour_check_enabled: bool = True,
     detour_skip_distance: Optional[float] = None,
     order_payment_method: Optional[str] = None,
-    excluded_courier_ids: Optional[List[str]] = None
+    excluded_courier_ids: Optional[List[str]] = None,
+    group_min_distance_enabled: bool = False,
+    group_min_distance: Optional[float] = None
 ) -> Tuple[List[Dict], List[Dict], List[Dict]]:
     """
     Şirkete ait uygun kuryeleri getirir ve kategorize eder.
@@ -616,7 +677,9 @@ async def get_eligible_couriers(
             detour_check_enabled,
             detour_skip_distance,
             order_payment_method,
-            excluded_courier_ids
+            excluded_courier_ids,
+            group_min_distance_enabled,
+            group_min_distance
         )
         
         if not eligible:

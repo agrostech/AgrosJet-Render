@@ -193,4 +193,5 @@ Multi-tenant delivery management platform for restaurants, couriers, and adminis
 
 ## CHANGELOG
 - 2026-02: JetCüzdan earning açıklaması güncellendi: `İşletme Adı - Müşteri Adı siparişi hakediş` formatı (`services/courier_earning_service.py`). Müşteri adı boşsa `İşletme Adı siparişi hakediş` olarak kaydedilir. Test: `tests/test_courier_earning_description.py`.
+- 2026-02: Otomatik atamaya **Restoran Grubu Minimum Mesafe Kuralı** eklendi. Sistem Ayarları → Otomatik Atama → "Restoran Grubu Min. Mesafe" kartı. Toggle açıkken yeni paketin VEYA mevcut paketlerin restoran→teslimat mesafesi belirlenen değerin (varsayılan 3500m) altındaysa, restoranlar aynı grupta olsa bile pickup birleştirme yapılmaz. Sadece yolda paketi olmayan kuryeler için uygulanır. Dosyalar: `services/auto_dispatch/config.py`, `routers/auto_dispatch.py`, `services/auto_dispatch/courier_selection.py`, `services/auto_dispatch/dispatcher.py`, `pages/SistemPage.jsx`. Test: `tests/test_group_min_distance.py`.
 

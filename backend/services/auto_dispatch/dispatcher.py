@@ -245,7 +245,9 @@ async def process_single_order(
         max_detour=max_detour,
         assigned_in_this_cycle=assigned_in_this_cycle,
         same_location_radius=same_location_radius,
-        same_location_max_packages=same_location_max_packages
+        same_location_max_packages=same_location_max_packages,
+        group_min_distance_enabled=settings.get("restaurant_group_min_distance_enabled", False),
+        group_min_distance=settings.get("restaurant_group_min_distance", 3500),
     )
     
     # Tüm boş ve pickup kuryelerini birleştir (pickup aşaması için)
@@ -363,7 +365,9 @@ async def check_waiting_orders(company_id: str, settings: Dict) -> List[Dict]:
                     target_restaurant_id=restaurant_id,
                     target_restaurant_location=restaurant_location,
                     target_delivery_location=delivery_location,
-                    max_detour=max_detour
+                    max_detour=max_detour,
+                    group_min_distance_enabled=settings.get("restaurant_group_min_distance_enabled", False),
+                    group_min_distance=settings.get("restaurant_group_min_distance", 3500),
                 )
                 all_idle_type = idle_couriers + pickup_couriers
                 
@@ -382,7 +386,9 @@ async def check_waiting_orders(company_id: str, settings: Dict) -> List[Dict]:
                     results.append({
                         "order_id": order_id,
                         "action": "fallback_assigned" if result.get("success") else "fallback_failed",
-                        "courier_id": best_idle["courier"]["id"]
+                        "courier_id": best_idle["courier"]["id"],
+                        "delivery_location": delivery_location,
+                        "restaurant_location": restaurant_location,
                     })
                 else:
                     results.append({
@@ -421,7 +427,9 @@ async def check_waiting_orders(company_id: str, settings: Dict) -> List[Dict]:
                 results.append({
                     "order_id": order_id,
                     "action": "waiting_assigned" if result.get("success") else "waiting_failed",
-                    "courier_id": waiting_courier_id
+                    "courier_id": waiting_courier_id,
+                    "delivery_location": order.get("delivery_location"),
+                    "restaurant_location": restaurant_location,
                 })
     
     return results
@@ -670,11 +678,15 @@ async def run_dispatch_cycle(company_id: str) -> Dict:
             stats["assigned"] += 1
             courier_id = result.get("courier_id")
             delivery_loc = result.get("delivery_location")
+            restaurant_loc = result.get("restaurant_location")
             order_id = result.get("order_id")
             if courier_id:
                 if courier_id not in assigned_in_this_cycle:
                     assigned_in_this_cycle[courier_id] = []
-                assigned_in_this_cycle[courier_id].append(delivery_loc)
+                assigned_in_this_cycle[courier_id].append({
+                    "delivery_location": delivery_loc,
+                    "restaurant_location": restaurant_loc,
+                })
             if order_id:
                 assigned_order_ids.add(order_id)
     
@@ -691,6 +703,8 @@ async def run_dispatch_cycle(company_id: str) -> Dict:
     max_angle_diff = settings.get("max_angle_diff", 90)
     detour_check_enabled = settings.get("detour_check_enabled", True)
     detour_skip_distance = settings.get("detour_skip_distance", 500)
+    group_min_distance_enabled = settings.get("restaurant_group_min_distance_enabled", False)
+    group_min_distance = settings.get("restaurant_group_min_distance", 3500)
     
     # EN İYİ EŞLEŞME DÖNGÜSÜ
     # Her iterasyonda en iyi kurye-sipariş eşleşmesini bul ve ata
@@ -735,7 +749,9 @@ async def run_dispatch_cycle(company_id: str) -> Dict:
                 detour_check_enabled=detour_check_enabled,
                 detour_skip_distance=detour_skip_distance,
                 order_payment_method=payment_method,
-                excluded_courier_ids=excluded_couriers
+                excluded_courier_ids=excluded_couriers,
+                group_min_distance_enabled=group_min_distance_enabled,
+                group_min_distance=group_min_distance,
             )
             
             all_couriers = idle_couriers + pickup_couriers
@@ -750,7 +766,11 @@ async def run_dispatch_cycle(company_id: str) -> Dict:
                 if active_orders:
                     existing_delivery = active_orders[0].get("delivery_location")
                 elif courier_id in assigned_in_this_cycle and assigned_in_this_cycle[courier_id]:
-                    existing_delivery = assigned_in_this_cycle[courier_id][0]
+                    first_entry = assigned_in_this_cycle[courier_id][0]
+                    if isinstance(first_entry, dict) and "delivery_location" in first_entry:
+                        existing_delivery = first_entry.get("delivery_location")
+                    else:
+                        existing_delivery = first_entry
                 
                 # Skor hesapla
                 score, reason = calculate_order_match_score(
@@ -789,7 +809,10 @@ async def run_dispatch_cycle(company_id: str) -> Dict:
                 
                 if courier_id not in assigned_in_this_cycle:
                     assigned_in_this_cycle[courier_id] = []
-                assigned_in_this_cycle[courier_id].append(order.get("delivery_location"))
+                assigned_in_this_cycle[courier_id].append({
+                    "delivery_location": order.get("delivery_location"),
+                    "restaurant_location": order.get("restaurant_location"),
+                })
                 
                 logger.info(f"Dispatch: En iyi eşleşme - Order {order.get('id')[:8]} → Courier {courier.get('name')} (skor: {best_score:.0f})")
             else:

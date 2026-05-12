@@ -38,6 +38,9 @@ class DispatchSettingsUpdate(BaseModel):
     # Otomatik iptal ayarları
     auto_cancel_enabled: bool = False
     auto_cancel_timeout: int = 5  # dakika
+    # Restoran grubu minimum mesafe (pickup birleştirme için ek kural)
+    restaurant_group_min_distance_enabled: bool = False
+    restaurant_group_min_distance: int = 3500  # metre
 
 
 @router.get("/settings/{company_id}")
@@ -66,6 +69,8 @@ async def update_settings(company_id: str, data: DispatchSettingsUpdate):
         "detour_skip_distance": data.detour_skip_distance,
         "auto_cancel_enabled": data.auto_cancel_enabled,
         "auto_cancel_timeout": data.auto_cancel_timeout,
+        "restaurant_group_min_distance_enabled": data.restaurant_group_min_distance_enabled,
+        "restaurant_group_min_distance": data.restaurant_group_min_distance,
     }
     
     result = await update_dispatch_settings(company_id, settings)

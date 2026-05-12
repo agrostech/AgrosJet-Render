@@ -23,6 +23,12 @@ DEFAULT_SETTINGS = {
     "detour_skip_distance": 500,  # metre - Bu mesafeden yakın paketler için detour kontrolü atlanır
     "auto_cancel_enabled": False,  # Otomatik iptal aktif mi
     "auto_cancel_timeout": 5,  # dakika - Onaylanmayan paket iptal süresi
+    # Restoran grubu minimum mesafe kuralı
+    # Toggle açıkken: yeni + mevcut tüm paketlerin restoran→teslimat mesafesi
+    # bu değerin üstünde olmalıdır. Aksi halde aynı grupta bile birleştirme yapılmaz.
+    # Sadece "pickup" aşamasında (yolda paketi olmayan kurye için) uygulanır.
+    "restaurant_group_min_distance_enabled": False,
+    "restaurant_group_min_distance": 3500,  # metre
 }
 
 # Kurye varsayılan maksimum paket kapasitesi

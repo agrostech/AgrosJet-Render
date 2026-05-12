@@ -92,7 +92,9 @@ export default function SistemPage({ companyId }) {
     detour_check_enabled: true,
     detour_skip_distance: 500,
     auto_cancel_enabled: false,
-    auto_cancel_timeout: 5
+    auto_cancel_timeout: 5,
+    restaurant_group_min_distance_enabled: false,
+    restaurant_group_min_distance: 3500
   });
   const [autoDispatchLoading, setAutoDispatchLoading] = useState(true);
   const [autoDispatchSaving, setAutoDispatchSaving] = useState(false);
@@ -126,7 +128,9 @@ export default function SistemPage({ companyId }) {
     detour_check_enabled: true,
     detour_skip_distance: 500,
     auto_cancel_enabled: true,
-    auto_cancel_timeout: 3
+    auto_cancel_timeout: 3,
+    restaurant_group_min_distance_enabled: false,
+    restaurant_group_min_distance: 3500
   };
 
   // Input değişikliği handler - serbest giriş
@@ -302,7 +306,9 @@ export default function SistemPage({ companyId }) {
         detour_check_enabled: res.data.detour_check_enabled !== false,
         detour_skip_distance: res.data.detour_skip_distance || 500,
         auto_cancel_enabled: res.data.auto_cancel_enabled || false,
-        auto_cancel_timeout: res.data.auto_cancel_timeout || 5
+        auto_cancel_timeout: res.data.auto_cancel_timeout || 5,
+        restaurant_group_min_distance_enabled: res.data.restaurant_group_min_distance_enabled || false,
+        restaurant_group_min_distance: res.data.restaurant_group_min_distance ?? 3500
       });
     } catch (err) {
       console.error("Auto dispatch settings fetch error:", err);
@@ -902,6 +908,50 @@ export default function SistemPage({ companyId }) {
                           💡 {autoDispatchSettings.same_location_radius}m içindeki siparişler aynı bina sayılır, {autoDispatchSettings.same_location_max_packages} pakete kadar alınabilir
                         </p>
                       </div>
+                    </div>
+
+                    {/* Restoran Grubu Minimum Mesafe */}
+                    <div className="p-3 sm:p-4 bg-white rounded-xl border border-slate-200 space-y-4" data-testid="group-min-distance-card">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-teal-50 flex items-center justify-center shrink-0">
+                            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm">Restoran Grubu Min. Mesafe</p>
+                            <p className="text-xs text-muted-foreground">Kısa paketleri aynı grupta bile birleştirme</p>
+                          </div>
+                        </div>
+                        <Switch
+                          data-testid="group-min-distance-switch"
+                          checked={autoDispatchSettings.restaurant_group_min_distance_enabled}
+                          onCheckedChange={(checked) => setAutoDispatchSettings(prev => ({ ...prev, restaurant_group_min_distance_enabled: checked }))}
+                        />
+                      </div>
+
+                      {autoDispatchSettings.restaurant_group_min_distance_enabled && (
+                        <div className="pt-3 border-t border-slate-100">
+                          <div className="space-y-2">
+                            <Label className="text-xs text-slate-600">Minimum Mesafe (m)</Label>
+                            <Input
+                              data-testid="group-min-distance-input"
+                              type="number"
+                              min="0"
+                              max="20000"
+                              value={autoDispatchSettings.restaurant_group_min_distance}
+                              onChange={(e) => handleDispatchInputChange('restaurant_group_min_distance', e.target.value)}
+                              onBlur={() => handleDispatchInputBlur('restaurant_group_min_distance')}
+                              className="h-9"
+                            />
+                          </div>
+                          <p className="text-xs text-teal-600 bg-teal-50 rounded-lg px-3 py-2 mt-3">
+                            💡 Yeni paketin VEYA kuryede bulunan herhangi bir paketin restoran→teslimat mesafesi {autoDispatchSettings.restaurant_group_min_distance}m'nin altındaysa, restoranlar aynı grupta olsa bile birleştirme yapılmaz. Sadece pickup aşamasında (yolda paketi olmayan kurye) uygulanır.
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
