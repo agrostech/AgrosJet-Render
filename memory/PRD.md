@@ -110,6 +110,25 @@ Multi-tenant delivery management platform for restaurants, couriers, and adminis
 - **Payout "Tamamlanmamış mütabakat" sahte engel bug'ı (2026-05-10, P0)**: `payout_requests.py:_check_unprocessed_collections` o gün sipariş yapılmış AMA mütabakata düşen tutar 0 olan günleri (örn. tüm siparişler `cash_collection: restaurant` olan restoranlardan veya hepsi online) yanlışlıkla "blocked" sayıyordu. Nazif için 10 gün sahte engelden 2 gerçek alınmamış güne düşürüldü. Fix: her unprocessed day için `get_order_totals_for_courier` çağırılır, `cash_total + card_total + meal_card_total > 0` olan günler engelleyici sayılır (Kurye Mütabakat sayfası ile birebir aynı `restaurant_collection_map` filtresi). Regression test: `/app/backend/tests/test_payout_unprocessed_zero_settlement.py`
 - **Admin "Beni Hatırla" gerçek anlamda 30 gün (2026-05-10)**: Daha önce JWT her durumda 72 saat geçerliydi → "Beni Hatırla" işaretli olsa bile 3 gün sonra kullanıcı 401 ile logout oluyordu. Fix: `jwt_utils.create_token`'a `remember_me` parametresi eklendi (True → 720 saat = 30 gün, False → 72 saat). `AdminLogin` modeline `remember_me: bool = False` field, `AdminLoginPage.jsx` POST body'sine `remember_me` flag eklendi. Curl testi: True → 720h, False → 72h ✅. Frontend e2e test: PASS ✅
 
+## NEW: Kurye Ödeme Profili Sistemi (2026-05-12, AYRI ENTEGRASYON)
+- Kuryelere 5 ayrı ödeme profili: Profil 1 = Standart (mevcut alanlar, backward-compat), Profil 2-5 = `couriers.pricing_profiles` dict'inde tutulur.
+- Her restoran `restaurants.courier_pricing_profile` (1-5, default 1) field'ı ile hangi profili kullanacağını seçer.
+- Sipariş kuryeye atandığında `services/courier_pricing_service.get_courier_pricing_for_order(courier, restaurant_id)` çağrılır → restoranın profil no'su → kurye'nin o profilindeki tarife.
+- Konfigüre değilse otomatik Profil 1'e sessiz fallback (hata göstermez).
+- **Yeni endpoint'ler**:
+  - `GET /api/couriers/{id}/pricing-profiles` (5 profilin tamamı)
+  - `PUT /api/couriers/{id}/pricing-profiles/{n}` (n=1..5)
+  - `DELETE /api/couriers/{id}/pricing-profiles/{n}` (sadece n>=2)
+  - `PUT /api/restaurants/{id}/courier-pricing-profile` body `{profile: 1-5}`
+  - `GET /api/restaurants/{id}/courier-pricing-profile`
+  - Legacy `PUT /api/couriers/{id}/pricing` ve `GET /api/restaurants/pricing/{id}` korunuyor (response'a `courier_pricing_profile` int eklendi).
+- **Frontend UI**:
+  - `KuryelerPage.jsx`: Ücretlendirme modal'ında 5 sekme (P1 Std, P2, P3, P4, P5). Tab değişince form alanları o profilden hidrate olur, mevcut form cache'lenir.
+  - `RestoranlarPage.jsx`: Ücretlendirme modal'ın en üstüne mavi "Kurye Ödeme Profili" kartı + dropdown eklendi.
+- **tiered_pricing_service**: Kademeli kaydırma artık her sipariş için kendi restoranının profilini okur (multi-profil-aware).
+- **Test**: 5 pytest + 10 HTTP integration test PASS (test_courier_pricing_profile.py + test_courier_pricing_profile_http.py).
+- **Risk yönetimi**: Mevcut sipariş akışı için Profil 1 her zaman default — `courier_pricing_profile` field'ı olmayan eski restoranlar otomatik Profil 1 kullanır → 0 regression.
+
 ## NEW: Adisyo Chrome Extension Köprüsü (2026-05-10, AYRI ENTEGRASYON)
 - Adisyo'nun entegrasyon vermediği restoranlar için (örn. Terra Pizza) ek yol.
 - **Backend (yeni, AYRI)**: `/api/adisyo-scrape/orders` endpoint'i, `routers/adisyo_scrape.py`. Mevcut Adisyo webhook entegrasyonuna dokunmadan paralel çalışır.

@@ -585,8 +585,8 @@ async def assign_courier_core(
     """
     # Kurye bilgisini al
     courier = await db.couriers.find_one(
-        {"id": courier_id}, 
-        {"_id": 0, "name": 1, "phone": 1, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1, "tier_prices": 1}
+        {"id": courier_id},
+        {"_id": 0, "id": 1, "name": 1, "phone": 1, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1, "tier_prices": 1, "hourly_rate": 1, "pricing_profiles": 1}
     )
     if not courier:
         return {"success": False, "error": "Kurye bulunamadı"}
@@ -611,15 +611,19 @@ async def assign_courier_core(
         if order.get("restaurant_location") and order.get("delivery_location"):
             distance_km = calculate_distance(order["restaurant_location"], order["delivery_location"])
         
-        pricing_type = courier.get("pricing_type", "per_package")
-        
+        # Profil-aware pricing: restoran'ın seçtiği profile göre
+        from services.courier_pricing_service import get_courier_pricing_for_order
+        order_restaurant_id = order.get("restaurant_id")
+        active_pricing, _profile_no = await get_courier_pricing_for_order(courier, order_restaurant_id)
+        pricing_type = active_pricing.get("pricing_type", "per_package")
+
         # Kademeli ücretlendirme (kurye bazlı)
-        if pricing_type == "tiered" and courier.get("tier_prices"):
+        if pricing_type == "tiered" and active_pricing.get("tier_prices"):
             try:
                 from services.tiered_pricing_service import get_courier_active_package_count
                 active_count = await get_courier_active_package_count(courier_id, company_id)
                 tier_index = min(active_count, 4)  # 0-4 arası index (5 kademe)
-                tier_prices = courier.get("tier_prices", [0, 0, 0, 0, 0])
+                tier_prices = active_pricing.get("tier_prices") or [0, 0, 0, 0, 0]
                 courier_fee = tier_prices[tier_index] if tier_index < len(tier_prices) else tier_prices[-1]
                 tiered_position = tier_index + 1  # 1-5 arası pozisyon
                 update_data["tiered_position"] = tiered_position
@@ -630,8 +634,8 @@ async def assign_courier_core(
             # Normal ücretlendirme (per_package veya per_km)
             courier_fee = calculate_fee_from_pricing(
                 pricing_type,
-                courier.get("per_package_price", 0),
-                courier.get("km_ranges", []),
+                active_pricing.get("per_package_price", 0),
+                active_pricing.get("km_ranges", []),
                 distance_km
             )
         
@@ -1147,19 +1151,21 @@ async def calculate_order_fees(order: dict) -> dict:
     courier_id = order.get("courier_id")
     if courier_id:
         courier = await db.couriers.find_one(
-            {"id": courier_id}, 
-            {"_id": 0, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1, "tier_prices": 1}
+            {"id": courier_id},
+            {"_id": 0, "id": 1, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1, "tier_prices": 1, "hourly_rate": 1, "pricing_profiles": 1}
         )
         if courier:
-            pricing_type = courier.get("pricing_type", "per_package")
+            from services.courier_pricing_service import get_courier_pricing_for_order
+            active_pricing, _profile_no = await get_courier_pricing_for_order(courier, order.get("restaurant_id"))
+            pricing_type = active_pricing.get("pricing_type", "per_package")
             if pricing_type == "tiered":
                 # Kademeli: atamada hesaplanan courier_fee'yi koru
                 courier_fee = order.get("courier_fee", 0) or 0
             else:
                 courier_fee = calculate_fee_from_pricing(
                     pricing_type,
-                    courier.get("per_package_price", 0),
-                    courier.get("km_ranges", []),
+                    active_pricing.get("per_package_price", 0),
+                    active_pricing.get("km_ranges", []),
                     distance_km
                 )
     

@@ -1089,6 +1089,91 @@ async def get_courier_pricing(courier_id: str):
     }
 
 
+# --- Kurye Ödeme Profilleri (5 farklı profil) ---
+
+
+@router.get("/couriers/{courier_id}/pricing-profiles")
+async def get_courier_pricing_profiles(courier_id: str):
+    """5 ödeme profilinin tamamını döner (UI render için).
+    Profil 1 = Standart (top-level field'lar), Profil 2-5 = pricing_profiles dict.
+    """
+    from services.courier_pricing_service import get_all_profiles
+    courier = await db.couriers.find_one(
+        {"id": courier_id},
+        {"_id": 0, "id": 1, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1,
+         "hourly_rate": 1, "tier_prices": 1, "pricing_profiles": 1}
+    )
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    return {"profiles": get_all_profiles(courier)}
+
+
+@router.put("/couriers/{courier_id}/pricing-profiles/{profile_no}")
+async def update_courier_pricing_profile(
+    courier_id: str,
+    profile_no: int,
+    data: CourierPricingUpdate,
+):
+    """
+    Belirli bir profil için kurye ücretlendirmesini güncelle.
+    profile_no = 1 → top-level field'lara yazar (mevcut davranış, backward compat).
+    profile_no = 2..5 → courier.pricing_profiles dict'ine yazar.
+    """
+    if profile_no < 1 or profile_no > 5:
+        raise HTTPException(status_code=400, detail="Profil numarası 1-5 arasında olmalı")
+
+    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "id": 1})
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+
+    if profile_no == 1:
+        # Mevcut endpoint ile aynı davranış
+        update_data = {"pricing_type": data.pricing_type}
+        if data.pricing_type == "per_package":
+            update_data["per_package_price"] = data.per_package_price
+            update_data["km_ranges"] = []
+        elif data.pricing_type == "per_km":
+            update_data["km_ranges"] = [r.dict() for r in (data.km_ranges or [])]
+            update_data["per_package_price"] = None
+        elif data.pricing_type == "tiered":
+            update_data["tier_prices"] = data.tier_prices
+            update_data["per_package_price"] = None
+            update_data["km_ranges"] = []
+        elif data.pricing_type == "hourly":
+            update_data["hourly_rate"] = data.hourly_rate
+            update_data["per_package_price"] = None
+            update_data["km_ranges"] = []
+
+        await db.couriers.update_one({"id": courier_id}, {"$set": update_data})
+        return {"success": True, "profile": 1}
+
+    # Profil 2-5 → pricing_profiles dict'ine
+    profile_data = {
+        "pricing_type": data.pricing_type,
+        "per_package_price": data.per_package_price if data.pricing_type == "per_package" else None,
+        "km_ranges": [r.dict() for r in (data.km_ranges or [])] if data.pricing_type == "per_km" else [],
+        "tier_prices": data.tier_prices if data.pricing_type == "tiered" else None,
+        "hourly_rate": data.hourly_rate if data.pricing_type == "hourly" else None,
+    }
+    await db.couriers.update_one(
+        {"id": courier_id},
+        {"$set": {f"pricing_profiles.{profile_no}": profile_data}}
+    )
+    return {"success": True, "profile": profile_no}
+
+
+@router.delete("/couriers/{courier_id}/pricing-profiles/{profile_no}")
+async def delete_courier_pricing_profile(courier_id: str, profile_no: int):
+    """Belirli bir profili sil (sadece 2-5 — profil 1 silinemez)"""
+    if profile_no < 2 or profile_no > 5:
+        raise HTTPException(status_code=400, detail="Sadece profil 2-5 silinebilir")
+    await db.couriers.update_one(
+        {"id": courier_id},
+        {"$unset": {f"pricing_profiles.{profile_no}": ""}}
+    )
+    return {"success": True, "deleted_profile": profile_no}
+
+
 
 # --- Kurye Ödeme Yöntemleri ---
 class PaymentMethodsUpdate(BaseModel):

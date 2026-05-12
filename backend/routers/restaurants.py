@@ -171,7 +171,7 @@ async def get_restaurant_pricing(restaurant_id: str):
     """Restoran ücretlendirme ayarlarını getir"""
     restaurant = await db.restaurants.find_one(
         {"id": restaurant_id}, 
-        {"_id": 0, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1, "kdv_rate": 1, "pos_commission_rate": 1}
+        {"_id": 0, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1, "kdv_rate": 1, "pos_commission_rate": 1, "courier_pricing_profile": 1}
     )
     if not restaurant:
         raise HTTPException(status_code=404, detail="Restoran bulunamadı")
@@ -181,8 +181,43 @@ async def get_restaurant_pricing(restaurant_id: str):
         "per_package_price": restaurant.get("per_package_price"),
         "km_ranges": restaurant.get("km_ranges"),
         "kdv_rate": restaurant.get("kdv_rate", 0),
-        "pos_commission_rate": restaurant.get("pos_commission_rate", 0)
+        "pos_commission_rate": restaurant.get("pos_commission_rate", 0),
+        "courier_pricing_profile": int(restaurant.get("courier_pricing_profile") or 1)
     }
+
+
+# --- Kurye Ödeme Profili (Restoran bazlı seçim) ---
+class CourierPricingProfileUpdate(BaseModel):
+    profile: int  # 1-5
+
+
+@router.put("/{restaurant_id}/courier-pricing-profile")
+async def update_restaurant_courier_pricing_profile(
+    restaurant_id: str,
+    data: CourierPricingProfileUpdate
+):
+    """Restoran için kurye ödeme profil numarasını set et (1-5)."""
+    if data.profile < 1 or data.profile > 5:
+        raise HTTPException(status_code=400, detail="Profil numarası 1-5 arasında olmalı")
+    res = await db.restaurants.find_one({"id": restaurant_id}, {"_id": 0, "id": 1})
+    if not res:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    await db.restaurants.update_one(
+        {"id": restaurant_id},
+        {"$set": {"courier_pricing_profile": data.profile}}
+    )
+    return {"success": True, "courier_pricing_profile": data.profile}
+
+
+@router.get("/{restaurant_id}/courier-pricing-profile")
+async def get_restaurant_courier_pricing_profile(restaurant_id: str):
+    res = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "id": 1, "courier_pricing_profile": 1}
+    )
+    if not res:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    return {"courier_pricing_profile": int(res.get("courier_pricing_profile") or 1)}
 
 
 # --- Hazırlık Süreleri ---

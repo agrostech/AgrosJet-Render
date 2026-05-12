@@ -139,32 +139,49 @@ async def recalculate_tiered_fees_on_unassign(courier_id: str, company_id: str) 
     - vs.
     
     NOT: Bu artık kurye bazlı çalışır - kuryenin tier_prices ayarlarını kullanır.
+    Profil-aware: Restoran ödeme profili belirlemişse, kayan her sipariş için
+    restoranın profilindeki tier_prices kullanılır (profil yoksa Profil 1 fallback).
     """
-    # Kuryenin pricing ayarlarını kontrol et
     courier = await db.couriers.find_one(
         {"id": courier_id},
-        {"_id": 0, "pricing_type": 1, "tier_prices": 1}
+        {"_id": 0, "id": 1, "pricing_type": 1, "tier_prices": 1, "pricing_profiles": 1, "per_package_price": 1, "km_ranges": 1, "hourly_rate": 1}
     )
-    
-    if not courier or courier.get("pricing_type") != "tiered" or not courier.get("tier_prices"):
+
+    if not courier:
+        return {"success": True, "message": "Kurye bulunamadı", "updated_count": 0}
+
+    # Profil 1 tiered değil VE hiçbir profilde tiered yoksa: işlem yok
+    from services.courier_pricing_service import _extract_profile_config
+    any_tiered = False
+    for n in range(1, 6):
+        cfg = _extract_profile_config(courier, n)
+        if cfg and cfg.get("pricing_type") == "tiered" and cfg.get("tier_prices"):
+            any_tiered = True
+            break
+    if not any_tiered:
         return {"success": True, "message": "Kademeli ücretlendirme aktif değil", "updated_count": 0}
-    
-    tier_prices = courier.get("tier_prices", [0, 0, 0, 0, 0])
-    
+
     # Kuryenin kalan aktif siparişlerini al (atanma sırasına göre)
     remaining_orders = await get_courier_active_orders_sorted(courier_id, company_id)
-    
+
     if not remaining_orders:
         return {"success": True, "message": "Kalan sipariş yok", "updated_count": 0}
-    
+
+    from services.courier_pricing_service import get_courier_pricing_for_order
     updated_count = 0
-    
+
     # Her siparişi yeni pozisyonuna göre güncelle
     for index, order in enumerate(remaining_orders):
-        new_tier_index = min(index, 4)  # Max 5. kademe
+        # Bu sipariş için aktif pricing profilini bul
+        active_pricing, _profile_no = await get_courier_pricing_for_order(courier, order.get("restaurant_id"))
+        if active_pricing.get("pricing_type") != "tiered":
+            # Bu sipariş tiered olmayan bir profile sahip, kademeyi atla
+            continue
+        tier_prices = active_pricing.get("tier_prices") or [0, 0, 0, 0, 0]
+        new_tier_index = min(index, 4)
         new_fee = tier_prices[new_tier_index] if new_tier_index < len(tier_prices) else tier_prices[-1]
         old_fee = order.get("courier_fee", 0)
-        
+
         # Sadece fiyat değiştiyse güncelle
         if abs(new_fee - old_fee) > 0.01:
             await db.orders.update_one(

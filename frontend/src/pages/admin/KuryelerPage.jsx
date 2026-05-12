@@ -71,6 +71,9 @@ export default function KuryelerPage({ companyId }) {
   const [kmRanges, setKmRanges] = useState(DEFAULT_KM_RANGES);
   const [hourlyRate, setHourlyRate] = useState("");
   const [tierPrices, setTierPrices] = useState(["", "", "", "", ""]);
+  // 5 profil için aktif tab + cache
+  const [activeProfile, setActiveProfile] = useState(1);
+  const [allProfiles, setAllProfiles] = useState({});
   
   // Payment Methods Modal State
   const [showPaymentMethodsModal, setShowPaymentMethodsModal] = useState(false);
@@ -246,24 +249,53 @@ export default function KuryelerPage({ companyId }) {
   // Ücretlendirme modalını aç
   const openPricingModal = async (courier) => {
     setSelectedCourier(courier);
+    setActiveProfile(1);
     try {
-      const res = await axios.get(`${API}/couriers/${courier.id}/pricing`);
-      setPricingType(res.data.pricing_type || "per_package");
-      setPerPackagePrice(res.data.per_package_price?.toString() || "");
-      setKmRanges(res.data.km_ranges || DEFAULT_KM_RANGES);
-      setHourlyRate(res.data.hourly_rate?.toString() || "");
-      setTierPrices(res.data.tier_prices?.map(p => p?.toString() || "") || ["", "", "", "", ""]);
+      const res = await axios.get(`${API}/couriers/${courier.id}/pricing-profiles`);
+      const profiles = res.data.profiles || {};
+      setAllProfiles(profiles);
+      loadProfileToForm(profiles["1"]);
     } catch (err) {
+      setAllProfiles({});
+      loadProfileToForm(null);
+    }
+    setShowPricingModal(true);
+  };
+
+  // Form alanlarını verilen profil objesi ile doldur (null ise resetle)
+  const loadProfileToForm = (profileCfg) => {
+    if (!profileCfg) {
       setPricingType("per_package");
       setPerPackagePrice("");
       setKmRanges(DEFAULT_KM_RANGES);
       setHourlyRate("");
       setTierPrices(["", "", "", "", ""]);
+      return;
     }
-    setShowPricingModal(true);
+    setPricingType(profileCfg.pricing_type || "per_package");
+    setPerPackagePrice(profileCfg.per_package_price?.toString() || "");
+    setKmRanges(profileCfg.km_ranges?.length ? profileCfg.km_ranges : DEFAULT_KM_RANGES);
+    setHourlyRate(profileCfg.hourly_rate?.toString() || "");
+    setTierPrices(profileCfg.tier_prices?.map(p => p?.toString() || "") || ["", "", "", "", ""]);
   };
 
-  // Ücretlendirme kaydet
+  // Profil sekmesini değiştir (önce mevcut formu cache'e yaz, sonra yeni profili yükle)
+  const switchProfile = (newProfile) => {
+    if (newProfile === activeProfile) return;
+    // Mevcut formu cache'e yaz (kullanıcının değişiklikleri kaybolmasın)
+    const currentSnapshot = {
+      pricing_type: pricingType,
+      per_package_price: pricingType === "per_package" ? parseFloat(perPackagePrice) || null : null,
+      km_ranges: pricingType === "per_km" ? kmRanges : null,
+      tier_prices: pricingType === "tiered" ? tierPrices.map(p => parseFloat(p) || 0) : null,
+      hourly_rate: hourlyRate ? parseFloat(hourlyRate) : null,
+    };
+    setAllProfiles(prev => ({ ...prev, [String(activeProfile)]: currentSnapshot }));
+    setActiveProfile(newProfile);
+    loadProfileToForm(allProfiles[String(newProfile)]);
+  };
+
+  // Ücretlendirme kaydet (sadece aktif profil)
   const handleSavePricing = async () => {
     try {
       const payload = {
@@ -273,8 +305,8 @@ export default function KuryelerPage({ companyId }) {
         tier_prices: pricingType === "tiered" ? tierPrices.map(p => parseFloat(p) || 0) : null,
         hourly_rate: hourlyRate ? parseFloat(hourlyRate) : null
       };
-      await axios.put(`${API}/couriers/${selectedCourier.id}/pricing`, payload);
-      toast.success("Ücretlendirme kaydedildi");
+      await axios.put(`${API}/couriers/${selectedCourier.id}/pricing-profiles/${activeProfile}`, payload);
+      toast.success(`Profil ${activeProfile} kaydedildi${activeProfile === 1 ? " (Standart)" : ""}`);
       setShowPricingModal(false);
     } catch (err) {
       toast.error(err.response?.data?.detail || "Ücretlendirme kaydedilemedi");
@@ -704,6 +736,38 @@ export default function KuryelerPage({ companyId }) {
               Ücretlendirme - {selectedCourier?.name}
             </DialogTitle>
           </DialogHeader>
+
+          {/* Profil sekmeleri (5 ödeme profili) */}
+          <div className="flex gap-1 border-b border-slate-200 -mx-6 px-6 sticky top-0 bg-white z-10">
+            {[1, 2, 3, 4, 5].map((n) => {
+              const isActive = activeProfile === n;
+              const hasConfig = !!allProfiles[String(n)];
+              return (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => switchProfile(n)}
+                  data-testid={`pricing-profile-tab-${n}`}
+                  className={`px-3 py-2 text-xs font-medium border-b-2 transition-colors ${
+                    isActive
+                      ? "border-green-600 text-green-700"
+                      : "border-transparent text-slate-500 hover:text-slate-700"
+                  }`}
+                  title={hasConfig ? `Profil ${n} kayıtlı` : `Profil ${n} boş`}
+                >
+                  P{n}
+                  {n === 1 && <span className="ml-1 text-[10px] text-slate-400">(Std)</span>}
+                  {hasConfig && <span className={`ml-1 inline-block w-1.5 h-1.5 rounded-full ${isActive ? "bg-green-600" : "bg-slate-400"}`}></span>}
+                </button>
+              );
+            })}
+          </div>
+          <div className="text-[11px] text-slate-500 -mt-1 mb-1">
+            {activeProfile === 1
+              ? "Standart profil — restoran profil seçmediyse bu kullanılır."
+              : `Profil ${activeProfile} — restoran ücretlendirmesinden seçilen kuryelere uygulanır.`}
+          </div>
+
           <div className="space-y-4 py-4">
             <RadioGroup value={pricingType} onValueChange={setPricingType}>
               <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-slate-50 cursor-pointer">

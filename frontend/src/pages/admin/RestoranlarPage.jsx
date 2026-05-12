@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Plus, Search, Edit2, Trash2, Archive, ArchiveRestore, 
   MapPin, Eye, EyeOff, Store, RefreshCw, Navigation, CheckCircle2, XCircle, Wallet, UserX, UserPlus, Users, Clock, Shield, Banknote, Receipt, FileText,
@@ -103,6 +104,7 @@ export default function RestoranlarPage({ companyId }) {
   const [kmRanges, setKmRanges] = useState(DEFAULT_KM_RANGES);
   const [kdvRate, setKdvRate] = useState("");
   const [posCommissionRate, setPosCommissionRate] = useState("");
+  const [courierPricingProfile, setCourierPricingProfile] = useState(1);
   
   // Map refs for location picker
   const mapContainerRef = useRef(null);
@@ -591,12 +593,14 @@ export default function RestoranlarPage({ companyId }) {
       setKmRanges(res.data.km_ranges || DEFAULT_KM_RANGES);
       setKdvRate(res.data.kdv_rate?.toString() || "");
       setPosCommissionRate(res.data.pos_commission_rate?.toString() || "");
+      setCourierPricingProfile(res.data.courier_pricing_profile || 1);
     } catch (err) {
       setPricingType("per_package");
       setPerPackagePrice("");
       setKmRanges(DEFAULT_KM_RANGES);
       setKdvRate("");
       setPosCommissionRate("");
+      setCourierPricingProfile(1);
     }
     setShowPricingModal(true);
   };
@@ -612,6 +616,14 @@ export default function RestoranlarPage({ companyId }) {
         pos_commission_rate: parseFloat(posCommissionRate) || 0
       };
       await axios.put(`${API}/restaurants/pricing/${selectedRestaurant.id}`, payload);
+      // Kurye ödeme profilini de ayrı endpoint ile güncelle
+      try {
+        await axios.put(`${API}/restaurants/${selectedRestaurant.id}/courier-pricing-profile`, {
+          profile: courierPricingProfile
+        });
+      } catch (e) {
+        console.warn("Kurye ödeme profili kaydedilemedi:", e);
+      }
       toast.success("Ücretlendirme kaydedildi");
       setShowPricingModal(false);
       fetchRestaurants();
@@ -1089,6 +1101,28 @@ export default function RestoranlarPage({ companyId }) {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            {/* Kurye ödeme profili (Profil 1 = Standart, 1-5) */}
+            <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
+              <Label className="text-xs font-semibold text-blue-900 uppercase tracking-wide mb-2 block">
+                Kurye Ödeme Profili
+              </Label>
+              <Select value={String(courierPricingProfile)} onValueChange={(v) => setCourierPricingProfile(parseInt(v, 10))}>
+                <SelectTrigger data-testid="restaurant-courier-pricing-profile-select" className="bg-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">Profil 1 (Standart)</SelectItem>
+                  <SelectItem value="2">Profil 2</SelectItem>
+                  <SelectItem value="3">Profil 3</SelectItem>
+                  <SelectItem value="4">Profil 4</SelectItem>
+                  <SelectItem value="5">Profil 5</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-blue-700 mt-1.5">
+                Bu restoran için kurye kazançları seçili profilin ücretlendirmesinden hesaplanır.
+              </p>
+            </div>
+
             <RadioGroup value={pricingType} onValueChange={setPricingType}>
               <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-slate-50 cursor-pointer">
                 <RadioGroupItem value="per_package" id="per_package" />
