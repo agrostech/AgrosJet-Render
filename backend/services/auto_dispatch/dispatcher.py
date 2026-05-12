@@ -504,7 +504,8 @@ async def check_unconfirmed_orders(company_id: str, settings: Dict) -> List[Dict
                     "courier_phone": None,
                     "auto_cancelled": True,
                     "auto_cancelled_at": now.isoformat(),
-                    "auto_cancelled_reason": f"Kurye {timeout_minutes} dakika içinde onaylamadı"
+                    "auto_cancelled_reason": f"Kurye {timeout_minutes} dakika içinde onaylamadı",
+                    "last_reminder_sent_at": None
                 },
                 "$push": {
                     "status_history": {
@@ -574,6 +575,112 @@ async def check_unconfirmed_orders(company_id: str, settings: Dict) -> List[Dict
             logger.info(f"Sipariş {order_id[:8]}... otomatik iptal edildi - Kurye: {courier_name} ({elapsed_minutes:.1f} dk)")
     
     return results
+
+
+async def send_reminders_to_unconfirmed_couriers(company_id: str, settings: Dict) -> int:
+    """
+    Onaylanmamış (status='assigned') siparişler için kuryeye her 60 saniyede bir
+    tekrar push bildirim gönderir. Kurye "Siparişi Gördüm" diyene kadar devam eder.
+    
+    - İlk push 'assigned' anında zaten gönderildi (notify_courier_new_order).
+    - Burada ek hatırlatmalar atılır.
+    - Otomatik iptal aktifse, timeout süresi dolmuş siparişler atlanır (zaten iptal edilecek).
+    - Otomatik iptal kapalıysa, kurye onaylayana kadar süresiz devam eder.
+    
+    Returns:
+        Hatırlatma gönderilen sipariş sayısı
+    """
+    sent_count = 0
+    now = datetime.now(timezone.utc)
+    auto_cancel_enabled = settings.get("auto_cancel_enabled", False)
+    timeout_minutes = settings.get("auto_cancel_timeout", 5)
+    
+    unconfirmed = await db.orders.find(
+        {
+            "company_id": company_id,
+            "status": "assigned",
+            "courier_id": {"$ne": None},
+            "assigned_at": {"$ne": None}
+        },
+        {"_id": 0, "id": 1, "courier_id": 1, "assigned_at": 1, "last_reminder_sent_at": 1,
+         "restaurant_name": 1, "order_number": 1, "customer_address": 1, "address": 1}
+    ).to_list(200)
+    
+    for order in unconfirmed:
+        order_id = order.get("id")
+        courier_id = order.get("courier_id")
+        assigned_at_str = order.get("assigned_at")
+        if not (order_id and courier_id and assigned_at_str):
+            continue
+        
+        # assigned_at parse
+        try:
+            if isinstance(assigned_at_str, str):
+                assigned_at = datetime.fromisoformat(assigned_at_str.replace("Z", "+00:00"))
+            else:
+                assigned_at = assigned_at_str
+            if assigned_at.tzinfo is None:
+                assigned_at = assigned_at.replace(tzinfo=timezone.utc)
+            else:
+                assigned_at = assigned_at.astimezone(timezone.utc)
+        except Exception:
+            continue
+        
+        elapsed_seconds = (now - assigned_at).total_seconds()
+        # İlk push 'assigned' anında gönderildi - en az 60s geçmeli
+        if elapsed_seconds < 60:
+            continue
+        
+        # Auto-cancel aktifse ve süre dolduysa, hatırlatma yok (zaten iptal edilecek)
+        if auto_cancel_enabled and elapsed_seconds >= timeout_minutes * 60:
+            continue
+        
+        # Son hatırlatmadan en az 60s geçmiş olmalı
+        last_reminder_str = order.get("last_reminder_sent_at")
+        if last_reminder_str:
+            try:
+                last_reminder = datetime.fromisoformat(str(last_reminder_str).replace("Z", "+00:00"))
+                if last_reminder.tzinfo is None:
+                    last_reminder = last_reminder.replace(tzinfo=timezone.utc)
+                else:
+                    last_reminder = last_reminder.astimezone(timezone.utc)
+                if (now - last_reminder).total_seconds() < 60:
+                    continue
+            except Exception:
+                pass
+        
+        # Push gönder
+        try:
+            from services.push_notification_service import send_push_notification
+            restaurant_name = order.get("restaurant_name", "Restoran")
+            order_number = order.get("order_number", "")
+            address = (order.get("customer_address") or order.get("address") or "")[:50]
+            await send_push_notification(
+                courier_id=courier_id,
+                title="🔔 Onay Bekleyen Sipariş",
+                body=f"{restaurant_name} - Siparişi Gördüm'e tıklayın",
+                data={
+                    "type": "NEW_ORDER",
+                    "orderId": order_id,
+                    "orderNumber": order_number,
+                    "restaurantName": restaurant_name,
+                    "address": address,
+                    "isReminder": True
+                },
+                sound="notification"
+            )
+            # last_reminder_sent_at güncelle - aynı dakika içinde tekrar gönderme
+            await db.orders.update_one(
+                {"id": order_id, "status": "assigned"},
+                {"$set": {"last_reminder_sent_at": now.isoformat()}}
+            )
+            sent_count += 1
+        except Exception as e:
+            logger.error(f"Onay hatırlatma push hatası (order={order_id[:8]}): {e}")
+    
+    if sent_count:
+        logger.info(f"Onay hatırlatması gönderildi: {sent_count} sipariş (company={company_id[:8]})")
+    return sent_count
 
 
 async def add_shift_violation(
@@ -670,6 +777,12 @@ async def run_dispatch_cycle(company_id: str) -> Dict:
     # Önce onaylanmayan siparişleri kontrol et ve iptal et
     cancelled_results = await check_unconfirmed_orders(company_id, settings)
     stats["auto_cancelled"] = len(cancelled_results)
+    
+    # Onay bekleyen siparişlere 60sn'de bir hatırlatma push'u gönder
+    try:
+        await send_reminders_to_unconfirmed_couriers(company_id, settings)
+    except Exception as e:
+        logger.error(f"Onay hatırlatma döngü hatası: {e}")
     
     # Bekleme modundaki siparişleri kontrol et
     waiting_results = await check_waiting_orders(company_id, settings)

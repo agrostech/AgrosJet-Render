@@ -602,7 +602,8 @@ async def assign_courier_core(
         "courier_phone": courier.get("phone"),
         "status": "assigned",
         "assigned_at": now,
-        "updated_at": now
+        "updated_at": now,
+        "last_reminder_sent_at": None
     }
     
     # Fee hesaplama (isteğe bağlı)
