@@ -43,14 +43,14 @@ async def check_shift_start_violations(start_time: str):
     NOT: Bu fonksiyon tolerans süresi SONRASINDA çağrılır.
     """
     from routers.shift_violations import log_violation
+    from utils.business_day import get_business_day_key
     
     # Türkiye saati
     turkey_tz = timezone(timedelta(hours=3))
     now = datetime.now(turkey_tz)
-    days_map = ["pazartesi", "sali", "carsamba", "persembe", "cuma", "cumartesi", "pazar"]
-    today_key = days_map[now.weekday()]
+    # NOT: today_key her şirket için ayrı hesaplanacak (opening_time şirkete göre değişir)
     
-    print(f"Checking shift start violations for {start_time} on {today_key} (tolerance check)")
+    print(f"Checking shift start violations for {start_time} (tolerance check)")
     
     # Bu saatte başlayan tüm vardiyaları bul (tüm şirketler)
     shifts = await db.shifts.find(
@@ -72,6 +72,9 @@ async def check_shift_start_violations(start_time: str):
     # Her şirket için kontrol
     for company_id, shift_ids in company_shifts.items():
         try:
+            # Şirket iş günü mantığına göre günü belirle
+            today_key = await get_business_day_key(company_id, now)
+            
             # Bu vardiyalara atanmış kuryeler
             assignments = await db.shift_assignments.find({
                 "company_id": company_id,

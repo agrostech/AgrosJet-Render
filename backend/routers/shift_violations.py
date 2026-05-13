@@ -137,9 +137,9 @@ async def check_and_log_violations_internal(company_id: str):
     current_hour = now.hour
     current_minute = now.minute
     
-    # Bugünün günü (pazartesi=0, pazar=6)
-    days_map = ["pazartesi", "sali", "carsamba", "persembe", "cuma", "cumartesi", "pazar"]
-    today_key = days_map[now.weekday()]
+    # Şirket iş günü mantığına göre günü belirle (06:00-06:00 vb.)
+    from utils.business_day import get_business_day_key
+    today_key = await get_business_day_key(company_id, now)
     
     # Vardiyaları getir
     shifts = await db.shifts.find(
