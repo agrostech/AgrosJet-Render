@@ -204,45 +204,35 @@ async def is_courier_compatible_with_restaurant_group(
     
     KURAL:
     - Boş kurye → Her zaman uyumlu
-    - Aktif siparişi var → Yeni sipariş aynı grupta olmalı
+    - Aktif siparişi var → Hem kuryenin mevcut restoranı hem yeni restoran AYNI
+      grup içinde tanımlı olmalı. Grup yoksa (en az biri grupsuz) veya farklı
+      gruplardaysa birleştirme yapılmaz.
     
     Returns:
         (compatible: bool, reason: str)
     """
+    # Kurye gerçekten boş mu?
+    active_count = await db.orders.count_documents({
+        "courier_id": courier_id,
+        "company_id": company_id,
+        "status": {"$in": ACTIVE_ORDER_STATUSES}
+    })
+    if active_count == 0:
+        return True, "Boş kurye - grup kısıtı yok"
+    
     # Kuryenin mevcut aktif siparişlerinin grubunu bul
     courier_group = await get_courier_active_restaurant_group(courier_id, company_id)
-    
-    # Kurye boşsa (grubu yok) → her zaman uyumlu
-    if courier_group is None:
-        # Kuryenin gerçekten boş olup olmadığını kontrol et
-        active_count = await db.orders.count_documents({
-            "courier_id": courier_id,
-            "company_id": company_id,
-            "status": {"$in": ACTIVE_ORDER_STATUSES}
-        })
-        if active_count == 0:
-            return True, "Boş kurye - grup kısıtı yok"
-        else:
-            # Aktif siparişi var ama grupsuz restorandan
-            # Yeni siparişin grubu da grupsuz mu kontrol et
-            target_group = await get_restaurant_group_for_restaurant(target_restaurant_id, company_id)
-            if target_group is None:
-                return True, "Her iki restoran da grupsuz"
-            else:
-                return False, "Kuryenin grupsuz restoranı var, yeni sipariş gruplu"
-    
-    # Kuryenin aktif grubu var - yeni siparişin grubunu kontrol et
+    # Yeni siparişin restoran grubunu bul
     target_group = await get_restaurant_group_for_restaurant(target_restaurant_id, company_id)
     
-    # Yeni sipariş grupsuzsa
-    if target_group is None:
-        return False, "Kurye başka bir grupta aktif, yeni sipariş grupsuz"
+    # Grup eksikse birleştirme yok
+    if courier_group is None or target_group is None:
+        return False, "Grup tanımı eksik - birleştirme yapılmaz"
     
-    # Her ikisi de gruplu - aynı grup mu?
+    # Her ikisi de gruplu - aynı grup olmalı
     if courier_group == target_group:
         return True, "Aynı restoran grubunda"
-    else:
-        return False, f"Farklı restoran grupları: kurye={courier_group}, yeni={target_group}"
+    return False, f"Farklı restoran grupları: kurye={courier_group}, yeni={target_group}"
 
 
 async def get_courier_active_orders(courier_id: str, company_id: str) -> List[Dict]:
