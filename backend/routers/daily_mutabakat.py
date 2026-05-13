@@ -258,8 +258,13 @@ async def get_order_totals_for_courier(company_id: str, courier_id: str, start_d
             if payment_details.get("original_method"):
                 modified_payment_count += 1
         
-        # Tek ödeme - Kart/Online
-        elif ("online" in payment_method or "card" in payment_method or "kredi" in payment_method or "kart" in payment_method) and collection["card"]:
+        # Tek ödeme - Online: Kurye tahsil etmiyor (restoran/platform direkt alıyor)
+        # Hiçbir kovaya eklenmez; sadece sipariş sayısına dahildir.
+        elif "online" in payment_method:
+            pass
+        
+        # Tek ödeme - Kart
+        elif ("card" in payment_method or "kredi" in payment_method or "kart" in payment_method) and collection["card"]:
             price = order.get("total_amount", 0) or 0
             tax_bracket = await get_restaurant_tax_bracket(
                 order.get("restaurant_id"),
@@ -373,7 +378,10 @@ async def get_courier_orders_detail(company_id: str, courier_id: str, start_dt: 
                 })
         elif "cash" in payment_method or "nakit" in payment_method:
             cash_orders.append({**base_data, "amount": total_amount, "is_split": False})
-        elif "online" in payment_method or "card" in payment_method or "kart" in payment_method:
+        elif "online" in payment_method:
+            # Online: kurye tahsil etmiyor; ne nakit ne kart listesinde gösterilmez.
+            pass
+        elif "card" in payment_method or "kart" in payment_method:
             card_orders.append({**base_data, "amount": total_amount, "is_split": False})
     
     return {
