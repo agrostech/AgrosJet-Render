@@ -31,7 +31,7 @@ export function CourierSidebarDesktop({
           bgColor="bg-green-50"
           textColor="text-green-700"
           dotColor="bg-green-500"
-          hoverColor="hover:bg-green-50"
+          hoverColor="hover:bg-green-50 dark:hover:bg-green-900/40 dark:hover:text-green-50"
           iconColor="text-green-600"
           onCourierClick={onCourierClick}
           onCourierHover={onCourierHover}
@@ -48,7 +48,7 @@ export function CourierSidebarDesktop({
           bgColor="bg-cyan-50"
           textColor="text-cyan-700"
           dotColor="bg-cyan-500"
-          hoverColor="hover:bg-cyan-50"
+          hoverColor="hover:bg-cyan-50 dark:hover:bg-cyan-900/40 dark:hover:text-cyan-50"
           iconColor="text-cyan-600"
           showOnTheWay
           onCourierClick={onCourierClick}
@@ -66,7 +66,7 @@ export function CourierSidebarDesktop({
           bgColor="bg-yellow-50"
           textColor="text-yellow-700"
           dotColor="bg-yellow-500"
-          hoverColor="hover:bg-yellow-50"
+          hoverColor="hover:bg-yellow-50 dark:hover:bg-yellow-900/40 dark:hover:text-yellow-50"
           iconColor="text-yellow-600"
           showBreakTime
           onCourierClick={onCourierClick}
@@ -84,7 +84,7 @@ export function CourierSidebarDesktop({
           bgColor="bg-slate-100"
           textColor="text-slate-600"
           dotColor="bg-slate-400"
-          hoverColor="hover:bg-slate-50"
+          hoverColor="hover:bg-slate-50 dark:hover:bg-slate-700 dark:hover:text-white"
           iconColor="text-slate-500"
           isOffline
           onCourierClick={onCourierClick}
@@ -123,7 +123,7 @@ export function CourierSidebarMobile({
           bgColor="bg-green-50"
           textColor="text-green-700"
           dotColor="bg-green-500"
-          hoverColor="hover:bg-green-100"
+          hoverColor="hover:bg-green-100 dark:hover:bg-green-900/40 dark:hover:text-green-50"
           iconColor="text-green-600"
           defaultOpen
           onCourierClick={onCourierClick}
@@ -138,7 +138,7 @@ export function CourierSidebarMobile({
           bgColor="bg-cyan-50"
           textColor="text-cyan-700"
           dotColor="bg-cyan-500"
-          hoverColor="hover:bg-cyan-100"
+          hoverColor="hover:bg-cyan-100 dark:hover:bg-cyan-900/40 dark:hover:text-cyan-50"
           iconColor="text-cyan-600"
           showOnTheWay
           defaultOpen
@@ -154,7 +154,7 @@ export function CourierSidebarMobile({
           bgColor="bg-yellow-50"
           textColor="text-yellow-700"
           dotColor="bg-yellow-500"
-          hoverColor="hover:bg-yellow-100"
+          hoverColor="hover:bg-yellow-100 dark:hover:bg-yellow-900/40 dark:hover:text-yellow-50"
           iconColor="text-yellow-600"
           showBreakTime
           onCourierClick={onCourierClick}
@@ -169,7 +169,7 @@ export function CourierSidebarMobile({
           bgColor="bg-slate-100"
           textColor="text-slate-600"
           dotColor="bg-slate-400"
-          hoverColor="hover:bg-slate-200"
+          hoverColor="hover:bg-slate-200 dark:hover:bg-slate-700 dark:hover:text-white"
           iconColor="text-slate-500"
           isOffline
           onCourierClick={onCourierClick}
