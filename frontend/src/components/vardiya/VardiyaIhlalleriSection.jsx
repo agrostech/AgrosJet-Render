@@ -87,7 +87,7 @@ function PenaltySettings({ companyId, violationTypes }) {
       const res = await axios.get(`${API}/penalty-settings/${companyId}`);
       setEnabled(res.data.enabled || false);
       setPenalties(res.data.penalties || {});
-    } catch { toast.error("Ceza ayarlari yuklenemedi"); }
+    } catch { toast.error("Ceza ayarları yüklenemedi"); }
     finally { setLoading(false); }
   };
 
@@ -95,8 +95,8 @@ function PenaltySettings({ companyId, violationTypes }) {
     setSaving(true);
     try {
       await axios.put(`${API}/penalty-settings/${companyId}`, { enabled, penalties });
-      toast.success("Ceza ayarlari kaydedildi");
-    } catch { toast.error("Kaydetme basarisiz"); }
+      toast.success("Ceza ayarları kaydedildi");
+    } catch { toast.error("Kaydetme başarısız"); }
     finally { setSaving(false); }
   };
 
@@ -218,7 +218,7 @@ export default function VardiyaIhlalleriSection({ companyId, isSuperAdmin }) {
       setViolations(res.data.violations);
       const summaryRes = await axios.get(`${API}/shift-violations/${companyId}/summary`);
       setViolationTypes(summaryRes.data.violation_types || {});
-    } catch { toast.error("Ihlaller yuklenemedi"); }
+    } catch { toast.error("İhlaller yüklenemedi"); }
     finally { setLoading(false); }
   }, [companyId, activeTab, selectedEntity, startISO, endISO]);
 
@@ -229,13 +229,13 @@ export default function VardiyaIhlalleriSection({ companyId, isSuperAdmin }) {
   const handleDeleteViolation = (id) => { setPendingDeleteId(id); setConfirmOpen(true); };
   const confirmDelete = async () => {
     if (!pendingDeleteId) return;
-    try { await axios.delete(`${API}/shift-violations/${companyId}/${pendingDeleteId}`); toast.success("Ihlal silindi"); fetchViolations(); fetchEntities(); } catch { toast.error("Silme basarisiz"); }
+    try { await axios.delete(`${API}/shift-violations/${companyId}/${pendingDeleteId}`); toast.success("İhlal silindi"); fetchViolations(); fetchEntities(); } catch { toast.error("Silme başarısız"); }
     finally { setConfirmOpen(false); setPendingDeleteId(null); }
   };
 
   const handleClearAll = async () => {
-    if (!confirm(`Tum ${activeTab === 'courier' ? 'kurye' : 'yonetici'} ihlallerini silmek istediginize emin misiniz?`)) return;
-    try { await axios.delete(`${API}/shift-violations/${companyId}/clear-all`, { params: { entity_type: activeTab } }); toast.success("Tum ihlaller silindi"); fetchViolations(); fetchEntities(); } catch { toast.error("Silme basarisiz"); }
+    if (!confirm(`Tüm ${activeTab === 'courier' ? 'kurye' : 'yönetici'} ihlallerini silmek istediğinize emin misiniz?`)) return;
+    try { await axios.delete(`${API}/shift-violations/${companyId}/clear-all`, { params: { entity_type: activeTab } }); toast.success("Tüm ihlaller silindi"); fetchViolations(); fetchEntities(); } catch { toast.error("Silme başarısız"); }
   };
 
   const filteredViolations = violations.filter(v => !selectedViolationType || v.violation_type === selectedViolationType);
@@ -249,12 +249,12 @@ export default function VardiyaIhlalleriSection({ companyId, isSuperAdmin }) {
             <AlertTriangle className="w-4 h-4 text-slate-800 dark:text-slate-200" />
           </div>
           <div className="min-w-0">
-            <h3 className="font-heading font-bold text-sm sm:text-base truncate">{mainView === "list" ? "Vardiya Ihlalleri" : "Ceza Ayarlari"}</h3>
-            <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{mainView === "list" ? "Ihlal kayitlari" : "Ceza tanimlari"}</p>
+            <h3 className="font-heading font-bold text-sm sm:text-base truncate">{mainView === "list" ? "Vardiya İhlalleri" : "Ceza Ayarları"}</h3>
+            <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{mainView === "list" ? "İhlal kayıtları" : "Ceza tanımları"}</p>
           </div>
         </div>
         <Button variant="outline" size="sm" onClick={() => setMainView(mainView === "list" ? "penalty_settings" : "list")} className="h-7 sm:h-8 text-[10px] sm:text-xs flex-shrink-0" data-testid="toggle-penalty-settings-btn">
-          {mainView === "list" ? <><Settings className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" /> Ceza</> : <><AlertTriangle className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" /> Ihlaller</>}
+          {mainView === "list" ? <><Settings className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" /> Ceza</> : <><AlertTriangle className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" /> İhlaller</>}
         </Button>
       </div>
 
@@ -305,7 +305,7 @@ export default function VardiyaIhlalleriSection({ companyId, isSuperAdmin }) {
               <Users className="w-3.5 h-3.5" /> Kuryeler
             </button>
             <button onClick={() => { setActiveTab("admin"); setSelectedEntity(""); setSelectedViolationType(""); }} className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-4 py-1.5 rounded-lg font-semibold text-[11px] sm:text-sm transition-colors ${activeTab === "admin" ? "bg-primary text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`} data-testid="tab-admin">
-              <Briefcase className="w-3.5 h-3.5" /> Yoneticiler
+              <Briefcase className="w-3.5 h-3.5" /> Yöneticiler
             </button>
           </div>
 
@@ -313,11 +313,11 @@ export default function VardiyaIhlalleriSection({ companyId, isSuperAdmin }) {
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-1">
               <select value={selectedEntity} onChange={(e) => setSelectedEntity(e.target.value)} className="h-8 sm:h-9 text-xs sm:text-sm border border-slate-200 rounded px-2 bg-white w-full sm:flex-1" data-testid="filter-entity">
-                <option value="">Tum {activeTab === "courier" ? "Kuryeler" : "Yoneticiler"}</option>
+                <option value="">Tüm {activeTab === "courier" ? "Kuryeler" : "Yöneticiler"}</option>
                 {entities.map(e => <option key={e.entity_id} value={e.entity_id}>{e.entity_name} ({e.violation_count})</option>)}
               </select>
               <select value={selectedViolationType} onChange={(e) => setSelectedViolationType(e.target.value)} className="h-8 sm:h-9 text-xs sm:text-sm border border-slate-200 rounded px-2 bg-white w-full sm:flex-1" data-testid="filter-type">
-                <option value="">Tum Turler</option>
+                <option value="">Tüm Türler</option>
                 {Object.entries(violationTypes).map(([type, label]) => <option key={type} value={type}>{label}</option>)}
               </select>
             </div>
@@ -340,7 +340,7 @@ export default function VardiyaIhlalleriSection({ companyId, isSuperAdmin }) {
             ) : filteredViolations.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-slate-400">
                 <AlertTriangle className="w-10 h-10 mb-2 opacity-30" />
-                <p className="text-xs sm:text-sm">{selectedEntity || selectedViolationType ? "Bu filtre icin ihlal kaydi yok" : `${activeTab === "courier" ? "Kurye" : "Yonetici"} ihlal kaydi yok`}</p>
+                <p className="text-xs sm:text-sm">{selectedEntity || selectedViolationType ? "Bu filtre için ihlal kaydı yok" : `${activeTab === "courier" ? "Kurye" : "Yönetici"} ihlal kaydı yok`}</p>
               </div>
             ) : (
               <div className="divide-y divide-slate-100">
@@ -385,7 +385,7 @@ export default function VardiyaIhlalleriSection({ companyId, isSuperAdmin }) {
         </>
       )}
 
-      <ConfirmModal open={confirmOpen} onOpenChange={setConfirmOpen} title="Ihlal Kaydini Sil" description="Bu ihlal kaydini silmek istediginize emin misiniz?" onConfirm={confirmDelete} variant="danger" />
+      <ConfirmModal open={confirmOpen} onOpenChange={setConfirmOpen} title="İhlal Kaydını Sil" description="Bu ihlal kaydını silmek istediğinize emin misiniz?" onConfirm={confirmDelete} variant="danger" />
       </div>
     </div>
   );
