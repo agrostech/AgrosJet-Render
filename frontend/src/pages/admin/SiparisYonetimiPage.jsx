@@ -1150,7 +1150,8 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                                     else if (extApp.includes("getir")) platform = "getir";
                                     else if (extApp.includes("migros")) platform = "migros";
                                   }
-                                  if (['getir','trendyol','migros','yemeksepeti','adisyo','sepettakip'].includes(platform)) {
+                                  if (platform === "manual") platform = "phone";
+                                  if (['getir','trendyol','migros','yemeksepeti','adisyo','sepettakip','phone'].includes(platform)) {
                                     return <img src={`/images/platforms/${platform}.png`} alt={platform} className="w-4 h-4 rounded-full flex-shrink-0 object-cover" />;
                                   }
                                   return null;
@@ -1408,8 +1409,9 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                                 else if (extApp.includes("getir")) platform = "getir";
                                 else if (extApp.includes("migros")) platform = "migros";
                               }
+                              if (platform === "manual") platform = "phone";
                               
-                              if (['getir','trendyol','migros','yemeksepeti','adisyo','sepettakip'].includes(platform)) {
+                              if (['getir','trendyol','migros','yemeksepeti','adisyo','sepettakip','phone'].includes(platform)) {
                                 return <img src={`/images/platforms/${platform}.png`} alt={platform} className="w-4 h-4 rounded-full flex-shrink-0 object-cover" />;
                               }
                               return null;
