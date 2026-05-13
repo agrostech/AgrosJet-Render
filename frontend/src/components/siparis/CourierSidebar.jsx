@@ -469,10 +469,10 @@ function CourierItem({
           <BatteryLow className="w-3 h-3 text-red-500" title="Batarya düşük" />
         )}
         {missedShift && (
-          <Clock className="w-3 h-3 text-red-500" title="Vardiyası var ama çevrimdışı" />
+          <Clock className="w-3 h-3 text-red-500" title="Kuryenin vardiyası başladı ama aktif değil." />
         )}
         {onLeaveToday && (
-          <CalendarOff className="w-3 h-3 text-slate-700" title="Bugün izinli" />
+          <CalendarOff className="w-3 h-3 text-slate-700" title="Kurye bugün izinli." />
         )}
         {isAdminLinked ? (
           <UserCog className={`w-3 h-3 ${iconColor}`} title="Yönetici" />
