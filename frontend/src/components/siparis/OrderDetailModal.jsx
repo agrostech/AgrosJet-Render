@@ -319,7 +319,15 @@ export function OrderDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
+      <DialogContent
+        className="max-w-lg max-h-[85vh] overflow-hidden flex flex-col"
+        onPointerDownOutside={(e) => {
+          if (e.target?.closest?.(".pac-container")) e.preventDefault();
+        }}
+        onInteractOutside={(e) => {
+          if (e.target?.closest?.(".pac-container")) e.preventDefault();
+        }}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             Sipariş Bilgileri
