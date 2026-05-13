@@ -107,22 +107,38 @@ export default function IntegrationLogsModal({ open, onClose }) {
             </div>
           )}
 
-          {!loading && logs.map((log, idx) => (
-            <div
-              key={idx}
-              className={`flex items-start gap-2 px-2 py-1 rounded hover:bg-muted/40 ${
-                log.level === "ERROR" ? "bg-red-50/50" : ""
-              }`}
-            >
-              <span className="text-muted-foreground shrink-0 w-[120px]">
-                {log.timestamp}
-              </span>
-              <LogLevel level={log.level} />
-              <span className="break-all whitespace-pre-wrap leading-relaxed">
-                {log.message}
-              </span>
-            </div>
-          ))}
+          {!loading && logs.map((log, idx) => {
+            const hasData = log.data && Object.keys(log.data).length > 0;
+            return (
+              <div
+                key={idx}
+                className={`flex flex-col gap-1 px-2 py-1 rounded hover:bg-muted/40 ${
+                  log.level === "ERROR" ? "bg-red-50/50" : ""
+                }`}
+                data-testid={`log-row-${idx}`}
+              >
+                <div className="flex items-start gap-2">
+                  <span className="text-muted-foreground shrink-0 w-[120px]">
+                    {log.timestamp}
+                  </span>
+                  <LogLevel level={log.level} />
+                  <span className="break-all whitespace-pre-wrap leading-relaxed flex-1">
+                    {log.message}
+                  </span>
+                </div>
+                {hasData && (
+                  <details className="ml-[148px] text-[10px]">
+                    <summary className="cursor-pointer text-blue-600 hover:underline select-none">
+                      İstek/Yanıt detayı
+                    </summary>
+                    <pre className="mt-1 p-2 bg-slate-900 text-slate-100 rounded overflow-x-auto whitespace-pre-wrap break-all">
+{JSON.stringify(log.data, null, 2)}
+                    </pre>
+                  </details>
+                )}
+              </div>
+            );
+          })}
         </div>
       </DialogContent>
     </Dialog>

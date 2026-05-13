@@ -788,6 +788,7 @@ async def get_integration_logs(
             "timestamp": log.get("timestamp", ""),
             "level": log.get("level", "INFO"),
             "message": log.get("message", ""),
+            "data": log.get("data"),
             "source": "db",
             "integration": log.get("integration", ""),
         })

@@ -860,8 +860,9 @@ async def mark_adisyo_order_prepared(restaurant_id: str, adisyo_order_id: int) -
     """
     Adisyo'da siparişi "Hazırlandı" durumuna getir.
     POST /api/External/v2/Prepared
-    Body: {"orderId": <order_id>}
     """
+    from services.integration_log_service import save_integration_log
+    
     restaurant = await db.restaurants.find_one(
         {"id": restaurant_id},
         {"_id": 0}
@@ -869,6 +870,14 @@ async def mark_adisyo_order_prepared(restaurant_id: str, adisyo_order_id: int) -
     
     if not restaurant:
         return {"success": False, "error": "Restoran bulunamadı"}
+    
+    request_body = {"orderId": adisyo_order_id}
+    log_data_base = {
+        "endpoint": "/Prepared",
+        "restaurant_id": restaurant_id,
+        "adisyo_order_id": adisyo_order_id,
+        "request_body": request_body,
+    }
     
     try:
         headers = await get_adisyo_headers(restaurant)
@@ -876,21 +885,32 @@ async def mark_adisyo_order_prepared(restaurant_id: str, adisyo_order_id: int) -
             response = await client.post(
                 f"{ADISYO_BASE_URL}/Prepared",
                 headers=headers,
-                json={"orderId": adisyo_order_id}
+                json=request_body
             )
+            
+            log_data = {
+                **log_data_base,
+                "response_status_code": response.status_code,
+                "response_body": response.text[:2000],
+            }
             
             if response.status_code == 200:
                 data = response.json()
                 if data.get("status") == 100:
                     logger.info(f"Adisyo sipariş hazırlandı: order_id={adisyo_order_id}")
+                    await save_integration_log("adisyo", "INFO", f"Adisyo /Prepared OK: order_id={adisyo_order_id}", log_data)
                     return {"success": True, "message": "Sipariş hazırlandı olarak işaretlendi"}
                 else:
-                    return {"success": False, "error": data.get("message", "Bilinmeyen hata")}
+                    err_msg = data.get("message", "Bilinmeyen hata")
+                    await save_integration_log("adisyo", "ERROR", f"Adisyo /Prepared NACK: {err_msg}", log_data)
+                    return {"success": False, "error": err_msg}
             else:
+                await save_integration_log("adisyo", "ERROR", f"Adisyo /Prepared HTTP {response.status_code}", log_data)
                 return {"success": False, "error": f"API hatası: {response.status_code}"}
                 
     except Exception as e:
         logger.error(f"Adisyo hazırlandı hatası: {e}")
+        await save_integration_log("adisyo", "ERROR", f"Adisyo /Prepared exception: {e}", {**log_data_base, "exception": str(e)})
         return {"success": False, "error": str(e)}
 
 
@@ -898,10 +918,11 @@ async def mark_adisyo_order_on_delivery(restaurant_id: str, adisyo_order_id: int
     """
     Adisyo'da siparişi "Yola Çıktı" durumuna getir.
     POST /api/External/v2/OnDelivery
-    Body: {"orderId": <order_id>}
-    
-    NOT: courierId göndermiyoruz - Adisyo tarafında kurye ataması yapılır.
+    Body: {"orderId": <order_id>, "courierId": <adisyo_courier_id>}
+    NOT: courierId Adisyo dökümanına göre gerekli; biz şimdilik göndermiyoruz.
     """
+    from services.integration_log_service import save_integration_log
+    
     restaurant = await db.restaurants.find_one(
         {"id": restaurant_id},
         {"_id": 0}
@@ -910,27 +931,47 @@ async def mark_adisyo_order_on_delivery(restaurant_id: str, adisyo_order_id: int
     if not restaurant:
         return {"success": False, "error": "Restoran bulunamadı"}
     
+    request_body = {"orderId": adisyo_order_id}
+    log_data_base = {
+        "endpoint": "/OnDelivery",
+        "restaurant_id": restaurant_id,
+        "adisyo_order_id": adisyo_order_id,
+        "shiftjet_courier_id": courier_id,
+        "request_body": request_body,
+    }
+    
     try:
         headers = await get_adisyo_headers(restaurant)
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.post(
                 f"{ADISYO_BASE_URL}/OnDelivery",
                 headers=headers,
-                json={"orderId": adisyo_order_id}
+                json=request_body
             )
+            
+            log_data = {
+                **log_data_base,
+                "response_status_code": response.status_code,
+                "response_body": response.text[:2000],
+            }
             
             if response.status_code == 200:
                 data = response.json()
                 if data.get("status") == 100:
                     logger.info(f"Adisyo sipariş yola çıktı: order_id={adisyo_order_id}")
+                    await save_integration_log("adisyo", "INFO", f"Adisyo /OnDelivery OK: order_id={adisyo_order_id}", log_data)
                     return {"success": True, "message": "Sipariş yola çıktı olarak işaretlendi"}
                 else:
-                    return {"success": False, "error": data.get("message", "Bilinmeyen hata")}
+                    err_msg = data.get("message", "Bilinmeyen hata")
+                    await save_integration_log("adisyo", "ERROR", f"Adisyo /OnDelivery NACK: {err_msg}", log_data)
+                    return {"success": False, "error": err_msg}
             else:
+                await save_integration_log("adisyo", "ERROR", f"Adisyo /OnDelivery HTTP {response.status_code}", log_data)
                 return {"success": False, "error": f"API hatası: {response.status_code}"}
                 
     except Exception as e:
         logger.error(f"Adisyo yola çıktı hatası: {e}")
+        await save_integration_log("adisyo", "ERROR", f"Adisyo /OnDelivery exception: {e}", {**log_data_base, "exception": str(e)})
         return {"success": False, "error": str(e)}
 
 
@@ -948,6 +989,8 @@ async def mark_adisyo_order_delivered(restaurant_id: str, adisyo_order_id: int, 
         payment_method: cash, card, online, meal_card
         payment_detail: Yemek kartı detayı (Sodexo, Setcard, Metropol vb.)
     """
+    from services.integration_log_service import save_integration_log
+    
     restaurant = await db.restaurants.find_one(
         {"id": restaurant_id},
         {"_id": 0}
@@ -958,6 +1001,18 @@ async def mark_adisyo_order_delivered(restaurant_id: str, adisyo_order_id: int, 
     
     # Ödeme tipini Adisyo formatına çevir (detail ile birlikte)
     payment_type_id = get_adisyo_payment_type(payment_method, payment_detail)
+    request_body = {
+        "orderId": adisyo_order_id,
+        "paymentType": payment_type_id
+    }
+    log_data_base = {
+        "endpoint": "/Deliver",
+        "restaurant_id": restaurant_id,
+        "adisyo_order_id": adisyo_order_id,
+        "payment_method_in": payment_method,
+        "payment_detail_in": payment_detail,
+        "request_body": request_body,
+    }
     
     try:
         headers = await get_adisyo_headers(restaurant)
@@ -965,24 +1020,32 @@ async def mark_adisyo_order_delivered(restaurant_id: str, adisyo_order_id: int, 
             response = await client.post(
                 f"{ADISYO_BASE_URL}/Deliver",
                 headers=headers,
-                json={
-                    "orderId": adisyo_order_id,
-                    "paymentType": payment_type_id
-                }
+                json=request_body
             )
+            
+            log_data = {
+                **log_data_base,
+                "response_status_code": response.status_code,
+                "response_body": response.text[:2000],
+            }
             
             if response.status_code == 200:
                 data = response.json()
                 if data.get("status") == 100:
                     logger.info(f"Adisyo sipariş teslim edildi: order_id={adisyo_order_id}, payment_type={payment_type_id}")
+                    await save_integration_log("adisyo", "INFO", f"Adisyo /Deliver OK: order_id={adisyo_order_id}", log_data)
                     return {"success": True, "message": "Sipariş teslim edildi olarak işaretlendi"}
                 else:
-                    return {"success": False, "error": data.get("message", "Bilinmeyen hata")}
+                    err_msg = data.get("message", "Bilinmeyen hata")
+                    await save_integration_log("adisyo", "ERROR", f"Adisyo /Deliver NACK: {err_msg}", log_data)
+                    return {"success": False, "error": err_msg}
             else:
+                await save_integration_log("adisyo", "ERROR", f"Adisyo /Deliver HTTP {response.status_code}", log_data)
                 return {"success": False, "error": f"API hatası: {response.status_code}"}
                 
     except Exception as e:
         logger.error(f"Adisyo teslim edildi hatası: {e}")
+        await save_integration_log("adisyo", "ERROR", f"Adisyo /Deliver exception: {e}", {**log_data_base, "exception": str(e)})
         return {"success": False, "error": str(e)}
 
 
@@ -991,6 +1054,8 @@ async def cancel_adisyo_order(restaurant_id: str, adisyo_order_id: int) -> dict:
     Adisyo'da siparişi iptal et.
     POST /api/External/v2/Cancel (veya uygun cancel endpoint)
     """
+    from services.integration_log_service import save_integration_log
+    
     restaurant = await db.restaurants.find_one(
         {"id": restaurant_id},
         {"_id": 0}
@@ -999,31 +1064,47 @@ async def cancel_adisyo_order(restaurant_id: str, adisyo_order_id: int) -> dict:
     if not restaurant:
         return {"success": False, "error": "Restoran bulunamadı"}
     
+    request_body = {"orderId": adisyo_order_id}
+    log_data_base = {
+        "endpoint": "/Cancel",
+        "restaurant_id": restaurant_id,
+        "adisyo_order_id": adisyo_order_id,
+        "request_body": request_body,
+    }
+    
     try:
         headers = await get_adisyo_headers(restaurant)
         async with httpx.AsyncClient(timeout=10.0) as client:
-            # Adisyo'da Cancel endpoint'i farklı olabilir
-            # Döküman'da belirtilmemiş, varsayılan endpoint deneyelim
             response = await client.post(
                 f"{ADISYO_BASE_URL}/Cancel",
                 headers=headers,
-                json={"orderId": adisyo_order_id}
+                json=request_body
             )
+            
+            log_data = {
+                **log_data_base,
+                "response_status_code": response.status_code,
+                "response_body": response.text[:2000],
+            }
             
             if response.status_code == 200:
                 data = response.json()
                 if data.get("status") == 100:
                     logger.info(f"Adisyo sipariş iptal edildi: order_id={adisyo_order_id}")
+                    await save_integration_log("adisyo", "INFO", f"Adisyo /Cancel OK: order_id={adisyo_order_id}", log_data)
                     return {"success": True, "message": "Sipariş iptal edildi"}
                 else:
-                    return {"success": False, "error": data.get("message", "Bilinmeyen hata")}
+                    err_msg = data.get("message", "Bilinmeyen hata")
+                    await save_integration_log("adisyo", "ERROR", f"Adisyo /Cancel NACK: {err_msg}", log_data)
+                    return {"success": False, "error": err_msg}
             else:
-                # İptal endpoint'i olmayabilir, loglayalım
                 logger.warning(f"Adisyo iptal API yanıtı: {response.status_code}")
+                await save_integration_log("adisyo", "ERROR", f"Adisyo /Cancel HTTP {response.status_code}", log_data)
                 return {"success": False, "error": f"API hatası: {response.status_code}"}
                 
     except Exception as e:
         logger.error(f"Adisyo iptal hatası: {e}")
+        await save_integration_log("adisyo", "ERROR", f"Adisyo /Cancel exception: {e}", {**log_data_base, "exception": str(e)})
         return {"success": False, "error": str(e)}
 
 
