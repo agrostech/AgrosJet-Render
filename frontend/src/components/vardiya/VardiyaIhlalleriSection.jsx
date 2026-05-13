@@ -111,13 +111,13 @@ function PenaltySettings({ companyId, violationTypes }) {
       <div className="flex items-center justify-between p-3 border rounded-lg">
         <div>
           <p className="font-semibold text-sm">Ceza Sistemi</p>
-          <p className="text-xs text-muted-foreground">Ihlallere otomatik ceza uygulanir</p>
+          <p className="text-xs text-muted-foreground">İhlallere otomatik ceza uygulanır</p>
         </div>
         <Switch checked={enabled} onCheckedChange={setEnabled} data-testid="penalty-system-toggle" />
       </div>
 
       <div className="space-y-2">
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Ihlal Turleri</p>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">İhlal Türleri</p>
         {Object.entries(violationTypes).map(([type, label]) => {
           const config = penalties[type] || { enabled: false, amount: 0 };
           const Icon = VIOLATION_ICONS[type] || AlertTriangle;
