@@ -369,8 +369,12 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
     
     const map = window.L.map(mapRef.current, {
       scrollWheelZoom: false,
-      attributionControl: false
+      attributionControl: false,
+      zoomControl: false
     }).setView([centerLat, centerLng], zoomLevel);
+    
+    // Zoom kontrolünü sağ üste taşı
+    window.L.control.zoom({ position: 'topright' }).addTo(map);
     
     const tileUrl = document.documentElement.classList.contains('dark')
       ? 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png'
