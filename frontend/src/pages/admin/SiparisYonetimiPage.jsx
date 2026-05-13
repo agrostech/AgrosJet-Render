@@ -897,6 +897,10 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
           courierPackageCounts={courierPackageCounts}
           onCourierClick={handleCourierClick}
           onCourierHover={handleCourierHover}
+          shifts={shifts}
+          shiftAssignments={shiftAssignments}
+          leaves={leaves}
+          openingTime={company?.opening_time || "06:00"}
         />
 
         {/* Map with Courier List */}
@@ -922,6 +926,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
             shifts={shifts}
             shiftAssignments={shiftAssignments}
             leaves={leaves}
+            openingTime={company?.opening_time || "06:00"}
           />
         </div>
 

@@ -12,7 +12,8 @@ export function CourierSidebarDesktop({
   onCourierHover,
   shifts = [],
   shiftAssignments = [],
-  leaves = []
+  leaves = [],
+  openingTime = "06:00"
 }) {
   return (
     <Card className="w-64 flex-shrink-0 hidden lg:block">
@@ -38,6 +39,7 @@ export function CourierSidebarDesktop({
           shifts={shifts}
           shiftAssignments={shiftAssignments}
           leaves={leaves}
+          openingTime={openingTime}
         />
         
         {/* Dağıtımda Kuryeler */}
@@ -56,6 +58,7 @@ export function CourierSidebarDesktop({
           shifts={shifts}
           shiftAssignments={shiftAssignments}
           leaves={leaves}
+          openingTime={openingTime}
         />
         
         {/* Moladaki Kuryeler */}
@@ -74,6 +77,7 @@ export function CourierSidebarDesktop({
           shifts={shifts}
           shiftAssignments={shiftAssignments}
           leaves={leaves}
+          openingTime={openingTime}
         />
         
         {/* Çevrimdışı Kuryeler */}
@@ -92,6 +96,7 @@ export function CourierSidebarDesktop({
           shifts={shifts}
           shiftAssignments={shiftAssignments}
           leaves={leaves}
+          openingTime={openingTime}
         />
       </CardContent>
     </Card>
@@ -104,7 +109,11 @@ export function CourierSidebarMobile({
   couriersOnDelivery,
   courierPackageCounts,
   onCourierClick,
-  onCourierHover
+  onCourierHover,
+  shifts = [],
+  shiftAssignments = [],
+  leaves = [],
+  openingTime = "06:00"
 }) {
   return (
     <Card className="lg:hidden">
@@ -128,6 +137,10 @@ export function CourierSidebarMobile({
           defaultOpen
           onCourierClick={onCourierClick}
           onCourierHover={onCourierHover}
+          shifts={shifts}
+          shiftAssignments={shiftAssignments}
+          leaves={leaves}
+          openingTime={openingTime}
         />
         
         {/* Dağıtımda Kuryeler */}
@@ -144,6 +157,10 @@ export function CourierSidebarMobile({
           defaultOpen
           onCourierClick={onCourierClick}
           onCourierHover={onCourierHover}
+          shifts={shifts}
+          shiftAssignments={shiftAssignments}
+          leaves={leaves}
+          openingTime={openingTime}
         />
         
         {/* Moladaki Kuryeler */}
@@ -159,6 +176,10 @@ export function CourierSidebarMobile({
           showBreakTime
           onCourierClick={onCourierClick}
           onCourierHover={onCourierHover}
+          shifts={shifts}
+          shiftAssignments={shiftAssignments}
+          leaves={leaves}
+          openingTime={openingTime}
         />
         
         {/* Çevrimdışı Kuryeler */}
@@ -174,6 +195,10 @@ export function CourierSidebarMobile({
           isOffline
           onCourierClick={onCourierClick}
           onCourierHover={onCourierHover}
+          shifts={shifts}
+          shiftAssignments={shiftAssignments}
+          leaves={leaves}
+          openingTime={openingTime}
         />
       </CardContent>
     </Card>
@@ -207,13 +232,27 @@ const isBatteryLow = (courier) => {
   return courier.battery.level <= 0.20;
 };
 
+// Şirket iş gününe göre weekday anahtarı (06:00-06:00 vb.)
+// openingTime = "HH:MM" formatında (default 06:00)
+const getBusinessDayKey = (openingTime = "06:00") => {
+  const days = ['pazar', 'pazartesi', 'sali', 'carsamba', 'persembe', 'cuma', 'cumartesi'];
+  const now = new Date();
+  let [openH, openM] = (openingTime || "06:00").split(":").map((n) => parseInt(n, 10) || 0);
+  const cutoffMinutes = openH * 60 + openM;
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const businessDate = new Date(now);
+  if (nowMinutes < cutoffMinutes) {
+    businessDate.setDate(businessDate.getDate() - 1);
+  }
+  return days[businessDate.getDay()];
+};
+
 // Kuryenin şu an aktif vardiyası var mı kontrol et
-const hasActiveShiftNow = (courier, shifts, shiftAssignments, leaves) => {
+const hasActiveShiftNow = (courier, shifts, shiftAssignments, leaves, openingTime = "06:00") => {
   if (!shifts || !shiftAssignments) return false;
   
-  // Bugünün gün adı (Türkçe)
-  const days = ['pazar', 'pazartesi', 'sali', 'carsamba', 'persembe', 'cuma', 'cumartesi'];
-  const today = days[new Date().getDay()];
+  // Şirket iş günü mantığına göre günün anahtarı (06:00 cutoff vb.)
+  const today = getBusinessDayKey(openingTime);
   
   // Bugün izinli mi kontrol et
   if (leaves && leaves.length > 0) {
@@ -258,12 +297,9 @@ const hasActiveShiftNow = (courier, shifts, shiftAssignments, leaves) => {
 };
 
 // Kuryenin bugün izinli olup olmadığını kontrol et
-const hasLeaveToday = (courier, leaves) => {
+const hasLeaveToday = (courier, leaves, openingTime = "06:00") => {
   if (!leaves || leaves.length === 0) return false;
-  
-  const days = ['pazar', 'pazartesi', 'sali', 'carsamba', 'persembe', 'cuma', 'cumartesi'];
-  const today = days[new Date().getDay()];
-  
+  const today = getBusinessDayKey(openingTime);
   return leaves.some(l => l.courier_id === courier.id && l.day === today);
 };
 
@@ -284,7 +320,8 @@ function CourierGroup({
   onCourierHover,
   shifts = [],
   shiftAssignments = [],
-  leaves = []
+  leaves = [],
+  openingTime = "06:00"
 }) {
   const sortedCouriers = sortCouriersAlphabetically(couriers);
   
@@ -312,6 +349,7 @@ function CourierGroup({
             shifts={shifts}
             shiftAssignments={shiftAssignments}
             leaves={leaves}
+            openingTime={openingTime}
           />
         ))
       )}
@@ -334,7 +372,11 @@ function CourierCollapsible({
   isOffline,
   defaultOpen,
   onCourierClick,
-  onCourierHover
+  onCourierHover,
+  shifts = [],
+  shiftAssignments = [],
+  leaves = [],
+  openingTime = "06:00"
 }) {
   const sortedCouriers = sortCouriersAlphabetically(couriers);
   
@@ -363,6 +405,10 @@ function CourierCollapsible({
               isOffline={isOffline}
               onClick={() => onCourierClick(c)}
               onHover={() => onCourierHover(c)}
+              shifts={shifts}
+              shiftAssignments={shiftAssignments}
+              leaves={leaves}
+              openingTime={openingTime}
             />
           ))
         )}
@@ -384,7 +430,8 @@ function CourierItem({
   onHover,
   shifts = [],
   shiftAssignments = [],
-  leaves = []
+  leaves = [],
+  openingTime = "06:00"
 }) {
   const packageCounts = counts || { assigned: 0, confirmed: 0, onTheWay: 0 };
   const breakInfo = showBreakTime ? getRemainingBreakTime(courier) : null;
@@ -399,10 +446,10 @@ function CourierItem({
   
   // Çevrimdışı ama aktif vardiyası var mı?
   // Admin-kurye için de bu kontrolü yap (artık backend her iki panel durumunu kontrol ediyor)
-  const missedShift = isOffline && hasActiveShiftNow(courier, shifts, shiftAssignments, leaves);
+  const missedShift = isOffline && hasActiveShiftNow(courier, shifts, shiftAssignments, leaves, openingTime);
   
   // Bugün izinli mi? (sadece çevrimdışı için)
-  const onLeaveToday = isOffline && hasLeaveToday(courier, leaves);
+  const onLeaveToday = isOffline && hasLeaveToday(courier, leaves, openingTime);
   
   return (
     <div 
