@@ -999,8 +999,33 @@ async def mark_adisyo_order_delivered(restaurant_id: str, adisyo_order_id: int, 
     if not restaurant:
         return {"success": False, "error": "Restoran bulunamadı"}
     
-    # Ödeme tipini Adisyo formatına çevir (detail ile birlikte)
-    payment_type_id = get_adisyo_payment_type(payment_method, payment_detail)
+    # ÖNCELİK 1: Adisyo'nun bize verdiği orijinal paymentMethodId'yi geri yolla.
+    # Bu sayede AgrosJet tarafında kullanıcı ödeme yöntemini değiştirse bile
+    # Adisyo'ya hep orijinal ID gider → restoran panelinde tanımlı olduğu için
+    # hata almıyoruz (status 756 / 400 önlenmiş olur).
+    payment_type_id = None
+    original_payment_method_id = None
+    original_payment_method_name = None
+    
+    order_doc = await db.orders.find_one(
+        {"restaurant_id": restaurant_id, "adisyo_order_id": adisyo_order_id},
+        {"_id": 0, "adisyo_raw": 1, "payment_method": 1}
+    )
+    if order_doc:
+        adisyo_raw = order_doc.get("adisyo_raw") or {}
+        raw_pid = adisyo_raw.get("paymentMethodId")
+        if raw_pid is not None:
+            try:
+                payment_type_id = int(raw_pid)
+                original_payment_method_id = payment_type_id
+                original_payment_method_name = adisyo_raw.get("paymentMethodName")
+            except (TypeError, ValueError):
+                payment_type_id = None
+    
+    # ÖNCELİK 2: Orijinal yoksa (manuel/non-adisyo) varsayılan mapping
+    if payment_type_id is None:
+        payment_type_id = get_adisyo_payment_type(payment_method, payment_detail)
+    
     request_body = {
         "orderId": adisyo_order_id,
         "paymentType": payment_type_id
@@ -1011,6 +1036,9 @@ async def mark_adisyo_order_delivered(restaurant_id: str, adisyo_order_id: int, 
         "adisyo_order_id": adisyo_order_id,
         "payment_method_in": payment_method,
         "payment_detail_in": payment_detail,
+        "original_payment_method_id": original_payment_method_id,
+        "original_payment_method_name": original_payment_method_name,
+        "payment_type_source": "adisyo_raw" if original_payment_method_id is not None else "mapping_default",
         "request_body": request_body,
     }
     
