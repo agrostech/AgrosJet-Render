@@ -164,29 +164,27 @@ async def get_order_totals_for_courier(company_id: str, courier_id: str, start_d
     order_count = 0
     modified_payment_count = 0  # Ödeme yöntemi değiştirilen sipariş sayısı
     
-    # Restoran tax_bracket'lerini cache'le
+    # Restoran tax_bracket'lerini cache'le (restoranın invoice_settings.percentage'sinden okur)
     restaurant_tax_cache = {}
     
     async def get_restaurant_tax_bracket(restaurant_id, restaurant_name):
-        """Restoran tax_bracket'ini bul"""
+        """Restoranın fatura yüzdesi (Restoranlar → Fatura modalı → Fatura Yüzdesi).
+        Tanımlı değilse fallback %10."""
         cache_key = restaurant_id or restaurant_name
         if cache_key in restaurant_tax_cache:
             return restaurant_tax_cache[cache_key]
         
-        business = None
+        tax_bracket = 10  # Fallback: %10 (yeme-içme)
         if restaurant_id:
-            business = await db.businesses.find_one(
+            rest = await db.restaurants.find_one(
                 {"id": restaurant_id},
-                {"_id": 0, "tax_bracket": 1}
+                {"_id": 0, "invoice_settings": 1}
             )
+            if rest:
+                pct = (rest.get("invoice_settings") or {}).get("percentage")
+                if pct in (1, 10, 20):
+                    tax_bracket = pct
         
-        if not business and restaurant_name:
-            business = await db.businesses.find_one(
-                {"company_id": company_id, "name": {"$regex": f"^{restaurant_name}$", "$options": "i"}},
-                {"_id": 0, "tax_bracket": 1}
-            )
-        
-        tax_bracket = business.get("tax_bracket") if business else 1
         restaurant_tax_cache[cache_key] = tax_bracket
         return tax_bracket
     
