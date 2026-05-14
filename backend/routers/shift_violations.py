@@ -209,8 +209,8 @@ async def check_and_log_violations_internal(company_id: str):
         if not courier:
             continue
         
-        # Kurye aktif mi? (available veya active)
-        courier_active = courier.get("availability_status") in ["available", "active"]
+        # Kurye aktif mi? (active veya on_break - mola da kabul edilir)
+        courier_active = courier.get("availability_status") in ["available", "active", "on_break"]
         
         # Admin-kurye ise hem admin hem kurye aktifliğini kontrol et
         admin_info = admin_courier_map.get(courier_id)
