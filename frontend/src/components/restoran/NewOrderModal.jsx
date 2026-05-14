@@ -365,7 +365,8 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
     }
     if (currentStep === 1) {
       if (!customerName.trim()) return false;
-      if (!customerPhone.trim()) return false;
+      const phoneDigits = (customerPhone || "").replace(/\D/g, "");
+      if (!/^0\d{10}$/.test(phoneDigits)) return false;
       if (!deliveryAddress.trim()) return false;
       if (isScheduled && (!scheduledDate || !scheduledTime)) return false;
       return true;
@@ -383,8 +384,13 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
         toast.error("Müşteri adı gerekli");
         return;
       }
-      if (!customerPhone.trim()) {
+      const phoneDigits = (customerPhone || "").replace(/\D/g, "");
+      if (!phoneDigits) {
         toast.error("Telefon numarası gerekli");
+        return;
+      }
+      if (!/^0\d{10}$/.test(phoneDigits)) {
+        toast.error("Telefon numarası 0 ile başlamalı ve 11 hane olmalı");
         return;
       }
       if (!deliveryAddress.trim()) {
@@ -453,6 +459,14 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
     // Yemek kartı seçildiyse tür seçimi ekranını göster
     if (selectedPayment === "meal_card" && !detail) {
       setShowMealCardTypes(true);
+      return;
+    }
+    
+    // Telefon numarası son güvenlik kontrolü
+    const phoneDigits = (customerPhone || "").replace(/\D/g, "");
+    if (!/^0\d{10}$/.test(phoneDigits)) {
+      toast.error("Telefon numarası 0 ile başlamalı ve 11 hane olmalı");
+      setCurrentStep(1);
       return;
     }
     
@@ -794,8 +808,11 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
         <Input
           id="customer-phone"
           value={customerPhone}
-          onChange={(e) => setCustomerPhone(e.target.value)}
-          placeholder="05XX XXX XX XX"
+          onChange={(e) => setCustomerPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
+          placeholder="05XXXXXXXXX"
+          inputMode="numeric"
+          maxLength={11}
+          data-testid="manual-order-phone-input"
         />
       </div>
 
