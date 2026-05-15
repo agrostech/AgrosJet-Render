@@ -353,6 +353,14 @@ async def log_violation(
     details: dict = None
 ):
     """Yeni ihlal kaydı oluştur"""
+    # Onaylı muafiyet kontrolü — kurye için
+    is_exempt = False
+    exempt_info = None
+    if entity_type == "courier":
+        from routers.exemption_requests import is_courier_exempt_at
+        exempt_info = await is_courier_exempt_at(company_id, entity_id, get_turkey_now())
+        is_exempt = bool(exempt_info)
+
     violation = {
         "id": str(uuid.uuid4()),
         "company_id": company_id,
@@ -363,13 +371,21 @@ async def log_violation(
         "violation_label": VIOLATION_TYPES.get(violation_type, violation_type),
         "details": details or {},
         "created_at": get_turkey_now(),
-        "resolved": False
+        "resolved": False,
+        "is_exempt": is_exempt,
+        "exempt_request_id": exempt_info.get("id") if exempt_info else None,
+        "exempt_reason_label": exempt_info.get("reason_label") if exempt_info else None,
     }
-    
+
     await db.shift_violations.insert_one(violation)
     # MongoDB adds _id, remove it before returning
     violation.pop("_id", None)
-    
+
+    # Muafiyetli ise ceza uygulanmaz
+    if is_exempt:
+        violation["penalty_amount"] = 0
+        return violation
+
     # Ceza uygula (eğer aktifse)
     penalty_result = await apply_penalty_if_needed(
         company_id, entity_type, entity_id, entity_name, violation_type, violation["id"]
@@ -377,7 +393,7 @@ async def log_violation(
     if penalty_result:
         violation["penalty_amount"] = penalty_result["amount"]
         violation["penalty_transaction_id"] = penalty_result["transaction_id"]
-    
+
     return violation
 
 

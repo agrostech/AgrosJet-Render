@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Menu, X, LogOut, Clock, Calculator, Package, FileText, ShoppingBag, GraduationCap, Bike, MoreHorizontal, ClipboardList, Check, Coffee, XCircle, BarChart3, ChevronDown, Shield, Moon, Sun, Loader2, Wallet } from "lucide-react";
 import CourierSidebar from "@/components/courier/CourierSidebar";
 import { BreakModal } from "@/components/courier/BreakModal";
+import ExemptionRequestModal from "@/components/courier/ExemptionRequestModal";
 import { useTheme } from "@/contexts/ThemeContext";
 import {
   DropdownMenu,
@@ -90,6 +91,7 @@ export default function CourierDashboard() {
   const [fesihAccepted, setFesihAccepted] = useState(true);
   const [documentProcessCompleted, setDocumentProcessCompleted] = useState(null); // null = henüz yüklenmedi
   const [maintenanceNotifications, setMaintenanceNotifications] = useState(0);
+  const [exemptionModalOpen, setExemptionModalOpen] = useState(false);
   const [navItems, setNavItems] = useState([]);
   const [bottomBarItems, setBottomBarItems] = useState([]);
   const [sidebarOnlyItems, setSidebarOnlyItems] = useState([]);
@@ -1056,6 +1058,7 @@ export default function CourierDashboard() {
           maintenanceNotifications={maintenanceNotifications}
           availabilityStatus={availabilityStatus}
           onStatusChange={handleStatusChange}
+          onExemptionClick={() => setExemptionModalOpen(true)}
           statusLoading={statusLoading}
           isRestrictedMode={isRestrictedMode}
         />
@@ -1139,6 +1142,12 @@ export default function CourierDashboard() {
           fetchBreakStatus(user.id);
           fetchCourierBreakInfo(user.id);
         }}
+      />
+
+      {/* Muafiyet Talebi Modalı */}
+      <ExemptionRequestModal
+        open={exemptionModalOpen}
+        onOpenChange={setExemptionModalOpen}
       />
     </div>
   );

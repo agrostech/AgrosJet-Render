@@ -6,6 +6,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -28,6 +29,7 @@ export default function CourierSidebar({
   chatUnreadCount = 0,
   availabilityStatus = "offline",
   onStatusChange,
+  onExemptionClick,
   statusLoading = false,
   isRestrictedMode = false
 }) {
@@ -76,7 +78,7 @@ export default function CourierSidebar({
                   <ChevronRight className="w-3 h-3 ml-auto" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-40">
+              <DropdownMenuContent align="start" className="w-44">
                 {Object.entries(AVAILABILITY_STATUSES).map(([key, status]) => {
                   const Icon = status.icon;
                   return (
@@ -91,6 +93,19 @@ export default function CourierSidebar({
                     </DropdownMenuItem>
                   );
                 })}
+                {onExemptionClick && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={onExemptionClick}
+                      className="flex items-center gap-2 text-blue-600 focus:text-blue-700"
+                      data-testid="desktop-exemption-trigger"
+                    >
+                      <Shield className="w-4 h-4" />
+                      Muafiyet Talep Et
+                    </DropdownMenuItem>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
             )}
@@ -125,7 +140,7 @@ export default function CourierSidebar({
                   <StatusIcon className="w-4 h-4 text-white" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" side="right" className="w-40">
+              <DropdownMenuContent align="start" side="right" className="w-44">
                 {Object.entries(AVAILABILITY_STATUSES).map(([key, status]) => {
                   const Icon = status.icon;
                   return (
@@ -140,6 +155,19 @@ export default function CourierSidebar({
                     </DropdownMenuItem>
                   );
                 })}
+                {onExemptionClick && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={onExemptionClick}
+                      className="flex items-center gap-2 text-blue-600 focus:text-blue-700"
+                      data-testid="collapsed-exemption-trigger"
+                    >
+                      <Shield className="w-4 h-4" />
+                      Muafiyet Talep Et
+                    </DropdownMenuItem>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
             )}

@@ -360,9 +360,13 @@ export default function VardiyaIhlalleriSection({ companyId, isSuperAdmin }) {
                               {v.details?.late_minutes > 0 && <span className="ml-1 text-slate-500">({v.details.late_minutes} dk gec)</span>}
                             </p>
                             {v.details?.shift_time && <p className="text-[10px] text-muted-foreground">Vardiya: {v.details.shift_time}</p>}
-                            <div className="flex items-center gap-2 mt-0.5">
+                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                               <p className="text-[10px] text-muted-foreground">{formatDateTimeWithDay(v.created_at)}</p>
-                              {v.penalty_amount > 0 && (
+                              {v.is_exempt ? (
+                                <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">
+                                  MUAFİYETLİ{v.exempt_reason_label ? ` (${v.exempt_reason_label})` : ''}
+                                </span>
+                              ) : v.penalty_amount > 0 && (
                                 <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
                                   <BadgeDollarSign className="w-2.5 h-2.5" />{v.penalty_amount} TL
                                 </span>

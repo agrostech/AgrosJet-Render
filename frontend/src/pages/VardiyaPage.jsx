@@ -18,6 +18,8 @@ import {
 import VardiyaIhlalleriSection from "@/components/vardiya/VardiyaIhlalleriSection";
 import StatusMovementsSection from "@/components/vardiya/StatusMovementsSection";
 import BreakSettingsSection from "@/components/vardiya/BreakSettingsSection";
+import MuafiyetlerSection from "@/components/vardiya/MuafiyetlerSection";
+import { Shield } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -207,6 +209,7 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
         {[
           { id: "shifts", label: "Vardiyalar", icon: Clock },
           { id: "violations", label: "İhlaller", icon: AlertTriangle },
+          { id: "muafiyetler", label: "Muafiyetler", icon: Shield },
           { id: "movements", label: "Hareketler", icon: Clock },
           { id: "break_settings", label: "Mola Ayarları", icon: Coffee },
         ].map(tab => (
@@ -412,6 +415,10 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
 
       {subTab === "violations" && (
         <VardiyaIhlalleriSection companyId={companyId} isSuperAdmin={isSuperAdmin} />
+      )}
+
+      {subTab === "muafiyetler" && (
+        <MuafiyetlerSection companyId={companyId} />
       )}
 
       {subTab === "movements" && (
