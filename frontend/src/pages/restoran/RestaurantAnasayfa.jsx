@@ -786,7 +786,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                       src={`/images/platforms/${platform}.png`}
                                       alt={platform}
                                       title={platform}
-                                      className="w-6 h-6 rounded-full object-cover mx-auto"
+                                      className="w-7 h-7 object-contain mx-auto"
                                       data-testid={`order-platform-logo-${order.id}`}
                                     />
                                   );
