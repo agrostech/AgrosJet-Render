@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { 
   RefreshCw, MapPin, Phone, Clock, User, Bike, Store, Package,
   ChevronRight, ChevronLeft, ChevronDown, Navigation, CheckCircle2, XCircle, AlertCircle,
-  Filter, Users, CheckCircle, ClipboardX, ListChecks, Search, ArrowUpDown
+  Filter, Users, CheckCircle, ClipboardX, ListChecks, Search, ArrowUpDown, Check
 } from "lucide-react";
 
 // Yardımcı fonksiyonlar
@@ -197,6 +197,20 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
     await Promise.all([fetchOrders(), fetchCouriers(), fetchRestaurants(), fetchCompany(), fetchShiftData()]);
     setLoading(false);
   }, [fetchOrders, fetchCouriers, fetchRestaurants, fetchCompany, fetchShiftData]);
+
+  // Manuel "Yenile" butonu için animasyon state'i (idle | refreshing | done)
+  const [refreshState, setRefreshState] = useState("idle");
+  const handleManualRefresh = useCallback(async () => {
+    if (refreshState === "refreshing") return;
+    setRefreshState("refreshing");
+    try {
+      await fetchAll();
+      setRefreshState("done");
+      setTimeout(() => setRefreshState("idle"), 1200);
+    } catch {
+      setRefreshState("idle");
+    }
+  }, [refreshState, fetchAll]);
 
   useEffect(() => {
     fetchAll();
@@ -814,9 +828,19 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
         </div>
         {mainTab === "active" && (
           <div className="flex gap-2 flex-wrap">
-            <Button variant="outline" size="sm" onClick={fetchAll}>
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Yenile
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleManualRefresh}
+              disabled={refreshState === "refreshing"}
+              data-testid="refresh-btn"
+            >
+              {refreshState === "done" ? (
+                <Check className="w-4 h-4 mr-2 text-green-600" />
+              ) : (
+                <RefreshCw className={`w-4 h-4 mr-2 ${refreshState === "refreshing" ? "animate-spin" : ""}`} />
+              )}
+              {refreshState === "done" ? "Yenilendi" : "Yenile"}
             </Button>
             <NotificationsPopover companyId={companyId} />
             <RequestsPopover companyId={companyId} />
@@ -832,8 +856,19 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
           <h2 className="font-heading text-lg font-bold tracking-tight">Sipariş Yönetimi</h2>
           {mainTab === "active" && (
             <div className="flex items-center gap-2 flex-wrap">
-              <Button variant="outline" size="sm" onClick={fetchAll} className="h-8 px-2">
-                <RefreshCw className="w-4 h-4" />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleManualRefresh}
+                disabled={refreshState === "refreshing"}
+                className="h-8 px-2"
+                data-testid="refresh-btn-mobile"
+              >
+                {refreshState === "done" ? (
+                  <Check className="w-4 h-4 text-green-600" />
+                ) : (
+                  <RefreshCw className={`w-4 h-4 ${refreshState === "refreshing" ? "animate-spin" : ""}`} />
+                )}
               </Button>
               <NotificationsPopover companyId={companyId} />
               <RequestsPopover companyId={companyId} />

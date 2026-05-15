@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
-import { ClipboardCheck, Plus, Trash2, AlertTriangle, Clock, Image as ImageIcon, X, Loader2, CheckCircle } from "lucide-react";
+import { ClipboardCheck, Plus, Trash2, AlertTriangle, Clock, Image as ImageIcon, X, Loader2, CheckCircle, ChevronDown } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -62,79 +62,109 @@ function TaskCard({ task, isSuper, currentUserId, onComplete, onDelete }) {
   const overdue = isOverdue(task);
   const canDelete = isSuper && task.assigned_by === currentUserId && task.status === "pending";
   const canComplete = task.assigned_to === currentUserId && task.status === "pending";
+  const [expanded, setExpanded] = useState(false);
+  const hasDetails = task.description || task.due_date || (task.status === "completed" && (task.completion_notes || (task.completion_image_urls && task.completion_image_urls.length > 0)));
 
   return (
     <div
       data-testid={`task-card-${task.id}`}
-      className={`p-3 border-b last:border-b-0 ${task.is_urgent ? "bg-red-50/60" : ""}`}
+      className={`group px-3 py-2 border-b last:border-b-0 hover:bg-slate-50/50 transition-colors ${
+        task.is_urgent && task.status === "pending" ? "border-l-2 border-l-red-500" : ""
+      }`}
     >
-      <div className="flex items-start justify-between gap-2 mb-1">
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <h5 className="font-semibold text-sm">{task.title}</h5>
-          {task.is_urgent && (
-            <span className="px-1.5 py-0.5 text-[10px] font-bold bg-red-500 text-white rounded">ACİL</span>
+      {/* Üst satır: başlık + rozetler + aksiyonlar */}
+      <div className="flex items-center gap-1.5">
+        <div className="flex-1 min-w-0 flex items-center gap-1.5">
+          <span className={`font-medium text-[13px] truncate ${task.status === "completed" ? "text-muted-foreground line-through" : ""}`}>
+            {task.title}
+          </span>
+          {task.is_urgent && task.status === "pending" && (
+            <span className="px-1 py-0 text-[9px] font-bold bg-red-500 text-white rounded leading-tight flex-shrink-0">ACİL</span>
           )}
           {overdue && (
-            <span className="px-1.5 py-0.5 text-[10px] font-bold bg-orange-500 text-white rounded">GECİKEN</span>
-          )}
-          {task.status === "completed" && (
-            <span className="px-1.5 py-0.5 text-[10px] font-medium bg-green-100 text-green-700 rounded">Tamamlandı</span>
+            <span className="px-1 py-0 text-[9px] font-bold bg-orange-500 text-white rounded leading-tight flex-shrink-0">GECİKEN</span>
           )}
         </div>
-        {canDelete && (
-          <button
-            onClick={() => onDelete(task)}
-            className="p-1 rounded hover:bg-red-100 text-red-600"
-            title="Sil"
-            data-testid={`delete-task-${task.id}`}
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
-        )}
-      </div>
-      {task.description && (
-        <p className="text-xs text-muted-foreground mb-1 whitespace-pre-wrap">{task.description}</p>
-      )}
-      <div className="text-[11px] text-muted-foreground space-y-0.5">
-        <div>👤 Atanan: <span className="font-medium text-foreground">{task.assigned_to_name}</span></div>
-        {isSuper && (
-          <div>📤 Atayan: {task.assigned_by_name}</div>
-        )}
-        {task.due_date && (
-          <div className={overdue ? "text-orange-600 font-medium" : ""}>
-            <Clock className="w-3 h-3 inline mr-0.5" />
-            Teslim: {formatDue(task.due_date)}
-          </div>
-        )}
-        <div>{formatRelative(task.created_at)}</div>
-      </div>
-      {task.status === "completed" && (
-        <div className="mt-2 pt-2 border-t border-dashed">
-          {task.completion_notes && (
-            <p className="text-xs text-slate-700 whitespace-pre-wrap mb-1">{task.completion_notes}</p>
+        <div className="flex items-center gap-0.5 flex-shrink-0">
+          {hasDetails && (
+            <button
+              onClick={() => setExpanded(e => !e)}
+              className="p-0.5 rounded hover:bg-slate-200 text-muted-foreground"
+              title={expanded ? "Detayı gizle" : "Detayı göster"}
+              data-testid={`expand-task-${task.id}`}
+            >
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expanded ? "rotate-180" : ""}`} />
+            </button>
           )}
-          {task.completion_image_urls && task.completion_image_urls.length > 0 && (
+          {canComplete && (
+            <button
+              onClick={() => onComplete(task)}
+              className="p-1 rounded hover:bg-green-100 text-green-600"
+              title="Görevi Tamamla"
+              data-testid={`complete-task-${task.id}`}
+            >
+              <CheckCircle className="w-3.5 h-3.5" />
+            </button>
+          )}
+          {canDelete && (
+            <button
+              onClick={() => onDelete(task)}
+              className="p-1 rounded hover:bg-red-100 text-red-600"
+              title="Sil"
+              data-testid={`delete-task-${task.id}`}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Alt satır: meta (atanan, tarih) — kompakt */}
+      <div className="flex items-center gap-2 text-[10.5px] text-muted-foreground mt-0.5">
+        <span className="truncate">{task.assigned_to_name}</span>
+        {isSuper && task.assigned_by !== task.assigned_to && (
+          <>
+            <span className="opacity-40">·</span>
+            <span className="truncate">↤ {task.assigned_by_name}</span>
+          </>
+        )}
+        <span className="opacity-40">·</span>
+        <span className="whitespace-nowrap">{formatRelative(task.created_at)}</span>
+        {task.due_date && task.status === "pending" && (
+          <>
+            <span className="opacity-40">·</span>
+            <span className={`whitespace-nowrap ${overdue ? "text-orange-600 font-medium" : ""}`}>
+              <Clock className="w-2.5 h-2.5 inline mr-0.5" />
+              {formatDue(task.due_date)}
+            </span>
+          </>
+        )}
+      </div>
+
+      {/* Genişletilmiş detay */}
+      {expanded && hasDetails && (
+        <div className="mt-1.5 pl-2 border-l-2 border-slate-200 space-y-1">
+          {task.description && (
+            <p className="text-[11.5px] text-slate-700 whitespace-pre-wrap">{task.description}</p>
+          )}
+          {task.status === "completed" && task.completion_notes && (
+            <p className="text-[11.5px] text-slate-700 whitespace-pre-wrap italic">"{task.completion_notes}"</p>
+          )}
+          {task.status === "completed" && task.completion_image_urls && task.completion_image_urls.length > 0 && (
             <div className="flex gap-1 flex-wrap">
               {task.completion_image_urls.map((img, i) => (
-                <a key={i} href={img.url} target="_blank" rel="noreferrer" className="block">
-                  <img src={img.url} alt="task" className="w-12 h-12 object-cover rounded border" />
+                <a key={i} href={img.url} target="_blank" rel="noreferrer">
+                  <img src={img.url} alt="" className="w-10 h-10 object-cover rounded border hover:scale-110 transition-transform" />
                 </a>
               ))}
             </div>
           )}
-          <p className="text-[10px] text-muted-foreground mt-1">{formatRelative(task.completed_at)} tamamlandı</p>
+          {task.status === "completed" && task.completed_at && (
+            <p className="text-[10px] text-muted-foreground">
+              {formatRelative(task.completed_at)} tamamlandı
+            </p>
+          )}
         </div>
-      )}
-      {canComplete && (
-        <Button
-          size="sm"
-          className="mt-2 h-7 text-xs"
-          onClick={() => onComplete(task)}
-          data-testid={`complete-task-${task.id}`}
-        >
-          <CheckCircle className="w-3.5 h-3.5 mr-1" />
-          Görevi Tamamla
-        </Button>
       )}
     </div>
   );
@@ -400,7 +430,10 @@ export default function TasksPopover({ user }) {
     setLoading(true);
     try {
       const params = {};
-      if (tab === "mine") params.role_filter = "mine";
+      if (tab === "mine") {
+        params.role_filter = "mine";
+        params.status = "pending"; // Tamamlananlar "Tamamlananlar" sekmesinde
+      }
       else if (tab === "assigned_by_me") {
         params.role_filter = "assigned_by_me";
         params.status = "pending";
@@ -525,10 +558,10 @@ export default function TasksPopover({ user }) {
                 <div className="mt-2">
                   <Select value={filterAssignee} onValueChange={setFilterAssignee}>
                     <SelectTrigger className="h-7 text-xs" data-testid="task-assignee-filter">
-                      <SelectValue placeholder="Tüm admin'ler" />
+                      <SelectValue placeholder="Tüm Yöneticiler" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Tüm admin'ler</SelectItem>
+                      <SelectItem value="all">Tüm Yöneticiler</SelectItem>
                       {admins.map(a => (
                         <SelectItem key={a.id} value={a.id}>{a.name || a.username}</SelectItem>
                       ))}
