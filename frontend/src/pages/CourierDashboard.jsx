@@ -92,6 +92,7 @@ export default function CourierDashboard() {
   const [documentProcessCompleted, setDocumentProcessCompleted] = useState(null); // null = henüz yüklenmedi
   const [maintenanceNotifications, setMaintenanceNotifications] = useState(0);
   const [exemptionModalOpen, setExemptionModalOpen] = useState(false);
+  const [exemptionEnabled, setExemptionEnabled] = useState(true);
   const [navItems, setNavItems] = useState([]);
   const [bottomBarItems, setBottomBarItems] = useState([]);
   const [sidebarOnlyItems, setSidebarOnlyItems] = useState([]);
@@ -266,6 +267,17 @@ export default function CourierDashboard() {
   }, []);
 
   // Native app'ten gelen mesajları dinle (FCM Token için)
+  useEffect(() => {
+    if (!user?.id) return;
+    const fetchExemptionStatus = async () => {
+      try {
+        const res = await axios.get(`${API}/exemption-requests/settings/status`);
+        setExemptionEnabled(!!res.data.enabled);
+      } catch { /* default true */ }
+    };
+    fetchExemptionStatus();
+  }, [user?.id]);
+
   useEffect(() => {
     const handleNativeMessage = async (data) => {
       if (data?.type === 'PUSH_TOKEN' && data?.data && user?.id) {
@@ -1058,7 +1070,7 @@ export default function CourierDashboard() {
           maintenanceNotifications={maintenanceNotifications}
           availabilityStatus={availabilityStatus}
           onStatusChange={handleStatusChange}
-          onExemptionClick={() => setExemptionModalOpen(true)}
+          onExemptionClick={exemptionEnabled ? () => setExemptionModalOpen(true) : null}
           statusLoading={statusLoading}
           isRestrictedMode={isRestrictedMode}
         />

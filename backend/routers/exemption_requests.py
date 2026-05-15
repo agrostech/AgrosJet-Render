@@ -27,7 +27,7 @@ TR_TZ = timezone(timedelta(hours=3))
 
 REASONS = {
     "health": "Sağlık Sorunu",
-    "accident": "Kaza",
+    "accident": "Trafik Kazası",
     "equipment": "Ekipman Arızası",
     "other": "Diğer",
 }
@@ -58,6 +58,15 @@ async def _serialize(req: dict) -> dict:
 async def _company_opening_time(company_id: str) -> str:
     company = await db.companies.find_one({"id": company_id}, {"_id": 0, "opening_time": 1})
     return (company or {}).get("opening_time") or "06:00"
+
+
+async def _exemption_enabled(company_id: str) -> bool:
+    """Şirketin muafiyet sistemi açık mı? Default: True (geriye uyumluluk için)."""
+    company = await db.companies.find_one({"id": company_id}, {"_id": 0, "exemption_enabled": 1})
+    if not company:
+        return True
+    val = company.get("exemption_enabled")
+    return True if val is None else bool(val)
 
 
 def _next_opening_dt(now: datetime, opening_time: str) -> datetime:
@@ -91,6 +100,10 @@ async def create_request(
     company_id = payload.get("company_id")
     if not courier_id or not company_id:
         raise HTTPException(status_code=400, detail="Kurye/şirket bilgisi eksik")
+
+    # Şirket muafiyet sistemini kapatmışsa talep alınmaz
+    if not await _exemption_enabled(company_id):
+        raise HTTPException(status_code=403, detail="Şirketiniz muafiyet sistemini kullanmıyor")
 
     # Aynı gün için pending veya approved var mı?
     now = datetime.now(TR_TZ)
@@ -222,6 +235,35 @@ async def courier_today(payload: dict = Depends(require_auth)):
     return {"request": await _serialize(rec) if rec else None}
 
 
+# ============ SETTINGS (route'ları /{req_id}'dan ÖNCE tanımla) ============
+class SettingsBody(BaseModel):
+    enabled: bool
+
+
+@router.get("/settings/status")
+async def get_settings(payload: dict = Depends(require_auth)):
+    """Şirketin muafiyet sistemi açık mı? Hem admin hem kurye okuyabilir."""
+    company_id = payload.get("company_id")
+    if not company_id:
+        return {"enabled": False}
+    return {"enabled": await _exemption_enabled(company_id)}
+
+
+@router.put("/settings/status")
+async def update_settings(body: SettingsBody, payload: dict = Depends(require_auth)):
+    """Sadece admin/superadmin şirket muafiyet sistemini açıp kapatabilir."""
+    if not _is_admin(payload):
+        raise HTTPException(status_code=403, detail="Yetki yok")
+    company_id = payload.get("company_id")
+    if not company_id:
+        raise HTTPException(status_code=400, detail="company_id eksik")
+    await db.companies.update_one(
+        {"id": company_id},
+        {"$set": {"exemption_enabled": bool(body.enabled)}}
+    )
+    return {"success": True, "enabled": bool(body.enabled)}
+
+
 @router.get("/{req_id}")
 async def get_request(req_id: str, payload: dict = Depends(require_auth)):
     company_id = payload.get("company_id")
@@ -311,3 +353,4 @@ async def is_courier_exempt_at(company_id: str, courier_id: str, when_iso: str) 
         "exempt_from": {"$lte": when_iso},
         "exempt_until": {"$gt": when_iso},
     }, {"_id": 0, "id": 1, "reason": 1, "reason_label": 1})
+

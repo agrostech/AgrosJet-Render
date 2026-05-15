@@ -12,7 +12,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const REASONS = [
   { value: "health", label: "Sağlık Sorunu" },
-  { value: "accident", label: "Kaza" },
+  { value: "accident", label: "Trafik Kazası" },
   { value: "equipment", label: "Ekipman Arızası" },
   { value: "other", label: "Diğer" },
 ];

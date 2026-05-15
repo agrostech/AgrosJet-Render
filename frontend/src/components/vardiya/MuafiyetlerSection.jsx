@@ -3,6 +3,9 @@ import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 import { Loader2, Shield, Filter } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -25,7 +28,30 @@ export default function MuafiyetlerSection({ companyId }) {
   const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
-  const [activeImage, setActiveImage] = useState(null); // büyük görsel modal
+  const [activeImage, setActiveImage] = useState(null);
+  const [enabled, setEnabled] = useState(true);
+  const [toggleBusy, setToggleBusy] = useState(false);
+
+  const fetchEnabled = useCallback(async () => {
+    if (!companyId) return;
+    try {
+      const res = await axios.get(`${API}/exemption-requests/settings/status`);
+      setEnabled(!!res.data.enabled);
+    } catch { /* ignore */ }
+  }, [companyId]);
+
+  const handleToggle = async (next) => {
+    setToggleBusy(true);
+    try {
+      await axios.put(`${API}/exemption-requests/settings/status`, { enabled: next });
+      setEnabled(next);
+      toast.success(next ? "Muafiyet sistemi açıldı" : "Muafiyet sistemi kapatıldı");
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Güncelleme başarısız");
+    } finally {
+      setToggleBusy(false);
+    }
+  };
 
   const fetchData = useCallback(async () => {
     if (!companyId) return;
@@ -42,7 +68,7 @@ export default function MuafiyetlerSection({ companyId }) {
     }
   }, [companyId, statusFilter]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => { fetchEnabled(); fetchData(); }, [fetchEnabled, fetchData]);
 
   const filtered = items.filter(r => {
     if (!search.trim()) return true;
@@ -53,11 +79,27 @@ export default function MuafiyetlerSection({ companyId }) {
 
   return (
     <div className="space-y-3" data-testid="muafiyetler-section">
+      {/* Sistem Toggle */}
+      <div className="flex items-center justify-between p-3 border rounded bg-slate-50/50 dark:bg-slate-800/30">
+        <div>
+          <Label className="text-sm font-semibold flex items-center gap-1.5">
+            <Shield className="w-4 h-4 text-blue-600" />
+            Muafiyet Sistemi
+          </Label>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Kapatılırsa kuryelerin paneline "Muafiyet Talep Et" butonu görünmez ve yeni talep oluşturulamaz.
+          </p>
+        </div>
+        <Switch
+          checked={enabled}
+          onCheckedChange={handleToggle}
+          disabled={toggleBusy}
+          data-testid="exemption-system-toggle"
+        />
+      </div>
+
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <h3 className="text-sm font-semibold flex items-center gap-2">
-          <Shield className="w-4 h-4 text-blue-600" />
-          Muafiyet Kayıtları
-        </h3>
+        <h3 className="text-sm font-semibold">Muafiyet Kayıtları</h3>
         <div className="flex gap-2 items-center">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="h-8 text-xs w-32">
