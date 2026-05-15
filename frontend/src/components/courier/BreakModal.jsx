@@ -131,9 +131,10 @@ export function BreakModal({
   // Sıradaki pozisyon ve bekleme süresi hesapla
   const queueLength = breakStatus?.queue?.length || 0;
   const estimatedWait = breakStatus?.queue?.reduce((sum, q) => sum + (q.duration || 30), 0) || 0;
-  const totalWaitWithOnBreak = breakStatus?.on_break_couriers?.reduce(
-    (sum, c) => sum + (c.remaining_minutes || 0), 0
-  ) || 0;
+  // Moladaki kuryelerden EN KISA kalan süre = ilk boşalacak slot.
+  // (Limit > 1 olduğunda paralel slot'lar var; toplam değil min alınmalı.)
+  const onBreakRemaining = breakStatus?.on_break_couriers?.map(c => c.remaining_minutes || 0) || [];
+  const totalWaitWithOnBreak = onBreakRemaining.length > 0 ? Math.min(...onBreakRemaining) : 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
