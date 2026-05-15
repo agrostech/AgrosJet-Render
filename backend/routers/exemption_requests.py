@@ -20,6 +20,7 @@ import logging
 from utils.database import db
 from utils.jwt_utils import require_auth
 from services.r2_storage import upload_file_to_r2, generate_presigned_url
+from services.notifications import send_push_notification
 
 router = APIRouter(prefix="/api/exemption-requests", tags=["Exemptions"])
 logger = logging.getLogger(__name__)
@@ -79,6 +80,32 @@ def _next_opening_dt(now: datetime, opening_time: str) -> datetime:
     return tomorrow.replace(hour=h, minute=m, second=0, microsecond=0)
 
 
+def _last_opening_dt(now: datetime, opening_time: str) -> datetime:
+    """Mevcut iş gününün başlangıcı. Eğer henüz bugünkü opening_time'a
+    ulaşılmadıysa dünkü opening_time döner."""
+    try:
+        h, m = [int(x) for x in opening_time.split(":")]
+    except Exception:
+        h, m = 6, 0
+    today_open = now.replace(hour=h, minute=m, second=0, microsecond=0)
+    if now < today_open:
+        return today_open - timedelta(days=1)
+    return today_open
+
+
+async def _send_courier_push(courier_id: str, title: str, body: str, data: dict) -> None:
+    """Kuryeye push gönder; hata olursa loglar ama kararı bozmaz."""
+    try:
+        courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "fcm_token": 1})
+        token = (courier or {}).get("fcm_token")
+        if not token:
+            logger.info(f"Kurye {courier_id} için FCM token yok, push atlandı")
+            return
+        await send_push_notification(token, title, body, data)
+    except Exception as e:
+        logger.warning(f"Muafiyet push gönderilemedi (courier={courier_id}): {e}")
+
+
 @router.post("")
 async def create_request(
     reason: str = Form(...),
@@ -105,16 +132,20 @@ async def create_request(
     if not await _exemption_enabled(company_id):
         raise HTTPException(status_code=403, detail="Şirketiniz muafiyet sistemini kullanmıyor")
 
-    # Aynı gün için pending veya approved var mı?
+    # Aynı iş günü için pending/approved/rejected var mı?
+    # Reddedilen talep bir sonraki gün açılış saatine kadar yeni talebi engeller.
     now = datetime.now(TR_TZ)
-    today_start_iso = now.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+    opening = await _company_opening_time(company_id)
+    biz_day_start_iso = _last_opening_dt(now, opening).isoformat()
     duplicate = await db.exemption_requests.find_one({
         "company_id": company_id,
         "courier_id": courier_id,
-        "status": {"$in": ["pending", "approved"]},
-        "submitted_at": {"$gte": today_start_iso},
+        "status": {"$in": ["pending", "approved", "rejected"]},
+        "submitted_at": {"$gte": biz_day_start_iso},
     })
     if duplicate:
+        if duplicate.get("status") == "rejected":
+            raise HTTPException(status_code=400, detail="Talebiniz reddedildi. Yeni talep için bir sonraki iş gününü bekleyin.")
         raise HTTPException(status_code=400, detail="Bugün için zaten aktif bir muafiyet talebiniz var")
 
     # Görseli R2'ye yükle
@@ -220,18 +251,21 @@ async def courier_active(payload: dict = Depends(require_auth)):
 
 @router.get("/courier/today")
 async def courier_today(payload: dict = Depends(require_auth)):
-    """Kuryenin bugün (TR günü başı sonrası) açtığı talebi döner — UI için duplicate koruması."""
+    """Kuryenin mevcut iş günü içinde (son açılış saatinden itibaren) açtığı talebi döner.
+    Reddedilen talep de bir sonraki iş gününe kadar görünür kalır."""
     if not _is_courier(payload):
         raise HTTPException(status_code=403, detail="Yetki yok")
     courier_id = payload.get("sub") or payload.get("courier_id") or payload.get("user_id")
     company_id = payload.get("company_id")
-    today_start = datetime.now(TR_TZ).replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+    now = datetime.now(TR_TZ)
+    opening = await _company_opening_time(company_id)
+    biz_day_start_iso = _last_opening_dt(now, opening).isoformat()
     rec = await db.exemption_requests.find_one({
         "company_id": company_id,
         "courier_id": courier_id,
-        "status": {"$in": ["pending", "approved"]},
-        "submitted_at": {"$gte": today_start},
-    }, {"_id": 0})
+        "status": {"$in": ["pending", "approved", "rejected"]},
+        "submitted_at": {"$gte": biz_day_start_iso},
+    }, sort=[("submitted_at", -1)], projection={"_id": 0})
     return {"request": await _serialize(rec) if rec else None}
 
 
@@ -310,6 +344,12 @@ async def approve_request(req_id: str, payload: dict = Depends(require_auth)):
         }}
     )
     updated = await db.exemption_requests.find_one({"id": req_id}, {"_id": 0})
+    await _send_courier_push(
+        rec.get("courier_id"),
+        "Muafiyet Onaylandı",
+        f"{rec.get('reason_label') or 'Muafiyet'} talebiniz onaylandı. Bir sonraki iş günü başlangıcına kadar geçerli.",
+        {"type": "EXEMPTION_APPROVED", "request_id": req_id, "action": "open_exemption"},
+    )
     return {"success": True, "request": await _serialize(updated)}
 
 
@@ -329,6 +369,7 @@ async def reject_request(req_id: str, body: RejectBody, payload: dict = Depends(
         raise HTTPException(status_code=400, detail="Talep zaten karara bağlanmış")
 
     now = datetime.now(TR_TZ)
+    rejection_reason = (body.reason or "").strip() or None
     await db.exemption_requests.update_one(
         {"id": req_id},
         {"$set": {
@@ -336,10 +377,19 @@ async def reject_request(req_id: str, body: RejectBody, payload: dict = Depends(
             "decided_at": now.isoformat(),
             "decided_by": admin_id,
             "decided_by_name": admin_name,
-            "rejection_reason": (body.reason or "").strip() or None,
+            "rejection_reason": rejection_reason,
         }}
     )
     updated = await db.exemption_requests.find_one({"id": req_id}, {"_id": 0})
+    push_body = "Muafiyet talebiniz reddedildi."
+    if rejection_reason:
+        push_body += f" Sebep: {rejection_reason}"
+    await _send_courier_push(
+        rec.get("courier_id"),
+        "Muafiyet Reddedildi",
+        push_body,
+        {"type": "EXEMPTION_REJECTED", "request_id": req_id, "action": "open_exemption"},
+    )
     return {"success": True, "request": await _serialize(updated)}
 
 

@@ -27,7 +27,13 @@
 - Password: 123456
 - Login URL: /restoran-login -> POST /api/restaurant-users/login
 
-## Courier (Test)
+## Courier (Test) — used by ExemptionRequest tests
+- Phone: 05550003201
+- Password: Test123!
+- Courier ID: feae169f-222b-45df-b9e8-0664a186031a
+- Login URL: /courier-login -> POST /api/auth/courier/login
+
+## Courier (Onur)
 - Phone: 05553337766
 - Password: 123456
 - Courier ID: f7188370-b3c6-46e9-bd49-acf3e18c1df7
@@ -36,7 +42,7 @@
 
 ## Courier (Alternative)
 - Phone: 05550003201
-- Password: 123456
+- Password: Test123!
 
 ## Testing Bypass
 - Email verification OTP code is hardcoded to: 117200

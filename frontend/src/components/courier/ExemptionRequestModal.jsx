@@ -20,7 +20,7 @@ const REASONS = [
 const STATUS_LABELS = {
   pending: { label: "Talep değerlendiriliyor", color: "text-amber-600 bg-amber-50" },
   approved: { label: "Onaylandı — bugünden yarın açılışa kadar geçerli", color: "text-green-700 bg-green-50" },
-  rejected: { label: "Reddedildi", color: "text-red-700 bg-red-50" },
+  rejected: { label: "Reddedildi — yeni talep için bir sonraki iş gününü bekleyin", color: "text-red-700 bg-red-50" },
 };
 
 export default function ExemptionRequestModal({ open, onOpenChange }) {
