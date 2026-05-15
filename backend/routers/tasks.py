@@ -8,11 +8,16 @@ Görev Yönetimi (Tasks) Router
 - Adminler sadece KENDİ görevlerini görür (assigned_to == kendisi).
 - Adminler tamamladıkları görevlere not + max 3 resim ekler (R2'ye `tasks/{company_id}/{admin_id}/{task_id}/...`).
 - Superadmin tüm tamamlanmış görevleri görür.
-- "Acil" etiketi sadece superadmin set edebilir.
-- Atayan superadmin tamamlanmamış görevleri silebilir.
+- "Acil" etiketi sadece superadmin set edebilir; recurring (tekrarlayan) görevler acil olamaz.
+- Atayan superadmin tamamlanmamış görevleri silebilir; recurring template silinince mevcut child instance'lar kalır.
+
+Zamanlama:
+- "scheduled_at" set edilirse görev `status="scheduled"` olarak başlar; aktivasyon anına kadar admin görmez.
+- "recurrence" set edilirse template oluşur (status="recurring_template", admin görmez).
+  - Background job her dakika ilgili gün/saatte child instance üretir (status="pending").
 """
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List
 from datetime import datetime, timezone, timedelta
 import uuid
@@ -28,12 +33,39 @@ TR_TZ = timezone(timedelta(hours=3))
 
 
 # ============ MODELS ============
+class RecurrenceConfig(BaseModel):
+    days_of_week: List[int] = Field(..., min_length=1)  # 0=Pzt ... 6=Paz
+    time_of_day: str  # "HH:MM"
+    until: Optional[str] = None  # ISO
+
+    @field_validator("days_of_week")
+    @classmethod
+    def _valid_days(cls, v):
+        if not all(0 <= d <= 6 for d in v):
+            raise ValueError("days_of_week 0-6 arasında olmalı")
+        return sorted(set(v))
+
+    @field_validator("time_of_day")
+    @classmethod
+    def _valid_time(cls, v):
+        try:
+            h, m = v.split(":")
+            h, m = int(h), int(m)
+            if not (0 <= h <= 23 and 0 <= m <= 59):
+                raise ValueError
+            return f"{h:02d}:{m:02d}"
+        except Exception:
+            raise ValueError("time_of_day HH:MM olmalı")
+
+
 class TaskCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
     description: Optional[str] = Field(None, max_length=2000)
     assignee_ids: List[str] = Field(..., min_length=1)  # birden fazla admin
     due_date: Optional[str] = None  # ISO string
     is_urgent: bool = False
+    scheduled_at: Optional[str] = None  # ISO string — set edilirse status=scheduled
+    recurrence: Optional[RecurrenceConfig] = None  # set edilirse template oluşur
 
 
 # ============ HELPERS ============
@@ -57,10 +89,19 @@ async def _serialize(task: dict) -> dict:
     return task
 
 
+def _parse_iso(value: Optional[str]) -> Optional[datetime]:
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Geçersiz tarih formatı")
+
+
 # ============ ENDPOINTS ============
 @router.post("")
 async def create_task(data: TaskCreate, payload: dict = Depends(require_auth)):
-    """Görev oluştur (sadece superadmin)."""
+    """Görev oluştur (sadece superadmin). Hemen / İleri tarihli / Tekrarlayan üç moddan biri."""
     if not _is_superadmin(payload):
         raise HTTPException(status_code=403, detail="Sadece süperadmin görev oluşturabilir")
 
@@ -80,14 +121,30 @@ async def create_task(data: TaskCreate, payload: dict = Depends(require_auth)):
     if len(assignees) != len(set(data.assignee_ids)):
         raise HTTPException(status_code=400, detail="Bir veya daha fazla admin bulunamadı")
 
-    due_dt = None
-    if data.due_date:
-        try:
-            due_dt = datetime.fromisoformat(data.due_date.replace("Z", "+00:00"))
-        except ValueError:
-            raise HTTPException(status_code=400, detail="Geçersiz teslim tarihi")
+    due_dt = _parse_iso(data.due_date)
+    scheduled_dt = _parse_iso(data.scheduled_at)
+    rec_until = _parse_iso(data.recurrence.until) if data.recurrence and data.recurrence.until else None
+
+    # Recurring + scheduled aynı anda olamaz
+    if data.recurrence and scheduled_dt:
+        raise HTTPException(status_code=400, detail="Tekrarlayan ve ileri tarihli aynı anda kullanılamaz")
+    # Recurring + acil aynı anda olamaz (kullanıcı isteğine göre)
+    if data.recurrence and data.is_urgent:
+        raise HTTPException(status_code=400, detail="Tekrarlayan görevler acil olamaz")
+    # Recurring + due_date aynı anda olamaz
+    if data.recurrence and due_dt:
+        raise HTTPException(status_code=400, detail="Tekrarlayan görevlerde teslim tarihi kullanılmaz")
 
     now = datetime.now(TR_TZ)
+
+    # Status belirleme
+    def _initial_status() -> str:
+        if data.recurrence:
+            return "recurring_template"
+        if scheduled_dt and scheduled_dt > now:
+            return "scheduled"
+        return "pending"
+
     created_tasks = []
     for assignee in assignees:
         task = {
@@ -100,11 +157,21 @@ async def create_task(data: TaskCreate, payload: dict = Depends(require_auth)):
             "assigned_by": creator_id,
             "assigned_by_name": creator_name,
             "due_date": due_dt.isoformat() if due_dt else None,
-            "is_urgent": bool(data.is_urgent),
-            "status": "pending",
+            "is_urgent": bool(data.is_urgent) and not data.recurrence,
+            "status": _initial_status(),
             "completed_at": None,
             "completion_notes": None,
             "completion_images": [],
+            "scheduled_at": scheduled_dt.isoformat() if scheduled_dt else None,
+            "recurrence": (
+                {
+                    "days_of_week": data.recurrence.days_of_week,
+                    "time_of_day": data.recurrence.time_of_day,
+                    "until": rec_until.isoformat() if rec_until else None,
+                }
+                if data.recurrence else None
+            ),
+            "parent_task_id": None,
             "created_at": now.isoformat(),
             "updated_at": now.isoformat(),
         }
@@ -117,7 +184,7 @@ async def create_task(data: TaskCreate, payload: dict = Depends(require_auth)):
 @router.get("")
 async def list_tasks(
     role_filter: Optional[str] = None,  # mine | assigned_by_me | all_completed
-    status: Optional[str] = None,        # pending | completed
+    status: Optional[str] = None,        # pending | completed | scheduled | recurring_template
     assignee: Optional[str] = None,       # filter by admin id (superadmin için)
     payload: dict = Depends(require_auth),
 ):
@@ -132,21 +199,25 @@ async def list_tasks(
     query = {"company_id": company_id}
 
     if role_filter == "mine":
-        # Hem admin hem superadmin için: bana atanmış
+        # Bana atanmış aktif görevler — adminler scheduled/template GÖREMEZ
         query["assigned_to"] = user_id
+        if not is_super:
+            # Admin için sadece pending + completed göster (scheduled/recurring_template gizli)
+            query.setdefault("$or", [{"status": "pending"}, {"status": "completed"}])
     elif role_filter == "assigned_by_me":
         # Sadece superadmin: atadıklarım (kendine atadıkları HARİÇ)
+        # Status'u explicit gelmediyse default = bekleyenler (pending + scheduled + recurring_template)
         if not is_super:
             raise HTTPException(status_code=403, detail="Yetki yok")
         query["assigned_by"] = user_id
         query["assigned_to"] = {"$ne": user_id}
+        if not status:
+            query["status"] = {"$in": ["pending", "scheduled", "recurring_template"]}
     elif role_filter == "all_completed":
-        # Sadece superadmin: tüm tamamlananlar
         if not is_super:
             raise HTTPException(status_code=403, detail="Yetki yok")
         query["status"] = "completed"
     else:
-        # Default: kullanıcıyı ilgilendiren (admin için)
         if not is_super:
             query["assigned_to"] = user_id
 
@@ -156,18 +227,13 @@ async def list_tasks(
         query["assigned_to"] = assignee
 
     tasks = await db.tasks.find(query, {"_id": 0}).sort("created_at", -1).to_list(500)
-
-    # Presigned URL'leri ekle
-    for t in tasks:
-        await _serialize(t)
-        # _serialize task'ı in-place mutasyonla genişletti, ama biz dict döndürüyoruz
     enriched = [await _serialize(t) for t in tasks]
     return {"tasks": enriched}
 
 
 @router.get("/badge-count")
 async def badge_count(payload: dict = Depends(require_auth)):
-    """Adminin bekleyen görev sayısı (badge için)."""
+    """Adminin bekleyen görev sayısı (badge için) — sadece pending'leri sayar (scheduled/template hariç)."""
     company_id = payload.get("company_id")
     user_id = payload.get("sub") or payload.get("admin_id") or payload.get("user_id")
     if not company_id or not user_id:
@@ -203,9 +269,11 @@ async def get_task(task_id: str, payload: dict = Depends(require_auth)):
     if not task:
         raise HTTPException(status_code=404, detail="Görev bulunamadı")
 
-    # Yetki: superadmin her şeyi görür; admin sadece kendine ait
     if not is_super and task.get("assigned_to") != user_id:
         raise HTTPException(status_code=403, detail="Yetki yok")
+    # Admin scheduled/template göremesin
+    if not is_super and task.get("status") in ("scheduled", "recurring_template"):
+        raise HTTPException(status_code=403, detail="Görev henüz aktif değil")
 
     return await _serialize(task)
 
@@ -228,6 +296,8 @@ async def complete_task(
         raise HTTPException(status_code=403, detail="Bu görev size atanmamış")
     if task.get("status") == "completed":
         raise HTTPException(status_code=400, detail="Görev zaten tamamlanmış")
+    if task.get("status") in ("scheduled", "recurring_template"):
+        raise HTTPException(status_code=400, detail="Henüz aktif olmayan görev tamamlanamaz")
 
     if files and len(files) > 3:
         raise HTTPException(status_code=400, detail="En fazla 3 resim yüklenebilir")
@@ -270,7 +340,8 @@ async def complete_task(
 
 @router.delete("/{task_id}")
 async def delete_task(task_id: str, payload: dict = Depends(require_auth)):
-    """Tamamlanmamış görevi sil — sadece atayan superadmin."""
+    """Tamamlanmamış görevi/template'i sil — sadece atayan superadmin.
+    Recurring template silinince mevcut child'lar korunur (admin tamamlayabilir)."""
     if not _is_superadmin(payload):
         raise HTTPException(status_code=403, detail="Yetki yok")
 

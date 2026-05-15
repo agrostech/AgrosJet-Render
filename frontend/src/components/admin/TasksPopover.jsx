@@ -60,17 +60,22 @@ const isOverdue = (task) =>
 
 function TaskCard({ task, isSuper, currentUserId, onComplete, onDelete }) {
   const overdue = isOverdue(task);
-  const canDelete = isSuper && task.assigned_by === currentUserId && task.status === "pending";
+  const isTemplate = task.status === "recurring_template";
+  const isScheduled = task.status === "scheduled";
+  const canDelete = isSuper && task.assigned_by === currentUserId && task.status !== "completed";
   const canComplete = task.assigned_to === currentUserId && task.status === "pending";
   const [expanded, setExpanded] = useState(false);
-  const hasDetails = task.description || task.due_date || (task.status === "completed" && (task.completion_notes || (task.completion_image_urls && task.completion_image_urls.length > 0)));
+  const hasDetails = task.description || task.due_date || isTemplate || isScheduled || (task.status === "completed" && (task.completion_notes || (task.completion_image_urls && task.completion_image_urls.length > 0)));
+
+  const dayShort = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"];
+  const recDays = (task.recurrence?.days_of_week || []).map(d => dayShort[d]).join(", ");
 
   return (
     <div
       data-testid={`task-card-${task.id}`}
       className={`group px-3 py-2 border-b last:border-b-0 hover:bg-slate-50/50 transition-colors ${
         task.is_urgent && task.status === "pending" ? "border-l-2 border-l-red-500" : ""
-      }`}
+      } ${isTemplate ? "border-l-2 border-l-purple-500 bg-purple-50/20" : ""} ${isScheduled ? "border-l-2 border-l-amber-500 bg-amber-50/20" : ""}`}
     >
       {/* Üst satır: başlık + rozetler + aksiyonlar */}
       <div className="flex items-center gap-1.5">
@@ -78,6 +83,12 @@ function TaskCard({ task, isSuper, currentUserId, onComplete, onDelete }) {
           <span className={`font-medium text-[13px] truncate ${task.status === "completed" ? "text-muted-foreground line-through" : ""}`}>
             {task.title}
           </span>
+          {isTemplate && (
+            <span className="px-1 py-0 text-[9px] font-bold bg-purple-500 text-white rounded leading-tight flex-shrink-0">TEKRARLAYAN</span>
+          )}
+          {isScheduled && (
+            <span className="px-1 py-0 text-[9px] font-bold bg-amber-500 text-white rounded leading-tight flex-shrink-0">ZAMANLANMIŞ</span>
+          )}
           {task.is_urgent && task.status === "pending" && (
             <span className="px-1 py-0 text-[9px] font-bold bg-red-500 text-white rounded leading-tight flex-shrink-0">ACİL</span>
           )}
@@ -119,7 +130,7 @@ function TaskCard({ task, isSuper, currentUserId, onComplete, onDelete }) {
         </div>
       </div>
 
-      {/* Alt satır: meta (atanan, tarih) — kompakt */}
+      {/* Alt satır: meta */}
       <div className="flex items-center gap-2 text-[10.5px] text-muted-foreground mt-0.5">
         <span className="truncate">{task.assigned_to_name}</span>
         {isSuper && task.assigned_by !== task.assigned_to && (
@@ -128,15 +139,29 @@ function TaskCard({ task, isSuper, currentUserId, onComplete, onDelete }) {
             <span className="truncate">↤ {task.assigned_by_name}</span>
           </>
         )}
-        <span className="opacity-40">·</span>
-        <span className="whitespace-nowrap">{formatRelative(task.created_at)}</span>
-        {task.due_date && task.status === "pending" && (
+        {isTemplate ? (
           <>
             <span className="opacity-40">·</span>
-            <span className={`whitespace-nowrap ${overdue ? "text-orange-600 font-medium" : ""}`}>
-              <Clock className="w-2.5 h-2.5 inline mr-0.5" />
-              {formatDue(task.due_date)}
-            </span>
+            <span className="whitespace-nowrap">{recDays} · {task.recurrence?.time_of_day}</span>
+          </>
+        ) : isScheduled ? (
+          <>
+            <span className="opacity-40">·</span>
+            <span className="whitespace-nowrap">{formatDue(task.scheduled_at)}</span>
+          </>
+        ) : (
+          <>
+            <span className="opacity-40">·</span>
+            <span className="whitespace-nowrap">{formatRelative(task.created_at)}</span>
+            {task.due_date && task.status === "pending" && (
+              <>
+                <span className="opacity-40">·</span>
+                <span className={`whitespace-nowrap ${overdue ? "text-orange-600 font-medium" : ""}`}>
+                  <Clock className="w-2.5 h-2.5 inline mr-0.5" />
+                  {formatDue(task.due_date)}
+                </span>
+              </>
+            )}
           </>
         )}
       </div>
@@ -146,6 +171,9 @@ function TaskCard({ task, isSuper, currentUserId, onComplete, onDelete }) {
         <div className="mt-1.5 pl-2 border-l-2 border-slate-200 space-y-1">
           {task.description && (
             <p className="text-[11.5px] text-slate-700 whitespace-pre-wrap">{task.description}</p>
+          )}
+          {isTemplate && task.recurrence?.until && (
+            <p className="text-[11px] text-muted-foreground">Bitiş: {formatDue(task.recurrence.until)}</p>
           )}
           {task.status === "completed" && task.completion_notes && (
             <p className="text-[11.5px] text-slate-700 whitespace-pre-wrap italic">"{task.completion_notes}"</p>
@@ -175,13 +203,22 @@ function CreateTaskDialog({ open, onOpenChange, admins, onCreated }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [assigneeIds, setAssigneeIds] = useState([]);
+  const [scheduleMode, setScheduleMode] = useState("now"); // now | scheduled | recurring
   const [dueDate, setDueDate] = useState("");
+  const [scheduledAt, setScheduledAt] = useState("");
+  const [recDays, setRecDays] = useState([]); // 0..6 (Pzt..Paz)
+  const [recTime, setRecTime] = useState("09:00");
+  const [recUntil, setRecUntil] = useState("");
   const [isUrgent, setIsUrgent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (!open) {
-      setTitle(""); setDescription(""); setAssigneeIds([]); setDueDate(""); setIsUrgent(false);
+      setTitle(""); setDescription(""); setAssigneeIds([]);
+      setScheduleMode("now");
+      setDueDate(""); setScheduledAt("");
+      setRecDays([]); setRecTime("09:00"); setRecUntil("");
+      setIsUrgent(false);
     }
   }, [open]);
 
@@ -189,9 +226,23 @@ function CreateTaskDialog({ open, onOpenChange, admins, onCreated }) {
     setAssigneeIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   };
 
+  const toggleDay = (d) => {
+    setRecDays(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d].sort());
+  };
+
+  const dayLabels = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"];
+
   const handleSubmit = async () => {
     if (!title.trim()) return toast.error("Başlık gerekli");
     if (assigneeIds.length === 0) return toast.error("En az bir admin seçin");
+
+    if (scheduleMode === "scheduled" && !scheduledAt) {
+      return toast.error("İleri tarih için tarih/saat seçin");
+    }
+    if (scheduleMode === "recurring") {
+      if (recDays.length === 0) return toast.error("En az bir gün seçin");
+      if (!recTime) return toast.error("Tekrar saati gerekli");
+    }
 
     setSubmitting(true);
     try {
@@ -199,12 +250,27 @@ function CreateTaskDialog({ open, onOpenChange, admins, onCreated }) {
         title: title.trim(),
         description: description.trim() || null,
         assignee_ids: assigneeIds,
-        is_urgent: isUrgent,
+        is_urgent: scheduleMode === "recurring" ? false : isUrgent,
       };
-      if (dueDate) payload.due_date = new Date(dueDate).toISOString();
+      if (scheduleMode === "scheduled") {
+        payload.scheduled_at = new Date(scheduledAt).toISOString();
+      } else if (scheduleMode === "recurring") {
+        payload.recurrence = {
+          days_of_week: recDays,
+          time_of_day: recTime,
+          until: recUntil ? new Date(recUntil).toISOString() : null,
+        };
+      } else if (dueDate) {
+        payload.due_date = new Date(dueDate).toISOString();
+      }
 
       await axios.post(`${API}/tasks`, payload);
-      toast.success(`${assigneeIds.length} görev oluşturuldu`);
+      const msg = scheduleMode === "recurring"
+        ? `${assigneeIds.length} tekrarlayan görev oluşturuldu`
+        : scheduleMode === "scheduled"
+          ? `${assigneeIds.length} görev zamanlandı`
+          : `${assigneeIds.length} görev oluşturuldu`;
+      toast.success(msg);
       onCreated?.();
       onOpenChange(false);
     } catch (err) {
@@ -236,15 +302,15 @@ function CreateTaskDialog({ open, onOpenChange, admins, onCreated }) {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Detay (opsiyonel)"
-              rows={3}
+              rows={2}
               data-testid="task-desc-input"
             />
           </div>
           <div>
-            <Label className="text-xs">Atanan Admin(ler) *</Label>
-            <div className="border rounded p-2 max-h-40 overflow-y-auto space-y-1">
+            <Label className="text-xs">Atanan Yönetici(ler) *</Label>
+            <div className="border rounded p-2 max-h-32 overflow-y-auto space-y-1">
               {admins.length === 0 && (
-                <p className="text-xs text-muted-foreground">Admin listesi yükleniyor...</p>
+                <p className="text-xs text-muted-foreground">Yönetici listesi yükleniyor...</p>
               )}
               {admins.map(a => (
                 <label key={a.id} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-slate-50 p-1 rounded">
@@ -261,26 +327,121 @@ function CreateTaskDialog({ open, onOpenChange, admins, onCreated }) {
               ))}
             </div>
           </div>
+
+          {/* Zamanlama Modu */}
           <div>
-            <Label className="text-xs">Teslim Tarihi (opsiyonel)</Label>
-            <Input
-              type="datetime-local"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              data-testid="task-due-input"
-            />
+            <Label className="text-xs">Zamanlama</Label>
+            <div className="grid grid-cols-3 gap-1 mt-1">
+              {[
+                { val: "now", label: "Hemen" },
+                { val: "scheduled", label: "İleri Tarih" },
+                { val: "recurring", label: "Tekrarlayan" },
+              ].map(opt => (
+                <button
+                  key={opt.val}
+                  type="button"
+                  onClick={() => setScheduleMode(opt.val)}
+                  className={`text-xs py-1.5 px-2 rounded border transition-colors ${
+                    scheduleMode === opt.val
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "border-slate-200 hover:bg-slate-50"
+                  }`}
+                  data-testid={`schedule-mode-${opt.val}`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           </div>
-          <label className="flex items-center gap-2 text-sm cursor-pointer">
-            <Checkbox
-              checked={isUrgent}
-              onCheckedChange={(c) => setIsUrgent(!!c)}
-              data-testid="task-urgent-checkbox"
-            />
-            <span className="font-medium text-red-600 flex items-center gap-1">
-              <AlertTriangle className="w-3.5 h-3.5" />
-              Acil
-            </span>
-          </label>
+
+          {scheduleMode === "now" && (
+            <div>
+              <Label className="text-xs">Teslim Tarihi (opsiyonel)</Label>
+              <Input
+                type="datetime-local"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                data-testid="task-due-input"
+              />
+            </div>
+          )}
+
+          {scheduleMode === "scheduled" && (
+            <div>
+              <Label className="text-xs">Görev tarihi/saati *</Label>
+              <Input
+                type="datetime-local"
+                value={scheduledAt}
+                onChange={(e) => setScheduledAt(e.target.value)}
+                data-testid="task-scheduled-input"
+              />
+              <p className="text-[10.5px] text-muted-foreground mt-1">
+                Görev bu tarih/saat gelene kadar atanan yöneticide görünmez.
+              </p>
+            </div>
+          )}
+
+          {scheduleMode === "recurring" && (
+            <div className="space-y-2 p-2 border border-dashed rounded">
+              <div>
+                <Label className="text-xs">Günler *</Label>
+                <div className="flex gap-1 mt-1 flex-wrap">
+                  {dayLabels.map((d, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => toggleDay(i)}
+                      className={`text-xs w-9 h-7 rounded border transition-colors ${
+                        recDays.includes(i)
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "border-slate-200 hover:bg-slate-50"
+                      }`}
+                      data-testid={`rec-day-${i}`}
+                    >
+                      {d}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs">Saat *</Label>
+                  <Input
+                    type="time"
+                    value={recTime}
+                    onChange={(e) => setRecTime(e.target.value)}
+                    data-testid="rec-time-input"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Bitiş (ops.)</Label>
+                  <Input
+                    type="date"
+                    value={recUntil}
+                    onChange={(e) => setRecUntil(e.target.value)}
+                    data-testid="rec-until-input"
+                  />
+                </div>
+              </div>
+              <p className="text-[10.5px] text-muted-foreground">
+                Seçilen gün(ler)de belirlenen saatte yönetici paneline her seferinde yeni bir görev düşer.
+              </p>
+            </div>
+          )}
+
+          {scheduleMode !== "recurring" && (
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <Checkbox
+                checked={isUrgent}
+                onCheckedChange={(c) => setIsUrgent(!!c)}
+                data-testid="task-urgent-checkbox"
+              />
+              <span className="font-medium text-red-600 flex items-center gap-1">
+                <AlertTriangle className="w-3.5 h-3.5" />
+                Acil
+              </span>
+            </label>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>İptal</Button>

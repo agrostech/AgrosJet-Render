@@ -408,6 +408,23 @@ async def lifespan(app: FastAPI):
         name="Auto Dispatch (5s)",
         replace_existing=True
     )
+
+    # Tasks Scheduler — scheduled aktivasyon + recurring instance (her dakika)
+    async def tasks_scheduler_job():
+        try:
+            from services.tasks_scheduler import run_tasks_scheduler_tick
+            await run_tasks_scheduler_tick()
+        except Exception as e:
+            print(f"Tasks scheduler error: {e}")
+
+    scheduler.add_job(
+        tasks_scheduler_job,
+        'interval',
+        minutes=1,
+        id="tasks_scheduler",
+        name="Tasks Scheduler (1m)",
+        replace_existing=True
+    )
     
     # Scheduler'ı shift_scheduler modülüne kaydet
     from utils.shift_scheduler import set_scheduler, load_shift_jobs
