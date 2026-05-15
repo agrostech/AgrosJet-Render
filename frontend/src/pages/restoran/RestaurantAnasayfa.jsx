@@ -235,36 +235,12 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
     }
   }, [orders, restaurantId]);
 
-  // Süre dolan siparişleri otomatik "ready" durumuna geçir
-  useEffect(() => {
-    const checkExpiredOrders = async () => {
-      if (!orders || orders.length === 0) return;
-      
-      for (const order of orders) {
-        // Sadece preparing durumundaki ve preparation_end_at olan siparişleri kontrol et
-        if (order.status === 'preparing' && order.preparation_end_at) {
-          const countdown = getCountdown(order.preparation_end_at);
-          
-          // Süre dolduysa otomatik olarak "ready" yap
-          if (countdown?.expired) {
-            try {
-              await onUpdateStatus(order.id, 'ready');
-              // Bildirim kapatıldı - kullanıcı isteği
-            } catch (err) {
-              console.error("Otomatik durum değişikliği hatası:", err);
-            }
-          }
-        }
-      }
-    };
-    
-    // Başlangıçta kontrol et
-    checkExpiredOrders();
-    
-    // Her 10 saniyede bir kontrol et
-    const interval = setInterval(checkExpiredOrders, 10000);
-    return () => clearInterval(interval);
-  }, [orders, onUpdateStatus]);
+  // NOT: Süresi dolan siparişleri otomatik 'ready' yapma işi backend'de
+  // check_preparation_times tarafından yapılıyor (her /v2/list çağrısında).
+  // Eski client-side useEffect bir race condition yaratıyordu: kullanıcı
+  // hazırlık süresini uzatırken setInterval eski snapshot'ı kullanıp
+  // 'ready' PUT'unu atıyor, böylece sipariş hemen otomatik atamaya giriyordu.
+  // Frontend kontrolü kaldırıldı - tek kaynak (backend) yeterli.
 
   // Manuel yazdırma fonksiyonu - PDF önizleme olarak aç
   const handlePrintOrder = (order) => {

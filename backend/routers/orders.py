@@ -1987,38 +1987,67 @@ async def check_preparation_times(company_id: str = None, restaurant_id: str = N
     """
     Hazırlık süresi dolan siparişleri otomatik 'Hazır' durumuna güncelle.
     company_id veya restaurant_id parametrelerinden biri verilmeli.
+
+    Atomik update: aynı kayıt üzerinde TOCTOU race'i önlemek için
+    `status=preparing AND preparation_end_at <= now` koşulu update'in kendi
+    filter'ında kontrol ediliyor. Kullanıcı bu sırada hazırlık süresini
+    uzatırsa update modified_count=0 döner ve ilgili sipariş atlanır.
     """
     now = datetime.now(TURKEY_TZ).isoformat()
-    
+
     # Query oluştur
-    query = {
+    base_query = {
         "status": "preparing",
         "preparation_end_at": {"$lte": now}
     }
     if company_id:
-        query["company_id"] = company_id
+        base_query["company_id"] = company_id
     elif restaurant_id:
-        query["restaurant_id"] = restaurant_id
+        base_query["restaurant_id"] = restaurant_id
     else:
         return 0
-    
-    # Hazırlanıyor durumunda ve hazırlık süresi dolmuş siparişleri bul
-    expired_orders = await db.orders.find(query, {"_id": 0, "id": 1, "order_number": 1}).to_list(100)
-    
-    # Her birini merkezi fonksiyon ile güncelle
+
+    # Önce aday siparişleri al (snapshot)
+    expired_orders = await db.orders.find(base_query, {"_id": 0, "id": 1, "order_number": 1}).to_list(100)
+
+    transitioned = 0
     for order in expired_orders:
-        await update_order_status_core(
-            order_id=order["id"],
-            new_status="ready",
-            actor_type="auto",
-            actor_name="Otomatik",
-            note="Hazırlık süresi doldu",
-            notify_platform=False
+        # Atomik conditional update: koşul hâlâ geçerli mi?
+        # Eğer kullanıcı bu sırada prep_end_at'i uzattıysa, modified_count=0 döner.
+        guard_query = {
+            "id": order["id"],
+            "status": "preparing",
+            "preparation_end_at": {"$lte": datetime.now(TURKEY_TZ).isoformat()}
+        }
+        result = await db.orders.update_one(
+            guard_query,
+            {"$set": {"_prep_check_lock": True}}  # geçici işaret
         )
-        if restaurant_id:
-            logger.info(f"Sipariş hazır durumuna güncellendi (bekleme süresi doldu): {order.get('order_number')}")
-    
-    return len(expired_orders)
+        if result.modified_count == 0:
+            # Yarış: kullanıcı uzattı veya başka bir worker zaten işlemiş
+            continue
+
+        # Lock alındı, status değişimini merkezi fonksiyonla yap (status_history vs.)
+        try:
+            await update_order_status_core(
+                order_id=order["id"],
+                new_status="ready",
+                actor_type="auto",
+                actor_name="Otomatik",
+                note="Hazırlık süresi doldu",
+                notify_platform=False
+            )
+            transitioned += 1
+            if restaurant_id:
+                logger.info(f"Sipariş hazır durumuna güncellendi (bekleme süresi doldu): {order.get('order_number')}")
+        finally:
+            # Lock işaretini temizle
+            await db.orders.update_one(
+                {"id": order["id"]},
+                {"$unset": {"_prep_check_lock": ""}}
+            )
+
+    return transitioned
 
 
 @router.get("/restaurant/{restaurant_id}/available-couriers")
