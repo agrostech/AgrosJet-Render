@@ -500,8 +500,16 @@ export function CourierDetailModal({
                             <span className="text-[10px] text-slate-500 truncate flex-1">{order.delivery_address}</span>
                             <div className="flex items-center gap-1.5 text-[10px] flex-shrink-0">
                               <span className="font-medium">{formatCurrency(order.total_amount)}</span>
-                              <span className="text-slate-500">
-                                {order.payment_method === 'cash' ? 'Nakit' : 'Kart'}
+                              <span className="text-slate-500" data-testid={`courier-order-payment-${order.id}`}>
+                                {(() => {
+                                  const pm = order.payment_type || order.payment_method;
+                                  if (order.source === 'migros' && order.payment_method_detail) return order.payment_method_detail;
+                                  if (pm === 'cash') return 'Nakit';
+                                  if (pm === 'card') return 'Kart';
+                                  if (pm === 'meal_card' || pm === 'online_meal_card') return 'Yemek Kartı';
+                                  if (pm === 'online') return 'Online';
+                                  return 'Online';
+                                })()}
                               </span>
                             </div>
                           </div>
