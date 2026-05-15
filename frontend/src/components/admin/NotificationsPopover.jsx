@@ -250,11 +250,11 @@ export default function NotificationsPopover({ companyId }) {
         <Button 
           variant="outline" 
           size="sm" 
-          className="relative border-2 font-semibold"
+          className="relative border-2 font-semibold px-2 sm:px-3"
           data-testid="notifications-btn"
         >
-          <Bell className="w-4 h-4 mr-2" />
-          Bildirimler
+          <Bell className="w-4 h-4 sm:mr-2" />
+          <span className="hidden sm:inline">Bildirimler</span>
           {unreadCount > 0 && (
             <span className="absolute -top-2 -right-2 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center bg-red-500">
               {unreadCount > 9 ? "9+" : unreadCount}

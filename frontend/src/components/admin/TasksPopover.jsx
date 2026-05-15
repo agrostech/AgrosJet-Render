@@ -684,11 +684,11 @@ export default function TasksPopover({ user }) {
           <Button
             variant="outline"
             size="sm"
-            className="relative border-2 font-semibold"
+            className="relative border-2 font-semibold px-2 sm:px-3"
             data-testid="tasks-btn"
           >
-            <ClipboardCheck className="w-4 h-4 mr-2" />
-            Görevler
+            <ClipboardCheck className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Görevler</span>
             {badgeCount > 0 && (
               <span className="absolute -top-2 -right-2 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center bg-red-500">
                 {badgeCount > 9 ? "9+" : badgeCount}
