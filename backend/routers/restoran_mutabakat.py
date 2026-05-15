@@ -778,7 +778,7 @@ class CiroRequest(BaseModel):
 
 @router.post("/ciro/restaurant/{restaurant_id}")
 async def get_restaurant_ciro(restaurant_id: str, req: CiroRequest):
-    """Restoran ciro raporu - ödeme yöntemlerine göre"""
+    """Restoran ciro raporu - ödeme yöntemlerine göre + platform kırılımı"""
     
     # Restoran kontrolü
     restaurant = await db.restaurants.find_one(
@@ -798,20 +798,9 @@ async def get_restaurant_ciro(restaurant_id: str, req: CiroRequest):
         "restaurant_id": restaurant_id,
         "status": "delivered",
         "delivered_at": {"$gte": start_dt, "$lte": end_dt}
-    }, {"_id": 0, "total_amount": 1, "payment_method": 1, "customer_name": 1, "delivery_address": 1, "order_number": 1, "delivered_at": 1, "created_at": 1}).to_list(10000)
-    
-    # Ciro hesapla + sipariş listesi
-    cash_total = 0
-    card_total = 0
-    meal_card_total = 0
-    online_total = 0
-    online_meal_card_total = 0
-
-    cash_orders = []
-    card_orders = []
-    meal_card_orders = []
-    online_orders = []
-    online_meal_card_orders = []
+    }, {"_id": 0, "total_amount": 1, "payment_method": 1, "customer_name": 1,
+        "delivery_address": 1, "order_number": 1, "delivered_at": 1,
+        "created_at": 1, "source": 1}).to_list(10000)
     
     method_labels = {
         "cash": "Nakit",
@@ -821,9 +810,66 @@ async def get_restaurant_ciro(restaurant_id: str, req: CiroRequest):
         "online_meal_card": "Online Yemek Kartı",
     }
 
+    def _empty_bucket():
+        return {
+            "order_count": 0,
+            "cash_total": 0.0,
+            "card_total": 0.0,
+            "meal_card_total": 0.0,
+            "online_total": 0.0,
+            "online_meal_card_total": 0.0,
+            "cash_orders": [],
+            "card_orders": [],
+            "meal_card_orders": [],
+            "online_orders": [],
+            "online_meal_card_orders": [],
+        }
+
+    def _add_to_bucket(bucket, method, amount, row):
+        bucket["order_count"] += 1
+        if method == "cash":
+            bucket["cash_total"] += amount
+            bucket["cash_orders"].append(row)
+        elif method == "card":
+            bucket["card_total"] += amount
+            bucket["card_orders"].append(row)
+        elif method == "meal_card":
+            bucket["meal_card_total"] += amount
+            bucket["meal_card_orders"].append(row)
+        elif method == "online":
+            bucket["online_total"] += amount
+            bucket["online_orders"].append(row)
+        elif method == "online_meal_card":
+            bucket["online_meal_card_total"] += amount
+            bucket["online_meal_card_orders"].append(row)
+
+    def _finalize(bucket):
+        total = (bucket["cash_total"] + bucket["card_total"] + bucket["meal_card_total"]
+                 + bucket["online_total"] + bucket["online_meal_card_total"])
+        for k in ("cash_total", "card_total", "meal_card_total", "online_total", "online_meal_card_total"):
+            bucket[k] = round(bucket[k], 2)
+        bucket["total_ciro"] = round(total, 2)
+        return bucket
+
+    # Platform anahtarları: source -> bucket key eşleşmesi.
+    # phone bucket: telefonla / panelden / Adisyo POS kaynaklı siparişleri kapsar.
+    SOURCE_TO_BUCKET = {
+        "yemeksepeti": "yemeksepeti",
+        "trendyol": "trendyol",
+        "getir": "getir",
+        "migros": "migros",
+        "phone": "phone",
+        "manual": "phone",
+        "adisyo": "phone",
+    }
+    PLATFORM_KEYS = ["yemeksepeti", "trendyol", "getir", "migros", "phone"]
+    overall = _empty_bucket()
+    by_platform = {k: _empty_bucket() for k in PLATFORM_KEYS}
+
     for order in orders:
         amount = order.get("total_amount", 0) or 0
         method = order.get("payment_method", "")
+        src = (order.get("source") or "").lower()
         row = {
             "order_number": order.get("order_number", "-"),
             "customer_name": order.get("customer_name", "-"),
@@ -832,38 +878,29 @@ async def get_restaurant_ciro(restaurant_id: str, req: CiroRequest):
             "total_amount": amount,
             "date": (order.get("delivered_at") or order.get("created_at") or "")[:16].replace("T", " "),
         }
-        
-        if method == "cash":
-            cash_total += amount
-            cash_orders.append(row)
-        elif method == "card":
-            card_total += amount
-            card_orders.append(row)
-        elif method == "meal_card":
-            meal_card_total += amount
-            meal_card_orders.append(row)
-        elif method == "online":
-            online_total += amount
-            online_orders.append(row)
-        elif method == "online_meal_card":
-            online_meal_card_total += amount
-            online_meal_card_orders.append(row)
-    
-    total_ciro = cash_total + card_total + meal_card_total + online_total + online_meal_card_total
-    
+
+        _add_to_bucket(overall, method, amount, row)
+        bucket_key = SOURCE_TO_BUCKET.get(src)
+        if bucket_key:
+            _add_to_bucket(by_platform[bucket_key], method, amount, row)
+
+    overall = _finalize(overall)
+    by_platform = {k: _finalize(v) for k, v in by_platform.items()}
+
     return {
         "restaurant_id": restaurant_id,
         "restaurant_name": restaurant.get("name", ""),
-        "order_count": len(orders),
-        "cash_total": round(cash_total, 2),
-        "card_total": round(card_total, 2),
-        "meal_card_total": round(meal_card_total, 2),
-        "online_total": round(online_total, 2),
-        "online_meal_card_total": round(online_meal_card_total, 2),
-        "total_ciro": round(total_ciro, 2),
-        "cash_orders": cash_orders,
-        "card_orders": card_orders,
-        "meal_card_orders": meal_card_orders,
-        "online_orders": online_orders,
-        "online_meal_card_orders": online_meal_card_orders,
+        "order_count": overall["order_count"],
+        "cash_total": overall["cash_total"],
+        "card_total": overall["card_total"],
+        "meal_card_total": overall["meal_card_total"],
+        "online_total": overall["online_total"],
+        "online_meal_card_total": overall["online_meal_card_total"],
+        "total_ciro": overall["total_ciro"],
+        "cash_orders": overall["cash_orders"],
+        "card_orders": overall["card_orders"],
+        "meal_card_orders": overall["meal_card_orders"],
+        "online_orders": overall["online_orders"],
+        "online_meal_card_orders": overall["online_meal_card_orders"],
+        "by_platform": by_platform,
     }
