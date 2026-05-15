@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronRight, ChevronDown, Bike, Users, MapPin, Clock, CalendarOff, UserCog, BatteryLow } from "lucide-react";
 import { getRemainingBreakTime } from "@/utils/orderUtils";
+import { getBusinessDayKey } from "@/utils/businessDay";
 
 // Kurye listesi bileşeni - Desktop versiyonu
 export function CourierSidebarDesktop({
@@ -232,20 +233,7 @@ const isBatteryLow = (courier) => {
   return courier.battery.level <= 0.20;
 };
 
-// Şirket iş gününe göre weekday anahtarı (06:00-06:00 vb.)
-// openingTime = "HH:MM" formatında (default 06:00)
-const getBusinessDayKey = (openingTime = "06:00") => {
-  const days = ['pazar', 'pazartesi', 'sali', 'carsamba', 'persembe', 'cuma', 'cumartesi'];
-  const now = new Date();
-  let [openH, openM] = (openingTime || "06:00").split(":").map((n) => parseInt(n, 10) || 0);
-  const cutoffMinutes = openH * 60 + openM;
-  const nowMinutes = now.getHours() * 60 + now.getMinutes();
-  const businessDate = new Date(now);
-  if (nowMinutes < cutoffMinutes) {
-    businessDate.setDate(businessDate.getDate() - 1);
-  }
-  return days[businessDate.getDay()];
-};
+// Şirket iş gününe göre weekday anahtarı `utils/businessDay.js` modülünden geliyor.
 
 // Kuryenin şu an aktif vardiyası var mı kontrol et
 const hasActiveShiftNow = (courier, shifts, shiftAssignments, leaves, openingTime = "06:00") => {

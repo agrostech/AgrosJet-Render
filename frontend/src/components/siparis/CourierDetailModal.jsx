@@ -12,6 +12,7 @@ import {
   getOrderAge,
   getRemainingBreakTime
 } from "@/utils/orderUtils";
+import { getBusinessDayKey, mergeConsecutiveShifts } from "@/utils/businessDay";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -49,32 +50,8 @@ const BatteryDisplay = ({ battery }) => {
   );
 };
 
-// Ardışık vardiyaları birleştir
-const mergeConsecutiveShifts = (shifts) => {
-  if (!shifts || shifts.length === 0) return [];
-  
-  // Saate göre sırala
-  const sorted = [...shifts].sort((a, b) => {
-    return a.start_time.localeCompare(b.start_time);
-  });
-  
-  const merged = [];
-  let current = { start: sorted[0].start_time, end: sorted[0].end_time };
-  
-  for (let i = 1; i < sorted.length; i++) {
-    const shift = sorted[i];
-    // Eğer önceki vardiya bitiş saati = bu vardiya başlangıç saati ise birleştir
-    if (current.end === shift.start_time) {
-      current.end = shift.end_time;
-    } else {
-      merged.push(current);
-      current = { start: shift.start_time, end: shift.end_time };
-    }
-  }
-  merged.push(current);
-  
-  return merged;
-};
+// Ardışık vardiyaları birleştir — utils/businessDay.js'ten geliyor
+// (gece-yarısı aşımı + iş günü sıralaması destekli)
 
 export function CourierDetailModal({
   open,
@@ -174,9 +151,10 @@ export function CourierDetailModal({
     
     const fetchTodayShifts = async () => {
       try {
-        // Bugünün gün adı (Türkçe)
-        const days = ['pazar', 'pazartesi', 'sali', 'carsamba', 'persembe', 'cuma', 'cumartesi'];
-        const today = days[new Date().getDay()];
+        // Şirket iş gününe göre weekday anahtarı (06:00-06:00 mantığı).
+        // Saat 00:00–opening_time arasında HALA dünün iş günü geçerli.
+        const openingTime = company?.opening_time || "06:00";
+        const today = getBusinessDayKey(openingTime);
         
         // Vardiya atamalarını al
         const res = await axios.get(`${API}/companies/${company.id}/shift-assignments`);
@@ -432,7 +410,7 @@ export function CourierDetailModal({
                     data-testid="courier-today-shifts"
                   >
                     <Calendar className="w-3 h-3" />
-                    {mergeConsecutiveShifts(todayShifts).map((s, i) => (
+                    {mergeConsecutiveShifts(todayShifts, company?.opening_time || "06:00").map((s, i) => (
                       <span key={i}>
                         {i > 0 && ", "}
                         {s.start}-{s.end}
