@@ -7,7 +7,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { 
   Bell,
@@ -19,7 +18,6 @@ import {
   ShoppingBag,
   FileText,
   AlertTriangle,
-  X,
   Coffee,
   Loader2,
   UserPlus
@@ -100,42 +98,10 @@ export default function NotificationsPopover({ companyId }) {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const prevUnreadCount = useRef(0);
-  const prevBreakRequestsCount = useRef(0);
   const isFirstLoad = useRef(true);
   
   // Confirm Modal State
   const [confirmOpen, setConfirmOpen] = useState(false);
-  
-  // Mola talepleri
-  const [breakRequests, setBreakRequests] = useState([]);
-  const [breakRequestsCount, setBreakRequestsCount] = useState(0);
-  const [activeTab, setActiveTab] = useState("notifications"); // "notifications" | "break_requests"
-
-  // Mola taleplerini çek (polling için ayrı fonksiyon)
-  const fetchBreakRequests = useCallback(async () => {
-    if (!companyId) return;
-    try {
-      const breakRes = await axios.get(`${API}/companies/${companyId}/break-status`);
-      if (breakRes.data.break_mode === "manual" && breakRes.data.pending_requests) {
-        const newCount = breakRes.data.pending_requests.length;
-        
-        // Yeni mola talebi geldiğinde ses çal
-        if (!isFirstLoad.current && newCount > prevBreakRequestsCount.current) {
-          playNotificationSound();
-        }
-        
-        prevBreakRequestsCount.current = newCount;
-        setBreakRequests(breakRes.data.pending_requests);
-        setBreakRequestsCount(newCount);
-      } else {
-        prevBreakRequestsCount.current = 0;
-        setBreakRequests([]);
-        setBreakRequestsCount(0);
-      }
-    } catch (err) {
-      console.error("Mola talepleri yüklenemedi");
-    }
-  }, [companyId]);
 
   const fetchUnreadCount = useCallback(async () => {
     if (!companyId) return;
@@ -151,13 +117,10 @@ export default function NotificationsPopover({ companyId }) {
       prevUnreadCount.current = newCount;
       isFirstLoad.current = false;
       setUnreadCount(newCount);
-      
-      // Mola taleplerini de güncelle
-      fetchBreakRequests();
     } catch (err) {
       console.error("Bildirim sayısı alınamadı");
     }
-  }, [companyId, fetchBreakRequests]);
+  }, [companyId]);
 
   const fetchNotifications = useCallback(async () => {
     if (!companyId) return;
@@ -171,23 +134,9 @@ export default function NotificationsPopover({ companyId }) {
       const res = await axios.get(`${API}/notifications/company/${companyId}?include_read=true&limit=30`);
       setNotifications(res.data);
       
-      // Update unread count - break_request tipini hariç tut (ayrı sekmede gösteriliyor)
+      // Update unread count - break_request tipini hariç tut (Talepler butonunda gösteriliyor)
       const unread = res.data.filter(n => !n.is_read && n.type !== 'break_request').length;
       setUnreadCount(unread);
-      
-      // Mola taleplerini çek (manuel mod için)
-      try {
-        const breakRes = await axios.get(`${API}/companies/${companyId}/break-status`);
-        if (breakRes.data.break_mode === "manual" && breakRes.data.pending_requests) {
-          setBreakRequests(breakRes.data.pending_requests);
-          setBreakRequestsCount(breakRes.data.pending_requests.length);
-        } else {
-          setBreakRequests([]);
-          setBreakRequestsCount(0);
-        }
-      } catch (err) {
-        console.error("Mola talepleri yüklenemedi");
-      }
     } catch (err) {
       console.error("Bildirimler yüklenemedi");
     } finally {
@@ -278,27 +227,7 @@ export default function NotificationsPopover({ companyId }) {
     }
   };
 
-  // Mola talebi işlemleri
-  const handleBreakRequestAction = async (requestId, action) => {
-    try {
-      await axios.put(`${API}/break-requests/${requestId}/action`, { action });
-      toast.success(action === "approve" ? "Mola talebi onaylandı" : "Mola talebi reddedildi");
-      
-      // Talepleri listeden çıkar
-      setBreakRequests(prev => prev.filter(r => r.id !== requestId));
-      setBreakRequestsCount(prev => Math.max(0, prev - 1));
-      
-      // İlgili break_request bildirimini de notifications'dan çıkar
-      const request = breakRequests.find(r => r.id === requestId);
-      if (request) {
-        setNotifications(prev => prev.filter(n => 
-          !(n.type === 'break_request' && n.courier_id === request.courier_id)
-        ));
-      }
-    } catch (err) {
-      toast.error(err.response?.data?.detail || "İşlem başarısız");
-    }
-  };
+  // Mola talebi onay/red — Talepler butonuna taşındı (RequestsPopover.jsx)
 
   const formatTime = (dateStr) => {
     const date = new Date(dateStr);
@@ -315,9 +244,6 @@ export default function NotificationsPopover({ companyId }) {
     return date.toLocaleDateString('tr-TR');
   };
 
-  // Toplam badge sayısı (bildirimler + mola talepleri)
-  const totalBadgeCount = unreadCount + breakRequestsCount;
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -329,173 +255,109 @@ export default function NotificationsPopover({ companyId }) {
         >
           <Bell className="w-4 h-4 mr-2" />
           Bildirimler
-          {totalBadgeCount > 0 && (
-            <span className={`absolute -top-2 -right-2 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center ${breakRequestsCount > 0 ? 'bg-amber-500' : 'bg-red-500'}`}>
-              {totalBadgeCount > 9 ? "9+" : totalBadgeCount}
+          {unreadCount > 0 && (
+            <span className="absolute -top-2 -right-2 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center bg-red-500">
+              {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[calc(100vw-2rem)] sm:w-96 p-0 mx-4" align="end">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          {/* Header with Tabs */}
-          <div className="p-3 border-b">
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="font-semibold text-sm">Bildirimler</h4>
-              <div className="flex gap-1">
-                {activeTab === "notifications" && unreadCount > 0 && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={handleMarkAllAsRead}
-                    className="h-7 px-2 text-xs"
-                    title="Tümünü okundu işaretle"
-                  >
-                    <CheckCheck className="w-4 h-4" />
-                  </Button>
-                )}
-                {activeTab === "notifications" && notifications.filter(n => n.type !== 'break_request').length > 0 && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={handleDeleteAll}
-                    className="h-7 px-2 text-xs hover:text-red-600"
-                    title="Tümünü sil"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                )}
-              </div>
+        {/* Header */}
+        <div className="p-3 border-b">
+          <div className="flex items-center justify-between">
+            <h4 className="font-semibold text-sm">Bildirimler</h4>
+            <div className="flex gap-1">
+              {unreadCount > 0 && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleMarkAllAsRead}
+                  className="h-7 px-2 text-xs"
+                  title="Tümünü okundu işaretle"
+                >
+                  <CheckCheck className="w-4 h-4" />
+                </Button>
+              )}
+              {notifications.filter(n => n.type !== 'break_request').length > 0 && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleDeleteAll}
+                  className="h-7 px-2 text-xs hover:text-red-600"
+                  title="Tümünü sil"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              )}
             </div>
-            <TabsList className="grid w-full grid-cols-2 h-9">
-              <TabsTrigger value="notifications" className="text-xs flex items-center gap-1.5">
-                <Bell className="w-3.5 h-3.5" />
-                Bildirimler {unreadCount > 0 && `(${unreadCount})`}
-              </TabsTrigger>
-              <TabsTrigger value="break_requests" className="text-xs flex items-center gap-1.5">
-                <Coffee className="w-3.5 h-3.5" />
-                Mola Talepleri {breakRequestsCount > 0 && `(${breakRequestsCount})`}
-              </TabsTrigger>
-            </TabsList>
           </div>
+        </div>
 
-          {/* Content */}
-          <div className="max-h-[400px] overflow-y-auto">
-            <TabsContent value="break_requests" className="m-0">
-              {/* Mola Talepleri Tab */}
-              {breakRequests.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Coffee className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                  <p className="text-sm">Bekleyen mola talebi yok</p>
-                </div>
-              ) : (
-                breakRequests.map((request) => (
-                  <div key={request.id} className="p-3 border-b hover:bg-amber-50/50 transition-colors">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
-                          <Coffee className="w-4 h-4 text-amber-600" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-sm">{request.courier_name}</p>
-                          <p className="text-xs text-muted-foreground">{request.duration} dakika mola</p>
+        {/* Content */}
+        <div className="max-h-[400px] overflow-y-auto">
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : notifications.filter(n => n.type !== 'break_request').length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Bell className="w-10 h-10 mx-auto mb-2 opacity-30" />
+              <p className="text-sm">Bildirim yok</p>
+            </div>
+          ) : (
+            notifications.filter(n => n.type !== 'break_request').map((notification) => {
+              const Icon = NOTIFICATION_ICONS[notification.type] || Bell;
+              const colorClass = NOTIFICATION_COLORS[notification.type] || "text-slate-600 bg-slate-100";
+              
+              return (
+                <div 
+                  key={notification.id}
+                  className={`p-3 border-b hover:bg-slate-50 transition-colors ${
+                    !notification.is_read ? 'bg-blue-50/50' : ''
+                  }`}
+                >
+                  <div className="flex gap-3">
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClass}`}>
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className={`text-sm font-medium ${!notification.is_read ? 'text-foreground' : 'text-muted-foreground'}`}>
+                          {notification.title}
+                        </p>
+                        <div className="flex gap-1 flex-shrink-0">
+                          {!notification.is_read && (
+                            <button
+                              onClick={() => handleMarkAsRead(notification.id)}
+                              className="p-1 rounded hover:bg-green-100 text-green-600"
+                              title="Okundu işaretle"
+                            >
+                              <Check className="w-3 h-3" />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleDelete(notification.id)}
+                            className="p-1 rounded hover:bg-red-100 text-red-600"
+                            title="Sil"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
                         </div>
                       </div>
-                      <span className="text-xs text-muted-foreground">
-                        {formatTime(request.created_at)}
-                      </span>
-                    </div>
-                    <div className="flex gap-2 ml-10">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-7 text-xs border-green-500 text-green-600 hover:bg-green-50"
-                        onClick={() => handleBreakRequestAction(request.id, "approve")}
-                      >
-                        <Check className="w-3 h-3 mr-1" />
-                        Onayla
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-7 text-xs border-red-500 text-red-600 hover:bg-red-50"
-                        onClick={() => handleBreakRequestAction(request.id, "reject")}
-                      >
-                        <X className="w-3 h-3 mr-1" />
-                        Reddet
-                      </Button>
+                      <p className="text-xs text-muted-foreground mt-0.5 break-words">
+                        {notification.message}
+                      </p>
+                      <p className="text-xs text-muted-foreground/70 mt-1">
+                        {formatTime(notification.created_at)}
+                      </p>
                     </div>
                   </div>
-                ))
-              )}
-            </TabsContent>
-            
-            <TabsContent value="notifications" className="m-0">
-              {/* Bildirimler Tab */}
-              {loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                 </div>
-              ) : notifications.filter(n => n.type !== 'break_request').length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Bell className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                  <p className="text-sm">Bildirim yok</p>
-                </div>
-              ) : (
-                notifications.filter(n => n.type !== 'break_request').map((notification) => {
-                  const Icon = NOTIFICATION_ICONS[notification.type] || Bell;
-                  const colorClass = NOTIFICATION_COLORS[notification.type] || "text-slate-600 bg-slate-100";
-                  
-                  return (
-                    <div 
-                      key={notification.id}
-                      className={`p-3 border-b hover:bg-slate-50 transition-colors ${
-                        !notification.is_read ? 'bg-blue-50/50' : ''
-                      }`}
-                    >
-                      <div className="flex gap-3">
-                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClass}`}>
-                          <Icon className="w-4 h-4" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <p className={`text-sm font-medium ${!notification.is_read ? 'text-foreground' : 'text-muted-foreground'}`}>
-                              {notification.title}
-                            </p>
-                            <div className="flex gap-1 flex-shrink-0">
-                              {!notification.is_read && (
-                                <button
-                                  onClick={() => handleMarkAsRead(notification.id)}
-                                  className="p-1 rounded hover:bg-green-100 text-green-600"
-                                  title="Okundu işaretle"
-                                >
-                                  <Check className="w-3 h-3" />
-                                </button>
-                              )}
-                              <button
-                                onClick={() => handleDelete(notification.id)}
-                                className="p-1 rounded hover:bg-red-100 text-red-600"
-                                title="Sil"
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </button>
-                            </div>
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-0.5 break-words">
-                            {notification.message}
-                          </p>
-                          <p className="text-xs text-muted-foreground/70 mt-1">
-                            {formatTime(notification.created_at)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </TabsContent>
-          </div>
-        </Tabs>
+              );
+            })
+          )}
+        </div>
       </PopoverContent>
 
       <ConfirmModal

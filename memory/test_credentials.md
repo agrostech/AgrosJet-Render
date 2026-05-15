@@ -5,6 +5,18 @@
 - Password: Delivery32..
 - Login URL: /admin-login -> POST /api/auth/admin/login
 
+## Super Admin (Boston / Isparta company superadmin)
+- Username: superadmin
+- Password: Test123!
+- Role: superadmin
+- Company: 0005ec2a-04ca-4250-9530-ecc6fde165f1
+
+## Company Admin (Atakan)
+- Username: atakansari
+- Password: Test123!
+- Role: admin
+- Company: 0005ec2a-04ca-4250-9530-ecc6fde165f1
+
 ## Company Admin (AgrosJet Isparta)
 - Username: admin
 - Password: 123456

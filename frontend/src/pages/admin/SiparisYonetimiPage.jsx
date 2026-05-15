@@ -36,6 +36,8 @@ import { CourierSidebarDesktop, CourierSidebarMobile } from "@/components/sipari
 import { OrderDetailModal } from "@/components/siparis/OrderDetailModal";
 import { CourierDetailModal } from "@/components/siparis/CourierDetailModal";
 import NotificationsPopover from "@/components/admin/NotificationsPopover";
+import RequestsPopover from "@/components/admin/RequestsPopover";
+import TasksPopover from "@/components/admin/TasksPopover";
 import GecmisSiparislerPage from "./GecmisSiparislerPage";
 import IptalSiparislerPage from "./IptalSiparislerPage";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
@@ -45,6 +47,10 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin = false, adminStatus = "offline", linkedCourierStatus = "offline", permissions = {} }) {
   const { theme } = useTheme();
+  // localStorage'tan kullanıcıyı al — TasksPopover için role + id gerekli
+  const [user] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("user") || "null"); } catch { return null; }
+  });
   const [orders, setOrders] = useState([]);
   const [couriers, setCouriers] = useState([]);
   const [couriersByStatus, setCouriersByStatus] = useState({ active: [], on_break: [], offline: [] });
@@ -813,6 +819,8 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
               Yenile
             </Button>
             <NotificationsPopover companyId={companyId} />
+            <RequestsPopover companyId={companyId} />
+            <TasksPopover user={user} />
           </div>
         )}
       </div>
@@ -823,11 +831,13 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
         <div className="flex items-center justify-between">
           <h2 className="font-heading text-lg font-bold tracking-tight">Sipariş Yönetimi</h2>
           {mainTab === "active" && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Button variant="outline" size="sm" onClick={fetchAll} className="h-8 px-2">
                 <RefreshCw className="w-4 h-4" />
               </Button>
               <NotificationsPopover companyId={companyId} />
+              <RequestsPopover companyId={companyId} />
+              <TasksPopover user={user} />
             </div>
           )}
         </div>
