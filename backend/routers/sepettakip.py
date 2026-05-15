@@ -497,8 +497,8 @@ async def create_package(
     if request.order.note:
         notes_parts.append(request.order.note)
     
-    # Adres açıklamasını ayrı alana kaydet (görüntülenmeyecek)
-    address_description = request.order.address.description or ""
+    # Adres tarifi/notu - canonical field adı: address_direction (sistem genelinde tutarlı)
+    address_direction = request.order.address.description or ""
     
     # Hazırlık süresini hesapla - restoranın DB ayarını ve ürün bazlı süreleri kullan
     from routers.orders import calculate_preparation_time_async
@@ -550,7 +550,7 @@ async def create_package(
         "is_paid": request.order.is_paid,
         "status": "preparing",
         "notes": "|".join(notes_parts) if notes_parts else "",
-        "address_description": address_description,
+        "address_direction": address_direction,
         "source": "sepettakip",
         "preparation_time": prep_time,
         "preparation_end_at": prep_end.isoformat(),
