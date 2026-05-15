@@ -309,12 +309,16 @@ export const getOrderPlatform = (order) => {
   if (!order) return "";
   const ext = (order.external_app_name || order.adisyo_raw?.externalAppName || "").toLowerCase();
   const src = (order.source || order.platform || "").toLowerCase();
-  if ((src === "adisyo" || src === "sepettakip") && ext) {
+  // Adisyo Chrome extension'dan gelenler "adisyo_scrape" source'u taşır → adisyo gibi davran
+  const isAdisyoSrc = src === "adisyo" || src === "adisyo_scrape";
+  if ((isAdisyoSrc || src === "sepettakip") && ext) {
     if (ext.includes("yemeksepeti") || ext.includes("ys")) return "yemeksepeti";
     if (ext.includes("trendyol")) return "trendyol";
     if (ext.includes("getir")) return "getir";
     if (ext.includes("migros")) return "migros";
   }
+  // external_app_name yoksa ya da bilinen markete uymuyorsa kapsayıcı kaynağı göster
+  if (isAdisyoSrc) return "adisyo";
   if (src === "manual") return "phone";
   return src;
 };
