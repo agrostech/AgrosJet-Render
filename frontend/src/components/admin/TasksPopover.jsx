@@ -713,9 +713,14 @@ export default function TasksPopover({ user }) {
               )}
             </div>
             <Tabs value={tab} onValueChange={setTab}>
-              <TabsList className={`grid w-full ${tabList.length === 3 ? "grid-cols-3" : "grid-cols-2"} h-9`}>
+              <TabsList className={`grid w-full ${tabList.length === 3 ? "grid-cols-3" : "grid-cols-2"} h-8 gap-0.5`}>
                 {tabList.map(t => (
-                  <TabsTrigger key={t.value} value={t.value} className="text-[11px]" data-testid={`task-tab-${t.value}`}>
+                  <TabsTrigger
+                    key={t.value}
+                    value={t.value}
+                    className="text-[10.5px] sm:text-[11px] px-1 truncate"
+                    data-testid={`task-tab-${t.value}`}
+                  >
                     {t.label}
                   </TabsTrigger>
                 ))}
@@ -736,18 +741,18 @@ export default function TasksPopover({ user }) {
                 </div>
               )}
               {tab === "assigned_by_me" && (
-                <div className="mt-2 flex gap-1 flex-wrap">
+                <div className="mt-2 flex gap-1 overflow-x-auto -mx-3 px-3 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                   {[
                     { val: "all", label: "Tümü" },
-                    { val: "pending", label: "Aktif Bekleyen" },
-                    { val: "scheduled", label: "Zamanlanmış" },
+                    { val: "pending", label: "Bekleyen" },
+                    { val: "scheduled", label: "Zamanlı" },
                     { val: "recurring_template", label: "Tekrarlayan" },
                   ].map(opt => (
                     <button
                       key={opt.val}
                       type="button"
                       onClick={() => setPendingSubFilter(opt.val)}
-                      className={`text-[10.5px] px-2 py-0.5 rounded-full border transition-colors ${
+                      className={`text-[10.5px] px-2.5 py-0.5 rounded-full border whitespace-nowrap shrink-0 transition-colors ${
                         pendingSubFilter === opt.val
                           ? "bg-primary text-primary-foreground border-primary"
                           : "border-slate-200 hover:bg-slate-50 text-slate-600"
