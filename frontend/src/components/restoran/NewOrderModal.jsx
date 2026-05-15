@@ -162,7 +162,7 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
       const autocomplete = new window.google.maps.places.Autocomplete(inputElement, {
         componentRestrictions: { country: "tr" },
         types: ["geocode", "establishment"],
-        fields: ["formatted_address", "geometry", "name"],
+        fields: ["formatted_address", "geometry", "name", "types"],
       });
 
       autocomplete.addListener("place_changed", () => {
@@ -170,7 +170,22 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
         if (place.geometry && place.geometry.location) {
           const lat = place.geometry.location.lat();
           const lng = place.geometry.location.lng();
-          setDeliveryAddress(place.formatted_address || place.name);
+          // Dropdown'da gösterilen metin kaydedilmeli: POI/establishment ise place.name
+          // (örn. "Ankara Şehir Hastanesi"), aksi halde formatted_address.
+          // POI durumunda il/ilçe kuyruğunu ekleyerek kuryeye konum bağlamı veriyoruz.
+          let displayAddr = place.formatted_address || place.name || "";
+          const isPOI = (place.types || []).some(
+            t => t === "establishment" || t === "point_of_interest"
+          );
+          if (isPOI && place.name) {
+            const tail = (place.formatted_address || "")
+              .split(",")
+              .slice(-2)
+              .join(",")
+              .trim();
+            displayAddr = tail ? `${place.name}, ${tail}` : place.name;
+          }
+          setDeliveryAddress(displayAddr);
           setDeliveryLocation({ lat, lng });
         }
       });
