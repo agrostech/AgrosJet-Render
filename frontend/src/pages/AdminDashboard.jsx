@@ -3,7 +3,7 @@ import { useNavigate, Routes, Route, Link, useLocation } from "react-router-dom"
 import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, SlidersHorizontal, ShoppingBag, GraduationCap, User, Building2, Store, ClipboardList, Coins, AlertTriangle, Moon, Sun, BarChart3, FileText, Bell, Power } from "lucide-react";
+import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, SlidersHorizontal, ShoppingBag, GraduationCap, User, Building2, Store, ClipboardList, Coins, AlertTriangle, Moon, Sun, BarChart3, FileText, Bell, Power, Bike } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 
 // Page components
@@ -298,7 +298,7 @@ export default function AdminDashboard() {
     { path: "/admin/zimmet", label: "Zimmet", icon: Package, key: "zimmet", permKey: "zimmet" },
     { path: "/admin/jetpuan", label: "Market", icon: ShoppingBag, key: "jetpuan", permKey: "market" },
     { path: "/admin/akademi", label: "Akademi", icon: GraduationCap, key: "akademi", permKey: "akademi" },
-    { path: "/admin/kuryeler", label: "Kuryeler", icon: Users, key: "kuryeler", permKey: "kuryeler" },
+    { path: "/admin/kuryeler", label: "Kuryeler", icon: Bike, key: "kuryeler", permKey: "kuryeler" },
     { path: "/admin/restoranlar", label: "Restoranlar", icon: Store, key: "restoranlar", permKey: "restoranlar" },
     { path: "/admin/basvurular", label: "Başvurular", icon: FileText, key: "basvurular", permKey: "basvurular" },
     { path: "/admin/yoneticiler", label: "Y\u00f6neticiler", icon: UserCog, key: "yoneticiler", permKey: "yoneticiler" },
