@@ -1030,6 +1030,16 @@ export default function CourierDashboard() {
           
           {/* Logout Button */}
           <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-white/20 space-y-2">
+            {exemptionEnabled && !isRestrictedMode && (
+              <button
+                onClick={() => { setMobileMenuOpen(false); setExemptionModalOpen(true); }}
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium bg-blue-500/80 hover:bg-blue-500 rounded-lg transition-colors"
+                data-testid="mobile-exemption-trigger"
+              >
+                <Shield className="w-4 h-4" />
+                Muafiyet Talep Et
+              </button>
+            )}
             <button 
               onClick={toggleTheme}
               className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
