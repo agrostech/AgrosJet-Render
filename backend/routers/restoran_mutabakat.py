@@ -800,7 +800,8 @@ async def get_restaurant_ciro(restaurant_id: str, req: CiroRequest):
         "delivered_at": {"$gte": start_dt, "$lte": end_dt}
     }, {"_id": 0, "total_amount": 1, "payment_method": 1, "customer_name": 1,
         "delivery_address": 1, "order_number": 1, "delivered_at": 1,
-        "created_at": 1, "source": 1}).to_list(10000)
+        "created_at": 1, "source": 1, "platform": 1,
+        "external_app_name": 1, "adisyo_raw.externalAppName": 1}).to_list(10000)
     
     method_labels = {
         "cash": "Nakit",
@@ -851,17 +852,37 @@ async def get_restaurant_ciro(restaurant_id: str, req: CiroRequest):
         bucket["total_ciro"] = round(total, 2)
         return bucket
 
-    # Platform anahtarları: source -> bucket key eşleşmesi.
-    # phone bucket: telefonla / panelden / Adisyo POS kaynaklı siparişleri kapsar.
-    SOURCE_TO_BUCKET = {
-        "yemeksepeti": "yemeksepeti",
-        "trendyol": "trendyol",
-        "getir": "getir",
-        "migros": "migros",
-        "phone": "phone",
-        "manual": "phone",
-        "adisyo": "phone",
-    }
+    # Platform çözümleme — frontend `getOrderPlatform()` ile aynı mantık.
+    # Adisyo / SepetTakip kapsayıcı kaynak ise external_app_name'ten gerçek
+    # platformu (yemeksepeti / trendyol / getir / migros) çöz.
+    def _resolve_platform(order: dict) -> str:
+        ext = ""
+        ean = order.get("external_app_name")
+        if ean:
+            ext = str(ean).lower()
+        else:
+            adisyo_raw = order.get("adisyo_raw") or {}
+            if isinstance(adisyo_raw, dict):
+                ext = str(adisyo_raw.get("externalAppName") or "").lower()
+        src = (order.get("source") or order.get("platform") or "").lower()
+        is_adisyo_src = src in ("adisyo", "adisyo_scrape")
+        if (is_adisyo_src or src == "sepettakip") and ext:
+            if "yemeksepeti" in ext or "ys" in ext:
+                return "yemeksepeti"
+            if "trendyol" in ext:
+                return "trendyol"
+            if "getir" in ext:
+                return "getir"
+            if "migros" in ext:
+                return "migros"
+        # Telefon/manuel/Adisyo (uygun ext yok) → "phone" bucket'ına git
+        if src == "manual" or src == "phone" or is_adisyo_src or src == "sepettakip":
+            return "phone"
+        # Doğrudan platform kaynağı
+        if src in ("yemeksepeti", "trendyol", "getir", "migros"):
+            return src
+        return ""
+
     PLATFORM_KEYS = ["yemeksepeti", "trendyol", "getir", "migros", "phone"]
     overall = _empty_bucket()
     by_platform = {k: _empty_bucket() for k in PLATFORM_KEYS}
@@ -869,7 +890,6 @@ async def get_restaurant_ciro(restaurant_id: str, req: CiroRequest):
     for order in orders:
         amount = order.get("total_amount", 0) or 0
         method = order.get("payment_method", "")
-        src = (order.get("source") or "").lower()
         row = {
             "order_number": order.get("order_number", "-"),
             "customer_name": order.get("customer_name", "-"),
@@ -880,8 +900,8 @@ async def get_restaurant_ciro(restaurant_id: str, req: CiroRequest):
         }
 
         _add_to_bucket(overall, method, amount, row)
-        bucket_key = SOURCE_TO_BUCKET.get(src)
-        if bucket_key:
+        bucket_key = _resolve_platform(order)
+        if bucket_key in by_platform:
             _add_to_bucket(by_platform[bucket_key], method, amount, row)
 
     overall = _finalize(overall)

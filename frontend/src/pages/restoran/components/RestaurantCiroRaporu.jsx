@@ -7,11 +7,11 @@ import RaporFiltre from "./RaporFiltre";
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const PLATFORMS = [
-  { key: "yemeksepeti", label: "Yemeksepeti", color: "text-pink-600", bg: "bg-pink-50" },
-  { key: "trendyol", label: "Trendyol", color: "text-orange-600", bg: "bg-orange-50" },
-  { key: "getir", label: "Getir", color: "text-violet-600", bg: "bg-violet-50" },
-  { key: "migros", label: "Migros", color: "text-amber-600", bg: "bg-amber-50" },
-  { key: "phone", label: "Telefon", color: "text-sky-600", bg: "bg-sky-50" },
+  { key: "yemeksepeti", label: "Yemeksepeti" },
+  { key: "trendyol", label: "Trendyol" },
+  { key: "getir", label: "Getir" },
+  { key: "migros", label: "Migros" },
+  { key: "phone", label: "Telefon" },
 ];
 
 function formatMoney(val) {
@@ -82,13 +82,23 @@ function CiroCell({ value, orders, label, testKey }) {
   );
 }
 
-function CiroTable({ title, bucket, badgeColor, badgeBg, testId }) {
+function CiroTable({ title, bucket, logoKey, testId }) {
   if (!bucket) return null;
   const isEmpty = (bucket.order_count || 0) === 0;
   return (
     <Card data-testid={testId}>
-      <div className={`px-4 py-2.5 border-b flex items-center justify-between ${badgeBg || "bg-slate-50"}`}>
-        <h3 className={`text-sm font-semibold ${badgeColor || "text-slate-800"}`}>{title}</h3>
+      <div className="px-4 py-2.5 border-b flex items-center justify-between bg-slate-50">
+        <div className="flex items-center gap-2">
+          {logoKey && (
+            <img
+              src={`/images/platforms/${logoKey}.png`}
+              alt={title}
+              className="w-6 h-6 rounded object-contain"
+              onError={(e) => { e.currentTarget.style.display = "none"; }}
+            />
+          )}
+          <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
+        </div>
         <span className="text-xs text-slate-600">{bucket.order_count || 0} sipariş</span>
       </div>
       <CardContent className="p-0">
@@ -183,8 +193,6 @@ export default function RestaurantCiroRaporu({ restaurantId, companyId }) {
               online_orders: data.online_orders,
               online_meal_card_orders: data.online_meal_card_orders,
             }}
-            badgeColor="text-emerald-700"
-            badgeBg="bg-emerald-50"
             testId="ciro-toplam"
           />
 
@@ -193,8 +201,7 @@ export default function RestaurantCiroRaporu({ restaurantId, companyId }) {
               key={p.key}
               title={p.label}
               bucket={data.by_platform?.[p.key]}
-              badgeColor={p.color}
-              badgeBg={p.bg}
+              logoKey={p.key}
               testId={`ciro-${p.key}`}
             />
           ))}
