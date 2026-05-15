@@ -199,11 +199,15 @@ async def list_tasks(
     query = {"company_id": company_id}
 
     if role_filter == "mine":
-        # Bana atanmış aktif görevler — adminler scheduled/template GÖREMEZ
+        # Bana atanmış aktif görevler — adminler scheduled/template GÖREMEZ (backend filtre)
         query["assigned_to"] = user_id
         if not is_super:
-            # Admin için sadece pending + completed göster (scheduled/recurring_template gizli)
+            # Admin için sadece pending + completed
             query.setdefault("$or", [{"status": "pending"}, {"status": "completed"}])
+        else:
+            # Süperadmin: kendine atadıkları tüm görevler (completed hariç default; explicit status varsa override)
+            if not status:
+                query["status"] = {"$ne": "completed"}
     elif role_filter == "assigned_by_me":
         # Sadece superadmin: atadıklarım (kendine atadıkları HARİÇ)
         # Status'u explicit gelmediyse default = bekleyenler (pending + scheduled + recurring_template)

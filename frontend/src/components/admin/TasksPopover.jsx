@@ -571,6 +571,7 @@ export default function TasksPopover({ user }) {
   const [completeTask, setCompleteTask] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [filterAssignee, setFilterAssignee] = useState("all");
+  const [pendingSubFilter, setPendingSubFilter] = useState("all"); // all | pending | scheduled | recurring_template
   const prevBadge = useRef(0);
   const isFirst = useRef(true);
 
@@ -593,11 +594,15 @@ export default function TasksPopover({ user }) {
       const params = {};
       if (tab === "mine") {
         params.role_filter = "mine";
-        params.status = "pending"; // Tamamlananlar "Tamamlananlar" sekmesinde
+        // Admin için backend pending+completed döner; superadmin için tüm aktif (completed hariç).
+        // Süperadminin kendine atadığı recurring_template/scheduled bu sekmede de gözüksün.
+        if (!isSuper) params.status = "pending";
       }
       else if (tab === "assigned_by_me") {
         params.role_filter = "assigned_by_me";
-        params.status = "pending";
+        if (pendingSubFilter !== "all") {
+          params.status = pendingSubFilter; // pending | scheduled | recurring_template
+        }
       } else if (tab === "all_completed") {
         params.role_filter = "all_completed";
       } else if (tab === "my_completed") {
@@ -617,7 +622,7 @@ export default function TasksPopover({ user }) {
     } finally {
       setLoading(false);
     }
-  }, [tab, filterAssignee, isSuper]);
+  }, [tab, filterAssignee, isSuper, pendingSubFilter]);
 
   const fetchAdmins = useCallback(async () => {
     if (!isSuper) return;
@@ -728,6 +733,30 @@ export default function TasksPopover({ user }) {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+              )}
+              {tab === "assigned_by_me" && (
+                <div className="mt-2 flex gap-1 flex-wrap">
+                  {[
+                    { val: "all", label: "Tümü" },
+                    { val: "pending", label: "Aktif Bekleyen" },
+                    { val: "scheduled", label: "Zamanlanmış" },
+                    { val: "recurring_template", label: "Tekrarlayan" },
+                  ].map(opt => (
+                    <button
+                      key={opt.val}
+                      type="button"
+                      onClick={() => setPendingSubFilter(opt.val)}
+                      className={`text-[10.5px] px-2 py-0.5 rounded-full border transition-colors ${
+                        pendingSubFilter === opt.val
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "border-slate-200 hover:bg-slate-50 text-slate-600"
+                      }`}
+                      data-testid={`pending-sub-${opt.val}`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
                 </div>
               )}
               <div className="max-h-[400px] overflow-y-auto mt-2 -mx-3">
