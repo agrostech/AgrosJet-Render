@@ -32,10 +32,8 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
   // Filter states
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [courierFilter, setCourierFilter] = useState("all");
-  const [courierNameFilter, setCourierNameFilter] = useState("all");
   const [channelFilter, setChannelFilter] = useState("all");
   const [couriers, setCouriers] = useState([]);
-  const [availableCouriers, setAvailableCouriers] = useState([]); // Bu restoran için teslimatta bulunan kuryeler
   
   // Company settings for default times
   const [companySettings, setCompanySettings] = useState({ opening_time: "06:00", closing_time: "06:00" });
@@ -87,22 +85,6 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
         result = result.filter(o => o.is_restaurant_delivery === true);
       }
       
-      // Kurye adı filtresi
-      if (filters.courierName !== "all") {
-        result = result.filter(o => o.courier_id === filters.courierName);
-      }
-      
-      // Bu restoran için teslimatta bulunan kuryeleri çıkar (alfabetik sıralı)
-      const courierMap = new Map();
-      res.data.orders?.forEach(o => {
-        if (o.courier_id && o.courier_name && !o.is_restaurant_delivery) {
-          courierMap.set(o.courier_id, o.courier_name);
-        }
-      });
-      const uniqueCouriers = Array.from(courierMap, ([id, name]) => ({ id, name }))
-        .sort((a, b) => a.name.localeCompare(b.name, 'tr'));
-      setAvailableCouriers(uniqueCouriers);
-      
       // Payment method filter
       if (filters.payment !== "all") {
         if (filters.payment === "online") {
@@ -142,7 +124,6 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
     setCurrentPage(1);
     fetchAndFilterOrders({
       courier: courierFilter,
-      courierName: courierNameFilter,
       payment: paymentFilter,
       channel: channelFilter,
       startDateTime,
@@ -194,7 +175,6 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
           // Initial order fetch
           fetchAndFilterOrders({
             courier: "all",
-            courierName: "all",
             payment: "all",
             channel: "all",
             startDateTime: defaults.startDateTime,
@@ -225,7 +205,6 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
 
   const clearFilters = () => {
     setCourierFilter("all");
-    setCourierNameFilter("all");
     setPaymentFilter("all");
     setChannelFilter("all");
     const defaults = getDefaultDates();
@@ -234,7 +213,6 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
     setCurrentPage(1);
     fetchAndFilterOrders({
       courier: "all",
-      courierName: "all",
       payment: "all",
       channel: "all",
       startDateTime: defaults.startDateTime,
@@ -432,22 +410,6 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
                   <SelectItem value="all">Tümü</SelectItem>
                   <SelectItem value="company">{companyName || "Kurye Şirketi"}</SelectItem>
                   <SelectItem value="restaurant">Restoran</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {/* Courier Name Filter */}
-            <div className="min-w-[100px] flex-1 max-w-[140px] sm:max-w-[180px]">
-              <Label className="text-[10px] sm:text-xs text-muted-foreground mb-1 block">Kurye</Label>
-              <Select value={courierNameFilter} onValueChange={setCourierNameFilter}>
-                <SelectTrigger className="h-7 sm:h-8 text-[11px] sm:text-xs">
-                  <SelectValue placeholder="Tümü" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tümü</SelectItem>
-                  {availableCouriers.map(c => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                  ))}
                 </SelectContent>
               </Select>
             </div>
