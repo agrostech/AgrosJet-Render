@@ -161,7 +161,8 @@ async def get_restaurant_mutabakat(restaurant_id: str, date_range: DateRangeRequ
     restaurant = await db.restaurants.find_one(
         {"id": restaurant_id},
         {"_id": 0, "id": 1, "name": 1, "company_id": 1, "collection_settings": 1, 
-         "pricing_type": 1, "per_package_price": 1, "km_ranges": 1, "kdv_rate": 1}
+         "pricing_type": 1, "per_package_price": 1, "km_ranges": 1, "kdv_rate": 1,
+         "pos_commission_rate": 1}
     )
     
     if not restaurant:
@@ -186,7 +187,9 @@ async def get_restaurant_mutabakat(restaurant_id: str, date_range: DateRangeRequ
     )
     
     default_vat_rate = company.get("vat_rate", 10) if company else 10
-    pos_commission_rate = company.get("pos_commission_rate", 0) if company else 0
+    company_pos_rate = company.get("pos_commission_rate", 0) if company else 0
+    # Restoran kendi pos_commission_rate'ine sahipse onu kullan, yoksa company'den fallback
+    pos_commission_rate = restaurant.get("pos_commission_rate") if restaurant.get("pos_commission_rate") is not None else company_pos_rate
     restaurant_kdv_rate = restaurant.get("kdv_rate") if restaurant.get("kdv_rate") is not None else default_vat_rate
     
     # Tahsilat ayarları
@@ -356,10 +359,10 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
     
     logger.info(f"Mutabakat sorgusu - company_id: {company_id}, start: {start_dt.isoformat()}, end: {end_dt.isoformat()}")
     
-    # Şirkete ait restoranları getir (collection_settings, pricing ve kdv_rate dahil)
+    # Şirkete ait restoranları getir (collection_settings, pricing, kdv_rate, pos_commission_rate dahil)
     restaurants = await db.restaurants.find(
         {"company_id": company_id, "is_archived": {"$ne": True}},
-        {"_id": 0, "id": 1, "name": 1, "collection_settings": 1, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1, "kdv_rate": 1}
+        {"_id": 0, "id": 1, "name": 1, "collection_settings": 1, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1, "kdv_rate": 1, "pos_commission_rate": 1}
     ).to_list(500)
     
     logger.info(f"Bulunan restoran sayısı: {len(restaurants)}")
@@ -444,6 +447,8 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
         collection_settings = r.get("collection_settings", {})
         # Restoran KDV oranı - restoranda tanımlıysa onu kullan, yoksa şirket varsayılanı
         restaurant_kdv_rate = r.get("kdv_rate") if r.get("kdv_rate") is not None else default_vat_rate
+        # Restoran POS komisyon oranı - restoranda tanımlıysa onu kullan, yoksa şirket varsayılanı
+        restaurant_pos_rate = r.get("pos_commission_rate") if r.get("pos_commission_rate") is not None else pos_commission_rate
         restaurant_data[r["id"]] = {
             "restaurant_id": r["id"],
             "restaurant_name": r["name"],
@@ -461,8 +466,9 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
             "pricing_type": r.get("pricing_type", "per_package"),
             "per_package_price": r.get("per_package_price", 0),
             "km_ranges": r.get("km_ranges", []),
-            # KDV oranı (restoran bazlı)
-            "kdv_rate": restaurant_kdv_rate
+            # KDV ve POS oranları (restoran bazlı)
+            "kdv_rate": restaurant_kdv_rate,
+            "pos_commission_rate": restaurant_pos_rate
         }
     
     # Mesafe hesaplama fonksiyonu
@@ -561,7 +567,9 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
         meal_card_for_calc = data["meal_card_amount"] if data["meal_card_included"] else 0
         
         # POS komisyonu sadece dahil edilen kart tutarı üzerinden (yemek kartı dahil değil)
-        pos_commission = card_for_calc * (pos_commission_rate / 100)
+        # Restoran kendi POS oranını kullanır, yoksa şirket varsayılanı
+        restaurant_pos_rate = data.get("pos_commission_rate", pos_commission_rate)
+        pos_commission = card_for_calc * (restaurant_pos_rate / 100)
         
         # Net tutar: (Taşıma + KDV + POS) - (Nakit + Kart + Yemek Kartı) - sadece dahil edilenler
         net_amount = (total_delivery + pos_commission) - (cash_for_calc + card_for_calc + meal_card_for_calc)
