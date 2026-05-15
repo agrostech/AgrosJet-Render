@@ -40,7 +40,9 @@ import {
   getOrderAge,
   getEstimatedArrival,
   formatTime,
-  formatCurrency
+  formatCurrency,
+  getOrderPlatform,
+  KNOWN_ORDER_PLATFORMS
 } from "@/utils/orderUtils";
 import { printOrderLocal, getLocalPrintSettings, checkLocalPrintServer } from "@/utils/localPrintService";
 import { previewOrder, getPrintSettings } from "@/utils/printUtils";
@@ -753,6 +755,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b-2 border-primary">
+                        <th className="text-center p-2 font-bold text-xs w-[36px]"></th>
                         <th className="text-left p-2 font-bold text-xs whitespace-nowrap">Zaman</th>
                         <th className="text-left p-2 font-bold text-xs">Müşteri</th>
                         <th className="text-left p-2 font-bold text-xs">Adres</th>
@@ -774,6 +777,23 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                             key={order.id}
                             className="border-b hover:bg-slate-50 transition-colors align-top"
                           >
+                            <td className="p-2 text-center align-middle">
+                              {(() => {
+                                const platform = getOrderPlatform(order);
+                                if (KNOWN_ORDER_PLATFORMS.includes(platform)) {
+                                  return (
+                                    <img
+                                      src={`/images/platforms/${platform}.png`}
+                                      alt={platform}
+                                      title={platform}
+                                      className="w-6 h-6 rounded-full object-cover mx-auto"
+                                      data-testid={`order-platform-logo-${order.id}`}
+                                    />
+                                  );
+                                }
+                                return null;
+                              })()}
+                            </td>
                             <td className="p-2 text-xs">
                               <div>{formatTimeLocal(order.created_at)}</div>
                               {/* İleri tarihli sipariş için teslimat saatini göster */}
