@@ -63,6 +63,7 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
                     <th className="p-3 font-medium text-right">Pos Komisyonu</th>
                     <th className="p-3 font-medium text-right">Nakit Tahsilat</th>
                     <th className="p-3 font-medium text-right">Kredi Kartı Tahsilat</th>
+                    <th className="p-3 font-medium text-right">Online Tahsilat</th>
                     <th className="p-3 font-medium text-right">Yemek Kartı Tahsilat</th>
                     <th className="p-3 font-medium text-right">Sonuç</th>
                   </tr>
@@ -89,7 +90,12 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
                     </td>
                     <td className="p-3 text-right">
                       <div className={`inline-flex items-center font-medium ${data.card_included ? 'text-green-600' : 'text-slate-900'}`}>
-                        {formatMoney((data.card_amount || 0) + (data.online_amount || 0))}
+                        {formatMoney(data.card_amount || 0)}
+                      </div>
+                    </td>
+                    <td className="p-3 text-right">
+                      <div className="inline-flex items-center font-medium text-slate-900" data-testid="mutabakat-online-amount">
+                        {formatMoney(data.online_amount || 0)}
                       </div>
                     </td>
                     <td className="p-3 text-right">
@@ -138,6 +144,9 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
                     <span><span className="text-slate-800 font-medium">Siyah</span> — Restoran tarafından tahsil edilmiş, mütabakat hesaplamasına dahil değildir.</span>
                   </li>
                 </ul>
+                <p className="text-slate-500 text-xs mt-2">
+                  <span className="font-medium text-slate-600">Online Tahsilat</span> — Platform tarafından doğrudan restorana ödenen tutardır; mütabakat hesaplamasına dahil edilmez.
+                </p>
               </div>
               <div className="pt-2 border-t border-slate-200">
                 <p className="text-slate-500">
