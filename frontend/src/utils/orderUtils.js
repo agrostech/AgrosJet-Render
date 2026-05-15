@@ -300,3 +300,32 @@ export const getCourierInitials = (name) => {
   const lastInitial = parts[parts.length - 1][0].toUpperCase();
   return firstInitial + lastInitial;
 };
+
+
+// Sipariş kanalını/platformunu çöz: Adisyo & SepetTakip kapsayıcı kaynak olduğunda
+// alt platforma external_app_name ile çözünür. Manuel siparişler "phone" döner.
+// Bilinen platformlardan biri değilse ham source döner (ör. "adisyo", "sepettakip", "")
+export const getOrderPlatform = (order) => {
+  if (!order) return "";
+  const ext = (order.external_app_name || order.adisyo_raw?.externalAppName || "").toLowerCase();
+  const src = (order.source || order.platform || "").toLowerCase();
+  if ((src === "adisyo" || src === "sepettakip") && ext) {
+    if (ext.includes("yemeksepeti") || ext.includes("ys")) return "yemeksepeti";
+    if (ext.includes("trendyol")) return "trendyol";
+    if (ext.includes("getir")) return "getir";
+    if (ext.includes("migros")) return "migros";
+  }
+  if (src === "manual") return "phone";
+  return src;
+};
+
+// Bilinen platformlar listesi (logo asset'leri /images/platforms/ altında PNG)
+export const KNOWN_ORDER_PLATFORMS = [
+  "yemeksepeti",
+  "getir",
+  "trendyol",
+  "migros",
+  "adisyo",
+  "sepettakip",
+  "phone",
+];

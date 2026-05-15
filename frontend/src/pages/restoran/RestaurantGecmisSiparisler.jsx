@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { RefreshCw, Package, Search, ChevronLeft, ChevronRight, CheckCircle, ClipboardList, XCircle, Phone, Eye } from "lucide-react";
 import OrderDetailModal from "@/components/restoran/OrderDetailModal";
+import { getOrderPlatform } from "@/utils/orderUtils";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -32,6 +33,7 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [courierFilter, setCourierFilter] = useState("all");
   const [courierNameFilter, setCourierNameFilter] = useState("all");
+  const [channelFilter, setChannelFilter] = useState("all");
   const [couriers, setCouriers] = useState([]);
   const [availableCouriers, setAvailableCouriers] = useState([]); // Bu restoran için teslimatta bulunan kuryeler
   
@@ -111,6 +113,11 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
         }
       }
       
+      // Sipariş Kanalı filtresi (Adisyo/SepetTakip kapsayıcı kaynak olduğunda alt platforma çözünür)
+      if (filters.channel && filters.channel !== "all") {
+        result = result.filter(o => getOrderPlatform(o) === filters.channel);
+      }
+      
       // Date range filter
       if (filters.startDateTime && filters.endDateTime) {
         const start = new Date(filters.startDateTime);
@@ -137,6 +144,7 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
       courier: courierFilter,
       courierName: courierNameFilter,
       payment: paymentFilter,
+      channel: channelFilter,
       startDateTime,
       endDateTime
     });
@@ -188,6 +196,7 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
             courier: "all",
             courierName: "all",
             payment: "all",
+            channel: "all",
             startDateTime: defaults.startDateTime,
             endDateTime: defaults.endDateTime
           });
@@ -218,6 +227,7 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
     setCourierFilter("all");
     setCourierNameFilter("all");
     setPaymentFilter("all");
+    setChannelFilter("all");
     const defaults = getDefaultDates();
     setStartDateTime(defaults.startDateTime);
     setEndDateTime(defaults.endDateTime);
@@ -226,6 +236,7 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
       courier: "all",
       courierName: "all",
       payment: "all",
+      channel: "all",
       startDateTime: defaults.startDateTime,
       endDateTime: defaults.endDateTime
     });
@@ -437,6 +448,49 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
                   {availableCouriers.map(c => (
                     <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Sipariş Kanalı (Platform) */}
+            <div className="min-w-[110px] flex-1 max-w-[140px] sm:max-w-[170px]">
+              <Label className="text-[10px] sm:text-xs text-muted-foreground mb-1 block">Kanal</Label>
+              <Select value={channelFilter} onValueChange={setChannelFilter}>
+                <SelectTrigger className="h-7 sm:h-8 text-[11px] sm:text-xs" data-testid="channel-filter-trigger">
+                  <SelectValue placeholder="Tümü" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tümü</SelectItem>
+                  <SelectItem value="yemeksepeti">
+                    <span className="flex items-center gap-2">
+                      <img src="/images/platforms/yemeksepeti.png" alt="" className="w-3.5 h-3.5 rounded-full object-cover" />
+                      Yemeksepeti
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="getir">
+                    <span className="flex items-center gap-2">
+                      <img src="/images/platforms/getir.png" alt="" className="w-3.5 h-3.5 rounded-full object-cover" />
+                      Getir
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="trendyol">
+                    <span className="flex items-center gap-2">
+                      <img src="/images/platforms/trendyol.png" alt="" className="w-3.5 h-3.5 rounded-full object-cover" />
+                      Trendyol
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="migros">
+                    <span className="flex items-center gap-2">
+                      <img src="/images/platforms/migros.png" alt="" className="w-3.5 h-3.5 rounded-full object-cover" />
+                      Migros
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="phone">
+                    <span className="flex items-center gap-2">
+                      <img src="/images/platforms/phone.png" alt="" className="w-3.5 h-3.5 rounded-full object-cover" />
+                      Telefon (Manuel)
+                    </span>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>

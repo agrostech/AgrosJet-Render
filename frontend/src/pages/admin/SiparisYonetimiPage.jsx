@@ -26,7 +26,9 @@ import {
   getOrderAge,
   getCourierInitials,
   formatTime,
-  formatCurrency
+  formatCurrency,
+  getOrderPlatform,
+  KNOWN_ORDER_PLATFORMS
 } from "@/utils/orderUtils";
 
 // Bileşenler
@@ -1150,17 +1152,8 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                             <td className="p-2">
                               <div className="flex items-center gap-1.5">
                                 {(() => {
-                                  const extApp = (order.external_app_name || order.adisyo_raw?.externalAppName || "").toLowerCase();
-                                  const src = order.source || order.platform || "";
-                                  let platform = src;
-                                  if ((src === "adisyo" || src === "sepettakip") && extApp) {
-                                    if (extApp.includes("yemeksepeti") || extApp.includes("ys")) platform = "yemeksepeti";
-                                    else if (extApp.includes("trendyol")) platform = "trendyol";
-                                    else if (extApp.includes("getir")) platform = "getir";
-                                    else if (extApp.includes("migros")) platform = "migros";
-                                  }
-                                  if (platform === "manual") platform = "phone";
-                                  if (['getir','trendyol','migros','yemeksepeti','adisyo','sepettakip','phone'].includes(platform)) {
+                                  const platform = getOrderPlatform(order);
+                                  if (KNOWN_ORDER_PLATFORMS.includes(platform)) {
                                     return <img src={`/images/platforms/${platform}.png`} alt={platform} className="w-4 h-4 rounded-full flex-shrink-0 object-cover" />;
                                   }
                                   return null;
@@ -1408,19 +1401,8 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                         <div className="flex items-center justify-between px-2.5 py-1.5 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-700/30 rounded-t-lg">
                           <div className="flex items-center gap-1 min-w-0 flex-1">
                             {(() => {
-                              // Gerçek platformu belirle (Adisyo/SepetTakip üzerinden gelen marketplace siparişleri dahil)
-                              const extApp = (order.external_app_name || order.adisyo_raw?.externalAppName || "").toLowerCase();
-                              const src = order.source || order.platform || "";
-                              let platform = src;
-                              if ((src === "adisyo" || src === "sepettakip") && extApp) {
-                                if (extApp.includes("yemeksepeti") || extApp.includes("ys")) platform = "yemeksepeti";
-                                else if (extApp.includes("trendyol")) platform = "trendyol";
-                                else if (extApp.includes("getir")) platform = "getir";
-                                else if (extApp.includes("migros")) platform = "migros";
-                              }
-                              if (platform === "manual") platform = "phone";
-                              
-                              if (['getir','trendyol','migros','yemeksepeti','adisyo','sepettakip','phone'].includes(platform)) {
+                              const platform = getOrderPlatform(order);
+                              if (KNOWN_ORDER_PLATFORMS.includes(platform)) {
                                 return <img src={`/images/platforms/${platform}.png`} alt={platform} className="w-4 h-4 rounded-full flex-shrink-0 object-cover" />;
                               }
                               return null;
