@@ -277,12 +277,31 @@ export function CourierDetailModal({
         }
       });
       
-      // Kuryenin konumu
+      // Kuryenin konumu - sipariş durumuna göre renklendirme (canlı harita ile aynı mantık)
       if (courier.current_location?.latitude && courier.current_location?.longitude) {
+        const activeOrders = (ordersRef.current || []).filter(
+          o => o.status !== 'delivered' && o.status !== 'cancelled'
+        );
         const isOnBreak = courier.availability_status === 'on_break';
-        const bgColor = isOnBreak ? '#eab308' : '#22c55e';
+        let bgColor = '#22c55e'; // default: yeşil (boş/aktif)
+        if (isOnBreak) {
+          bgColor = '#eab308'; // sarı: molada
+        } else if (activeOrders.length > 0) {
+          if (activeOrders.some(o => o.status === 'on_the_way')) bgColor = '#06b6d4'; // cyan: yolda
+          else if (activeOrders.some(o => o.status === 'confirmed')) bgColor = '#1e3a8a'; // koyu mavi: onaylandı
+          else if (activeOrders.some(o => o.status === 'assigned')) bgColor = '#a855f7'; // mor: onay bekliyor
+        }
         const initials = getCourierInitials(courier.name);
         
+        let statusLabel = 'Boş';
+        if (isOnBreak) statusLabel = 'Molada';
+        else if (activeOrders.length > 0) {
+          if (activeOrders.some(o => o.status === 'on_the_way')) statusLabel = 'Yolda';
+          else if (activeOrders.some(o => o.status === 'confirmed')) statusLabel = 'Onaylandı';
+          else if (activeOrders.some(o => o.status === 'assigned')) statusLabel = 'Onay Bekliyor';
+          else statusLabel = 'Aktif';
+        }
+
         L.marker([courier.current_location.latitude, courier.current_location.longitude], {
           icon: L.divIcon({
             className: 'courier-marker',
@@ -315,7 +334,7 @@ export function CourierDetailModal({
             iconAnchor: [8, 8]
           })
         }).addTo(map)
-          .bindPopup(`<strong>${courier.name}</strong><br/>${isOnBreak ? 'Molada' : 'Aktif'}`);
+          .bindPopup(`<strong>${courier.name}</strong><br/>${statusLabel}`);
         
         allPoints.push([courier.current_location.latitude, courier.current_location.longitude]);
       }
