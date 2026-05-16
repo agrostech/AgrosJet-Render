@@ -392,9 +392,25 @@ async def lifespan(app: FastAPI):
 
 
     
-    # Otomatik Atama Job'ı (her 30 saniyede)
+    # Otomatik Atama Job'ı (her 5 saniyede)
+    # Önce hazırlık süresi dolan siparişleri "ready" durumuna taşır,
+    # sonra auto-dispatch çalıştırır. Bu sayede admin paneli kapalı olsa bile
+    # arka planda otomatik atama gerçekleşir.
     async def auto_dispatch_job():
         try:
+            # 1) Hazırlık süresi dolan siparişleri ready'e çevir
+            from routers.orders import check_preparation_times
+            from utils.database import db
+            companies = await db.companies.find(
+                {"auto_dispatch_settings.enabled": True},
+                {"_id": 0, "id": 1}
+            ).to_list(200)
+            for c in companies:
+                try:
+                    await check_preparation_times(company_id=c["id"])
+                except Exception as e:
+                    print(f"Prep time check error (company {c.get('id')}): {e}")
+            # 2) Auto-dispatch
             from services.auto_dispatch import run_all_companies_dispatch
             await run_all_companies_dispatch()
         except Exception as e:
