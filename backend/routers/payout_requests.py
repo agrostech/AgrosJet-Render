@@ -288,6 +288,17 @@ async def create_payout_request(
     if cooldown.get("blocked"):
         raise HTTPException(status_code=429, detail="Son 24 saat içinde tekrar talep gönderemezsiniz")
     
+    # Eksik Fatura Blokeri (mutabakatın önünde — kullanıcı önce buraya yönlenmeli)
+    from routers.missing_invoices import courier_has_blocking_missing_invoices
+    courier_doc = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "company_id": 1})
+    if courier_doc and courier_doc.get("company_id"):
+        blocking_count = await courier_has_blocking_missing_invoices(courier_doc["company_id"], courier_id)
+        if blocking_count > 0:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Önce {blocking_count} eksik faturanızı kesip yüklemeniz gerekiyor."
+            )
+
     # Mütabakat blokeri
     mutabakat = await _check_unprocessed_collections(courier_id)
     if mutabakat.get("blocked"):
@@ -296,6 +307,7 @@ async def create_payout_request(
             status_code=400,
             detail=f"Geçmiş günlerde işlenmemiş tahsilatınız var: {', '.join(days)}"
         )
+
     
     # Bakiye kontrolü (taksit kesintisi dahil)
     balance = await _calculate_courier_balance(courier_id)

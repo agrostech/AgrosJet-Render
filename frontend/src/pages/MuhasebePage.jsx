@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Users, Building2, Wallet, History, FileSpreadsheet, ChevronLeft, ChevronRight, Receipt, Store, UserCog, Bike } from "lucide-react";
+import { Users, Building2, Wallet, History, FileSpreadsheet, ChevronLeft, ChevronRight, Receipt, Store, UserCog, Bike, AlertCircle } from "lucide-react";
 import KuryelerTab from "./muhasebe/KuryelerTab";
 import IsletmelerTab from "./muhasebe/IsletmelerTab";
 import CarilerTab from "./muhasebe/CarilerTab";
@@ -12,6 +12,7 @@ import GunlukMutabakatTab from "./muhasebe/GunlukMutabakatTab";
 import YoneticiMutabakatTab from "./muhasebe/YoneticiMutabakatTab";
 import RestoranMutabakatTab from "./muhasebe/RestoranMutabakatTab";
 import OdemeTalepleriTab from "./muhasebe/OdemeTalepleriTab";
+import KuryeEksikFaturalariTab from "./muhasebe/KuryeEksikFaturalariTab";
 
 const TABS = [
   { key: "kuryeler", label: "Kuryeler", icon: Users },
@@ -25,6 +26,7 @@ const TABS = [
   // Eski sisteme dönmek için aşağıdaki satırın yorumunu kaldırın:
   // { key: "haftalik-hakedis", label: "Haftalık Hakediş", icon: FileSpreadsheet },
   { key: "kurye-faturalari", label: "Kurye Faturaları", icon: Receipt },
+  { key: "kurye-eksik-faturalari", label: "Kurye Eksik Faturaları", icon: AlertCircle },
   { key: "isletme-faturalari", label: "Restoran Faturaları", icon: Receipt },
   { key: "hareketler", label: "Hareketler", icon: History },
 ];
@@ -45,6 +47,7 @@ export default function MuhasebePage({ companyId, adminId, adminName, companyLog
     "odeme-talepleri": "muhasebe_odeme_talepleri",
     "haftalik-hakedis": "muhasebe_haftalik_hakedis",
     "kurye-faturalari": "muhasebe_kurye_faturalari",
+    "kurye-eksik-faturalari": "muhasebe_kurye_faturalari",
     "isletme-faturalari": "muhasebe_isletme_faturalari",
     "hareketler": "muhasebe_hareketler",
   };
@@ -171,6 +174,7 @@ export default function MuhasebePage({ companyId, adminId, adminName, companyLog
         {activeTab === "isletmeler" && <IsletmelerTab companyId={companyId} adminId={adminId} adminName={adminName} companyLogo={companyLogo} companyName={companyName} transactionRef={transactionRef} onSelect={scrollToTransactions} />}
         {activeTab === "cariler" && <CarilerTab companyId={companyId} adminId={adminId} adminName={adminName} companyLogo={companyLogo} companyName={companyName} transactionRef={transactionRef} onSelect={scrollToTransactions} />}
         {activeTab === "kurye-faturalari" && <FaturalarTab companyId={companyId} adminId={adminId} adminName={adminName} isSuperAdmin={isSuperAdmin} />}
+        {activeTab === "kurye-eksik-faturalari" && <KuryeEksikFaturalariTab companyId={companyId} />}
         {activeTab === "isletme-faturalari" && <IsletmeFaturalariTab companyId={companyId} adminId={adminId} adminName={adminName} isSuperAdmin={isSuperAdmin} />}
         {activeTab === "haftalik-hakedis" && <HaftalikHakedisTab companyId={companyId} />}
         {activeTab === "odeme-talepleri" && <OdemeTalepleriTab companyId={companyId} adminId={adminId} adminName={adminName} />}

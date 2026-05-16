@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { AlertTriangle, Wallet } from "lucide-react";
+import { AlertTriangle, Wallet, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageLoading } from "@/components/ui/loading-spinner";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
@@ -11,7 +11,8 @@ import {
   TransactionTable, 
   TransactionMobileList,
   InvoiceMessageModal,
-  PayoutRequestModal
+  PayoutRequestModal,
+  MissingInvoicesModal
 } from "@/components/courier/muhasebe";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -43,6 +44,23 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
   
   // Payout Request Modal
   const [showPayoutModal, setShowPayoutModal] = useState(false);
+
+  // Missing Invoices Modal
+  const [showMissingModal, setShowMissingModal] = useState(false);
+  const [missingCount, setMissingCount] = useState(0);
+
+  const fetchMissingCount = async () => {
+    try {
+      const res = await axios.get(`${API}/missing-invoices/courier/blocking-count`);
+      setMissingCount(res.data?.count || 0);
+    } catch {
+      setMissingCount(0);
+    }
+  };
+
+  useEffect(() => {
+    fetchMissingCount();
+  }, []);
   
   // Invoice Preview (PDF modal)
   const [previewInvoice, setPreviewInvoice] = useState(null);
@@ -310,14 +328,30 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
               </p>
             </div>
           </div>
-          <Button
-            onClick={() => setShowPayoutModal(true)}
-            className="w-full mt-3 gap-2 h-11"
-            data-testid="open-payout-request-btn"
-          >
-            <Wallet className="w-4 h-4" />
-            Ödeme İste
-          </Button>
+          <div className="grid grid-cols-2 gap-2 mt-3">
+            <Button
+              onClick={() => setShowMissingModal(true)}
+              variant={missingCount > 0 ? "default" : "outline"}
+              className={`gap-2 h-11 relative ${missingCount > 0 ? "bg-amber-500 hover:bg-amber-600 text-white" : ""}`}
+              data-testid="open-missing-invoices-btn"
+            >
+              <AlertCircle className="w-4 h-4" />
+              Eksik Faturalarım
+              {missingCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+                  {missingCount}
+                </span>
+              )}
+            </Button>
+            <Button
+              onClick={() => setShowPayoutModal(true)}
+              className="gap-2 h-11"
+              data-testid="open-payout-request-btn"
+            >
+              <Wallet className="w-4 h-4" />
+              Ödeme İste
+            </Button>
+          </div>
         </div>
 
         {/* Eksik Fatura Uyarısı - Minimal */}
@@ -465,7 +499,15 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
         onSuccess={() => {
           fetchTransactions();
           fetchInstallmentProducts();
+          fetchMissingCount();
         }}
+      />
+
+      {/* Missing Invoices Modal */}
+      <MissingInvoicesModal
+        open={showMissingModal}
+        onClose={() => setShowMissingModal(false)}
+        onChanged={fetchMissingCount}
       />
       
       {/* PDF Viewer */}
