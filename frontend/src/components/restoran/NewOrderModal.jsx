@@ -109,6 +109,8 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
   // Form state
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [hasExtension, setHasExtension] = useState(false);
+  const [phoneExtension, setPhoneExtension] = useState("");
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [addressDetails, setAddressDetails] = useState("");
   const [deliveryLocation, setDeliveryLocation] = useState(null);
@@ -253,6 +255,8 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
   const selectCustomer = (customer) => {
     setCustomerName(customer.name || "");
     setCustomerPhone(customer.phone || "");
+    setHasExtension(false);
+    setPhoneExtension("");
     setDeliveryAddress(customer.address || "");
     setAddressDetails(customer.address_direction || "");
     if (customer.latitude && customer.longitude) {
@@ -512,10 +516,12 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
         });
       }
 
+      const trimmedExt = (phoneExtension || "").trim();
       const res = await axios.post(`${API}/orders/manual`, {
         restaurant_id: restaurantId,
         customer_name: customerName.trim(),
         customer_phone: customerPhone.trim(),
+        phone_extension: hasExtension && trimmedExt ? trimmedExt : null,
         delivery_address: fullAddress,
         delivery_location: deliveryLocation,
         items: finalItems,
@@ -829,6 +835,31 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
           maxLength={11}
           data-testid="manual-order-phone-input"
         />
+        <div className="flex items-center gap-2 pt-0.5">
+          <Checkbox
+            id="manual-order-extension-checkbox"
+            checked={hasExtension}
+            onCheckedChange={(checked) => {
+              const v = checked === true;
+              setHasExtension(v);
+              if (!v) setPhoneExtension("");
+            }}
+            data-testid="manual-order-extension-checkbox"
+          />
+          <Label htmlFor="manual-order-extension-checkbox" className="text-xs font-normal cursor-pointer">
+            Dahili numara var
+          </Label>
+        </div>
+        {hasExtension && (
+          <Input
+            value={phoneExtension}
+            onChange={(e) => setPhoneExtension(e.target.value.replace(/\D/g, "").slice(0, 6))}
+            placeholder="Dahili (ör. 1234)"
+            inputMode="numeric"
+            maxLength={6}
+            data-testid="manual-order-extension-input"
+          />
+        )}
       </div>
 
       {/* Delivery Address */}

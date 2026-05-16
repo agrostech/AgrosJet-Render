@@ -1254,6 +1254,7 @@ class ManualOrderCreate(BaseModel):
     restaurant_id: str
     customer_name: str
     customer_phone: Optional[str] = None
+    phone_extension: Optional[str] = None  # IVR dahili numarası (1-6 hane); kurye paneli tel: linkinde ',' ile birleştirir
     delivery_address: str
     delivery_location: Optional[DeliveryLocation] = None  # Koordinatlar
     items: List[ManualOrderItem]
@@ -2853,6 +2854,7 @@ async def create_manual_order(data: ManualOrderCreate):
         "restaurant_location": restaurant_location,
         "customer_name": data.customer_name,
         "customer_phone": data.customer_phone or "",
+        "phone_extension": (data.phone_extension or "").strip() or None,
         "delivery_address": data.delivery_address,
         "delivery_location": delivery_location_dict,
         "items": items,

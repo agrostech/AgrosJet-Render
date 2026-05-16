@@ -982,9 +982,21 @@ export default function CourierSiparisPage({ courierId, companyId }) {
     }
   };
 
-  // Telefonu ara
-  const callPhone = (phone) => {
-    window.location.href = `tel:${phone}`;
+  // Telefonu ara — eğer phone_extension varsa virgül ile birleştirir; telefon
+  // uygulamaları virgülü ~2sn duraklama olarak algılayıp dahili numarayı otomatik tuşlar.
+  const buildTelHref = (phone, ext) => {
+    if (!phone) return "";
+    const cleanPhone = String(phone).replace(/[^\d+]/g, "");
+    const cleanExt = (ext || "").toString().replace(/\D/g, "");
+    return cleanExt ? `tel:${cleanPhone},${cleanExt}` : `tel:${cleanPhone}`;
+  };
+  const callPhone = (phone, ext) => {
+    const href = buildTelHref(phone, ext);
+    if (href) window.location.href = href;
+  };
+  const callOrder = (order) => {
+    if (!order) return;
+    callPhone(order.customer_phone, order.phone_extension);
   };
 
   if (loading) {
@@ -1337,7 +1349,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
                           order.restaurant_name
                         )
                       }
-                      onCall={() => callPhone(order.customer_phone)}
+                      onCall={() => callOrder(order)}
                       loading={actionLoading === order.id}
                     />
                   )
@@ -1653,7 +1665,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
             selectedOrder.delivery_address
           )
         }
-        onCall={() => selectedOrder && callPhone(selectedOrder.customer_phone)}
+        onCall={() => selectedOrder && callOrder(selectedOrder)}
         loading={actionLoading === selectedOrder?.id}
       />
 
@@ -2009,9 +2021,11 @@ function OrderDetailModal({ order, open, onClose, onPickup, onDeliver, onOpenMap
               className="text-xs text-blue-600 hover:underline flex items-center gap-1 mt-0.5"
             >
               <Phone className="w-3 h-3" />
-              {order.customer_phone?.includes(',,') 
-                ? `${order.customer_phone.split(',,')[0]} (Dahili: ${order.customer_phone.split(',,')[1]})`
-                : order.customer_phone
+              {order.phone_extension
+                ? `${order.customer_phone} (Dahili: ${order.phone_extension})`
+                : order.customer_phone?.includes(',,')
+                  ? `${order.customer_phone.split(',,')[0]} (Dahili: ${order.customer_phone.split(',,')[1]})`
+                  : order.customer_phone
               }
             </button>
           </div>
