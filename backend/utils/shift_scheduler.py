@@ -110,7 +110,8 @@ async def check_shift_start_violations(start_time: str):
                 if not courier:
                     continue
                 
-                courier_active = courier.get("availability_status") in ["available", "active"]
+                # Kurye aktif mi? (active, available veya on_break - mola da kabul edilir)
+                courier_active = courier.get("availability_status") in ["available", "active", "on_break"]
                 admin_info = admin_map.get(a["courier_id"])
                 
                 if admin_info:
