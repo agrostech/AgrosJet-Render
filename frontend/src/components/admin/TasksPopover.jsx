@@ -78,9 +78,12 @@ function TaskCard({ task, isSuper, currentUserId, onComplete, onDelete }) {
       } ${isTemplate ? "border-l-2 border-l-purple-500 bg-purple-50/20" : ""} ${isScheduled ? "border-l-2 border-l-amber-500 bg-amber-50/20" : ""}`}
     >
       {/* Üst satır: başlık + rozetler + aksiyonlar */}
-      <div className="flex items-center gap-1.5">
-        <div className="flex-1 min-w-0 flex items-center gap-1.5">
-          <span className={`font-medium text-[13px] truncate ${task.status === "completed" ? "text-muted-foreground line-through" : ""}`}>
+      <div className="flex items-start sm:items-center gap-1.5">
+        <div className="flex-1 min-w-0 flex flex-wrap sm:flex-nowrap items-center gap-1.5">
+          <span
+            className={`font-medium text-[13px] break-words sm:truncate ${task.status === "completed" ? "text-muted-foreground line-through" : ""}`}
+            title={task.title}
+          >
             {task.title}
           </span>
           {isTemplate && (
