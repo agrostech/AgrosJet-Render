@@ -998,25 +998,23 @@ async def courier_poll(courier_id: str, company_id: str = None, session_id: str 
 async def get_couriers_with_availability(company_id: str):
     """Get couriers grouped by availability status"""
     # Önce company_couriers tablosundan bağlı kuryeleri al
+    # Pasifleştirilmiş kuryeler (is_active=False) hariç tutulur
     company_courier_docs = await db.company_couriers.find(
         {
             "company_id": company_id,
             "is_archived": {"$ne": True},
-            "status": "approved"
+            "is_active": {"$ne": False},
+            "status": {"$in": ["approved", "active"]}
         },
         {"_id": 0, "courier_id": 1}
     ).to_list(500)
     
     courier_ids_from_link = [doc["courier_id"] for doc in company_courier_docs]
     
-    # Ayrıca direkt couriers tablosunda company_id olanları da al
+    # Bağlı kuryeler ile sınırla (orphan couriers tablosundan değil)
     couriers = await db.couriers.find(
         {
-            "$or": [
-                {"id": {"$in": courier_ids_from_link}},
-                {"company_id": company_id},
-                {"company_ids": company_id}
-            ],
+            "id": {"$in": courier_ids_from_link},
             "is_archived": {"$ne": True}
         },
         {"_id": 0}
