@@ -15,9 +15,11 @@ const MONTHS_TR = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
                     "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
 
 function parseWeek(w) {
-  // w.week_start / w.week_end: "YYYY-MM-DD"
-  const [ys, ms, ds] = (w.week_start || "0000-00-00").split("-");
-  const [, me, de] = (w.week_end || "0000-00-00").split("-");
+  // w.week_start / w.week_end "YYYY-MM-DD" veya ISO datetime (slice ile normalize)
+  const ws = (w.week_start || "0000-00-00").slice(0, 10);
+  const we = (w.week_end || "0000-00-00").slice(0, 10);
+  const [ys, ms, ds] = ws.split("-");
+  const [, me, de] = we.split("-");
   const startDay = parseInt(ds, 10) || 0;
   const endDay = parseInt(de, 10) || 0;
   const startMonth = parseInt(ms, 10) || 1;
@@ -28,6 +30,45 @@ function parseWeek(w) {
   return { startDay, endDay, monthLabel, year: ys };
 }
 
+function defaultRenderBadge(w, isSelected) {
+  const total = w.total_couriers || 0;
+  const created = w.created || 0;
+  const uploaded = w.uploaded || 0;
+  const allUploaded = total > 0 && uploaded === total && created === total;
+  const isFuture = w.is_current && created === 0;
+  if (isFuture) {
+    return (
+      <div className={`text-[11px] font-medium mt-0.5 ${isSelected ? "text-blue-200" : "text-blue-600"}`}>
+        Yaklaşan
+      </div>
+    );
+  }
+  if (total === 0) {
+    return (
+      <div className={`text-[11px] mt-0.5 ${isSelected ? "text-slate-400" : "text-slate-400"}`}>
+        0 kurye
+      </div>
+    );
+  }
+  if (allUploaded) {
+    return (
+      <div className={`mt-0.5 ${isSelected ? "text-green-400" : "text-green-500"}`}>
+        <CheckCircle2 className="w-4 h-4 mx-auto" />
+      </div>
+    );
+  }
+  return (
+    <div
+      className={`text-xs font-semibold mt-0.5 tabular-nums ${
+        isSelected ? "text-blue-200" : "text-blue-600"
+      }`}
+      title="Yüklenen / Oluşturulan / Toplam"
+    >
+      {uploaded}/{created}/{total}
+    </div>
+  );
+}
+
 export default function WeeksStripSelector({
   weeks = [],
   selectedWeekStart,
@@ -36,6 +77,7 @@ export default function WeeksStripSelector({
   onNextPage,
   canPrev = false,
   canNext = false,
+  renderBadge,
 }) {
   return (
     <div
@@ -56,12 +98,10 @@ export default function WeeksStripSelector({
       <div className="flex-1 flex gap-1 overflow-x-auto scrollbar-hide">
         {weeks.map((w) => {
           const isSelected = w.week_start === selectedWeekStart;
-          const total = w.total_couriers || 0;
-          const created = w.created || 0;
-          const uploaded = w.uploaded || 0;
-          const allUploaded = total > 0 && uploaded === total && created === total;
-          const isFuture = w.is_current && created === 0;
           const { startDay, endDay, monthLabel } = parseWeek(w);
+          const badge = renderBadge
+            ? renderBadge(w, isSelected)
+            : defaultRenderBadge(w, isSelected);
           return (
             <button
               key={w.week_start}
@@ -78,28 +118,7 @@ export default function WeeksStripSelector({
                 {startDay} – {endDay}
               </div>
               <div className="text-sm font-semibold leading-tight">{monthLabel}</div>
-              {isFuture ? (
-                <div className={`text-[11px] font-medium mt-0.5 ${isSelected ? "text-blue-200" : "text-blue-600"}`}>
-                  Yaklaşan
-                </div>
-              ) : total === 0 ? (
-                <div className={`text-[11px] mt-0.5 ${isSelected ? "text-slate-400" : "text-slate-400"}`}>
-                  0 kurye
-                </div>
-              ) : allUploaded ? (
-                <div className={`mt-0.5 ${isSelected ? "text-green-400" : "text-green-500"}`}>
-                  <CheckCircle2 className="w-4 h-4 mx-auto" />
-                </div>
-              ) : (
-                <div
-                  className={`text-xs font-semibold mt-0.5 tabular-nums ${
-                    isSelected ? "text-blue-200" : "text-blue-600"
-                  }`}
-                  title="Yüklenen / Oluşturulan / Toplam"
-                >
-                  {uploaded}/{created}/{total}
-                </div>
-              )}
+              {badge}
             </button>
           );
         })}

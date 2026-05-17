@@ -23,7 +23,7 @@ import {
   Trash2,
   CheckCircle2,
 } from "lucide-react";
-import WeekSelector from "@/components/muhasebe/WeekSelector";
+import WeeksStripSelector from "@/components/faturalar/WeeksStripSelector";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -399,20 +399,35 @@ export default function DailyHakedisView({ companyId, adminId, adminName, isSupe
   const canPrev = currentWeekIdx >= 0 && currentWeekIdx < weeks.length - 1;
   const canNext = currentWeekIdx > 0;
 
+  // En eskiden yeniye soldan sağa: API en yeniden eskiye döndüğü için reverse
+  const weeksForStrip = useMemo(() => [...weeks].reverse(), [weeks]);
+
   return (
     <div className="space-y-4" data-testid="daily-hakedis-view">
-      {/* Üst Kontrol: Hafta seçici + toplam */}
-      <Card>
-        <CardContent className="py-3 px-4 flex flex-wrap items-center gap-3">
-          <WeekSelector weeks={weeks} selectedWeek={selectedWeek} onSelect={(w) => { setSelectedWeek(w); setSelectedDate(null); }} loading={loading} />
-          <Button variant="ghost" size="sm" onClick={fetchDays} disabled={loading} data-testid="daily-refresh-btn">
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-          </Button>
-          <div className="ml-auto text-sm">
-            Toplam: <span className="font-bold text-emerald-700">{formatMoney(total)}</span>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Üst Kontrol: Hafta şeritli seçici (Kurye Faturaları ile aynı tasarım) */}
+      <WeeksStripSelector
+        weeks={weeksForStrip}
+        selectedWeekStart={selectedWeek?.week_start}
+        onSelect={(w) => { setSelectedWeek(w); setSelectedDate(null); }}
+        renderBadge={(w, isSelected) =>
+          w.is_current ? (
+            <div className={`text-[11px] font-medium mt-0.5 ${isSelected ? "text-blue-200" : "text-blue-600"}`}>
+              Bu Hafta
+            </div>
+          ) : (
+            <div className="text-[11px] mt-0.5 opacity-0">·</div>
+          )
+        }
+      />
+
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" size="sm" onClick={fetchDays} disabled={loading} data-testid="daily-refresh-btn">
+          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+        </Button>
+        <div className="ml-auto text-sm">
+          Toplam: <span className="font-bold text-emerald-700">{formatMoney(total)}</span>
+        </div>
+      </div>
 
       <AutoSettingsPanel companyId={companyId} isSuperAdmin={isSuperAdmin} />
 
