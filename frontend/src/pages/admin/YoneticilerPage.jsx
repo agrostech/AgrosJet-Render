@@ -44,7 +44,7 @@ const PERMISSION_ITEMS = [
       { key: "muhasebe_kurye_mutabakat", label: "Kurye Mütabakat", icon: Bike },
       { key: "muhasebe_restoran_mutabakat", label: "Restoran Mütabakat", icon: Store },
       { key: "muhasebe_yonetici_mutabakat", label: "Yönetici Mütabakat", icon: UserCog },
-      { key: "muhasebe_haftalik_hakedis", label: "Haftalık Hakediş", icon: FileSpreadsheet },
+      { key: "muhasebe_haftalik_hakedis", label: "Kurye Hakediş", icon: FileSpreadsheet },
       { key: "muhasebe_kurye_faturalari", label: "Kurye Faturaları", icon: Receipt },
       { key: "muhasebe_isletme_faturalari", label: "Restoran Faturaları", icon: Receipt },
       { key: "muhasebe_hareketler", label: "Hareketler", icon: History },

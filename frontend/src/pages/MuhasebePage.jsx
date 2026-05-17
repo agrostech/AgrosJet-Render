@@ -19,7 +19,7 @@ const TABS = [
   { key: "kurye-mutabakat", label: "Kurye Mütabakat", icon: Bike },
   { key: "restoran-mutabakat", label: "Restoran Mütabakat", icon: Store },
   { key: "yonetici-mutabakat", label: "Yönetici Mütabakat", icon: UserCog },
-  { key: "haftalik-hakedis", label: "Haftalık Hakediş", icon: FileSpreadsheet },
+  { key: "haftalik-hakedis", label: "Kurye Hakediş", icon: FileSpreadsheet },
   { key: "kurye-faturalari", label: "Kurye Faturaları", icon: Receipt },
   { key: "isletme-faturalari", label: "Restoran Faturaları", icon: Receipt },
   { key: "hareketler", label: "Hareketler", icon: History },
