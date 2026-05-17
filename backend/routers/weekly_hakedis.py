@@ -55,6 +55,33 @@ class AutoSettingsUpdate(BaseModel):
     enabled: bool
 
 
+class DailyApplyItem(BaseModel):
+    courier_id: str
+    courier_name: Optional[str] = None
+    amount: float
+    order_count: int = 0
+    distance_km: float = 0
+
+
+class DailyApplyRequest(BaseModel):
+    business_date: str  # "YYYY-MM-DD"
+    items: List[DailyApplyItem]
+    admin_id: str
+    admin_name: str
+    add_jetpuan: bool = True
+
+
+class DailyRevertRequest(BaseModel):
+    business_date: str
+    admin_id: str
+    admin_name: str
+    courier_ids: Optional[List[str]] = None
+
+
+class DailyAutoSettings(BaseModel):
+    days_enabled: dict  # {"monday": true, "tuesday": false, ...}
+
+
 def get_week_description(start_dt: datetime, end_dt: datetime) -> str:
     """Hafta açıklama metni oluştur"""
     start_str = start_dt.strftime("%d.%m.%Y %H:%M")
@@ -653,3 +680,74 @@ async def process_auto_weekly_hakedis(company_id: str):
     )
     
     return result
+
+
+# ====================== GÜNLÜK HAKEDİŞ ======================
+
+def _is_super(payload: dict) -> bool:
+    return payload.get("role") == "superadmin" or bool(payload.get("is_super"))
+
+
+@router.get("/daily-data/{company_id}")
+async def get_daily_hakedis_week(company_id: str, week_start: str, week_end: str):
+    """Bir hafta için 7 günlük hakediş matrisi: her gün ayrı liste."""
+    from services.daily_hakedis_service import calculate_day_hakedis
+    try:
+        ws = datetime.fromisoformat(ensure_turkey_timezone(week_start))
+        we = datetime.fromisoformat(ensure_turkey_timezone(week_end))
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Geçersiz tarih formatı")
+    days = []
+    cur = ws
+    while cur < we:
+        biz_date = cur.strftime("%Y-%m-%d")
+        days.append(await calculate_day_hakedis(company_id, biz_date))
+        cur = cur + timedelta(days=1)
+        if len(days) >= 7:
+            break
+    total_amount = sum(d["summary"]["total_amount"] for d in days)
+    total_orders = sum(d["summary"]["total_orders"] for d in days)
+    return {"days": days, "summary": {"total_amount": round(total_amount, 2), "total_orders": total_orders}}
+
+
+@router.post("/daily/apply/{company_id}")
+async def apply_daily_hakedis(company_id: str, data: DailyApplyRequest):
+    """Tek bir iş günü için seçili kuryelere bakiye yazar."""
+    from services.daily_hakedis_service import apply_day_hakedis
+    items = [it.dict() for it in data.items]
+    res = await apply_day_hakedis(company_id, data.business_date, items, data.admin_id, data.admin_name, data.add_jetpuan)
+    return {"message": f"{len(res['processed'])} kayıt işlendi", **res}
+
+
+@router.post("/daily/revert/{company_id}")
+async def revert_daily_hakedis(company_id: str, data: DailyRevertRequest, payload: dict = Depends(require_admin)):
+    """Tek bir iş gününün hakediş kaydını geri alır — sadece superadmin."""
+    if not _is_super(payload):
+        raise HTTPException(status_code=403, detail="Sadece superadmin geri alabilir")
+    from services.daily_hakedis_service import revert_day_hakedis
+    res = await revert_day_hakedis(company_id, data.business_date, data.courier_ids)
+    return {"message": f"{len(res['reverted'])} kayıt geri alındı", **res}
+
+
+@router.get("/daily/auto-settings/{company_id}")
+async def get_daily_auto_settings(company_id: str):
+    """Günlük otomatik işleme ayarları (7 gün)."""
+    s = await db.daily_hakedis_settings.find_one({"company_id": company_id}, {"_id": 0})
+    days = (s or {}).get("days_enabled") or {}
+    # default: tümü kapalı
+    full = {k: bool(days.get(k, False)) for k in ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]}
+    return {"days_enabled": full, "last_auto_run": (s or {}).get("last_auto_run")}
+
+
+@router.put("/daily/auto-settings/{company_id}")
+async def update_daily_auto_settings(company_id: str, data: DailyAutoSettings):
+    """Gün-bazlı otomatik işleme ayarlarını günceller."""
+    valid_keys = {"monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"}
+    days = {k: bool(v) for k, v in (data.days_enabled or {}).items() if k in valid_keys}
+    await db.daily_hakedis_settings.update_one(
+        {"company_id": company_id},
+        {"$set": {"company_id": company_id, "days_enabled": days, "updated_at": get_turkey_now()}},
+        upsert=True,
+    )
+    return {"message": "Ayarlar güncellendi", "days_enabled": days}
+

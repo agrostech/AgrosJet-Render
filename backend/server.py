@@ -441,6 +441,48 @@ async def lifespan(app: FastAPI):
         name="Tasks Scheduler (1m)",
         replace_existing=True
     )
+
+    # Günlük Hakediş Otomatik İşleme — her dakika, açılış saati ±5dk
+    async def daily_hakedis_auto_job():
+        try:
+            from services.daily_hakedis_service import process_auto_daily_for_company
+            from datetime import datetime, timezone, timedelta
+            tr = timezone(timedelta(hours=3))
+            now = datetime.now(tr)
+            cur_min = now.hour * 60 + now.minute
+            companies = await db.companies.find({}, {"_id": 0, "id": 1, "opening_time": 1}).to_list(500)
+            for c in companies:
+                opening = c.get("opening_time") or "06:00"
+                try:
+                    h, m = [int(x) for x in opening.split(":")]
+                    if abs(cur_min - (h * 60 + m)) > 5:
+                        continue
+                except Exception:
+                    continue
+                try:
+                    await process_auto_daily_for_company(c["id"])
+                except Exception as e:
+                    print(f"daily hakedis auto error ({c.get('id')}): {e}")
+        except Exception as e:
+            print(f"Daily hakedis job error: {e}")
+
+    scheduler.add_job(
+        daily_hakedis_auto_job, 'interval', minutes=1,
+        id="daily_hakedis_auto", name="Daily Hakedis Auto (1m)", replace_existing=True
+    )
+
+    # Haftalık Fatura Yükümlülüğü — Pazartesi açılış ±5dk
+    async def weekly_obligation_job():
+        try:
+            from routers.courier_invoice_obligations import generate_weekly_obligations_all_companies
+            await generate_weekly_obligations_all_companies()
+        except Exception as e:
+            print(f"Weekly obligation job error: {e}")
+
+    scheduler.add_job(
+        weekly_obligation_job, 'interval', minutes=1,
+        id="weekly_obligation", name="Weekly Obligation (1m)", replace_existing=True
+    )
     
     # Scheduler'ı shift_scheduler modülüne kaydet
     from utils.shift_scheduler import set_scheduler, load_shift_jobs
@@ -779,6 +821,7 @@ from routers.tiered_pricing import router as tiered_pricing_router
 from routers.auto_dispatch import router as auto_dispatch_router
 from routers.tasks import router as tasks_router
 from routers.exemption_requests import router as exemption_requests_router
+from routers.courier_invoice_obligations import router as courier_invoice_obligations_router
 from routers.customers import router as customers_router
 from routers.credits import router as credits_router
 from routers.break_system import router as break_system_router
@@ -852,6 +895,7 @@ app.include_router(tiered_pricing_router)
 app.include_router(auto_dispatch_router)
 app.include_router(tasks_router)
 app.include_router(exemption_requests_router)
+app.include_router(courier_invoice_obligations_router)
 app.include_router(customers_router)
 app.include_router(credits_router)
 app.include_router(break_system_router)

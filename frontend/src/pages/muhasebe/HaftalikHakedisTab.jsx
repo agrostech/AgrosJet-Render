@@ -21,13 +21,16 @@ import HakedisAutoSettings from "@/components/muhasebe/HakedisAutoSettings";
 import ApplyHakedisModal from "@/components/muhasebe/ApplyHakedisModal";
 import RevertHakedisModal from "@/components/muhasebe/RevertHakedisModal";
 
+import DailyHakedisView from "./DailyHakedisView";
+
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const formatMoney = (amount) => {
   return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount) + ' TL';
 };
 
-export default function HaftalikHakedisTab({ companyId }) {
+export default function HaftalikHakedisTab({ companyId, adminId, adminName, isSuperAdmin }) {
+  const [mode, setMode] = useState("daily"); // "daily" | "weekly"
   // Loading states
   const [initialLoading, setInitialLoading] = useState(true);
   const [dataLoading, setDataLoading] = useState(false);
@@ -312,7 +315,38 @@ export default function HaftalikHakedisTab({ companyId }) {
 
   return (
     <div className="space-y-4" data-testid="haftalik-hakedis-tab">
-      {/* Header Card - Week Selector & Actions */}
+      {/* Mode Toggle: Günlük | Haftalık */}
+      <div className="inline-flex rounded-md border bg-white p-0.5 shadow-sm">
+        <button
+          type="button"
+          onClick={() => setMode("daily")}
+          className={`px-3 py-1.5 text-xs font-medium rounded ${mode === "daily" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-slate-50"}`}
+          data-testid="hakedis-mode-daily"
+        >
+          Günlük
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode("weekly")}
+          className={`px-3 py-1.5 text-xs font-medium rounded ${mode === "weekly" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-slate-50"}`}
+          data-testid="hakedis-mode-weekly"
+        >
+          Haftalık
+        </button>
+      </div>
+
+      {mode === "daily" && (
+        <DailyHakedisView
+          companyId={companyId}
+          adminId={adminId}
+          adminName={adminName}
+          isSuperAdmin={!!isSuperAdmin}
+        />
+      )}
+
+      {mode === "weekly" && (
+        <>
+          {/* Header Card - Week Selector & Actions */}
       <Card className="border bg-white shadow-sm">
         <CardContent className="py-3 px-4">
           <div className="flex flex-wrap items-center gap-3">
@@ -532,6 +566,8 @@ export default function HaftalikHakedisTab({ companyId }) {
         onConfirm={handleRevertHakedis}
         loading={revertLoading}
       />
+        </>
+      )}
     </div>
   );
 }
