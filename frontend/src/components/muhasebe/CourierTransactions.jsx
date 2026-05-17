@@ -56,7 +56,7 @@ export default function CourierTransactions({
       {/* Header */}
       <div className="p-3 border-b-2 border-border bg-slate-50 flex-shrink-0">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <div className="flex items-center justify-between sm:justify-start sm:gap-4">
+          <div className="flex items-center justify-between sm:justify-start sm:gap-4 flex-wrap">
             <div className="min-w-0">
               <h3 className="font-heading font-bold truncate">{selectedEntity.name}</h3>
               <p className="text-xs text-muted-foreground font-mono">{selectedEntity.phone}</p>
@@ -71,6 +71,7 @@ export default function CourierTransactions({
                 </p>
               )}
             </div>
+            <CourierObligationsBanner courierId={selectedEntity?.id} />
           </div>
           
           {!showArchived && (
@@ -108,9 +109,6 @@ export default function CourierTransactions({
           )}
         </div>
       </div>
-
-      {/* Fatura Yükümlülüğü Uyarısı */}
-      <CourierObligationsBanner courierId={selectedEntity?.id} />
 
       {/* Ödeme Formu */}
       {!showArchived && (
