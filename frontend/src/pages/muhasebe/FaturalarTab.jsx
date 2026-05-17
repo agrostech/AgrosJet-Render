@@ -8,6 +8,7 @@ import { useFaturalar } from "@/hooks/useFaturalar";
 import { MonthSelector } from "@/components/faturalar/MonthSelector";
 import { MonthInvoicesCard } from "@/components/faturalar/MonthInvoicesCard";
 import { MissingInvoicesCard } from "@/components/faturalar/MissingInvoicesCard";
+import CourierObligationsCard from "@/components/faturalar/CourierObligationsCard";
 import { CouriersListCard } from "@/components/faturalar/CouriersListCard";
 import { CourierInvoicesCard } from "@/components/faturalar/CourierInvoicesCard";
 
@@ -188,6 +189,9 @@ export default function FaturalarTab({ companyId, adminId, adminName, isSuperAdm
           onVerifyWithAmount={handleVerifyWithAmount}
         />
       </div>
+
+      {/* Yeni Haftalık Fatura Yükümlülükleri (decoupled obligations sistemi) */}
+      <CourierObligationsCard />
 
       {/* Eksik Faturalar (her zaman görünür, geri açıldı) */}
       <MissingInvoicesCard

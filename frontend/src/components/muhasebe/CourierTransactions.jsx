@@ -4,6 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Plus, Minus, Archive, ArchiveRestore, Clock, Search, Download, Pencil, Trash2, CreditCard, CheckCircle2, Loader2 } from "lucide-react";
 import { formatMoney, formatDate } from "@/hooks/useAccountingTab";
+import CourierObligationsBanner from "./CourierObligationsBanner";
 
 export default function CourierTransactions({
   selectedEntity,
@@ -107,6 +108,9 @@ export default function CourierTransactions({
           )}
         </div>
       </div>
+
+      {/* Fatura Yükümlülüğü Uyarısı */}
+      <CourierObligationsBanner courierId={selectedEntity?.id} />
 
       {/* Ödeme Formu */}
       {!showArchived && (

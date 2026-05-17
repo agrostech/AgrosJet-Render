@@ -11,6 +11,7 @@ import {
   TransactionTable, 
   TransactionMobileList,
   InvoiceMessageModal,
+  MyObligationsModal,
 } from "@/components/courier/muhasebe";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -29,6 +30,9 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
   const [installmentProducts, setInstallmentProducts] = useState([]);
   const [invoices, setInvoices] = useState({});
   const [shortfalls, setShortfalls] = useState([]);
+  const [obligationsCount, setObligationsCount] = useState(0);
+  const [obligationsTotal, setObligationsTotal] = useState(0);
+  const [showObligationsModal, setShowObligationsModal] = useState(false);
   const [uploadingFor, setUploadingFor] = useState(null);
   const [installmentsExpanded, setInstallmentsExpanded] = useState(false);
   const [companyInfo, setCompanyInfo] = useState(null);
@@ -104,6 +108,18 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
     }
   };
 
+  const fetchObligationsSummary = async () => {
+    try {
+      const res = await axios.get(`${API}/courier-invoice-obligations/courier/me`);
+      const items = res.data.items || [];
+      setObligationsCount(items.length);
+      setObligationsTotal(items.reduce((s, i) => s + Number(i.expected_amount || 0), 0));
+    } catch {
+      setObligationsCount(0);
+      setObligationsTotal(0);
+    }
+  };
+
   const fetchCompanyInfo = async () => {
     if (!companyId) return;
     try {
@@ -120,6 +136,7 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
       fetchInstallmentProducts();
       fetchInvoices();
       fetchShortfalls();
+      fetchObligationsSummary();
     }
     if (companyId) {
       fetchCompanyInfo();
@@ -308,7 +325,26 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
           </div>
         </div>
 
-        {/* Eksik Fatura Uyarısı - Minimal */}
+        {/* Fatura Yükümlülükleri (yeni decoupled sistem) */}
+        {obligationsCount > 0 && (
+          <button
+            type="button"
+            onClick={() => setShowObligationsModal(true)}
+            className="w-[calc(100%-1.5rem)] sm:w-[calc(100%-2rem)] mx-3 sm:mx-4 mt-3 p-2.5 bg-amber-50 border border-amber-200 rounded-lg flex items-center justify-between text-left hover:bg-amber-100 transition"
+            data-testid="my-obligations-banner"
+          >
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
+              <span className="text-sm text-amber-700">
+                <span className="font-medium">{obligationsCount} fatura yükümlülüğü</span>
+                <span className="text-amber-600"> • Toplam: {formatMoney(obligationsTotal)}</span>
+              </span>
+            </div>
+            <span className="text-xs font-medium text-amber-700 underline">Yükle / Görüntüle</span>
+          </button>
+        )}
+
+        {/* Eski eksik fatura uyarısı — geri-uyum amaçlı korunuyor */}
         {shortfalls.length > 0 && (
           <div className="mx-3 sm:mx-4 mt-3 p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
             <div className="flex items-center gap-2">
@@ -456,6 +492,13 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
             : null
         }
         onClose={() => setPreviewInvoice(null)}
+      />
+
+      {/* Fatura Yükümlülükleri Modal */}
+      <MyObligationsModal
+        open={showObligationsModal}
+        onOpenChange={setShowObligationsModal}
+        onUpdated={fetchObligationsSummary}
       />
     </div>
   );

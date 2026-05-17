@@ -62,7 +62,13 @@ async def calculate_day_hakedis(company_id: str, business_date: str):
     courier_map = {c["id"]: c for c in couriers}
     courier_ids = list(courier_map.keys())
     if not courier_ids:
-        return {"couriers": [], "summary": {"total_amount": 0, "total_orders": 0}, "description": day_description(business_date, start_dt, end_dt)}
+        return {
+            "couriers": [],
+            "summary": {"total_amount": 0, "total_orders": 0},
+            "description": day_description(business_date, start_dt, end_dt),
+            "business_date": business_date,
+            "window": {"start": start_iso, "end": end_iso},
+        }
 
     pipeline = [
         {"$match": {

@@ -34,9 +34,9 @@ const getWeekdayKey = (dateStr) => {
 };
 
 function DayBlock({ day, onApply, onRevert, isSuperAdmin, busyDate }) {
-  const [open, setOpen] = useState(true);
-  const [selected, setSelected] = useState([]);
   const couriers = day.couriers || [];
+  const [open, setOpen] = useState(couriers.length > 0);
+  const [selected, setSelected] = useState([]);
   const unprocessed = couriers.filter((c) => !c.is_processed && c.amount > 0);
   const processed = couriers.filter((c) => c.is_processed);
   const selectedUnprocessed = unprocessed.filter((c) => selected.includes(c.courier_id));
@@ -248,7 +248,7 @@ export default function DailyHakedisView({ companyId, adminId, adminName, isSupe
     setLoading(true);
     try {
       const res = await axios.get(`${API}/weekly-hakedis/daily-data/${companyId}`, {
-        params: { week_start: selectedWeek.start, week_end: selectedWeek.end },
+        params: { week_start: selectedWeek.week_start, week_end: selectedWeek.week_end },
       });
       setDays(res.data.days || []);
     } catch {
@@ -306,6 +306,30 @@ export default function DailyHakedisView({ companyId, adminId, adminName, isSupe
 
   const total = days.reduce((sum, d) => sum + (d.summary?.total_amount || 0), 0);
 
+  // 7 günlük sabit grid: API'den dönmese veya bazı günler eksik olsa bile boş satır göster.
+  const buildSevenDayGrid = () => {
+    if (!selectedWeek?.week_start) return days;
+    const startStr = selectedWeek.week_start.slice(0, 10); // "YYYY-MM-DD"
+    const startDate = new Date(startStr + "T12:00:00");
+    const byDate = new Map((days || []).map((d) => [d.business_date, d]));
+    const result = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(startDate);
+      d.setDate(startDate.getDate() + i);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      result.push(
+        byDate.get(key) || {
+          business_date: key,
+          couriers: [],
+          summary: { total_amount: 0, total_orders: 0 },
+        }
+      );
+    }
+    return result;
+  };
+
+  const displayDays = buildSevenDayGrid();
+
   return (
     <div className="space-y-4" data-testid="daily-hakedis-view">
       <Card>
@@ -328,7 +352,7 @@ export default function DailyHakedisView({ companyId, adminId, adminName, isSupe
         </div>
       ) : (
         <div className="space-y-2">
-          {days.map((d) => (
+          {displayDays.map((d) => (
             <DayBlock
               key={d.business_date}
               day={d}
