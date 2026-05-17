@@ -190,10 +190,6 @@ export default function MyObligationsModal({ open, onOpenChange, onUpdated }) {
 
   const pendingCount = items.filter((i) => i.status === "pending").length;
   const uploadedCount = items.filter((i) => i.status === "uploaded").length;
-  const totalExpected = items.reduce(
-    (sum, i) => sum + Number(i.expected_amount || 0),
-    0
-  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -210,7 +206,7 @@ export default function MyObligationsModal({ open, onOpenChange, onUpdated }) {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-3 gap-2 text-center text-xs">
+        <div className="grid grid-cols-2 gap-2 text-center text-xs">
           <div className="border rounded p-2 bg-amber-50/40">
             <div className="text-amber-700 font-bold text-base">{pendingCount}</div>
             <div className="text-muted-foreground">Bekleyen</div>
@@ -218,10 +214,6 @@ export default function MyObligationsModal({ open, onOpenChange, onUpdated }) {
           <div className="border rounded p-2 bg-blue-50/40">
             <div className="text-blue-700 font-bold text-base">{uploadedCount}</div>
             <div className="text-muted-foreground">Yüklendi</div>
-          </div>
-          <div className="border rounded p-2">
-            <div className="font-bold text-base">{formatMoney(totalExpected)}</div>
-            <div className="text-muted-foreground">Toplam Beklenen</div>
           </div>
         </div>
 

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { AlertTriangle, Wallet } from "lucide-react";
+import { AlertTriangle, Wallet, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageLoading } from "@/components/ui/loading-spinner";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
@@ -31,7 +31,7 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
   const [invoices, setInvoices] = useState({});
   const [shortfalls, setShortfalls] = useState([]);
   const [obligationsCount, setObligationsCount] = useState(0);
-  const [obligationsTotal, setObligationsTotal] = useState(0);
+  const [obligationsPending, setObligationsPending] = useState(0);
   const [showObligationsModal, setShowObligationsModal] = useState(false);
   const [uploadingFor, setUploadingFor] = useState(null);
   const [installmentsExpanded, setInstallmentsExpanded] = useState(false);
@@ -113,10 +113,10 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
       const res = await axios.get(`${API}/courier-invoice-obligations/courier/me`);
       const items = res.data.items || [];
       setObligationsCount(items.length);
-      setObligationsTotal(items.reduce((s, i) => s + Number(i.expected_amount || 0), 0));
+      setObligationsPending(items.filter((i) => i.status === "pending").length);
     } catch {
       setObligationsCount(0);
-      setObligationsTotal(0);
+      setObligationsPending(0);
     }
   };
 
@@ -325,23 +325,27 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
           </div>
         </div>
 
-        {/* Fatura Yükümlülükleri (yeni decoupled sistem) */}
+        {/* Faturalarım butonu - her zaman görünür, bekleyen varsa kırmızı badge */}
         {obligationsCount > 0 && (
-          <button
-            type="button"
-            onClick={() => setShowObligationsModal(true)}
-            className="w-[calc(100%-1.5rem)] sm:w-[calc(100%-2rem)] mx-3 sm:mx-4 mt-3 p-2.5 bg-amber-50 border border-amber-200 rounded-lg flex items-center justify-between text-left hover:bg-amber-100 transition"
-            data-testid="my-obligations-banner"
-          >
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
-              <span className="text-sm text-amber-700">
-                <span className="font-medium">{obligationsCount} fatura yükümlülüğü</span>
-                <span className="text-amber-600"> • Toplam: {formatMoney(obligationsTotal)}</span>
-              </span>
-            </div>
-            <span className="text-xs font-medium text-amber-700 underline">Yükle / Görüntüle</span>
-          </button>
+          <div className="mx-3 sm:mx-4 mt-3">
+            <button
+              type="button"
+              onClick={() => setShowObligationsModal(true)}
+              className="relative inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition text-sm font-medium"
+              data-testid="my-obligations-banner"
+            >
+              <FileText className="w-4 h-4" />
+              Faturalarım
+              {obligationsPending > 0 && (
+                <span
+                  className="absolute -top-2 -right-2 min-w-[20px] h-5 px-1.5 bg-red-500 text-white text-[11px] font-bold rounded-full flex items-center justify-center"
+                  data-testid="my-obligations-badge"
+                >
+                  {obligationsPending}
+                </span>
+              )}
+            </button>
+          </div>
         )}
 
         {/* Eski eksik fatura uyarısı — geri-uyum amaçlı korunuyor */}
