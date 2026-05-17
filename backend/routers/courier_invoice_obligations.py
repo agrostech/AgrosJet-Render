@@ -64,6 +64,10 @@ class WeeklyAutoSettings(BaseModel):
     enabled: bool
 
 
+def _is_super(p: dict) -> bool:
+    return p.get("role") in ("superadmin", "systemadmin") or bool(p.get("is_super")) or bool(p.get("is_system"))
+
+
 def _is_admin(p: dict) -> bool:
     return p.get("role") in ("admin", "superadmin", "systemadmin") or bool(p.get("is_super"))
 
@@ -388,6 +392,64 @@ async def create_manual_obligation(company_id: str, data: ManualObligationBody, 
         logger.warning(f"Manuel obligation push hatası ({data.courier_id}): {e}")
 
     return {"item": await _serialize(record)}
+
+
+@router.delete("/{obligation_id}")
+async def delete_obligation(obligation_id: str, payload: dict = Depends(require_auth)):
+    """
+    Superadmin: bir fatura yükümlülüğünü siler.
+    - Approved/Uploaded ise: R2'deki dosyayı da siler. Kuryeye yeni bir "Bekliyor"
+      yükümlülük oluşturulur (aynı hafta, aynı tutar; expected_amount = orijinal expected).
+    - Pending/Manuel/Kalan ise: sadece kaydı siler (yeni pending oluşturmaz).
+    - Remainder (Kalan) ise: parent referansı zarar görmesin diye sadece sil.
+    """
+    if not _is_super(payload):
+        raise HTTPException(status_code=403, detail="Sadece superadmin silebilir")
+
+    rec = await db.courier_invoice_obligations.find_one({"id": obligation_id}, {"_id": 0})
+    if not rec:
+        raise HTTPException(status_code=404, detail="Kayıt bulunamadı")
+
+    # R2 dosyasını sil (varsa)
+    file_key = rec.get("invoice_file_key")
+    if file_key:
+        try:
+            from services.r2_storage import delete_file_from_r2
+            await delete_file_from_r2(file_key)
+        except Exception as e:
+            logger.warning(f"R2 dosya silme hatası ({file_key}): {e}")
+
+    # Mevcut kaydı sil
+    await db.courier_invoice_obligations.delete_one({"id": obligation_id})
+
+    # Eğer onaylı veya yüklenmiş bir kayıt silindiyse: aynı hafta için yeni bir
+    # "Bekliyor" yükümlülük oluştur. Remainder/pending'de bunu yapma. Manuel olsa
+    # bile, iş hâlâ kuryeden bekleniyor — recreate gerekir.
+    recreated = False
+    new_id = None
+    if (
+        rec.get("status") in ("approved", "uploaded")
+        and not rec.get("is_remainder")
+    ):
+        new_id = str(uuid.uuid4())
+        now_iso = datetime.now(TR_TZ).isoformat()
+        # Asıl beklenen tutar: önce orijinal expected_amount, yoksa declared
+        expected = float(rec.get("expected_amount") or rec.get("declared_amount") or 0)
+        await db.courier_invoice_obligations.insert_one({
+            "id": new_id,
+            "company_id": rec.get("company_id"),
+            "courier_id": rec.get("courier_id"),
+            "courier_name": rec.get("courier_name"),
+            "week_start": rec.get("week_start"),
+            "week_end": rec.get("week_end"),
+            "expected_amount": expected,
+            "status": "pending",
+            "created_at": now_iso,
+            "recreated_from_deleted_id": obligation_id,
+        })
+        recreated = True
+
+    return {"success": True, "deleted_id": obligation_id, "recreated": recreated, "new_id": new_id}
 
 
 

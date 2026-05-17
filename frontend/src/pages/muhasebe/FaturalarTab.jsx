@@ -79,6 +79,7 @@ export default function FaturalarTab({ companyId, isSuperAdmin }) {
           companyId={companyId}
           week={selectedWeek}
           isFuture={isFutureWeek}
+          isSuperAdmin={isSuperAdmin}
           onChanged={fetchWeeks}
         />
       )}
@@ -93,7 +94,7 @@ export default function FaturalarTab({ companyId, isSuperAdmin }) {
       )}
 
       {/* 4. ALT: Ay Faturaları (birleşik: approved obligation + eski invoices) */}
-      <MonthlyInvoicesCard companyId={companyId} />
+      <MonthlyInvoicesCard companyId={companyId} isSuperAdmin={isSuperAdmin} />
     </div>
   );
 }

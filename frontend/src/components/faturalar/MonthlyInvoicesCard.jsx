@@ -8,9 +8,10 @@ import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import {
-  Receipt, ChevronLeft, ChevronRight, Loader2, Download, FileDown, Eye,
+  Receipt, ChevronLeft, ChevronRight, Loader2, Download, FileDown, Eye, Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { PdfViewerModal } from "@/components/ui/pdf-viewer-modal";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -21,7 +22,7 @@ const MONTHS_TR = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
 const formatMoney = (n) =>
   new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(n || 0)) + " TL";
 
-export default function MonthlyInvoicesCard({ companyId }) {
+export default function MonthlyInvoicesCard({ companyId, isSuperAdmin }) {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
@@ -29,6 +30,8 @@ export default function MonthlyInvoicesCard({ companyId }) {
   const [data, setData] = useState({ items: [], total_amount: 0 });
   const [mergingPdf, setMergingPdf] = useState(false);
   const [viewingFile, setViewingFile] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchAndView = async (item) => {
     try {
@@ -72,6 +75,30 @@ export default function MonthlyInvoicesCard({ companyId }) {
   const next = () => {
     if (month === 12) { setMonth(1); setYear(year + 1); }
     else setMonth(month + 1);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      if (deleteTarget.source === "obligation") {
+        const res = await axios.delete(`${API}/courier-invoice-obligations/${deleteTarget.id}`);
+        toast.success(
+          res.data.recreated
+            ? "Fatura silindi. Aynı kuryeye yeni 'Bekliyor' yükümlülük oluşturuldu."
+            : "Fatura silindi"
+        );
+      } else {
+        await axios.delete(`${API}/invoices/admin/${deleteTarget.id}`);
+        toast.success("Fatura silindi");
+      }
+      setDeleteTarget(null);
+      fetchData();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Silinemedi");
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const downloadOldInvoice = async (invId) => {
@@ -221,6 +248,18 @@ export default function MonthlyInvoicesCard({ companyId }) {
                       <Download className="w-3.5 h-3.5" />
                     </Button>
                   )}
+                  {isSuperAdmin && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 w-7 p-0 text-red-600 hover:bg-red-50"
+                      onClick={() => setDeleteTarget(it)}
+                      title="Sil"
+                      data-testid={`monthly-invoice-delete-${it.id}`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}
@@ -244,6 +283,22 @@ export default function MonthlyInvoicesCard({ companyId }) {
           }}
         />
       )}
+
+      <ConfirmModal
+        open={!!deleteTarget}
+        onOpenChange={(v) => !v && setDeleteTarget(null)}
+        title="Faturayı Sil"
+        description={
+          deleteTarget
+            ? deleteTarget.source === "obligation"
+              ? `${deleteTarget.courier_name || ""} - ${formatMoney(deleteTarget.amount)} fatura silinecek. Kuryeye aynı hafta için yeni "Bekliyor" yükümlülük otomatik olarak oluşturulacak. Devam etmek istiyor musunuz?`
+              : `${deleteTarget.courier_name || ""} - ${formatMoney(deleteTarget.amount)} (eski) fatura silinecek. Bu işlem geri alınamaz.`
+            : ""
+        }
+        confirmText={deleting ? "Siliniyor..." : "Sil"}
+        onConfirm={handleDelete}
+        variant="danger"
+      />
     </div>
   );
 }

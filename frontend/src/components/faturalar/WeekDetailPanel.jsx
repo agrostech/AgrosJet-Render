@@ -9,7 +9,7 @@ import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import {
-  FileText, Loader2, CheckCircle2, AlertTriangle, Clock, Plus, Eye,
+  FileText, Loader2, CheckCircle2, AlertTriangle, Clock, Plus, Eye, Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { PdfViewerModal } from "@/components/ui/pdf-viewer-modal";
 import ManualObligationModal from "./ManualObligationModal";
 
@@ -187,12 +188,14 @@ function ApproveModal({ open, onOpenChange, obligation, onApproved, onViewFile, 
   );
 }
 
-export default function WeekDetailPanel({ companyId, week, isFuture, onChanged }) {
+export default function WeekDetailPanel({ companyId, week, isFuture, isSuperAdmin, onChanged }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [approveTarget, setApproveTarget] = useState(null);
   const [showManualModal, setShowManualModal] = useState(false);
   const [viewingFile, setViewingFile] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!week) return;
@@ -211,6 +214,26 @@ export default function WeekDetailPanel({ companyId, week, isFuture, onChanged }
   }, [companyId, week]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      const res = await axios.delete(`${API}/courier-invoice-obligations/${deleteTarget.id}`);
+      toast.success(
+        res.data.recreated
+          ? "Fatura silindi. Aynı kuryeye yeni 'Bekliyor' yükümlülük oluşturuldu."
+          : "Fatura silindi"
+      );
+      setDeleteTarget(null);
+      fetchData();
+      onChanged?.();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Silinemedi");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   if (!week) return null;
 
@@ -348,6 +371,18 @@ export default function WeekDetailPanel({ companyId, week, isFuture, onChanged }
                             Onayla
                           </Button>
                         )}
+                        {isSuperAdmin && r.obligation && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => setDeleteTarget(r.obligation)}
+                            data-testid={`week-delete-btn-${r.courier_id}`}
+                            title="Sil"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -410,6 +445,17 @@ export default function WeekDetailPanel({ companyId, week, isFuture, onChanged }
                           Onayla
                         </Button>
                       )}
+                      {isSuperAdmin && r.obligation && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 w-7 p-0 text-red-600"
+                          onClick={() => setDeleteTarget(r.obligation)}
+                          title="Sil"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -449,6 +495,22 @@ export default function WeekDetailPanel({ companyId, week, isFuture, onChanged }
           }}
         />
       )}
+
+      <ConfirmModal
+        open={!!deleteTarget}
+        onOpenChange={(v) => !v && setDeleteTarget(null)}
+        title="Faturayı Sil"
+        description={
+          deleteTarget
+            ? deleteTarget.status === "approved" || deleteTarget.status === "uploaded"
+              ? `${deleteTarget.courier_name} - ${formatMoney(deleteTarget.expected_amount || deleteTarget.declared_amount)} fatura silinecek. Kuryeye aynı hafta için yeni "Bekliyor" yükümlülük otomatik olarak oluşturulacak. Devam etmek istiyor musunuz?`
+              : `${deleteTarget.courier_name} - ${formatMoney(deleteTarget.expected_amount)} ${deleteTarget.is_manual ? "manuel " : ""}fatura silinecek. Bu işlem geri alınamaz.`
+            : ""
+        }
+        confirmText={deleting ? "Siliniyor..." : "Sil"}
+        onConfirm={handleDelete}
+        variant="danger"
+      />
     </div>
   );
 }
