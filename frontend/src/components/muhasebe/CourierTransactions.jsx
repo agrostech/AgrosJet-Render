@@ -1,10 +1,14 @@
+import { useState, useEffect } from "react";
+import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Plus, Minus, Archive, ArchiveRestore, Clock, Search, Download, Pencil, Trash2, CreditCard, CheckCircle2, Loader2 } from "lucide-react";
+import { Plus, Minus, Archive, ArchiveRestore, Clock, Search, Download, Pencil, Trash2, CreditCard, CheckCircle2, Loader2, FileWarning } from "lucide-react";
 import { formatMoney, formatDate } from "@/hooks/useAccountingTab";
 import CourierObligationsBanner from "./CourierObligationsBanner";
+
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function CourierTransactions({
   selectedEntity,
@@ -43,6 +47,25 @@ export default function CourierTransactions({
   onDeleteTransaction,
   onOpenInstallmentListModal,
 }) {
+  const [hasPendingObligation, setHasPendingObligation] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!selectedEntity?.id) {
+      setHasPendingObligation(false);
+      return;
+    }
+    (async () => {
+      try {
+        const res = await axios.get(`${API}/courier-invoice-obligations/courier/${selectedEntity.id}/summary`);
+        if (!cancelled) setHasPendingObligation((res.data.count || 0) > 0);
+      } catch {
+        if (!cancelled) setHasPendingObligation(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [selectedEntity?.id]);
+
   if (!selectedEntity) {
     return (
       <div className="flex-1 flex items-center justify-center text-muted-foreground">
@@ -58,7 +81,17 @@ export default function CourierTransactions({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div className="flex items-center justify-between sm:justify-start sm:gap-4 flex-wrap">
             <div className="min-w-0">
-              <h3 className="font-heading font-bold truncate">{selectedEntity.name}</h3>
+              <h3 className="font-heading font-bold truncate flex items-center gap-1.5">
+                {selectedEntity.name}
+                {hasPendingObligation && (
+                  <FileWarning
+                    className="w-3.5 h-3.5 text-amber-500 flex-shrink-0"
+                    data-testid={`courier-pending-invoice-header-${selectedEntity.id}`}
+                  >
+                    <title>Eksik veya onaylanmamış faturası var</title>
+                  </FileWarning>
+                )}
+              </h3>
               <p className="text-xs text-muted-foreground font-mono">{selectedEntity.phone}</p>
             </div>
             <div className={`text-right px-3 py-1.5 rounded shrink-0 ${loadingBalance ? 'bg-slate-100' : balance > 0 ? 'bg-green-50' : balance < 0 ? 'bg-red-50' : 'bg-slate-100'}`}>
