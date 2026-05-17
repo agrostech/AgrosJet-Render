@@ -82,10 +82,9 @@ function StatusBadge({ obligation, isFuture }) {
   );
 }
 
-function ApproveModal({ open, onOpenChange, obligation, onApproved }) {
+function ApproveModal({ open, onOpenChange, obligation, onApproved, onViewFile }) {
   const [declared, setDeclared] = useState("");
   const [busy, setBusy] = useState(false);
-  const [viewingFile, setViewingFile] = useState(null);
 
   useEffect(() => {
     if (open && obligation) {
@@ -126,11 +125,6 @@ function ApproveModal({ open, onOpenChange, obligation, onApproved }) {
     }
   };
 
-  const openInvoiceViewer = async () => {
-    const file = await fetchObligationFile(obligation);
-    if (file) setViewingFile(file);
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md" data-testid="week-approve-modal">
@@ -150,7 +144,7 @@ function ApproveModal({ open, onOpenChange, obligation, onApproved }) {
               type="button"
               variant="outline"
               size="sm"
-              onClick={openInvoiceViewer}
+              onClick={() => onViewFile?.(obligation)}
               className="w-full h-9 gap-1.5 text-sm"
               data-testid="week-approve-view-file"
             >
@@ -183,16 +177,6 @@ function ApproveModal({ open, onOpenChange, obligation, onApproved }) {
           </Button>
         </DialogFooter>
       </DialogContent>
-
-      {viewingFile && (
-        <PdfViewerModal
-          file={viewingFile}
-          onClose={() => {
-            viewingFile._revoke?.();
-            setViewingFile(null);
-          }}
-        />
-      )}
     </Dialog>
   );
 }
@@ -434,6 +418,10 @@ export default function WeekDetailPanel({ companyId, week, isFuture, onChanged }
         onOpenChange={(v) => !v && setApproveTarget(null)}
         obligation={approveTarget}
         onApproved={() => { fetchData(); onChanged?.(); }}
+        onViewFile={async (o) => {
+          const file = await fetchObligationFile(o);
+          if (file) setViewingFile(file);
+        }}
       />
 
       <ManualObligationModal
