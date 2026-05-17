@@ -9,6 +9,7 @@ import { MonthSelector } from "@/components/faturalar/MonthSelector";
 import { MonthInvoicesCard } from "@/components/faturalar/MonthInvoicesCard";
 import { MissingInvoicesCard } from "@/components/faturalar/MissingInvoicesCard";
 import CourierObligationsCard from "@/components/faturalar/CourierObligationsCard";
+import UpcomingObligationsCard from "@/components/faturalar/UpcomingObligationsCard";
 import { CouriersListCard } from "@/components/faturalar/CouriersListCard";
 import { CourierInvoicesCard } from "@/components/faturalar/CourierInvoicesCard";
 
@@ -189,6 +190,9 @@ export default function FaturalarTab({ companyId, adminId, adminName, isSuperAdm
           onVerifyWithAmount={handleVerifyWithAmount}
         />
       </div>
+
+      {/* Yaklaşan Kurye Faturaları (haftalık otomatik üretim önizlemesi) */}
+      <UpcomingObligationsCard companyId={companyId} />
 
       {/* Yeni Haftalık Fatura Yükümlülükleri (decoupled obligations sistemi) */}
       <CourierObligationsCard />

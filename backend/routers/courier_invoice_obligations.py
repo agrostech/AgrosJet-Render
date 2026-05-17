@@ -363,3 +363,109 @@ async def generate_weekly_obligations_all_companies():
         except Exception as e:
             logger.error(f"obligation üretim hatası ({c.get('id')}): {e}")
     return total
+
+
+# ============ UPCOMING PREVIEW ============
+
+@router.get("/upcoming-preview/{company_id}")
+async def upcoming_preview(company_id: str, payload: dict = Depends(require_auth)):
+    """
+    Bir sonraki Pazartesi açılışında otomatik oluşturulacak fatura yükümlülüklerinin
+    önizlemesi. BU haftanın (Pzt opening → gelecek Pzt opening) hakediş transaction'larını
+    kurye bazında toplar.
+    """
+    if not _is_admin(payload):
+        raise HTTPException(status_code=403, detail="Yetki yok")
+
+    company = await db.companies.find_one(
+        {"id": company_id}, {"_id": 0, "opening_time": 1}
+    )
+    opening = (company or {}).get("opening_time") or "06:00"
+    try:
+        oh, om = [int(x) for x in opening.split(":")]
+    except Exception:
+        oh, om = 6, 0
+
+    now = datetime.now(TR_TZ)
+    days_since_monday = now.weekday()  # 0 = Pazartesi
+    this_monday = (now - timedelta(days=days_since_monday)).replace(
+        hour=oh, minute=om, second=0, microsecond=0
+    )
+    next_monday = this_monday + timedelta(days=7)
+
+    week_start_date = this_monday.strftime("%Y-%m-%d")
+    week_label = f"{this_monday.strftime('%d.%m')} - {(next_monday - timedelta(days=1)).strftime('%d.%m.%Y')}"
+
+    # Aynı hafta için zaten oluşturulmuş yükümlülükler (skip listesi)
+    existing = await db.courier_invoice_obligations.find(
+        {
+            "company_id": company_id,
+            "week_start": week_start_date,
+            "is_remainder": {"$ne": True},
+        },
+        {"_id": 0, "courier_id": 1},
+    ).to_list(2000)
+    existing_courier_ids = {e["courier_id"] for e in existing}
+
+    # Otomatik üretim aktif mi?
+    settings = await db.weekly_obligation_settings.find_one(
+        {"company_id": company_id}, {"_id": 0, "enabled": 1}
+    )
+    auto_enabled = bool((settings or {}).get("enabled", False))
+
+    pipeline = [
+        {"$match": {
+            "company_id": company_id, "entity_type": "courier", "is_hakedis": True,
+            "created_at": {"$gte": this_monday.isoformat(), "$lt": next_monday.isoformat()},
+        }},
+        {"$group": {"_id": "$entity_id", "total": {"$sum": "$amount"}, "tx_count": {"$sum": 1}}},
+    ]
+    rows = await db.transactions.aggregate(pipeline).to_list(2000)
+
+    if not rows:
+        return {
+            "week_label": week_label,
+            "week_start": this_monday.isoformat(),
+            "week_end": next_monday.isoformat(),
+            "auto_enabled": auto_enabled,
+            "scheduled_for": next_monday.isoformat(),
+            "previews": [],
+            "total_amount": 0,
+            "courier_count": 0,
+        }
+
+    courier_ids = [r["_id"] for r in rows]
+    couriers = await db.couriers.find(
+        {"id": {"$in": courier_ids}}, {"_id": 0, "id": 1, "name": 1}
+    ).to_list(2000)
+    name_map = {c["id"]: c.get("name") or "" for c in couriers}
+
+    previews = []
+    total_amount = 0.0
+    for r in rows:
+        cid = r["_id"]
+        amount = round(float(r["total"]), 2)
+        if amount <= 0:
+            continue
+        previews.append({
+            "courier_id": cid,
+            "courier_name": name_map.get(cid) or cid,
+            "expected_amount": amount,
+            "tx_count": int(r.get("tx_count") or 0),
+            "already_created": cid in existing_courier_ids,
+        })
+        if cid not in existing_courier_ids:
+            total_amount += amount
+
+    previews.sort(key=lambda x: (x["already_created"], -x["expected_amount"]))
+
+    return {
+        "week_label": week_label,
+        "week_start": this_monday.isoformat(),
+        "week_end": next_monday.isoformat(),
+        "auto_enabled": auto_enabled,
+        "scheduled_for": next_monday.isoformat(),
+        "previews": previews,
+        "total_amount": round(total_amount, 2),
+        "courier_count": len([p for p in previews if not p["already_created"]]),
+    }
