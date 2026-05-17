@@ -503,6 +503,7 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
         open={showObligationsModal}
         onOpenChange={setShowObligationsModal}
         onUpdated={fetchObligationsSummary}
+        companyInfo={companyInfo}
       />
     </div>
   );

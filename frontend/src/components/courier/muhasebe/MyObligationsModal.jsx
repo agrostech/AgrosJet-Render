@@ -23,7 +23,9 @@ import {
   CheckCircle2,
   AlertTriangle,
   Eye,
+  Send,
 } from "lucide-react";
+import InvoiceMessageModal from "./InvoiceMessageModal";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -42,7 +44,7 @@ const formatWeekLabel = (start, end) => {
   return `${toShort(start)} – ${toShort(end)}`;
 };
 
-function ObligationRow({ item, onUploaded }) {
+function ObligationRow({ item, onUploaded, onRequestInvoice }) {
   const fileInputRef = useRef(null);
   const [busy, setBusy] = useState(false);
 
@@ -121,7 +123,7 @@ function ObligationRow({ item, onUploaded }) {
           </div>
         </div>
         {isPending && (
-          <>
+          <div className="flex items-center gap-1.5 flex-shrink-0">
             <input
               ref={fileInputRef}
               type="file"
@@ -129,6 +131,16 @@ function ObligationRow({ item, onUploaded }) {
               className="hidden"
               onChange={onFile}
             />
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onRequestInvoice(item)}
+              data-testid={`obligation-request-${item.id}`}
+              title="Muhasebecine WhatsApp ile fatura talep et"
+            >
+              <Send className="w-4 h-4 mr-1" />
+              Talep Et
+            </Button>
             <Button
               size="sm"
               onClick={onPick}
@@ -142,7 +154,7 @@ function ObligationRow({ item, onUploaded }) {
               )}
               Fatura Yükle
             </Button>
-          </>
+          </div>
         )}
         {isUploaded && item.invoice_file_url && (
           <Button
@@ -160,9 +172,10 @@ function ObligationRow({ item, onUploaded }) {
   );
 }
 
-export default function MyObligationsModal({ open, onOpenChange, onUpdated }) {
+export default function MyObligationsModal({ open, onOpenChange, onUpdated, companyInfo }) {
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState([]);
+  const [requestAmount, setRequestAmount] = useState(null);
 
   const fetchItems = async () => {
     setLoading(true);
@@ -228,11 +241,23 @@ export default function MyObligationsModal({ open, onOpenChange, onUpdated }) {
         ) : (
           <div className="space-y-2">
             {items.map((it) => (
-              <ObligationRow key={it.id} item={it} onUploaded={handleUploaded} />
+              <ObligationRow
+                key={it.id}
+                item={it}
+                onUploaded={handleUploaded}
+                onRequestInvoice={(o) => setRequestAmount(Number(o.expected_amount || 0))}
+              />
             ))}
           </div>
         )}
       </DialogContent>
+
+      <InvoiceMessageModal
+        open={requestAmount !== null}
+        onOpenChange={(v) => !v && setRequestAmount(null)}
+        selectedAmount={requestAmount || 0}
+        companyInfo={companyInfo}
+      />
     </Dialog>
   );
 }
