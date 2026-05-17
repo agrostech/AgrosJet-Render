@@ -49,6 +49,19 @@ async def test_business_date_window_excludes_off_by_one():
         {"id": "tx5", "company_id": company_id, "entity_type": "courier", "entity_id": "c2",
          "is_hakedis": True, "amount": 999,
          "created_at": "2026-05-10T12:00:00+03:00"},
+        # Legacy weekly hakediş: dönem 4-11 May (geçen hafta), created_at 15 May (içeride!)
+        # weekly_hakedis_meta.week_start ile filtrelenmeli → DIŞARIDA
+        {"id": "tx6", "company_id": company_id, "entity_type": "courier", "entity_id": "c3",
+         "is_hakedis": True, "amount": 3100,
+         "weekly_hakedis_meta": {"week_start": "2026-05-04T06:00:00+03:00",
+                                  "week_end": "2026-05-11T06:00:00+03:00"},
+         "created_at": "2026-05-15T07:00:00+03:00"},
+        # Legacy weekly hakediş: dönem 11-18 May (bu hafta) → İÇERDE
+        {"id": "tx7", "company_id": company_id, "entity_type": "courier", "entity_id": "c3",
+         "is_hakedis": True, "amount": 400,
+         "weekly_hakedis_meta": {"week_start": "2026-05-11T06:00:00+03:00",
+                                  "week_end": "2026-05-18T06:00:00+03:00"},
+         "created_at": "2026-05-19T07:00:00+03:00"},
     ]
     await db.transactions.insert_many(txs)
 
@@ -67,6 +80,7 @@ async def test_business_date_window_excludes_off_by_one():
 
     assert totals.get("c1") == 500, f"c1 expected 500 (tx2+tx3) got {totals.get('c1')}"
     assert totals.get("c2") == 50, f"c2 expected 50 (tx4 only) got {totals.get('c2')}"
+    assert totals.get("c3") == 400, f"c3 expected 400 (tx7 only; tx6 is for prev week) got {totals.get('c3')}"
 
     await db.transactions.delete_many({"company_id": company_id})
 

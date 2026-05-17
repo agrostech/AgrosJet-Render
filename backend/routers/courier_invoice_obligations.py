@@ -268,20 +268,26 @@ def _hakedis_window_match(company_id: str, week_start_date: str, week_end_date: 
     """
     Bir haftanın hakediş transaction'larını eşleştiren $match filtresi.
 
-    Daily hakediş transaction'ları `daily_hakedis_meta.business_date` field'ı içerir
-    (created_at değil!). Manual hakediş (eski/legacy) için fallback olarak
-    `created_at` penceresi kullanılır. created_at = işleme zamanı olduğundan
-    (örn. 10 Mayıs hakedişi 11 Mayıs 06:00'da yazılır) doğrudan created_at ile
+    Hakediş transaction'larında `created_at` = işleme zamanıdır (örn. 10 Mayıs
+    hakedişi 11 Mayıs 06:00'da yazılır), bu yüzden ham `created_at` ile
     filtreleme off-by-one hatasına yol açar.
+
+    Stratejiler:
+      1. Günlük hakediş: `daily_hakedis_meta.business_date` ∈ [week_start_date, week_end_date]
+      2. Haftalık (legacy) hakediş: `weekly_hakedis_meta.week_start` ∈ [week_start_iso, week_end_iso)
+      3. Hiçbir meta yoksa (manuel): `created_at` penceresi
     """
     return {
         "company_id": company_id, "entity_type": "courier", "is_hakedis": True,
         "$or": [
-            # Günlük hakediş: business_date'e göre filtre
+            # 1) Günlük hakediş → business_date filter
             {"daily_hakedis_meta.business_date": {"$gte": week_start_date, "$lte": week_end_date}},
-            # Manuel/legacy hakediş: meta yoksa created_at'a düş
+            # 2) Haftalık (legacy) hakediş → weekly meta filter
+            {"weekly_hakedis_meta.week_start": {"$gte": week_start_iso, "$lt": week_end_iso}},
+            # 3) Manuel hakediş (hiç meta yok) → created_at fallback
             {
                 "daily_hakedis_meta": {"$exists": False},
+                "weekly_hakedis_meta": {"$exists": False},
                 "created_at": {"$gte": week_start_iso, "$lt": week_end_iso},
             },
         ],
