@@ -275,15 +275,19 @@ async def get_courier_on_the_way_orders(courier_id: str, company_id: str) -> Lis
 
 async def get_courier_order_count_last_hour(courier_id: str, company_id: str) -> int:
     """
-    Kuryenin son 1 saatte aldığı sipariş sayısını getirir.
+    Kuryenin son 1 saatte TESLİM ETTİĞİ sipariş sayısını getirir.
     Adalet filtresi için kullanılır.
+    Not: Yalnızca delivered_at son 1 saat içinde olan ve durumu "delivered" olan
+    siparişler sayılır — iptal edilen veya atanmış ama henüz teslim edilmemiş
+    siparişler dahil edilmez.
     """
     one_hour_ago = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
     
     count = await db.orders.count_documents({
         "courier_id": courier_id,
         "company_id": company_id,
-        "assigned_at": {"$gte": one_hour_ago}
+        "status": "delivered",
+        "delivered_at": {"$gte": one_hour_ago}
     })
     
     return count
