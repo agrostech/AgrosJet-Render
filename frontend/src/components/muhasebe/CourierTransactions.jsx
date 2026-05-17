@@ -6,7 +6,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Plus, Minus, Archive, ArchiveRestore, Clock, Search, Download, Pencil, Trash2, CreditCard, CheckCircle2, Loader2, FileWarning } from "lucide-react";
 import { formatMoney, formatDate } from "@/hooks/useAccountingTab";
-import CourierObligationsBanner from "./CourierObligationsBanner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -104,9 +103,7 @@ export default function CourierTransactions({
                 </p>
               )}
             </div>
-            <CourierObligationsBanner courierId={selectedEntity?.id} />
           </div>
-          
           {!showArchived && (
             <div className="flex items-center gap-2 justify-end">
               <Button 
