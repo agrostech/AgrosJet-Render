@@ -14,13 +14,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   FileText,
   Upload,
   Loader2,
-  CheckCircle2,
-  AlertTriangle,
   Eye,
   Send,
 } from "lucide-react";
@@ -86,94 +83,84 @@ function ObligationRow({ item, onUploaded, onRequestInvoice }) {
 
   return (
     <div
-      className="border rounded-lg bg-white"
+      className="rounded-xl border border-slate-200 bg-white p-4"
       data-testid={`obligation-row-${item.id}`}
     >
-      <div className="p-3 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-        <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
-          <div className="w-9 h-9 rounded-md bg-amber-50 text-amber-700 flex items-center justify-center flex-shrink-0">
-            <FileText className="w-4 h-4" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="font-semibold text-sm">
-                {formatWeekLabel(item.week_start, item.week_end)}
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-slate-900 leading-tight">
+            {formatWeekLabel(item.week_start, item.week_end)}
+          </p>
+          <div className="flex items-center gap-1.5 mt-1.5">
+            <span
+              className={`w-1.5 h-1.5 rounded-full ${
+                isUploaded ? "bg-blue-500" : "bg-amber-500"
+              }`}
+            />
+            <span className="text-xs text-slate-600">
+              {isUploaded ? "Yüklendi · onay bekliyor" : "Bekliyor"}
+            </span>
+            {item.is_remainder && (
+              <span className="ml-1 text-[10px] font-medium text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">
+                Kalan
               </span>
-              {item.is_remainder && (
-                <Badge variant="outline" className="text-[10px] py-0 h-4 border-amber-300 text-amber-700">
-                  Kalan
-                </Badge>
-              )}
-              {isPending && (
-                <Badge variant="outline" className="text-[10px] py-0 h-4 border-amber-300 text-amber-700">
-                  <AlertTriangle className="w-3 h-3 mr-1" /> Bekliyor
-                </Badge>
-              )}
-              {isUploaded && (
-                <Badge variant="outline" className="text-[10px] py-0 h-4 border-blue-300 text-blue-700">
-                  <CheckCircle2 className="w-3 h-3 mr-1" /> Yüklendi
-                </Badge>
-              )}
-            </div>
-            <div className="text-xs text-muted-foreground mt-0.5">
-              Beklenen tutar:{" "}
-              <span className="font-semibold text-foreground">
-                {formatMoney(item.expected_amount)}
-              </span>
-            </div>
+            )}
           </div>
         </div>
-        {isPending && (
-          <div className="flex items-center gap-2 sm:flex-shrink-0">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/*"
-              className="hidden"
-              onChange={onFile}
-            />
-            <Button
-              size="sm"
-              variant="outline"
+        <p className="text-lg font-bold font-mono tabular-nums text-slate-900 leading-none flex-shrink-0">
+          {formatMoney(item.expected_amount)}
+        </p>
+      </div>
+
+      {isPending && (
+        <>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/*"
+            className="hidden"
+            onChange={onFile}
+          />
+          <div className="grid grid-cols-2 gap-2 mt-3">
+            <button
+              type="button"
               onClick={() => onRequestInvoice(item)}
-              className="flex-1 sm:flex-none"
+              className="inline-flex items-center justify-center gap-1.5 h-9 text-sm font-medium text-slate-700 hover:bg-slate-50 border border-slate-200 rounded-lg transition"
               data-testid={`obligation-request-${item.id}`}
               title="Muhasebecine WhatsApp ile fatura talep et"
             >
-              <Send className="w-4 h-4 sm:mr-1" />
-              <span className="hidden sm:inline">Talep Et</span>
-              <span className="sm:hidden ml-1">Talep</span>
-            </Button>
-            <Button
-              size="sm"
+              <Send className="w-3.5 h-3.5" />
+              Talep Et
+            </button>
+            <button
+              type="button"
               onClick={onPick}
               disabled={busy}
-              className="flex-1 sm:flex-none"
+              className="inline-flex items-center justify-center gap-1.5 h-9 text-sm font-medium text-white bg-slate-900 hover:bg-slate-800 disabled:opacity-60 rounded-lg transition"
               data-testid={`obligation-upload-${item.id}`}
             >
               {busy ? (
-                <Loader2 className="w-4 h-4 animate-spin sm:mr-1" />
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : (
-                <Upload className="w-4 h-4 sm:mr-1" />
+                <Upload className="w-3.5 h-3.5" />
               )}
-              <span className="hidden sm:inline">Fatura Yükle</span>
-              <span className="sm:hidden ml-1">Yükle</span>
-            </Button>
+              Fatura Yükle
+            </button>
           </div>
-        )}
-        {isUploaded && item.invoice_file_url && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => window.open(item.invoice_file_url, "_blank", "noreferrer")}
-            className="w-full sm:w-auto"
-            data-testid={`obligation-view-${item.id}`}
-          >
-            <Eye className="w-4 h-4 mr-1" />
-            Görüntüle
-          </Button>
-        )}
-      </div>
+        </>
+      )}
+
+      {isUploaded && item.invoice_file_url && (
+        <button
+          type="button"
+          onClick={() => window.open(item.invoice_file_url, "_blank", "noreferrer")}
+          className="mt-3 w-full inline-flex items-center justify-center gap-1.5 h-9 text-sm font-medium text-slate-700 hover:bg-slate-50 border border-slate-200 rounded-lg transition"
+          data-testid={`obligation-view-${item.id}`}
+        >
+          <Eye className="w-3.5 h-3.5" />
+          Faturayı Görüntüle
+        </button>
+      )}
     </div>
   );
 }
