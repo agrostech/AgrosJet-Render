@@ -1,11 +1,32 @@
 /**
  * Hafta Şeritli Seçici (Kurye Hakediş tarzı)
  *
- * Son N hafta için yatay tab şeridi.
- * Her tab: hafta etiketi + "yüklenen/oluşturulan/toplam" rozeti veya yeşil tik.
+ * Son N hafta için yatay tab şeridi. Her tab 3 satırlı:
+ *  1) Gün aralığı  (örn. "11 - 17")
+ *  2) Ay adı       (örn. "Mayıs")  ← big/semibold
+ *  3) Rozet        (örn. "0/3/3" veya yeşil tik veya "Yaklaşan")
+ *
+ * Yükseklik kurye hakediş gün seçicisi ile aynıdır.
  */
 import { ChevronLeft, ChevronRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+const MONTHS_TR = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
+                    "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+
+function parseWeek(w) {
+  // w.week_start / w.week_end: "YYYY-MM-DD"
+  const [ys, ms, ds] = (w.week_start || "0000-00-00").split("-");
+  const [, me, de] = (w.week_end || "0000-00-00").split("-");
+  const startDay = parseInt(ds, 10) || 0;
+  const endDay = parseInt(de, 10) || 0;
+  const startMonth = parseInt(ms, 10) || 1;
+  const endMonth = parseInt(me, 10) || 1;
+  const monthLabel = startMonth === endMonth
+    ? MONTHS_TR[startMonth - 1]
+    : `${MONTHS_TR[startMonth - 1]?.slice(0, 3)}–${MONTHS_TR[endMonth - 1]?.slice(0, 3)}`;
+  return { startDay, endDay, monthLabel, year: ys };
+}
 
 export default function WeeksStripSelector({
   weeks = [],
@@ -39,37 +60,39 @@ export default function WeeksStripSelector({
           const created = w.created || 0;
           const uploaded = w.uploaded || 0;
           const allUploaded = total > 0 && uploaded === total && created === total;
-          const isFuture = w.is_current && created === 0; // bu hafta, henüz oluşmamış
+          const isFuture = w.is_current && created === 0;
+          const { startDay, endDay, monthLabel } = parseWeek(w);
           return (
             <button
               key={w.week_start}
               onClick={() => onSelect(w)}
               className={`
-                flex-1 min-w-[90px] py-1.5 px-2 rounded-md text-center transition-all
+                flex-1 min-w-[80px] py-2 px-2 rounded-md text-center transition-all
                 ${isSelected
                   ? "bg-slate-900 text-white shadow-sm"
                   : "hover:bg-slate-100 text-slate-700"}
               `}
               data-testid={`weeks-strip-tab-${w.week_start}`}
             >
-              <div className={`text-[10px] font-medium ${isSelected ? "text-slate-300" : "text-slate-400"}`}>
-                {w.label}
+              <div className={`text-[11px] font-medium ${isSelected ? "text-slate-300" : "text-slate-400"}`}>
+                {startDay} – {endDay}
               </div>
+              <div className="text-sm font-semibold leading-tight">{monthLabel}</div>
               {isFuture ? (
-                <div className={`text-[10px] mt-0.5 ${isSelected ? "text-blue-200" : "text-blue-600"}`}>
+                <div className={`text-[11px] font-medium mt-0.5 ${isSelected ? "text-blue-200" : "text-blue-600"}`}>
                   Yaklaşan
                 </div>
               ) : total === 0 ? (
-                <div className={`text-[10px] mt-0.5 ${isSelected ? "text-slate-400" : "text-slate-400"}`}>
+                <div className={`text-[11px] mt-0.5 ${isSelected ? "text-slate-400" : "text-slate-400"}`}>
                   0 kurye
                 </div>
               ) : allUploaded ? (
                 <div className={`mt-0.5 ${isSelected ? "text-green-400" : "text-green-500"}`}>
-                  <CheckCircle2 className="w-3.5 h-3.5 mx-auto" />
+                  <CheckCircle2 className="w-4 h-4 mx-auto" />
                 </div>
               ) : (
                 <div
-                  className={`text-[11px] font-semibold mt-0.5 tabular-nums ${
+                  className={`text-xs font-semibold mt-0.5 tabular-nums ${
                     isSelected ? "text-blue-200" : "text-blue-600"
                   }`}
                   title="Yüklenen / Oluşturulan / Toplam"

@@ -25,16 +25,17 @@ const formatMoney = (n) =>
   new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(n || 0)) + " TL";
 
 function StatusBadge({ obligation, isFuture }) {
+  const base = "inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded";
   if (isFuture) {
     return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-medium bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+      <span className={`${base} bg-blue-100 text-blue-700`}>
         <Clock className="w-3 h-3" /> Yaklaşan
       </span>
     );
   }
   if (!obligation) {
     return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-medium bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">
+      <span className={`${base} bg-slate-100 text-slate-600`}>
         Oluşmadı
       </span>
     );
@@ -42,20 +43,20 @@ function StatusBadge({ obligation, isFuture }) {
   const s = obligation.status;
   if (s === "approved") {
     return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-medium bg-green-100 text-green-700 px-1.5 py-0.5 rounded">
+      <span className={`${base} bg-green-100 text-green-700`}>
         <CheckCircle2 className="w-3 h-3" /> Onaylı
       </span>
     );
   }
   if (s === "uploaded") {
     return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-medium bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+      <span className={`${base} bg-blue-100 text-blue-700`}>
         Yüklendi
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 text-[10px] font-medium bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">
+    <span className={`${base} bg-amber-100 text-amber-700`}>
       <AlertTriangle className="w-3 h-3" /> Bekliyor
     </span>
   );
@@ -206,28 +207,28 @@ export default function WeekDetailPanel({ companyId, week, isFuture, onChanged }
       <div className="p-3 border-b-2 border-border bg-slate-50">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
-            <FileText className="w-4 h-4 text-slate-700" />
-            <h3 className="font-semibold text-sm">
+            <FileText className="w-5 h-5 text-slate-700" />
+            <h3 className="font-semibold text-base">
               {data?.week_label || week.label}
             </h3>
             {data && (
-              <span className="text-xs text-muted-foreground">
+              <span className="text-sm text-muted-foreground">
                 ({data.uploaded}/{data.created}/{data.total_couriers})
               </span>
             )}
             {isFuture && (
-              <span className="inline-flex items-center gap-1 text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+              <span className="inline-flex items-center gap-1 text-xs font-medium bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
                 <Clock className="w-3 h-3" /> Yaklaşan Hafta
               </span>
             )}
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="text-xs text-right">
+            <div className="text-sm text-right">
               <div>
                 Beklenen: <span className="font-bold">{formatMoney(data?.total_expected || 0)}</span>
               </div>
               {data && data.total_processed > 0 && (
-                <div className="text-green-600">
+                <div className="text-green-600 text-xs">
                   İşlenen: {formatMoney(data.total_processed)}
                 </div>
               )}
@@ -236,7 +237,7 @@ export default function WeekDetailPanel({ companyId, week, isFuture, onChanged }
               size="sm"
               variant="outline"
               onClick={() => setShowManualModal(true)}
-              className="h-7 text-xs"
+              className="h-8 text-xs"
               data-testid="open-manual-obligation-modal"
             >
               <Plus className="w-3.5 h-3.5 mr-1" /> Manuel Fatura
@@ -257,34 +258,34 @@ export default function WeekDetailPanel({ companyId, week, isFuture, onChanged }
         ) : (
           <>
             {/* Desktop tablo */}
-            <table className="hidden sm:table w-full text-xs">
+            <table className="hidden sm:table w-full text-sm">
               <thead className="border-b bg-muted/30 sticky top-0 z-10">
                 <tr>
-                  <th className="p-2 text-left">Kurye</th>
-                  <th className="p-2 text-right">Beklenen</th>
-                  <th className="p-2 text-center">Durum</th>
-                  <th className="p-2 text-left">Fatura</th>
-                  <th className="p-2 text-right">Aksiyon</th>
+                  <th className="p-2.5 text-left font-semibold">Kurye</th>
+                  <th className="p-2.5 text-right font-semibold">Beklenen</th>
+                  <th className="p-2.5 text-center font-semibold">Durum</th>
+                  <th className="p-2.5 text-left font-semibold">Fatura</th>
+                  <th className="p-2.5 text-right font-semibold">Aksiyon</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((r) => (
                   <tr key={r.row_key} className="border-b hover:bg-slate-50">
-                    <td className="p-2 max-w-[200px]">
+                    <td className="p-2.5 max-w-[240px]">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <p className="font-medium truncate" title={r.courier_name}>{r.courier_name}</p>
                         {r.obligation?.is_manual && (
-                          <span className="text-[9px] bg-purple-100 text-purple-700 px-1 py-0.5 rounded font-medium">
+                          <span className="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-medium">
                             Manuel
                           </span>
                         )}
                         {r.obligation?.is_remainder && (
-                          <span className="text-[9px] bg-amber-100 text-amber-700 px-1 py-0.5 rounded font-medium">
+                          <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-medium">
                             Kalan
                           </span>
                         )}
                       </div>
-                      <p className="text-[10px] text-muted-foreground">
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         {r.obligation?.is_manual
                           ? (r.obligation.manual_description || "Manuel fatura")
                           : r.obligation?.is_remainder
@@ -292,28 +293,28 @@ export default function WeekDetailPanel({ companyId, week, isFuture, onChanged }
                             : `${r.days_with_earnings} gün hakediş`}
                       </p>
                     </td>
-                    <td className="p-2 text-right font-semibold tabular-nums">{formatMoney(r.expected_amount)}</td>
-                    <td className="p-2 text-center">
+                    <td className="p-2.5 text-right font-semibold tabular-nums">{formatMoney(r.expected_amount)}</td>
+                    <td className="p-2.5 text-center">
                       <StatusBadge obligation={r.obligation} isFuture={isFuture && !r.obligation} />
                     </td>
-                    <td className="p-2">
+                    <td className="p-2.5">
                       {r.obligation?.invoice_number ? (
-                        <div className="text-[10px]">
+                        <div className="text-xs">
                           <p>No: <strong>{r.obligation.invoice_number}</strong></p>
                           <p>Tarih: {r.obligation.invoice_date}</p>
                         </div>
                       ) : (
-                        <span className="text-[10px] text-muted-foreground">—</span>
+                        <span className="text-xs text-muted-foreground">—</span>
                       )}
                     </td>
-                    <td className="p-2 text-right">
-                      <div className="flex items-center justify-end gap-1">
+                    <td className="p-2.5 text-right">
+                      <div className="flex items-center justify-end gap-2">
                         {r.obligation?.invoice_file_url && (
                           <a
                             href={r.obligation.invoice_file_url}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center text-[11px] text-primary hover:underline"
+                            className="inline-flex items-center text-xs text-primary hover:underline"
                           >
                             Aç <ExternalLink className="w-3 h-3 ml-0.5" />
                           </a>
@@ -321,7 +322,7 @@ export default function WeekDetailPanel({ companyId, week, isFuture, onChanged }
                         {r.obligation?.status === "uploaded" && (
                           <Button
                             size="sm"
-                            className="h-7 px-2 text-xs"
+                            className="h-8 px-3 text-xs"
                             onClick={() => setApproveTarget(r.obligation)}
                             data-testid={`week-approve-btn-${r.courier_id}`}
                           >
