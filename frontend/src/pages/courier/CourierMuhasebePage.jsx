@@ -302,66 +302,70 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
         className="hidden"
       />
 
-      {/* JetCüzdan Hero Card — modern, mobile-first */}
-      <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-5 sm:p-6 shadow-sm">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-full bg-white/10 backdrop-blur flex items-center justify-center">
+      {/* JetCüzdan + Faturalarım — birleşik kart */}
+      <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+        {/* Bakiye bölümü */}
+        <div className="flex items-center justify-between gap-3 p-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0">
               <Wallet className="w-5 h-5" />
             </div>
-            <div>
-              <p className="text-xs uppercase tracking-wider text-white/60 font-medium">JetCüzdan</p>
-              <p className="text-[11px] text-white/50">Bakiye ve işlemleriniz</p>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-slate-900 leading-tight">JetCüzdan</p>
+              <p className="text-[11px] text-slate-500 mt-0.5">Mevcut bakiye</p>
             </div>
           </div>
-        </div>
-        <div className="mt-5">
-          <p className="text-[11px] uppercase tracking-wider text-white/50 font-medium">Mevcut Bakiye</p>
           <p
-            className={`text-3xl sm:text-4xl font-bold font-mono mt-1 ${
-              balance > 0 ? 'text-emerald-300' : balance < 0 ? 'text-rose-300' : 'text-white'
+            className={`text-xl sm:text-2xl font-bold font-mono tabular-nums leading-none ${
+              balance > 0
+                ? 'text-emerald-600'
+                : balance < 0
+                  ? 'text-rose-600'
+                  : 'text-slate-900'
             }`}
           >
             {balance === 0 ? '0,00 TL' : formatMoney(balance)}
           </p>
         </div>
-      </div>
 
-      {/* Faturalarım kartı — JetCüzdan altı, dikkat çekici */}
-      {obligationsCount > 0 && (
-        <button
-          type="button"
-          onClick={() => setShowObligationsModal(true)}
-          className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-white border border-slate-200 hover:border-slate-300 rounded-xl shadow-sm transition active:scale-[0.99]"
-          data-testid="my-obligations-banner"
-        >
-          <div className="flex items-center gap-3 min-w-0">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-              obligationsPending > 0 ? 'bg-red-50 text-red-600' : 'bg-slate-100 text-slate-600'
-            }`}>
-              <FileText className="w-4 h-4" />
+        {/* Faturalarım bölümü — sadece kayıt varsa */}
+        {obligationsCount > 0 && (
+          <button
+            type="button"
+            onClick={() => setShowObligationsModal(true)}
+            className="w-full flex items-center justify-between gap-3 p-4 border-t border-slate-100 hover:bg-slate-50 transition active:bg-slate-100"
+            data-testid="my-obligations-banner"
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                obligationsPending > 0
+                  ? 'bg-red-50 text-red-600'
+                  : 'bg-slate-100 text-slate-500'
+              }`}>
+                <FileText className="w-5 h-5" />
+              </div>
+              <div className="text-left min-w-0">
+                <p className="text-sm font-semibold text-slate-900 leading-tight">Faturalarım</p>
+                <p className="text-[11px] text-slate-500 mt-0.5 truncate">
+                  {obligationsPending > 0
+                    ? `${obligationsPending} fatura kesilmeli`
+                    : 'Tüm faturalarınız güncel'}
+                </p>
+              </div>
             </div>
-            <div className="text-left min-w-0">
-              <p className="text-sm font-semibold text-slate-900">Faturalarım</p>
-              <p className="text-xs text-slate-500 truncate">
-                {obligationsPending > 0
-                  ? `${obligationsPending} fatura kesilmeli`
-                  : 'Tüm faturalarınız güncel'}
-              </p>
-            </div>
-          </div>
-          {obligationsPending > 0 ? (
-            <span
-              className="min-w-[26px] h-[26px] px-2 bg-red-500 text-white text-xs font-bold rounded-full inline-flex items-center justify-center flex-shrink-0"
-              data-testid="my-obligations-badge"
-            >
-              {obligationsPending}
-            </span>
-          ) : (
-            <ChevronRight className="w-4 h-4 text-slate-400 flex-shrink-0" />
-          )}
-        </button>
-      )}
+            {obligationsPending > 0 ? (
+              <span
+                className="min-w-[26px] h-[26px] px-2 bg-red-500 text-white text-xs font-bold rounded-full inline-flex items-center justify-center flex-shrink-0"
+                data-testid="my-obligations-badge"
+              >
+                {obligationsPending}
+              </span>
+            ) : (
+              <ChevronRight className="w-5 h-5 text-slate-400 flex-shrink-0" />
+            )}
+          </button>
+        )}
+      </div>
 
       {/* Main Card — eksik fatura, taksit, işlem geçmişi */}
       <div className="border border-border bg-white rounded-xl overflow-hidden">
