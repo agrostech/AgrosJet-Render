@@ -35,7 +35,7 @@
 
 ## Courier (Onur)
 - Phone: 05553337766
-- Password: 123456
+- Password: 123456 (NOTE: currently returns 401 — likely password rotated in prod; primary courier test account is 05550003201/Test123!)
 - Courier ID: f7188370-b3c6-46e9-bd49-acf3e18c1df7
 - Login URL: /courier-login -> POST /api/auth/courier/login
 - Status: contract_accepted=true, fesih_accepted=true, 7/7 documents uploaded

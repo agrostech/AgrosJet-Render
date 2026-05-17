@@ -205,3 +205,18 @@ Multi-tenant delivery management platform for restaurants, couriers, and adminis
 
 - 2026-02: **Görev Yönetimi (Tasks) sistemi**. Bildirim modalı 3 ayrı butona ayrıldı: Bildirimler / Talepler (mola talepleri) / Görevler. Süperadmin admin'lere ve kendine görev atayabilir (çoklu seçim → her admin için kopya), admin'ler birbirine atayamaz. Görevlerde opsiyonel `due_date`, `is_urgent` etiketi; tamamlanmamış geciken görevlere "GECİKEN" rozeti. Admin tamamlarken not + max 3 resim ekleyebilir; resimler R2'ye `tasks/{company_id}/{admin_id}/{task_id}/...` yoluna yüklenir. Yeni görev geldiğinde admin tarayıcısında 3-tonlu bildirim sesi + badge artar (15sn polling). Süperadmin sekmeleri: Görevlerim / Bekleyen Görevler / Tamamlananlar (admin filtresiyle). Admin sekmeleri: Görevlerim / Tamamlananlar. Backend: `routers/tasks.py` (POST/GET/PATCH/DELETE + `/badge-count` + `/admins/list`). Frontend: `TasksPopover.jsx`, `RequestsPopover.jsx`, `NotificationsPopover.jsx` (tek-tab haline getirildi). Yetki kuralları (create/assigned_by_me/admins/list/complete/delete) curl ile uçtan uca doğrulandı.
 
+## NEW: Günlük Hakediş + Decoupled Haftalık Fatura Yükümlülükleri (2026-02-17)
+- **Mimari**: Haftalık hakediş işleme artık günlük (`daily_hakedis_settlements`) çalışır + her hafta Pazartesi açılışta önceki haftanın hakediş toplamına dayalı tek bir fatura yükümlülüğü (`courier_invoice_obligations`) oluşur. İkisi tamamen decoupled.
+- **Backend**:
+  - `services/daily_hakedis_service.py`: `calculate_day_hakedis` (boş gün de `business_date` döner), `apply_day_hakedis`, `revert_day_hakedis`, otomatik scheduler.
+  - `routers/courier_invoice_obligations.py`: Kurye listele/yükle, Admin listele/onayla, partial onay = remainder zinciri, auto-settings, scheduler `generate_weekly_obligations_for_company/all_companies`.
+  - `routers/weekly_hakedis.py`: `/daily-data/{company_id}` (7 günlük), `/daily/apply`, `/daily/revert`, `/daily/auto-settings`.
+- **Frontend**:
+  - `pages/muhasebe/DailyHakedisView.jsx`: 7 günlük sabit grid (boş günler dahil), `buildSevenDayGrid` ile garantili render, week_start/week_end alanları doğru bağlandı.
+  - `components/courier/muhasebe/MyObligationsModal.jsx`: Kurye için "Faturalarım" modalı (multipart upload: invoice_number + invoice_date + dosya).
+  - `pages/courier/CourierMuhasebePage.jsx`: JetCüzdan üstünde "X fatura yükümlülüğü" banner butonu + modal.
+  - `components/faturalar/CourierObligationsCard.jsx`: Admin Kurye Faturaları'nda Bekleyen/Yüklenen/Onaylı sekmeleri + onay modal (declared_amount, declared < expected ise backend otomatik kalan oluşturur).
+  - `components/muhasebe/CourierObligationsBanner.jsx`: Muhasebe → Kuryeler sekmesinde seçili kuryenin pending+uploaded yükümlülük uyarısı.
+- **Test**: `backend/tests/test_courier_invoice_obligations.py` 14/14 PASS (daily-data 7-day, admin list, courier list, summary, auto-settings, blocking-count, upload 404, auth gating).
+
+
