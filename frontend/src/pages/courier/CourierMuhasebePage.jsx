@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { AlertTriangle, Wallet, FileText } from "lucide-react";
+import { AlertTriangle, Wallet, FileText, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageLoading } from "@/components/ui/loading-spinner";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
@@ -302,31 +302,69 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
         className="hidden"
       />
 
-      {/* Main Card */}
-      <div className="border-2 border-border bg-white">
-        {/* Header — title + bakiye, mobilde 2 satırlı */}
-        <div className="p-3 sm:p-4 border-b-2 border-border">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center bg-primary/10 flex-shrink-0">
-                <Wallet className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-              </div>
-              <div className="min-w-0">
-                <h2 className="font-heading font-bold text-base sm:text-xl leading-tight">JetCüzdan</h2>
-                <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">Bakiye ve işlemleriniz</p>
-              </div>
+      {/* JetCüzdan Hero Card — modern, mobile-first */}
+      <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-5 sm:p-6 shadow-sm">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-10 h-10 rounded-full bg-white/10 backdrop-blur flex items-center justify-center">
+              <Wallet className="w-5 h-5" />
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <div className="text-right">
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Bakiye</p>
-                <p className={`text-base sm:text-xl font-bold font-mono leading-tight ${getBalanceColor(balance)}`}>
-                  {balance === 0 ? '0 TL' : formatMoney(balance)}
-                </p>
-              </div>
+            <div>
+              <p className="text-xs uppercase tracking-wider text-white/60 font-medium">JetCüzdan</p>
+              <p className="text-[11px] text-white/50">Bakiye ve işlemleriniz</p>
             </div>
           </div>
         </div>
+        <div className="mt-5">
+          <p className="text-[11px] uppercase tracking-wider text-white/50 font-medium">Mevcut Bakiye</p>
+          <p
+            className={`text-3xl sm:text-4xl font-bold font-mono mt-1 ${
+              balance > 0 ? 'text-emerald-300' : balance < 0 ? 'text-rose-300' : 'text-white'
+            }`}
+          >
+            {balance === 0 ? '0,00 TL' : formatMoney(balance)}
+          </p>
+        </div>
+      </div>
 
+      {/* Faturalarım kartı — JetCüzdan altı, dikkat çekici */}
+      {obligationsCount > 0 && (
+        <button
+          type="button"
+          onClick={() => setShowObligationsModal(true)}
+          className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-white border border-slate-200 hover:border-slate-300 rounded-xl shadow-sm transition active:scale-[0.99]"
+          data-testid="my-obligations-banner"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+              obligationsPending > 0 ? 'bg-red-50 text-red-600' : 'bg-slate-100 text-slate-600'
+            }`}>
+              <FileText className="w-4 h-4" />
+            </div>
+            <div className="text-left min-w-0">
+              <p className="text-sm font-semibold text-slate-900">Faturalarım</p>
+              <p className="text-xs text-slate-500 truncate">
+                {obligationsPending > 0
+                  ? `${obligationsPending} fatura kesilmeli`
+                  : 'Tüm faturalarınız güncel'}
+              </p>
+            </div>
+          </div>
+          {obligationsPending > 0 ? (
+            <span
+              className="min-w-[26px] h-[26px] px-2 bg-red-500 text-white text-xs font-bold rounded-full inline-flex items-center justify-center flex-shrink-0"
+              data-testid="my-obligations-badge"
+            >
+              {obligationsPending}
+            </span>
+          ) : (
+            <ChevronRight className="w-4 h-4 text-slate-400 flex-shrink-0" />
+          )}
+        </button>
+      )}
+
+      {/* Main Card — eksik fatura, taksit, işlem geçmişi */}
+      <div className="border border-border bg-white rounded-xl overflow-hidden">
         {/* Eski eksik fatura uyarısı — geri-uyum amaçlı korunuyor */}
         {shortfalls.length > 0 && (
           <div className="mx-3 sm:mx-4 mt-3 p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
@@ -347,65 +385,11 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
           setInstallmentsExpanded={setInstallmentsExpanded}
         />
 
-        {/* Faturalarım butonu — bakiye satırı altı, işlem geçmişi üstü */}
-        {obligationsCount > 0 && (
-          <div className="px-3 sm:px-4 pt-3">
-            <button
-              type="button"
-              onClick={() => setShowObligationsModal(true)}
-              className="relative w-full inline-flex items-center justify-between gap-2 px-3 py-2.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg transition text-sm font-medium text-slate-700"
-              data-testid="my-obligations-banner"
-            >
-              <span className="inline-flex items-center gap-2">
-                <FileText className="w-4 h-4 text-slate-500" />
-                Faturalarım
-              </span>
-              {obligationsPending > 0 && (
-                <span
-                  className="min-w-[22px] h-[22px] px-1.5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center"
-                  data-testid="my-obligations-badge"
-                >
-                  {obligationsPending}
-                </span>
-              )}
-            </button>
-          </div>
-        )}
-
         {/* Transaction History */}
         <div className="p-3 sm:p-4 bg-slate-50 border-b border-border">
-          <div className="flex items-center justify-between mb-2.5">
+          <div className="flex items-center justify-between">
             <h3 className="font-semibold text-sm sm:text-base">İşlem Geçmişi</h3>
             <span className="text-xs text-muted-foreground tabular-nums">{totalCount} işlem</span>
-          </div>
-          {/* Kategori filtreleri — scrollable single row, modern minimal */}
-          <div className="flex gap-1.5 overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 scrollbar-hide pb-0.5">
-            {[
-              { key: null, label: "Tümü", dot: "bg-slate-500" },
-              { key: "earning", label: "Hakediş", dot: "bg-green-500" },
-              { key: "payout", label: "Ödeme", dot: "bg-blue-500" },
-              { key: "installment", label: "Taksit", dot: "bg-purple-500" },
-              { key: "mutabakat", label: "Mütabakat", dot: "bg-red-500" },
-              { key: "penalty", label: "Ceza", dot: "bg-rose-600" },
-              { key: "manual", label: "Manuel", dot: "bg-slate-400" }
-            ].map((c) => {
-              const active = activeCategory === c.key;
-              return (
-                <button
-                  key={c.key || "all"}
-                  onClick={() => setActiveCategory(c.key)}
-                  className={`flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full border transition-all ${
-                    active
-                      ? "bg-foreground text-background border-foreground"
-                      : "bg-white text-foreground border-border hover:border-foreground/40"
-                  }`}
-                  data-testid={`filter-${c.key || "all"}`}
-                >
-                  <span className={`w-1.5 h-1.5 rounded-full ${c.dot} ${active ? "opacity-100" : "opacity-80"}`} />
-                  {c.label}
-                </button>
-              );
-            })}
           </div>
         </div>
         
