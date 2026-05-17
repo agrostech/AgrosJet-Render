@@ -13,6 +13,7 @@ import { useFaturalar } from "@/hooks/useFaturalar";
 import WeeksStripSelector from "@/components/faturalar/WeeksStripSelector";
 import WeekDetailPanel from "@/components/faturalar/WeekDetailPanel";
 import MonthlyInvoicesCard from "@/components/faturalar/MonthlyInvoicesCard";
+import CourierAutoSettingsCard from "@/components/faturalar/CourierAutoSettingsCard";
 import { MissingInvoicesCard } from "@/components/faturalar/MissingInvoicesCard";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -66,6 +67,9 @@ export default function FaturalarTab({ companyId, isSuperAdmin }) {
         selectedWeekStart={selectedWeekStart}
         onSelect={(w) => setSelectedWeekStart(w.week_start)}
       />
+
+      {/* Otomatik işleme aç/kapa */}
+      <CourierAutoSettingsCard companyId={companyId} />
 
       {!loadingWeeks && weeks.length === 0 && (
         <div className="p-8 text-center text-sm text-muted-foreground border rounded-lg bg-white">
