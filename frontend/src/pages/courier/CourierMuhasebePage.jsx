@@ -316,37 +316,37 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
                 <p className="text-xs text-muted-foreground truncate">Bakiye ve işlemleriniz</p>
               </div>
             </div>
-            <div className="text-right flex-shrink-0">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Bakiye</p>
-              <p className={`text-xl font-bold font-mono leading-tight ${getBalanceColor(balance)}`}>
-                {balance === 0 ? '0 TL' : formatMoney(balance)}
-              </p>
+            <div className="flex items-center gap-3 flex-shrink-0">
+              {/* Faturalarım butonu — sadece kayıt varsa */}
+              {obligationsCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowObligationsModal(true)}
+                  className="relative inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition text-xs font-medium text-slate-700"
+                  data-testid="my-obligations-banner"
+                  title="Faturalarım"
+                >
+                  <FileText className="w-4 h-4" />
+                  <span className="hidden sm:inline">Faturalarım</span>
+                  {obligationsPending > 0 && (
+                    <span
+                      className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center"
+                      data-testid="my-obligations-badge"
+                    >
+                      {obligationsPending}
+                    </span>
+                  )}
+                </button>
+              )}
+              <div className="text-right">
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Bakiye</p>
+                <p className={`text-xl font-bold font-mono leading-tight ${getBalanceColor(balance)}`}>
+                  {balance === 0 ? '0 TL' : formatMoney(balance)}
+                </p>
+              </div>
             </div>
           </div>
         </div>
-
-        {/* Faturalarım butonu - her zaman görünür, bekleyen varsa kırmızı badge */}
-        {obligationsCount > 0 && (
-          <div className="mx-3 sm:mx-4 mt-3">
-            <button
-              type="button"
-              onClick={() => setShowObligationsModal(true)}
-              className="relative inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition text-sm font-medium"
-              data-testid="my-obligations-banner"
-            >
-              <FileText className="w-4 h-4" />
-              Faturalarım
-              {obligationsPending > 0 && (
-                <span
-                  className="absolute -top-2 -right-2 min-w-[20px] h-5 px-1.5 bg-red-500 text-white text-[11px] font-bold rounded-full flex items-center justify-center"
-                  data-testid="my-obligations-badge"
-                >
-                  {obligationsPending}
-                </span>
-              )}
-            </button>
-          </div>
-        )}
 
         {/* Eski eksik fatura uyarısı — geri-uyum amaçlı korunuyor */}
         {shortfalls.length > 0 && (
