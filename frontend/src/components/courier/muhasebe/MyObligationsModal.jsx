@@ -1,9 +1,8 @@
 /**
  * Kurye Faturalarım Modal — yeni decoupled courier_invoice_obligations sistemi
  *
- * Pending + Uploaded fatura yükümlülüklerini listeler. Kurye pending olanlar için
- * fatura no, fatura tarihi ve dosya yükleyebilir. Uploaded olanlar için dosya
- * önizlemesi sunar (R2 presigned URL).
+ * Sade akış: Kurye sadece "Fatura Yükle" butonuna basar, dosya seçer, dosya yüklenir.
+ * Fatura no ve tarih sorulmaz (opsiyonel; admin onay aşamasında girilir).
  */
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
@@ -16,8 +15,6 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
   FileText,
@@ -25,8 +22,7 @@ import {
   Loader2,
   CheckCircle2,
   AlertTriangle,
-  Calendar,
-  ExternalLink,
+  Eye,
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -39,7 +35,6 @@ const formatMoney = (n) =>
 
 const formatWeekLabel = (start, end) => {
   if (!start || !end) return "";
-  // "YYYY-MM-DD" → "DD.MM" – "DD.MM.YYYY"
   const toShort = (s) => {
     const [y, m, d] = s.split("-");
     return `${d}.${m}.${y}`;
@@ -49,28 +44,20 @@ const formatWeekLabel = (start, end) => {
 
 function ObligationRow({ item, onUploaded }) {
   const fileInputRef = useRef(null);
-  const [invoiceNumber, setInvoiceNumber] = useState("");
-  const [invoiceDate, setInvoiceDate] = useState("");
   const [busy, setBusy] = useState(false);
-  const [expanded, setExpanded] = useState(false);
 
   const isPending = item.status === "pending";
   const isUploaded = item.status === "uploaded";
 
-  const onPick = () => fileInputRef.current?.click();
+  const onPick = () => {
+    if (busy) return;
+    fileInputRef.current?.click();
+  };
 
   const onFile = async (e) => {
     const file = e.target.files?.[0];
-    e.target.value = ""; // reset so same file can be re-picked
+    e.target.value = ""; // aynı dosyayı yeniden seçebilmek için
     if (!file) return;
-    if (!invoiceNumber.trim()) {
-      toast.error("Fatura numarası zorunlu");
-      return;
-    }
-    if (!invoiceDate.trim()) {
-      toast.error("Fatura tarihi zorunlu");
-      return;
-    }
     if (file.size > 10 * 1024 * 1024) {
       toast.error("Dosya 10MB'tan büyük olamaz");
       return;
@@ -83,8 +70,6 @@ function ObligationRow({ item, onUploaded }) {
     setBusy(true);
     try {
       const fd = new FormData();
-      fd.append("invoice_number", invoiceNumber.trim());
-      fd.append("invoice_date", invoiceDate.trim());
       fd.append("file", file);
       const res = await axios.post(`${API}/courier-invoice-obligations/${item.id}/upload`, fd, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -103,7 +88,7 @@ function ObligationRow({ item, onUploaded }) {
       className="border rounded-lg bg-white"
       data-testid={`obligation-row-${item.id}`}
     >
-      <div className="p-3 flex items-start gap-3">
+      <div className="p-3 flex items-center gap-3">
         <div className="w-9 h-9 rounded-md bg-amber-50 text-amber-700 flex items-center justify-center flex-shrink-0">
           <FileText className="w-4 h-4" />
         </div>
@@ -134,65 +119,9 @@ function ObligationRow({ item, onUploaded }) {
               {formatMoney(item.expected_amount)}
             </span>
           </div>
-          {isUploaded && (
-            <div className="text-[11px] text-muted-foreground mt-1 flex flex-wrap items-center gap-x-2">
-              <span>No: <strong>{item.invoice_number}</strong></span>
-              <span>•</span>
-              <span>Tarih: <strong>{item.invoice_date}</strong></span>
-              {item.invoice_file_url && (
-                <>
-                  <span>•</span>
-                  <a
-                    href={item.invoice_file_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-primary hover:underline"
-                    data-testid={`obligation-file-${item.id}`}
-                  >
-                    Dosyayı Aç <ExternalLink className="w-3 h-3" />
-                  </a>
-                </>
-              )}
-            </div>
-          )}
         </div>
         {isPending && (
-          <Button
-            size="sm"
-            variant={expanded ? "secondary" : "default"}
-            onClick={() => setExpanded((p) => !p)}
-            data-testid={`obligation-expand-${item.id}`}
-          >
-            {expanded ? "Kapat" : "Fatura Yükle"}
-          </Button>
-        )}
-      </div>
-
-      {isPending && expanded && (
-        <div className="px-3 pb-3 pt-1 border-t bg-slate-50/40 grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <div>
-            <Label className="text-[11px]">Fatura Numarası</Label>
-            <Input
-              value={invoiceNumber}
-              onChange={(e) => setInvoiceNumber(e.target.value)}
-              placeholder="Örn: ABC2026000001"
-              className="h-8 text-sm"
-              data-testid={`obligation-invoice-no-${item.id}`}
-            />
-          </div>
-          <div>
-            <Label className="text-[11px] flex items-center gap-1">
-              <Calendar className="w-3 h-3" /> Fatura Tarihi
-            </Label>
-            <Input
-              type="date"
-              value={invoiceDate}
-              onChange={(e) => setInvoiceDate(e.target.value)}
-              className="h-8 text-sm"
-              data-testid={`obligation-invoice-date-${item.id}`}
-            />
-          </div>
-          <div className="sm:col-span-2 flex items-center justify-end">
+          <>
             <input
               ref={fileInputRef}
               type="file"
@@ -211,11 +140,22 @@ function ObligationRow({ item, onUploaded }) {
               ) : (
                 <Upload className="w-4 h-4 mr-1" />
               )}
-              Dosya Seç & Yükle
+              Fatura Yükle
             </Button>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+        {isUploaded && item.invoice_file_url && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => window.open(item.invoice_file_url, "_blank", "noreferrer")}
+            data-testid={`obligation-view-${item.id}`}
+          >
+            <Eye className="w-4 h-4 mr-1" />
+            Görüntüle
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

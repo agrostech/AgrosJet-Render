@@ -113,9 +113,9 @@ async def blocking_count(payload: dict = Depends(require_auth)):
 @router.post("/{req_id}/upload")
 async def upload_invoice(
     req_id: str,
-    invoice_number: str = Form(...),
-    invoice_date: str = Form(...),
     file: UploadFile = File(...),
+    invoice_number: Optional[str] = Form(None),
+    invoice_date: Optional[str] = Form(None),
     payload: dict = Depends(require_auth),
 ):
     if not _is_courier(payload):
@@ -143,16 +143,17 @@ async def upload_invoice(
     upload = await upload_file_to_r2(content, key, content_type=file.content_type or f"application/{ext}")
     if not upload.get("success"):
         raise HTTPException(status_code=500, detail=f"R2 hatası: {upload.get('error')}")
-    await db.courier_invoice_obligations.update_one(
-        {"id": req_id},
-        {"$set": {
-            "status": "uploaded",
-            "invoice_file_key": key,
-            "invoice_number": invoice_number.strip(),
-            "invoice_date": invoice_date.strip(),
-            "uploaded_at": datetime.now(TR_TZ).isoformat(),
-        }}
-    )
+    update_doc = {
+        "status": "uploaded",
+        "invoice_file_key": key,
+        "invoice_filename": file.filename,
+        "uploaded_at": datetime.now(TR_TZ).isoformat(),
+    }
+    if invoice_number and invoice_number.strip():
+        update_doc["invoice_number"] = invoice_number.strip()
+    if invoice_date and invoice_date.strip():
+        update_doc["invoice_date"] = invoice_date.strip()
+    await db.courier_invoice_obligations.update_one({"id": req_id}, {"$set": update_doc})
     updated = await db.courier_invoice_obligations.find_one({"id": req_id}, {"_id": 0})
     return {"success": True, "item": await _serialize(updated)}
 
