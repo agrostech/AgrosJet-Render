@@ -115,9 +115,9 @@ export default function WeeksStripSelector({
               data-testid={`weeks-strip-tab-${w.week_start}`}
             >
               <div className={`text-[11px] font-medium ${isSelected ? "text-slate-300" : "text-slate-400"}`}>
-                {startDay} – {endDay}
+                {monthLabel}
               </div>
-              <div className="text-sm font-semibold leading-tight">{monthLabel}</div>
+              <div className="text-sm font-semibold leading-tight">{startDay} – {endDay}</div>
               {badge}
             </button>
           );

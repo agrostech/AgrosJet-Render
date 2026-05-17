@@ -420,17 +420,6 @@ export default function DailyHakedisView({ companyId, adminId, adminName, isSupe
         }
       />
 
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" onClick={fetchDays} disabled={loading} data-testid="daily-refresh-btn">
-          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-        </Button>
-        <div className="ml-auto text-sm">
-          Toplam: <span className="font-bold text-emerald-700">{formatMoney(total)}</span>
-        </div>
-      </div>
-
-      <AutoSettingsPanel companyId={companyId} isSuperAdmin={isSuperAdmin} />
-
       {/* Haftalık 7 Gün Seçici — Kurye Mütabakat tarzı */}
       <div className="flex items-center gap-1 bg-white border rounded-lg p-1.5 shadow-sm">
         <Button
@@ -501,6 +490,8 @@ export default function DailyHakedisView({ companyId, adminId, adminName, isSupe
           <ChevronRight className="w-4 h-4" />
         </Button>
       </div>
+
+      <AutoSettingsPanel companyId={companyId} isSuperAdmin={isSuperAdmin} />
 
       {loading ? (
         <div className="py-10 flex items-center justify-center">
