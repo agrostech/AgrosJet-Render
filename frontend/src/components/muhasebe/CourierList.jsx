@@ -1,8 +1,11 @@
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
+import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { User, Archive, ArchiveRestore, Search } from "lucide-react";
+import { User, Archive, ArchiveRestore, Search, FileWarning } from "lucide-react";
 import { formatCurrency, getBalanceLabel } from "@/hooks/useAccountingTab";
+
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function CourierList({
   displayList,
@@ -14,8 +17,24 @@ export default function CourierList({
   listSearchQuery,
   setListSearchQuery,
   onSelect,
+  companyId,
 }) {
   const listRef = useRef(null);
+  const [pendingIds, setPendingIds] = useState(new Set());
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!companyId) return;
+    (async () => {
+      try {
+        const res = await axios.get(`${API}/courier-invoice-obligations/pending-courier-ids/${companyId}`);
+        if (!cancelled) setPendingIds(new Set(res.data.courier_ids || []));
+      } catch {
+        if (!cancelled) setPendingIds(new Set());
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [companyId]);
 
   const filteredDisplayList = displayList.filter(c => {
     if (!listSearchQuery.trim()) return true;
@@ -96,7 +115,18 @@ export default function CourierList({
                 data-testid={`courier-item-${c.id}`}
               >
                 <div className="flex items-center justify-between">
-                  <p className="font-semibold text-sm truncate">{c.name}</p>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <p className="font-semibold text-sm truncate">{c.name}</p>
+                    {pendingIds.has(c.id) && (
+                      <FileWarning
+                        className="w-3.5 h-3.5 text-amber-500 flex-shrink-0"
+                        data-testid={`courier-pending-invoice-${c.id}`}
+                        aria-label="Eksik veya onaylanmamış faturası var"
+                      >
+                        <title>Eksik veya onaylanmamış faturası var</title>
+                      </FileWarning>
+                    )}
+                  </div>
                   {balLabel && (
                     <span className={`text-xs font-mono px-1.5 py-0.5 rounded ${balLabel.color}`}>
                       {balLabel.text}

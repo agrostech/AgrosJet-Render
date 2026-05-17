@@ -110,6 +110,18 @@ async def blocking_count(payload: dict = Depends(require_auth)):
     return {"count": c}
 
 
+@router.get("/pending-courier-ids/{company_id}")
+async def pending_courier_ids(company_id: str, payload: dict = Depends(require_auth)):
+    """Admin: bu şirkette pending VEYA uploaded yükümlülüğü olan kuryelerin id listesi."""
+    if not _is_admin(payload):
+        raise HTTPException(status_code=403, detail="Yetki yok")
+    ids = await db.courier_invoice_obligations.distinct(
+        "courier_id",
+        {"company_id": company_id, "status": {"$in": ["pending", "uploaded"]}},
+    )
+    return {"courier_ids": [i for i in ids if i]}
+
+
 @router.get("/{obligation_id}/file")
 async def get_obligation_file(obligation_id: str, payload: dict = Depends(require_auth)):
     """

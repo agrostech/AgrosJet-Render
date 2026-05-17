@@ -349,6 +349,7 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
           listSearchQuery={listSearchQuery}
           setListSearchQuery={setListSearchQuery}
           onSelect={handleMobileSelect}
+          companyId={companyId}
         />
       </div>
 
