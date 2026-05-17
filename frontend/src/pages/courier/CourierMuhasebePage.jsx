@@ -304,26 +304,26 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
 
       {/* Main Card */}
       <div className="border-2 border-border bg-white">
-        {/* Header — tek satırda title + bakiye, mobilde alta tam genişlikte Ödeme İste */}
-        <div className="p-4 border-b-2 border-border">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-primary/10 flex-shrink-0">
-                <Wallet className="w-5 h-5 text-primary" />
+        {/* Header — title + bakiye, mobilde 2 satırlı */}
+        <div className="p-3 sm:p-4 border-b-2 border-border">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center bg-primary/10 flex-shrink-0">
+                <Wallet className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
               </div>
               <div className="min-w-0">
-                <h2 className="font-heading font-bold text-xl truncate">JetCüzdan</h2>
-                <p className="text-xs text-muted-foreground truncate">Bakiye ve işlemleriniz</p>
+                <h2 className="font-heading font-bold text-base sm:text-xl leading-tight">JetCüzdan</h2>
+                <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">Bakiye ve işlemleriniz</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 flex-shrink-0">
-              {/* Faturalarım butonu — sadece kayıt varsa */}
+            <div className="flex items-center gap-2 flex-shrink-0">
               {obligationsCount > 0 && (
                 <button
                   type="button"
                   onClick={() => setShowObligationsModal(true)}
-                  className="relative inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition text-xs font-medium text-slate-700"
+                  className="relative inline-flex items-center justify-center w-9 h-9 sm:w-auto sm:h-auto sm:gap-1.5 sm:px-3 sm:py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition text-xs font-medium text-slate-700"
                   data-testid="my-obligations-banner"
+                  aria-label="Faturalarım"
                   title="Faturalarım"
                 >
                   <FileText className="w-4 h-4" />
@@ -340,7 +340,7 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
               )}
               <div className="text-right">
                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Bakiye</p>
-                <p className={`text-xl font-bold font-mono leading-tight ${getBalanceColor(balance)}`}>
+                <p className={`text-base sm:text-xl font-bold font-mono leading-tight ${getBalanceColor(balance)}`}>
                   {balance === 0 ? '0 TL' : formatMoney(balance)}
                 </p>
               </div>

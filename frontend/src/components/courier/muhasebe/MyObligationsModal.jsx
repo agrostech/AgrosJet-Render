@@ -90,40 +90,42 @@ function ObligationRow({ item, onUploaded, onRequestInvoice }) {
       className="border rounded-lg bg-white"
       data-testid={`obligation-row-${item.id}`}
     >
-      <div className="p-3 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-md bg-amber-50 text-amber-700 flex items-center justify-center flex-shrink-0">
-          <FileText className="w-4 h-4" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold text-sm">
-              {formatWeekLabel(item.week_start, item.week_end)}
-            </span>
-            {item.is_remainder && (
-              <Badge variant="outline" className="text-[10px] py-0 h-4 border-amber-300 text-amber-700">
-                Kalan
-              </Badge>
-            )}
-            {isPending && (
-              <Badge variant="outline" className="text-[10px] py-0 h-4 border-amber-300 text-amber-700">
-                <AlertTriangle className="w-3 h-3 mr-1" /> Bekliyor
-              </Badge>
-            )}
-            {isUploaded && (
-              <Badge variant="outline" className="text-[10px] py-0 h-4 border-blue-300 text-blue-700">
-                <CheckCircle2 className="w-3 h-3 mr-1" /> Yüklendi
-              </Badge>
-            )}
+      <div className="p-3 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+        <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
+          <div className="w-9 h-9 rounded-md bg-amber-50 text-amber-700 flex items-center justify-center flex-shrink-0">
+            <FileText className="w-4 h-4" />
           </div>
-          <div className="text-xs text-muted-foreground mt-0.5">
-            Beklenen tutar:{" "}
-            <span className="font-semibold text-foreground">
-              {formatMoney(item.expected_amount)}
-            </span>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="font-semibold text-sm">
+                {formatWeekLabel(item.week_start, item.week_end)}
+              </span>
+              {item.is_remainder && (
+                <Badge variant="outline" className="text-[10px] py-0 h-4 border-amber-300 text-amber-700">
+                  Kalan
+                </Badge>
+              )}
+              {isPending && (
+                <Badge variant="outline" className="text-[10px] py-0 h-4 border-amber-300 text-amber-700">
+                  <AlertTriangle className="w-3 h-3 mr-1" /> Bekliyor
+                </Badge>
+              )}
+              {isUploaded && (
+                <Badge variant="outline" className="text-[10px] py-0 h-4 border-blue-300 text-blue-700">
+                  <CheckCircle2 className="w-3 h-3 mr-1" /> Yüklendi
+                </Badge>
+              )}
+            </div>
+            <div className="text-xs text-muted-foreground mt-0.5">
+              Beklenen tutar:{" "}
+              <span className="font-semibold text-foreground">
+                {formatMoney(item.expected_amount)}
+              </span>
+            </div>
           </div>
         </div>
         {isPending && (
-          <div className="flex items-center gap-1.5 flex-shrink-0">
+          <div className="flex items-center gap-2 sm:flex-shrink-0">
             <input
               ref={fileInputRef}
               type="file"
@@ -135,24 +137,28 @@ function ObligationRow({ item, onUploaded, onRequestInvoice }) {
               size="sm"
               variant="outline"
               onClick={() => onRequestInvoice(item)}
+              className="flex-1 sm:flex-none"
               data-testid={`obligation-request-${item.id}`}
               title="Muhasebecine WhatsApp ile fatura talep et"
             >
-              <Send className="w-4 h-4 mr-1" />
-              Talep Et
+              <Send className="w-4 h-4 sm:mr-1" />
+              <span className="hidden sm:inline">Talep Et</span>
+              <span className="sm:hidden ml-1">Talep</span>
             </Button>
             <Button
               size="sm"
               onClick={onPick}
               disabled={busy}
+              className="flex-1 sm:flex-none"
               data-testid={`obligation-upload-${item.id}`}
             >
               {busy ? (
-                <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                <Loader2 className="w-4 h-4 animate-spin sm:mr-1" />
               ) : (
-                <Upload className="w-4 h-4 mr-1" />
+                <Upload className="w-4 h-4 sm:mr-1" />
               )}
-              Fatura Yükle
+              <span className="hidden sm:inline">Fatura Yükle</span>
+              <span className="sm:hidden ml-1">Yükle</span>
             </Button>
           </div>
         )}
@@ -161,6 +167,7 @@ function ObligationRow({ item, onUploaded, onRequestInvoice }) {
             size="sm"
             variant="outline"
             onClick={() => window.open(item.invoice_file_url, "_blank", "noreferrer")}
+            className="w-full sm:w-auto"
             data-testid={`obligation-view-${item.id}`}
           >
             <Eye className="w-4 h-4 mr-1" />
@@ -207,7 +214,7 @@ export default function MyObligationsModal({ open, onOpenChange, onUpdated, comp
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-2xl max-h-[90vh] overflow-y-auto"
+        className="w-[calc(100vw-1.5rem)] max-w-2xl max-h-[90vh] overflow-y-auto p-4"
         data-testid="my-obligations-modal"
       >
         <DialogHeader>
