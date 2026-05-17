@@ -114,8 +114,18 @@ export default function UpcomingObligationsCard({ companyId }) {
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {item.tx_count} işlem
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      {item.days_with_earnings ?? 0} gün hakediş
+                      {item.unprocessed_amount > 0 && (
+                        <span className="text-amber-600 ml-1">
+                          • İşlenmemiş: {formatMoney(item.unprocessed_amount)}
+                        </span>
+                      )}
+                      {item.processed_amount > 0 && (
+                        <span className="text-green-600 ml-1">
+                          • İşlendi: {formatMoney(item.processed_amount)}
+                        </span>
+                      )}
                     </p>
                   </div>
                   <span
