@@ -493,17 +493,10 @@ async def update_order_status_core(
     # Güncellenmiş siparişi al
     updated_order = await db.orders.find_one({"id": order_id})
     
-    # Otomatik kurye hakediş işlemi
-    # delivered → courier_fee otomatik bakiyeye yazılır (idempotent)
-    # cancelled veya delivered'dan başka duruma → varsa earning sil
-    try:
-        from services.courier_earning_service import credit_courier_earning, revert_courier_earning
-        if new_status == "delivered":
-            await credit_courier_earning(updated_order)
-        elif new_status == "cancelled" or (old_status == "delivered" and new_status != "delivered"):
-            await revert_courier_earning(order_id)
-    except Exception as e:
-        logger.error(f"Otomatik hakediş hatası: {e}")
+    # NOT: Paket başı anlık bakiye ekleme sistemi KAPATILDI.
+    # Eski haftalık hakediş sistemine geri dönüldü; teslim edilen siparişler
+    # haftalık hakediş raporunda toplu hesaplanır, anlık courier_earnings
+    # transaction'ı oluşturulmaz.
     
     # Platform bildirimi
     if notify_platform:

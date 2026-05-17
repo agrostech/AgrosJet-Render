@@ -441,24 +441,6 @@ async def lifespan(app: FastAPI):
         name="Tasks Scheduler (1m)",
         replace_existing=True
     )
-
-    # Missing Invoices Daily Job — her dakika çalışır, açılış saati ±5 dk
-    # penceresinde olan şirketler için günlük eksik fatura üretir.
-    async def missing_invoices_daily_job():
-        try:
-            from routers.missing_invoices import generate_daily_missing_invoices_all_companies
-            await generate_daily_missing_invoices_all_companies()
-        except Exception as e:
-            print(f"Missing invoices daily job error: {e}")
-
-    scheduler.add_job(
-        missing_invoices_daily_job,
-        'interval',
-        minutes=1,
-        id="missing_invoices_daily",
-        name="Missing Invoices Daily (1m)",
-        replace_existing=True
-    )
     
     # Scheduler'ı shift_scheduler modülüne kaydet
     from utils.shift_scheduler import set_scheduler, load_shift_jobs
@@ -747,7 +729,8 @@ from routers.zimmet import router as zimmet_router
 from routers.accounting import router as accounting_router
 from routers.shifts import router as shifts_router
 from routers.invoices import router as invoices_router
-from routers.payout_requests import router as payout_requests_router
+# NOT: payout_requests router'ı kapatıldı — eski haftalık hakediş sistemine
+# geri dönüldü. DB koleksiyonu (payout_requests) geçmiş veri için duruyor.
 from routers.documents import router as documents_router
 from routers.jetpuan import router as jetpuan_router
 from routers.notifications import router as notifications_router
@@ -796,7 +779,6 @@ from routers.tiered_pricing import router as tiered_pricing_router
 from routers.auto_dispatch import router as auto_dispatch_router
 from routers.tasks import router as tasks_router
 from routers.exemption_requests import router as exemption_requests_router
-from routers.missing_invoices import router as missing_invoices_router
 from routers.customers import router as customers_router
 from routers.credits import router as credits_router
 from routers.break_system import router as break_system_router
@@ -819,7 +801,7 @@ app.include_router(zimmet_router)
 app.include_router(accounting_router)
 app.include_router(shifts_router)
 app.include_router(invoices_router)
-app.include_router(payout_requests_router)
+# NOT: payout_requests router include kaldırıldı (eski sistem)
 app.include_router(documents_router)
 app.include_router(jetpuan_router)
 app.include_router(notifications_router)
@@ -870,7 +852,6 @@ app.include_router(tiered_pricing_router)
 app.include_router(auto_dispatch_router)
 app.include_router(tasks_router)
 app.include_router(exemption_requests_router)
-app.include_router(missing_invoices_router)
 app.include_router(customers_router)
 app.include_router(credits_router)
 app.include_router(break_system_router)

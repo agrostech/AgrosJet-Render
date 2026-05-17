@@ -7,7 +7,7 @@ import { PdfViewerModal } from "@/components/ui/pdf-viewer-modal";
 import { useFaturalar } from "@/hooks/useFaturalar";
 import { MonthSelector } from "@/components/faturalar/MonthSelector";
 import { MonthInvoicesCard } from "@/components/faturalar/MonthInvoicesCard";
-// MissingInvoicesCard kaldırıldı (yeni payout request sistemi devreye alındı, eksik fatura kartına ihtiyaç yok)
+import { MissingInvoicesCard } from "@/components/faturalar/MissingInvoicesCard";
 import { CouriersListCard } from "@/components/faturalar/CouriersListCard";
 import { CourierInvoicesCard } from "@/components/faturalar/CourierInvoicesCard";
 
@@ -188,6 +188,13 @@ export default function FaturalarTab({ companyId, adminId, adminName, isSuperAdm
           onVerifyWithAmount={handleVerifyWithAmount}
         />
       </div>
+
+      {/* Eksik Faturalar (her zaman görünür, geri açıldı) */}
+      <MissingInvoicesCard
+        missingInvoices={missingInvoices}
+        isSuperAdmin={isSuperAdmin}
+        onDismiss={dismissMissingInvoice}
+      />
 
       {/* 2. satır: Kuryeler + Kurye Faturaları (yan yana) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
