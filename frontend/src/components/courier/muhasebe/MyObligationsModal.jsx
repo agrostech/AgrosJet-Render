@@ -12,7 +12,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -208,9 +207,6 @@ export default function MyObligationsModal({ open, onOpenChange, onUpdated, comp
     onUpdated?.();
   };
 
-  const pendingCount = items.filter((i) => i.status === "pending").length;
-  const uploadedCount = items.filter((i) => i.status === "uploaded").length;
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -221,21 +217,7 @@ export default function MyObligationsModal({ open, onOpenChange, onUpdated, comp
           <DialogTitle className="flex items-center gap-2">
             <FileText className="w-5 h-5" /> Faturalarım
           </DialogTitle>
-          <DialogDescription>
-            Haftalık fatura yükümlülükleriniz ve onay durumu.
-          </DialogDescription>
         </DialogHeader>
-
-        <div className="grid grid-cols-2 gap-2 text-center text-xs">
-          <div className="border rounded p-2 bg-amber-50/40">
-            <div className="text-amber-700 font-bold text-base">{pendingCount}</div>
-            <div className="text-muted-foreground">Bekleyen</div>
-          </div>
-          <div className="border rounded p-2 bg-blue-50/40">
-            <div className="text-blue-700 font-bold text-base">{uploadedCount}</div>
-            <div className="text-muted-foreground">Yüklendi</div>
-          </div>
-        </div>
 
         {loading ? (
           <div className="py-10 flex items-center justify-center">

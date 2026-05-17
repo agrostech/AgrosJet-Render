@@ -29,10 +29,11 @@ async def get_entity_transactions(entity_type: str, entity_id: str, skip: int = 
     Get transactions and calculate balance for an entity.
     
     category filter (opsiyonel):
-        - 'earning': type=earning (sipariş hakedişi)
+        - 'earning': type=earning veya is_hakedis=True (günlük otomatik hakediş dahil)
         - 'payout': payout_request_id var, installment_product_id yok
         - 'installment': installment_product_id var
         - 'mutabakat': mutabakat_date var veya description'da 'mütabakat'/'eksik'
+        - 'penalty': penalty_violation_id var veya description "Ceza:" ile başlıyor
         - 'manual': yukarıdakilerin hiçbiri
     """
     base_query = {"entity_type": entity_type, "entity_id": entity_id}
@@ -40,7 +41,10 @@ async def get_entity_transactions(entity_type: str, entity_id: str, skip: int = 
     # Kategori filtresi (server-side)
     query = dict(base_query)
     if category == "earning":
-        query["type"] = "earning"
+        query["$or"] = [
+            {"type": "earning"},
+            {"is_hakedis": True},
+        ]
     elif category == "payout":
         query["payout_request_id"] = {"$ne": None, "$exists": True}
         query["installment_product_id"] = {"$in": [None]}
@@ -51,14 +55,21 @@ async def get_entity_transactions(entity_type: str, entity_id: str, skip: int = 
             {"mutabakat_date": {"$ne": None, "$exists": True}},
             {"description": {"$regex": "mütabakat|mutabakat|eksik", "$options": "i"}}
         ]
+    elif category == "penalty":
+        query["$or"] = [
+            {"penalty_violation_id": {"$ne": None, "$exists": True}},
+            {"description": {"$regex": "^Ceza:", "$options": "i"}},
+        ]
     elif category == "manual":
-        # earning, payout, installment, mutabakat olmayan
-        query["type"] = {"$nin": ["earning"]}
+        # earning/is_hakedis, payout, installment, mutabakat, penalty olmayan
         query["$and"] = [
+            {"type": {"$nin": ["earning"]}},
+            {"$or": [{"is_hakedis": {"$ne": True}}, {"is_hakedis": {"$exists": False}}]},
             {"$or": [{"payout_request_id": {"$in": [None]}}, {"payout_request_id": {"$exists": False}}]},
             {"$or": [{"installment_product_id": {"$in": [None]}}, {"installment_product_id": {"$exists": False}}]},
             {"$or": [{"mutabakat_date": {"$in": [None]}}, {"mutabakat_date": {"$exists": False}}]},
-            {"description": {"$not": {"$regex": "mütabakat|mutabakat|eksik", "$options": "i"}}}
+            {"$or": [{"penalty_violation_id": {"$in": [None]}}, {"penalty_violation_id": {"$exists": False}}]},
+            {"description": {"$not": {"$regex": "mütabakat|mutabakat|eksik|^Ceza:", "$options": "i"}}}
         ]
     
     total_count = await db.transactions.count_documents(query)

@@ -317,27 +317,6 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
               </div>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
-              {obligationsCount > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setShowObligationsModal(true)}
-                  className="relative inline-flex items-center justify-center w-9 h-9 sm:w-auto sm:h-auto sm:gap-1.5 sm:px-3 sm:py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition text-xs font-medium text-slate-700"
-                  data-testid="my-obligations-banner"
-                  aria-label="Faturalarım"
-                  title="Faturalarım"
-                >
-                  <FileText className="w-4 h-4" />
-                  <span className="hidden sm:inline">Faturalarım</span>
-                  {obligationsPending > 0 && (
-                    <span
-                      className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center"
-                      data-testid="my-obligations-badge"
-                    >
-                      {obligationsPending}
-                    </span>
-                  )}
-                </button>
-              )}
               <div className="text-right">
                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Bakiye</p>
                 <p className={`text-base sm:text-xl font-bold font-mono leading-tight ${getBalanceColor(balance)}`}>
@@ -368,6 +347,31 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
           setInstallmentsExpanded={setInstallmentsExpanded}
         />
 
+        {/* Faturalarım butonu — bakiye satırı altı, işlem geçmişi üstü */}
+        {obligationsCount > 0 && (
+          <div className="px-3 sm:px-4 pt-3">
+            <button
+              type="button"
+              onClick={() => setShowObligationsModal(true)}
+              className="relative w-full inline-flex items-center justify-between gap-2 px-3 py-2.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg transition text-sm font-medium text-slate-700"
+              data-testid="my-obligations-banner"
+            >
+              <span className="inline-flex items-center gap-2">
+                <FileText className="w-4 h-4 text-slate-500" />
+                Faturalarım
+              </span>
+              {obligationsPending > 0 && (
+                <span
+                  className="min-w-[22px] h-[22px] px-1.5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center"
+                  data-testid="my-obligations-badge"
+                >
+                  {obligationsPending}
+                </span>
+              )}
+            </button>
+          </div>
+        )}
+
         {/* Transaction History */}
         <div className="p-3 sm:p-4 bg-slate-50 border-b border-border">
           <div className="flex items-center justify-between mb-2.5">
@@ -382,6 +386,7 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
               { key: "payout", label: "Ödeme", dot: "bg-blue-500" },
               { key: "installment", label: "Taksit", dot: "bg-purple-500" },
               { key: "mutabakat", label: "Mütabakat", dot: "bg-red-500" },
+              { key: "penalty", label: "Ceza", dot: "bg-rose-600" },
               { key: "manual", label: "Manuel", dot: "bg-slate-400" }
             ].map((c) => {
               const active = activeCategory === c.key;
