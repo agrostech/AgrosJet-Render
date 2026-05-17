@@ -20,7 +20,11 @@ export function PdfViewerModal({ file, onClose }) {
   const isPdf = !file.contentType.startsWith("image/");
 
   const node = (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+      style={{ pointerEvents: "auto" }}
+      onClick={onClose}
+    >
       <div
         className="relative w-full max-w-4xl h-[90vh] mx-3 bg-white dark:bg-slate-900 rounded-xl shadow-2xl overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}

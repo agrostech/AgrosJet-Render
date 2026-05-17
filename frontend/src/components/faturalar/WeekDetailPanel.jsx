@@ -82,7 +82,7 @@ function StatusBadge({ obligation, isFuture }) {
   );
 }
 
-function ApproveModal({ open, onOpenChange, obligation, onApproved, onViewFile }) {
+function ApproveModal({ open, onOpenChange, obligation, onApproved, onViewFile, pdfOpen }) {
   const [declared, setDeclared] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -127,7 +127,13 @@ function ApproveModal({ open, onOpenChange, obligation, onApproved, onViewFile }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md" data-testid="week-approve-modal">
+      <DialogContent
+        className="max-w-md"
+        data-testid="week-approve-modal"
+        onPointerDownOutside={(e) => { if (pdfOpen) e.preventDefault(); }}
+        onInteractOutside={(e) => { if (pdfOpen) e.preventDefault(); }}
+        onEscapeKeyDown={(e) => { if (pdfOpen) e.preventDefault(); }}
+      >
         <DialogHeader>
           <DialogTitle>Fatura Onayla</DialogTitle>
           <DialogDescription>
@@ -422,6 +428,7 @@ export default function WeekDetailPanel({ companyId, week, isFuture, onChanged }
           const file = await fetchObligationFile(o);
           if (file) setViewingFile(file);
         }}
+        pdfOpen={!!viewingFile}
       />
 
       <ManualObligationModal

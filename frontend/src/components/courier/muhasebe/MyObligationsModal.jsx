@@ -220,6 +220,9 @@ export default function MyObligationsModal({ open, onOpenChange, onUpdated, comp
       <DialogContent
         className="w-[calc(100vw-1.5rem)] max-w-2xl max-h-[90vh] overflow-y-auto p-4"
         data-testid="my-obligations-modal"
+        onPointerDownOutside={(e) => { if (viewingFile) e.preventDefault(); }}
+        onInteractOutside={(e) => { if (viewingFile) e.preventDefault(); }}
+        onEscapeKeyDown={(e) => { if (viewingFile) e.preventDefault(); }}
       >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
