@@ -22,6 +22,7 @@ import {
   Send,
 } from "lucide-react";
 import InvoiceMessageModal from "./InvoiceMessageModal";
+import { PdfViewerModal } from "@/components/ui/pdf-viewer-modal";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -30,6 +31,16 @@ const formatMoney = (n) =>
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(Number(n || 0)) + " TL";
+
+const buildPdfFile = (item) => {
+  if (!item?.invoice_file_url) return null;
+  const url = item.invoice_file_url;
+  const ext = (url.split("?")[0].split(".").pop() || "").toLowerCase();
+  const isPdf = ext === "pdf";
+  const contentType = isPdf ? "application/pdf" : `image/${ext || "jpeg"}`;
+  const fileName = `Fatura - ${item.week_start || "yuklenen"}.${ext || "pdf"}`;
+  return { url, fileName, contentType };
+};
 
 const formatWeekLabel = (start, end) => {
   if (!start || !end) return "";
@@ -40,7 +51,7 @@ const formatWeekLabel = (start, end) => {
   return `${toShort(start)} – ${toShort(end)}`;
 };
 
-function ObligationRow({ item, onUploaded, onRequestInvoice }) {
+function ObligationRow({ item, onUploaded, onRequestInvoice, onView }) {
   const fileInputRef = useRef(null);
   const [busy, setBusy] = useState(false);
 
@@ -153,7 +164,7 @@ function ObligationRow({ item, onUploaded, onRequestInvoice }) {
       {isUploaded && item.invoice_file_url && (
         <button
           type="button"
-          onClick={() => window.open(item.invoice_file_url, "_blank", "noreferrer")}
+          onClick={() => onView(item)}
           className="mt-3 w-full inline-flex items-center justify-center gap-1.5 h-9 text-sm font-medium text-slate-700 hover:bg-slate-50 border border-slate-200 rounded-lg transition"
           data-testid={`obligation-view-${item.id}`}
         >
@@ -169,6 +180,7 @@ export default function MyObligationsModal({ open, onOpenChange, onUpdated, comp
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState([]);
   const [requestAmount, setRequestAmount] = useState(null);
+  const [viewingFile, setViewingFile] = useState(null);
 
   const fetchItems = async () => {
     setLoading(true);
@@ -222,6 +234,7 @@ export default function MyObligationsModal({ open, onOpenChange, onUpdated, comp
                 item={it}
                 onUploaded={handleUploaded}
                 onRequestInvoice={(o) => setRequestAmount(Number(o.expected_amount || 0))}
+                onView={(o) => setViewingFile(buildPdfFile(o))}
               />
             ))}
           </div>
@@ -234,6 +247,10 @@ export default function MyObligationsModal({ open, onOpenChange, onUpdated, comp
         selectedAmount={requestAmount || 0}
         companyInfo={companyInfo}
       />
+
+      {viewingFile && (
+        <PdfViewerModal file={viewingFile} onClose={() => setViewingFile(null)} />
+      )}
     </Dialog>
   );
 }

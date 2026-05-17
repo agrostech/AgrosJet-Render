@@ -9,7 +9,7 @@ import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import {
-  FileText, Loader2, ExternalLink, CheckCircle2, AlertTriangle, Clock, Plus,
+  FileText, Loader2, ExternalLink, CheckCircle2, AlertTriangle, Clock, Plus, Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,12 +17,23 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
+import { PdfViewerModal } from "@/components/ui/pdf-viewer-modal";
 import ManualObligationModal from "./ManualObligationModal";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const formatMoney = (n) =>
   new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(n || 0)) + " TL";
+
+const buildPdfFile = (obligation) => {
+  if (!obligation?.invoice_file_url) return null;
+  const url = obligation.invoice_file_url;
+  const ext = (url.split("?")[0].split(".").pop() || "").toLowerCase();
+  const isPdf = ext === "pdf";
+  const contentType = isPdf ? "application/pdf" : `image/${ext || "jpeg"}`;
+  const fileName = `${obligation.courier_name || "Fatura"} - ${obligation.invoice_number || obligation.week_start || "fatura"}.${ext || "pdf"}`;
+  return { url, fileName, contentType };
+};
 
 function StatusBadge({ obligation, isFuture }) {
   const base = "inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded";
@@ -179,6 +190,7 @@ export default function WeekDetailPanel({ companyId, week, isFuture, onChanged }
   const [loading, setLoading] = useState(false);
   const [approveTarget, setApproveTarget] = useState(null);
   const [showManualModal, setShowManualModal] = useState(false);
+  const [viewingFile, setViewingFile] = useState(null);
 
   const fetchData = useCallback(async () => {
     if (!week) return;
@@ -310,14 +322,16 @@ export default function WeekDetailPanel({ companyId, week, isFuture, onChanged }
                     <td className="p-2.5 text-right">
                       <div className="flex items-center justify-end gap-2">
                         {r.obligation?.invoice_file_url && (
-                          <a
-                            href={r.obligation.invoice_file_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center text-xs text-primary hover:underline"
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 w-8 p-0"
+                            onClick={() => setViewingFile(buildPdfFile(r.obligation))}
+                            data-testid={`week-view-btn-${r.courier_id}`}
+                            title="Faturayı görüntüle"
                           >
-                            Aç <ExternalLink className="w-3 h-3 ml-0.5" />
-                          </a>
+                            <Eye className="w-4 h-4" />
+                          </Button>
                         )}
                         {r.obligation?.status === "uploaded" && (
                           <Button
@@ -369,14 +383,15 @@ export default function WeekDetailPanel({ companyId, week, isFuture, onChanged }
                     </div>
                     <div className="flex items-center gap-1">
                       {r.obligation?.invoice_file_url && (
-                        <a
-                          href={r.obligation.invoice_file_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-[11px] text-primary"
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 w-7 p-0"
+                          onClick={() => setViewingFile(buildPdfFile(r.obligation))}
+                          title="Görüntüle"
                         >
-                          Aç
-                        </a>
+                          <Eye className="w-4 h-4" />
+                        </Button>
                       )}
                       {r.obligation?.status === "uploaded" && (
                         <Button
@@ -411,6 +426,10 @@ export default function WeekDetailPanel({ companyId, week, isFuture, onChanged }
         weekLabel={data?.week_label || week.label}
         onCreated={() => { fetchData(); onChanged?.(); }}
       />
+
+      {viewingFile && (
+        <PdfViewerModal file={viewingFile} onClose={() => setViewingFile(null)} />
+      )}
     </div>
   );
 }
