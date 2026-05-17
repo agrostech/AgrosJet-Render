@@ -269,7 +269,7 @@ export default function WeekDetailPanel({ companyId, week, isFuture, onChanged }
               </thead>
               <tbody>
                 {rows.map((r) => (
-                  <tr key={r.courier_id} className="border-b hover:bg-slate-50">
+                  <tr key={r.row_key} className="border-b hover:bg-slate-50">
                     <td className="p-2 max-w-[200px]">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <p className="font-medium truncate" title={r.courier_name}>{r.courier_name}</p>
@@ -278,17 +278,23 @@ export default function WeekDetailPanel({ companyId, week, isFuture, onChanged }
                             Manuel
                           </span>
                         )}
+                        {r.obligation?.is_remainder && (
+                          <span className="text-[9px] bg-amber-100 text-amber-700 px-1 py-0.5 rounded font-medium">
+                            Kalan
+                          </span>
+                        )}
                       </div>
                       <p className="text-[10px] text-muted-foreground">
-                        {r.days_with_earnings} gün hakediş
+                        {r.obligation?.is_manual
+                          ? (r.obligation.manual_description || "Manuel fatura")
+                          : r.obligation?.is_remainder
+                            ? "Kalan tutar"
+                            : `${r.days_with_earnings} gün hakediş`}
                       </p>
                     </td>
                     <td className="p-2 text-right font-semibold tabular-nums">{formatMoney(r.expected_amount)}</td>
                     <td className="p-2 text-center">
                       <StatusBadge obligation={r.obligation} isFuture={isFuture && !r.obligation} />
-                      {r.remainders?.length > 0 && (
-                        <p className="text-[9px] text-amber-700 mt-0.5">+ {r.remainders.length} kalan</p>
-                      )}
                     </td>
                     <td className="p-2">
                       {r.obligation?.invoice_number ? (
@@ -332,16 +338,32 @@ export default function WeekDetailPanel({ companyId, week, isFuture, onChanged }
             {/* Mobile card list */}
             <div className="sm:hidden divide-y divide-border">
               {rows.map((r) => (
-                <div key={r.courier_id} className="p-3" data-testid={`week-row-mob-${r.courier_id}`}>
+                <div key={r.row_key} className="p-3" data-testid={`week-row-mob-${r.row_key}`}>
                   <div className="flex items-center justify-between gap-2 mb-1">
-                    <p className="font-medium text-sm truncate">{r.courier_name}</p>
+                    <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
+                      <p className="font-medium text-sm truncate">{r.courier_name}</p>
+                      {r.obligation?.is_manual && (
+                        <span className="text-[9px] bg-purple-100 text-purple-700 px-1 py-0.5 rounded font-medium">
+                          Manuel
+                        </span>
+                      )}
+                      {r.obligation?.is_remainder && (
+                        <span className="text-[9px] bg-amber-100 text-amber-700 px-1 py-0.5 rounded font-medium">
+                          Kalan
+                        </span>
+                      )}
+                    </div>
                     <span className="text-sm font-semibold tabular-nums">{formatMoney(r.expected_amount)}</span>
                   </div>
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <StatusBadge obligation={r.obligation} isFuture={isFuture && !r.obligation} />
                       <span className="text-[10px] text-muted-foreground">
-                        {r.days_with_earnings} gün
+                        {r.obligation?.is_manual
+                          ? (r.obligation.manual_description || "Manuel")
+                          : r.obligation?.is_remainder
+                            ? "Kalan"
+                            : `${r.days_with_earnings} gün`}
                       </span>
                     </div>
                     <div className="flex items-center gap-1">

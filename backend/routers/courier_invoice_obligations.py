@@ -720,21 +720,24 @@ async def weeks_summary(company_id: str, weeks: int = 7, payload: dict = Depends
         ws_iso, we_iso, ws_date, we_date = _week_range_for(monday_dt)
         label = f"{monday_dt.strftime('%d.%m')} - {(monday_dt + timedelta(days=6)).strftime('%d.%m')}"
 
-        # Tahmini kurye sayısı (calculate_day_hakedis 7 gün toplamı)
+        # Tahmini hakediş (calculate_day_hakedis 7 gün toplamı)
         expected = await _expected_couriers_for_week(company_id, monday_dt)
-        total_couriers = len(expected)
 
         # Mevcut obligation kayıtları
         obligs = await db.courier_invoice_obligations.find(
-            {"company_id": company_id, "week_start": ws_date, "is_remainder": {"$ne": True}},
-            {"_id": 0, "courier_id": 1, "status": 1},
+            {"company_id": company_id, "week_start": ws_date},
+            {"_id": 0, "courier_id": 1, "status": 1, "is_manual": 1, "is_remainder": 1},
         ).to_list(2000)
-        created = len(obligs)
-        uploaded = sum(1 for o in obligs if o.get("status") in ("uploaded", "approved"))
-        approved = sum(1 for o in obligs if o.get("status") == "approved")
+        non_remainder_obligs = [o for o in obligs if not o.get("is_remainder")]
+        created = len(non_remainder_obligs)
+        uploaded = sum(1 for o in non_remainder_obligs if o.get("status") in ("uploaded", "approved"))
+        approved = sum(1 for o in non_remainder_obligs if o.get("status") == "approved")
 
-        # Eğer obligation oluşturulmamış kurye sayısı, expected'tan azsa "total" = max
-        total_for_strip = max(total_couriers, created)
+        # by-week ile aynı satır sayısını üretelim:
+        # predicted (hakediş var, auto-oblig yok) + tüm non-remainder obligation
+        courier_has_auto_oblig = {o["courier_id"] for o in non_remainder_obligs if not o.get("is_manual")}
+        predicted_no_auto = sum(1 for cid in expected.keys() if cid not in courier_has_auto_oblig)
+        total_for_strip = predicted_no_auto + len(non_remainder_obligs)
 
         result_weeks.append({
             "week_start": ws_date,
@@ -809,34 +812,60 @@ async def by_week(company_id: str, week_start: str, payload: dict = Depends(requ
     ).to_list(2000) if all_courier_ids else []
     courier_info = {c["id"]: c for c in couriers_db}
 
+    # Hangi kuryelerin auto-generated (non-manual, non-remainder) obligation'ı var?
+    # Bu kuryeler için "predicted" satırı eklemiyoruz çünkü obligation zaten temsil ediyor.
+    courier_has_auto_oblig = set()
+    for cid, oblig_list in obligs_by_courier.items():
+        for o in oblig_list:
+            if not o.get("is_remainder") and not o.get("is_manual"):
+                courier_has_auto_oblig.add(cid)
+                break
+
     rows = []
-    for cid in all_courier_ids:
-        exp = expected.get(cid, {"amount": 0.0, "days": 0, "name": ""})
+
+    # 1) Predicted satırlar: hakediş var ama auto-obligation yok
+    for cid in expected.keys():
+        if cid in courier_has_auto_oblig:
+            continue
+        exp = expected[cid]
         info = courier_info.get(cid, {})
-        primary_oblig = None
-        remainders = []
-        for o in obligs_by_courier.get(cid, []):
-            if o.get("is_remainder"):
-                remainders.append(await _serialize(o))
-            else:
-                primary_oblig = await _serialize(o)
-        expected_amount = round(max(exp["amount"], primary_oblig["expected_amount"] if primary_oblig else 0), 2)
         rows.append({
+            "row_key": f"predicted:{cid}",
             "courier_id": cid,
             "courier_name": info.get("name") or exp.get("name") or cid,
             "phone": info.get("phone") or "",
-            "expected_amount": expected_amount,
+            "expected_amount": round(exp["amount"], 2),
             "processed_amount": round(processed_map.get(cid, 0.0), 2),
             "days_with_earnings": exp["days"],
-            "obligation": primary_oblig,
-            "remainders": remainders,
+            "obligation": None,
+            "is_predicted": True,
         })
 
-    rows.sort(key=lambda r: (-r["expected_amount"], r["courier_name"]))
+    # 2) Obligation satırları (auto + manual + remainder hepsi ayrı satır)
+    for cid, oblig_list in obligs_by_courier.items():
+        info = courier_info.get(cid, {})
+        name = info.get("name") or expected.get(cid, {}).get("name") or cid
+        for o in oblig_list:
+            s = await _serialize(o)
+            is_manual = bool(s.get("is_manual"))
+            is_remainder = bool(s.get("is_remainder"))
+            rows.append({
+                "row_key": f"obligation:{s['id']}",
+                "courier_id": cid,
+                "courier_name": name,
+                "phone": info.get("phone") or "",
+                "expected_amount": float(s.get("expected_amount") or 0),
+                "processed_amount": 0.0 if (is_manual or is_remainder) else round(processed_map.get(cid, 0.0), 2),
+                "days_with_earnings": 0 if (is_manual or is_remainder) else expected.get(cid, {}).get("days", 0),
+                "obligation": s,
+                "is_predicted": False,
+            })
+
+    rows.sort(key=lambda r: (r["courier_name"].lower(), -r["expected_amount"]))
 
     total_expected = round(sum(r["expected_amount"] for r in rows), 2)
     total_processed = round(sum(r["processed_amount"] for r in rows), 2)
-    created = sum(1 for r in rows if r["obligation"])
+    created = sum(1 for r in rows if r["obligation"] and not r["obligation"].get("is_remainder"))
     uploaded = sum(1 for r in rows if r["obligation"] and r["obligation"].get("status") in ("uploaded", "approved"))
     approved = sum(1 for r in rows if r["obligation"] and r["obligation"].get("status") == "approved")
 
