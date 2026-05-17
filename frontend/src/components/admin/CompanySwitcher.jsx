@@ -11,8 +11,8 @@ import { Button } from "@/components/ui/button";
 const BACKEND = process.env.REACT_APP_BACKEND_URL;
 
 const getLogoSrc = (company) => {
-  if (company?.logo_dark) return `${BACKEND}${company.logo_dark}`;
   if (company?.logo_light) return `${BACKEND}${company.logo_light}`;
+  if (company?.logo_dark) return `${BACKEND}${company.logo_dark}`;
   if (company?.logo_url) return company.logo_url;
   return null;
 };
