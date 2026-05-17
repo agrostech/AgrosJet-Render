@@ -24,6 +24,26 @@ router = APIRouter(prefix="/api/courier-invoice-obligations", tags=["CourierInvo
 logger = logging.getLogger(__name__)
 TR_TZ = timezone(timedelta(hours=3))
 
+# In-memory cache (60 sn TTL) — weeks-summary için ağır hesaplama
+_WEEK_CACHE: dict = {}
+_WEEK_CACHE_TTL = 60.0
+
+
+def _cache_get(key: str):
+    import time
+    entry = _WEEK_CACHE.get(key)
+    if not entry:
+        return None
+    if time.time() - entry[0] > _WEEK_CACHE_TTL:
+        _WEEK_CACHE.pop(key, None)
+        return None
+    return entry[1]
+
+
+def _cache_set(key: str, value):
+    import time
+    _WEEK_CACHE[key] = (time.time(), value)
+
 
 class ApproveBody(BaseModel):
     declared_amount: float = Field(..., gt=0)
@@ -554,3 +574,287 @@ async def upcoming_preview(company_id: str, payload: dict = Depends(require_auth
         "total_unprocessed": round(total_unprocessed, 2),
         "courier_count": len([p for p in previews if not p["already_created"]]),
     }
+
+
+# ============ WEEK STRIP + BY-WEEK DETAIL ============
+
+def _week_range_for(monday_dt: datetime):
+    week_start_iso = monday_dt.isoformat()
+    week_end_iso = (monday_dt + timedelta(days=7)).isoformat()
+    week_start_date = monday_dt.strftime("%Y-%m-%d")
+    week_end_date = (monday_dt + timedelta(days=6)).strftime("%Y-%m-%d")
+    return week_start_iso, week_end_iso, week_start_date, week_end_date
+
+
+async def _expected_couriers_for_week(company_id: str, monday_dt: datetime) -> dict:
+    """7 günü tarayıp kurye bazında potansiyel hakediş toplamı döner.
+    Return: {courier_id: {"name": str, "amount": float, "days": int}}"""
+    from services.daily_hakedis_service import calculate_day_hakedis
+    result = {}
+    cur = monday_dt
+    end = monday_dt + timedelta(days=7)
+    while cur < end:
+        biz_date = cur.strftime("%Y-%m-%d")
+        data = await calculate_day_hakedis(company_id, biz_date)
+        for c in data.get("couriers", []):
+            amt = float(c.get("amount") or 0)
+            if amt <= 0:
+                continue
+            cid = c["courier_id"]
+            slot = result.setdefault(cid, {"name": c.get("courier_name") or "", "amount": 0.0, "days": 0})
+            slot["amount"] += amt
+            slot["days"] += 1
+        cur = cur + timedelta(days=1)
+    return result
+
+
+@router.get("/weeks-summary/{company_id}")
+async def weeks_summary(company_id: str, weeks: int = 7, payload: dict = Depends(require_auth)):
+    """
+    Son N hafta için aggregate özet: yüklenen/oluşturulan/toplam kurye sayıları.
+    Hafta seçicide gösterilir. 60 saniye in-memory cache.
+    """
+    if not _is_admin(payload):
+        raise HTTPException(status_code=403, detail="Yetki yok")
+
+    weeks = max(1, min(int(weeks or 7), 26))
+    cache_key = f"weeks_summary:{company_id}:{weeks}"
+    cached = _cache_get(cache_key)
+    if cached:
+        return cached
+
+    company = await db.companies.find_one(
+        {"id": company_id}, {"_id": 0, "opening_time": 1}
+    )
+    opening = (company or {}).get("opening_time") or "06:00"
+    try:
+        oh, om = [int(x) for x in opening.split(":")]
+    except Exception:
+        oh, om = 6, 0
+
+    now = datetime.now(TR_TZ)
+    days_since_monday = now.weekday()
+    this_monday = (now - timedelta(days=days_since_monday)).replace(
+        hour=oh, minute=om, second=0, microsecond=0
+    )
+
+    result_weeks = []
+    for i in range(weeks):
+        monday_dt = this_monday - timedelta(weeks=i)
+        ws_iso, we_iso, ws_date, we_date = _week_range_for(monday_dt)
+        label = f"{monday_dt.strftime('%d.%m')} - {(monday_dt + timedelta(days=6)).strftime('%d.%m')}"
+
+        # Tahmini kurye sayısı (calculate_day_hakedis 7 gün toplamı)
+        expected = await _expected_couriers_for_week(company_id, monday_dt)
+        total_couriers = len(expected)
+
+        # Mevcut obligation kayıtları
+        obligs = await db.courier_invoice_obligations.find(
+            {"company_id": company_id, "week_start": ws_date, "is_remainder": {"$ne": True}},
+            {"_id": 0, "courier_id": 1, "status": 1},
+        ).to_list(2000)
+        created = len(obligs)
+        uploaded = sum(1 for o in obligs if o.get("status") in ("uploaded", "approved"))
+        approved = sum(1 for o in obligs if o.get("status") == "approved")
+
+        # Eğer obligation oluşturulmamış kurye sayısı, expected'tan azsa "total" = max
+        total_for_strip = max(total_couriers, created)
+
+        result_weeks.append({
+            "week_start": ws_date,
+            "week_end": we_date,
+            "week_start_iso": ws_iso,
+            "week_end_iso": we_iso,
+            "label": label,
+            "is_current": i == 0,
+            "total_couriers": total_for_strip,
+            "created": created,
+            "uploaded": uploaded,
+            "approved": approved,
+        })
+
+    result = {"weeks": result_weeks}
+    _cache_set(cache_key, result)
+    return result
+
+
+@router.get("/by-week/{company_id}")
+async def by_week(company_id: str, week_start: str, payload: dict = Depends(require_auth)):
+    """
+    Bir haftanın tüm kuryelerini (obligation olsa da olmasa da) detaylı listeler.
+    Hafta detay panelinde gösterilir.
+    """
+    if not _is_admin(payload):
+        raise HTTPException(status_code=403, detail="Yetki yok")
+
+    company = await db.companies.find_one(
+        {"id": company_id}, {"_id": 0, "opening_time": 1}
+    )
+    opening = (company or {}).get("opening_time") or "06:00"
+    try:
+        oh, om = [int(x) for x in opening.split(":")]
+    except Exception:
+        oh, om = 6, 0
+    try:
+        monday_dt = datetime.strptime(week_start, "%Y-%m-%d").replace(
+            hour=oh, minute=om, tzinfo=TR_TZ
+        )
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Geçersiz hafta")
+
+    ws_iso, we_iso, ws_date, we_date = _week_range_for(monday_dt)
+    week_label = f"{monday_dt.strftime('%d.%m')} - {(monday_dt + timedelta(days=6)).strftime('%d.%m.%Y')}"
+
+    # Tahmini hakediş (7 gün)
+    expected = await _expected_couriers_for_week(company_id, monday_dt)
+
+    # Mevcut obligation kayıtları (remainder dahil — admin görsün)
+    obligs = await db.courier_invoice_obligations.find(
+        {"company_id": company_id, "week_start": ws_date},
+        {"_id": 0},
+    ).sort("created_at", 1).to_list(2000)
+    obligs_by_courier = {}
+    for o in obligs:
+        obligs_by_courier.setdefault(o["courier_id"], []).append(o)
+
+    # İşlenmiş hakediş toplamları
+    processed_pipeline = [
+        {"$match": _hakedis_window_match(company_id, ws_date, we_date, ws_iso, we_iso)},
+        {"$group": {"_id": "$entity_id", "total": {"$sum": "$amount"}}},
+    ]
+    processed_rows = await db.transactions.aggregate(processed_pipeline).to_list(2000)
+    processed_map = {r["_id"]: float(r["total"]) for r in processed_rows}
+
+    # Tüm kurye id'leri (expected + obligation)
+    all_courier_ids = set(expected.keys()) | set(obligs_by_courier.keys())
+    couriers_db = await db.couriers.find(
+        {"id": {"$in": list(all_courier_ids)}},
+        {"_id": 0, "id": 1, "name": 1, "phone": 1},
+    ).to_list(2000) if all_courier_ids else []
+    courier_info = {c["id"]: c for c in couriers_db}
+
+    rows = []
+    for cid in all_courier_ids:
+        exp = expected.get(cid, {"amount": 0.0, "days": 0, "name": ""})
+        info = courier_info.get(cid, {})
+        primary_oblig = None
+        remainders = []
+        for o in obligs_by_courier.get(cid, []):
+            if o.get("is_remainder"):
+                remainders.append(await _serialize(o))
+            else:
+                primary_oblig = await _serialize(o)
+        expected_amount = round(max(exp["amount"], primary_oblig["expected_amount"] if primary_oblig else 0), 2)
+        rows.append({
+            "courier_id": cid,
+            "courier_name": info.get("name") or exp.get("name") or cid,
+            "phone": info.get("phone") or "",
+            "expected_amount": expected_amount,
+            "processed_amount": round(processed_map.get(cid, 0.0), 2),
+            "days_with_earnings": exp["days"],
+            "obligation": primary_oblig,
+            "remainders": remainders,
+        })
+
+    rows.sort(key=lambda r: (-r["expected_amount"], r["courier_name"]))
+
+    total_expected = round(sum(r["expected_amount"] for r in rows), 2)
+    total_processed = round(sum(r["processed_amount"] for r in rows), 2)
+    created = sum(1 for r in rows if r["obligation"])
+    uploaded = sum(1 for r in rows if r["obligation"] and r["obligation"].get("status") in ("uploaded", "approved"))
+    approved = sum(1 for r in rows if r["obligation"] and r["obligation"].get("status") == "approved")
+
+    return {
+        "week_start": ws_date,
+        "week_end": we_date,
+        "week_label": week_label,
+        "total_couriers": len(rows),
+        "created": created,
+        "uploaded": uploaded,
+        "approved": approved,
+        "total_expected": total_expected,
+        "total_processed": total_processed,
+        "rows": rows,
+    }
+
+
+# ============ AY FATURALARI (Birleşik) ============
+
+@router.get("/monthly-invoices/{company_id}")
+async def monthly_invoices(company_id: str, year: int, month: int, payload: dict = Depends(require_auth)):
+    """
+    Bir ayın faturalarını birleşik listeler:
+      1) Yeni sistem: status=approved courier_invoice_obligations (decided_at o ayda)
+      2) Eski sistem: invoices koleksiyonu (verified=true, uploaded_at o ayda)
+    """
+    if not _is_admin(payload):
+        raise HTTPException(status_code=403, detail="Yetki yok")
+
+    if not (2020 <= year <= 2099) or not (1 <= month <= 12):
+        raise HTTPException(status_code=400, detail="Geçersiz tarih")
+
+    start_dt = datetime(year, month, 1, tzinfo=TR_TZ)
+    if month == 12:
+        end_dt = datetime(year + 1, 1, 1, tzinfo=TR_TZ)
+    else:
+        end_dt = datetime(year, month + 1, 1, tzinfo=TR_TZ)
+    start_iso = start_dt.isoformat()
+    end_iso = end_dt.isoformat()
+
+    items = []
+
+    # 1) Yeni sistem: approved obligation'lar
+    approved = await db.courier_invoice_obligations.find(
+        {
+            "company_id": company_id,
+            "status": "approved",
+            "decided_at": {"$gte": start_iso, "$lt": end_iso},
+        },
+        {"_id": 0},
+    ).sort("decided_at", -1).to_list(2000)
+    for a in approved:
+        s = await _serialize(a)
+        items.append({
+            "source": "obligation",
+            "id": s["id"],
+            "courier_id": s.get("courier_id"),
+            "courier_name": s.get("courier_name") or "",
+            "amount": s.get("declared_amount") or s.get("expected_amount") or 0,
+            "invoice_number": s.get("invoice_number") or "",
+            "invoice_date": s.get("invoice_date") or "",
+            "file_url": s.get("invoice_file_url"),
+            "decided_at": s.get("decided_at"),
+            "week_start": s.get("week_start"),
+            "week_end": s.get("week_end"),
+        })
+
+    # 2) Eski sistem: invoices koleksiyonu
+    try:
+        invoices = await db.invoices.find(
+            {
+                "company_id": company_id,
+                "verified": True,
+                "uploaded_at": {"$gte": start_iso, "$lt": end_iso},
+            },
+            {"_id": 0, "file_data": 0},  # büyük dosya alanı hariç
+        ).sort("uploaded_at", -1).to_list(2000)
+    except Exception:
+        invoices = []
+    for inv in invoices:
+        inv = {k: v for k, v in inv.items() if k != "_id"}
+        items.append({
+            "source": "invoice",
+            "id": inv.get("id"),
+            "courier_id": inv.get("courier_id"),
+            "courier_name": inv.get("courier_name") or "",
+            "amount": inv.get("amount") or 0,
+            "invoice_number": inv.get("invoice_number") or "",
+            "invoice_date": inv.get("invoice_date") or "",
+            "file_url": None,  # eski API endpoint'leri kullan
+            "decided_at": inv.get("uploaded_at") or inv.get("verified_at"),
+            "transaction_id": inv.get("transaction_id"),
+            "filename": inv.get("filename"),
+        })
+
+    items.sort(key=lambda x: x.get("decided_at") or "", reverse=True)
+    return {"items": items, "total_amount": round(sum(float(i.get("amount") or 0) for i in items), 2)}
