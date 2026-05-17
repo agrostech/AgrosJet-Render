@@ -9,7 +9,7 @@ import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import {
-  FileText, Loader2, ExternalLink, CheckCircle2, AlertTriangle, Clock, Plus, Eye,
+  FileText, Loader2, CheckCircle2, AlertTriangle, Clock, Plus, Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -84,15 +84,12 @@ function StatusBadge({ obligation, isFuture }) {
 
 function ApproveModal({ open, onOpenChange, obligation, onApproved }) {
   const [declared, setDeclared] = useState("");
-  const [invoiceNo, setInvoiceNo] = useState("");
-  const [invoiceDate, setInvoiceDate] = useState("");
   const [busy, setBusy] = useState(false);
+  const [viewingFile, setViewingFile] = useState(null);
 
   useEffect(() => {
     if (open && obligation) {
       setDeclared(String(obligation.expected_amount || ""));
-      setInvoiceNo(obligation.invoice_number || "");
-      setInvoiceDate(obligation.invoice_date || "");
     }
   }, [open, obligation]);
 
@@ -114,8 +111,6 @@ function ApproveModal({ open, onOpenChange, obligation, onApproved }) {
     try {
       const res = await axios.post(`${API}/courier-invoice-obligations/${obligation.id}/approve`, {
         declared_amount: declaredNum,
-        invoice_number: invoiceNo || undefined,
-        invoice_date: invoiceDate || undefined,
       });
       toast.success(
         res.data.remainder_obligation_id
@@ -129,6 +124,11 @@ function ApproveModal({ open, onOpenChange, obligation, onApproved }) {
     } finally {
       setBusy(false);
     }
+  };
+
+  const openInvoiceViewer = async () => {
+    const file = await fetchObligationFile(obligation);
+    if (file) setViewingFile(file);
   };
 
   return (
@@ -145,16 +145,19 @@ function ApproveModal({ open, onOpenChange, obligation, onApproved }) {
             <span>Beklenen Tutar:</span>
             <span className="font-bold">{formatMoney(expected)}</span>
           </div>
-          {obligation.invoice_file_url && (
-            <a
-              href={obligation.invoice_file_url}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+          {obligation.invoice_file_key || obligation.invoice_file_url ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={openInvoiceViewer}
+              className="w-full h-9 gap-1.5 text-sm"
+              data-testid="week-approve-view-file"
             >
-              Yüklenen faturayı aç <ExternalLink className="w-3 h-3" />
-            </a>
-          )}
+              <Eye className="w-4 h-4" />
+              Yüklenen Faturayı Görüntüle
+            </Button>
+          ) : null}
           <div>
             <Label className="text-xs">Onaylanan Tutar</Label>
             <Input
@@ -171,16 +174,6 @@ function ApproveModal({ open, onOpenChange, obligation, onApproved }) {
               </p>
             )}
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <Label className="text-xs">Fatura No</Label>
-              <Input value={invoiceNo} onChange={(e) => setInvoiceNo(e.target.value)} className="h-9" />
-            </div>
-            <div>
-              <Label className="text-xs">Fatura Tarihi</Label>
-              <Input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} className="h-9" />
-            </div>
-          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>Vazgeç</Button>
@@ -190,6 +183,16 @@ function ApproveModal({ open, onOpenChange, obligation, onApproved }) {
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      {viewingFile && (
+        <PdfViewerModal
+          file={viewingFile}
+          onClose={() => {
+            viewingFile._revoke?.();
+            setViewingFile(null);
+          }}
+        />
+      )}
     </Dialog>
   );
 }
