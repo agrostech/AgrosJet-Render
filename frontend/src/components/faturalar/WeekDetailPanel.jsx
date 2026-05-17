@@ -25,14 +25,23 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const formatMoney = (n) =>
   new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(n || 0)) + " TL";
 
-const buildPdfFile = (obligation) => {
-  if (!obligation?.invoice_file_url) return null;
-  const url = obligation.invoice_file_url;
-  const ext = (url.split("?")[0].split(".").pop() || "").toLowerCase();
-  const isPdf = ext === "pdf";
-  const contentType = isPdf ? "application/pdf" : `image/${ext || "jpeg"}`;
-  const fileName = `${obligation.courier_name || "Fatura"} - ${obligation.invoice_number || obligation.week_start || "fatura"}.${ext || "pdf"}`;
-  return { url, fileName, contentType };
+const fetchObligationFile = async (obligation) => {
+  if (!obligation?.id) return null;
+  try {
+    const res = await axios.get(
+      `${API}/courier-invoice-obligations/${obligation.id}/file`,
+      { responseType: "blob" }
+    );
+    const blob = res.data;
+    const url = URL.createObjectURL(blob);
+    const contentType = blob.type || "application/pdf";
+    const ext = contentType === "application/pdf" ? "pdf" : contentType.split("/")[1] || "bin";
+    const fileName = `${obligation.courier_name || "Fatura"} - ${obligation.invoice_number || obligation.week_start || "fatura"}.${ext}`;
+    return { url, fileName, contentType, _revoke: () => URL.revokeObjectURL(url) };
+  } catch (e) {
+    toast.error(e?.response?.data?.detail || "Fatura yüklenemedi");
+    return null;
+  }
 };
 
 function StatusBadge({ obligation, isFuture }) {
@@ -326,7 +335,10 @@ export default function WeekDetailPanel({ companyId, week, isFuture, onChanged }
                             size="sm"
                             variant="ghost"
                             className="h-8 w-8 p-0"
-                            onClick={() => setViewingFile(buildPdfFile(r.obligation))}
+                            onClick={async () => {
+                              const file = await fetchObligationFile(r.obligation);
+                              if (file) setViewingFile(file);
+                            }}
                             data-testid={`week-view-btn-${r.courier_id}`}
                             title="Faturayı görüntüle"
                           >
@@ -387,7 +399,10 @@ export default function WeekDetailPanel({ companyId, week, isFuture, onChanged }
                           size="sm"
                           variant="ghost"
                           className="h-7 w-7 p-0"
-                          onClick={() => setViewingFile(buildPdfFile(r.obligation))}
+                          onClick={async () => {
+                            const file = await fetchObligationFile(r.obligation);
+                            if (file) setViewingFile(file);
+                          }}
                           title="Görüntüle"
                         >
                           <Eye className="w-4 h-4" />
@@ -428,7 +443,13 @@ export default function WeekDetailPanel({ companyId, week, isFuture, onChanged }
       />
 
       {viewingFile && (
-        <PdfViewerModal file={viewingFile} onClose={() => setViewingFile(null)} />
+        <PdfViewerModal
+          file={viewingFile}
+          onClose={() => {
+            viewingFile._revoke?.();
+            setViewingFile(null);
+          }}
+        />
       )}
     </div>
   );

@@ -32,14 +32,23 @@ const formatMoney = (n) =>
     maximumFractionDigits: 2,
   }).format(Number(n || 0)) + " TL";
 
-const buildPdfFile = (item) => {
-  if (!item?.invoice_file_url) return null;
-  const url = item.invoice_file_url;
-  const ext = (url.split("?")[0].split(".").pop() || "").toLowerCase();
-  const isPdf = ext === "pdf";
-  const contentType = isPdf ? "application/pdf" : `image/${ext || "jpeg"}`;
-  const fileName = `Fatura - ${item.week_start || "yuklenen"}.${ext || "pdf"}`;
-  return { url, fileName, contentType };
+const fetchObligationFile = async (item) => {
+  if (!item?.id) return null;
+  try {
+    const res = await axios.get(
+      `${API}/courier-invoice-obligations/${item.id}/file`,
+      { responseType: "blob" }
+    );
+    const blob = res.data;
+    const url = URL.createObjectURL(blob);
+    const contentType = blob.type || "application/pdf";
+    const ext = contentType === "application/pdf" ? "pdf" : contentType.split("/")[1] || "bin";
+    const fileName = `Fatura - ${item.week_start || "yuklenen"}.${ext}`;
+    return { url, fileName, contentType, _revoke: () => URL.revokeObjectURL(url) };
+  } catch (e) {
+    toast.error(e?.response?.data?.detail || "Fatura yüklenemedi");
+    return null;
+  }
 };
 
 const formatWeekLabel = (start, end) => {
@@ -234,7 +243,10 @@ export default function MyObligationsModal({ open, onOpenChange, onUpdated, comp
                 item={it}
                 onUploaded={handleUploaded}
                 onRequestInvoice={(o) => setRequestAmount(Number(o.expected_amount || 0))}
-                onView={(o) => setViewingFile(buildPdfFile(o))}
+                onView={async (o) => {
+                  const file = await fetchObligationFile(o);
+                  if (file) setViewingFile(file);
+                }}
               />
             ))}
           </div>
@@ -249,7 +261,13 @@ export default function MyObligationsModal({ open, onOpenChange, onUpdated, comp
       />
 
       {viewingFile && (
-        <PdfViewerModal file={viewingFile} onClose={() => setViewingFile(null)} />
+        <PdfViewerModal
+          file={viewingFile}
+          onClose={() => {
+            viewingFile._revoke?.();
+            setViewingFile(null);
+          }}
+        />
       )}
     </Dialog>
   );

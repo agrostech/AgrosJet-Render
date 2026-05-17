@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
@@ -16,8 +17,8 @@ export function PdfViewerModal({ file, onClose }) {
 
   const isPdf = !file.contentType.startsWith("image/");
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={onClose}>
+  const node = (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={onClose}>
       <div
         className="relative w-full max-w-4xl h-[90vh] mx-3 bg-white dark:bg-slate-900 rounded-xl shadow-2xl overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
@@ -105,4 +106,8 @@ export function PdfViewerModal({ file, onClose }) {
       </div>
     </div>
   );
+
+  return typeof document !== "undefined"
+    ? createPortal(node, document.body)
+    : node;
 }

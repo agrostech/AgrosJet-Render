@@ -8,7 +8,7 @@ oluşturulur. Toggle: weekly_obligation_settings (her şirket için aç/kapa).
 - Admin paneli: tümünü görür, onaylar (declared_amount, partial chain)
 """
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, Response
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime, timezone, timedelta
@@ -108,6 +108,40 @@ async def blocking_count(payload: dict = Depends(require_auth)):
         "status": {"$in": ["pending", "uploaded"]}
     })
     return {"count": c}
+
+
+@router.get("/{obligation_id}/file")
+async def get_obligation_file(obligation_id: str, payload: dict = Depends(require_auth)):
+    """
+    Fatura dosyasını backend üzerinden proxy'leyerek döner (CORS-safe).
+    Yetki: kurye sadece kendi yükümlülüğüne, admin ise tüm yükümlülüklere
+    erişebilir (multi-company admin desteği için).
+    """
+    rec = await db.courier_invoice_obligations.find_one(
+        {"id": obligation_id}, {"_id": 0}
+    )
+    if not rec:
+        raise HTTPException(status_code=404, detail="Kayıt bulunamadı")
+    if _is_courier(payload):
+        courier_id = payload.get("sub") or payload.get("user_id")
+        if rec.get("courier_id") != courier_id:
+            raise HTTPException(status_code=403, detail="Yetki yok")
+    elif not _is_admin(payload):
+        raise HTTPException(status_code=403, detail="Yetki yok")
+
+    key = rec.get("invoice_file_key")
+    if not key:
+        raise HTTPException(status_code=404, detail="Dosya yok")
+    data = await download_file_from_r2(key)
+    if not data:
+        raise HTTPException(status_code=404, detail="Dosya bulunamadı")
+    ext = (key.rsplit(".", 1)[-1] or "").lower()
+    media_type = "application/pdf" if ext == "pdf" else f"image/{ext or 'jpeg'}"
+    safe_name = f"fatura.{ext or 'pdf'}"
+    return Response(content=data, media_type=media_type, headers={
+        "Cache-Control": "private, max-age=300",
+        "Content-Disposition": f'inline; filename="{safe_name}"',
+    })
 
 
 @router.post("/{req_id}/upload")
