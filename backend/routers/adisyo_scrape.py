@@ -250,7 +250,12 @@ def _convert_scraped_to_shiftjet(adisyo_item: dict, restaurant: dict) -> dict:
     )
 
     status_id = adisyo_item.get("status") or 1
-    status = ADISYO_STATUS_MAP.get(status_id, "preparing")
+    # Chrome eklentisi panel polling ile çalışır; restoran Adisyo'da siparişi
+    # "Hazır" işaretlemiş olsa bile bizim sistemde hazırlık süresi (preparation_end_at)
+    # bitene kadar "preparing"de tutulmalı. Ready geçişini scheduler yapacak.
+    # Sadece "cancelled" durumu Adisyo'dan direkt yansıtılır (iptal anlamsız bekletme önler).
+    adisyo_status = ADISYO_STATUS_MAP.get(status_id, "preparing")
+    status = "cancelled" if adisyo_status == "cancelled" else "preparing"
 
     external_app_id = adisyo_item.get("externalAppId")
     external_app_name = ADISYO_EXTERNAL_APP_MAP.get(external_app_id, "Adisyo")
@@ -403,23 +408,44 @@ async def receive_scraped_orders(batch: AdisyoScrapeBatch, payload: dict = Depen
 
             converted = _convert_scraped_to_shiftjet(item_dict, restaurant)
 
+            # Polling güncellemelerinde Adisyo'dan gelen anlık status'u kullan
+            # ama "ready" görmezden gel — bizim scheduler `preparation_end_at`
+            # bitince ready'e geçirecek (kullanıcının beklentisi: hazırlık süresi atlanmasın).
+            raw_status_id = item_dict.get("status") or 1
+            raw_adisyo_status = ADISYO_STATUS_MAP.get(raw_status_id, "preparing")
+            if raw_adisyo_status == "ready":
+                update_status = "preparing"
+            else:
+                update_status = raw_adisyo_status
+
             if existing:
                 current_status = existing.get("status")
                 # ShiftJet'te kurye atanmış/ileri statüdeyse iptal hariç ezme
-                if current_status in SHIFTJET_PRIORITY_STATUSES and converted["status"] != "cancelled":
+                if current_status in SHIFTJET_PRIORITY_STATUSES and update_status != "cancelled":
                     skipped += 1
                     continue
-                if current_status == converted["status"]:
+                if current_status == update_status:
+                    skipped += 1
+                    continue
+                # preparing → preparing güncellemesi (zaten eşit) skip yukarıda kapsanır
+                # Mevcut "preparing" iken Adisyo "preparing" döndürürse de tetiklenmez.
+                # Geriye doğru status çekmeyi engelle: ready'den sonra preparing'e geri dönme.
+                BACKWARD_GUARD = {
+                    "preparing": {"ready", "on_the_way", "delivered"},
+                    "ready": {"on_the_way", "delivered"},
+                    "on_the_way": {"delivered"},
+                }
+                if current_status in BACKWARD_GUARD and update_status not in BACKWARD_GUARD[current_status] and update_status != "cancelled":
                     skipped += 1
                     continue
                 await db.orders.update_one(
                     {"adisyo_order_id": adisyo_order_id, "source": "adisyo_scrape"},
                     {"$set": {
-                        "status": converted["status"],
+                        "status": update_status,
                         "updated_at": get_turkey_now(),
                     }}
                 )
-                if converted["status"] == "cancelled":
+                if update_status == "cancelled":
                     cancelled += 1
                 else:
                     updated += 1
@@ -434,7 +460,7 @@ async def receive_scraped_orders(batch: AdisyoScrapeBatch, payload: dict = Depen
                     continue
 
                 # İptal/teslim geçmişe ait siparişleri tekrar oluşturma
-                if converted["status"] in ("cancelled", "delivered"):
+                if converted["status"] in ("cancelled", "delivered") or raw_adisyo_status in ("cancelled", "delivered"):
                     skipped += 1
                     continue
 
