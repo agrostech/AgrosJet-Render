@@ -9,7 +9,7 @@ import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import {
-  FileText, Loader2, ExternalLink, CheckCircle2, AlertTriangle, Clock,
+  FileText, Loader2, ExternalLink, CheckCircle2, AlertTriangle, Clock, Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
+import ManualObligationModal from "./ManualObligationModal";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -176,6 +177,7 @@ export default function WeekDetailPanel({ companyId, week, isFuture, onChanged }
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [approveTarget, setApproveTarget] = useState(null);
+  const [showManualModal, setShowManualModal] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!week) return;
@@ -219,15 +221,26 @@ export default function WeekDetailPanel({ companyId, week, isFuture, onChanged }
               </span>
             )}
           </div>
-          <div className="text-xs text-right">
-            <div>
-              Beklenen: <span className="font-bold">{formatMoney(data?.total_expected || 0)}</span>
-            </div>
-            {data && data.total_processed > 0 && (
-              <div className="text-green-600">
-                İşlenen: {formatMoney(data.total_processed)}
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="text-xs text-right">
+              <div>
+                Beklenen: <span className="font-bold">{formatMoney(data?.total_expected || 0)}</span>
               </div>
-            )}
+              {data && data.total_processed > 0 && (
+                <div className="text-green-600">
+                  İşlenen: {formatMoney(data.total_processed)}
+                </div>
+              )}
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setShowManualModal(true)}
+              className="h-7 text-xs"
+              data-testid="open-manual-obligation-modal"
+            >
+              <Plus className="w-3.5 h-3.5 mr-1" /> Manuel Fatura
+            </Button>
           </div>
         </div>
       </div>
@@ -258,7 +271,14 @@ export default function WeekDetailPanel({ companyId, week, isFuture, onChanged }
                 {rows.map((r) => (
                   <tr key={r.courier_id} className="border-b hover:bg-slate-50">
                     <td className="p-2 max-w-[200px]">
-                      <p className="font-medium truncate" title={r.courier_name}>{r.courier_name}</p>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <p className="font-medium truncate" title={r.courier_name}>{r.courier_name}</p>
+                        {r.obligation?.is_manual && (
+                          <span className="text-[9px] bg-purple-100 text-purple-700 px-1 py-0.5 rounded font-medium">
+                            Manuel
+                          </span>
+                        )}
+                      </div>
                       <p className="text-[10px] text-muted-foreground">
                         {r.days_with_earnings} gün hakediş
                       </p>
@@ -358,6 +378,15 @@ export default function WeekDetailPanel({ companyId, week, isFuture, onChanged }
         onOpenChange={(v) => !v && setApproveTarget(null)}
         obligation={approveTarget}
         onApproved={() => { fetchData(); onChanged?.(); }}
+      />
+
+      <ManualObligationModal
+        open={showManualModal}
+        onOpenChange={setShowManualModal}
+        companyId={companyId}
+        weekStart={week.week_start}
+        weekLabel={data?.week_label || week.label}
+        onCreated={() => { fetchData(); onChanged?.(); }}
       />
     </div>
   );

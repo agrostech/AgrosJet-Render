@@ -51,6 +51,13 @@ class ApproveBody(BaseModel):
     invoice_date: Optional[str] = None
 
 
+class ManualObligationBody(BaseModel):
+    courier_id: str
+    amount: float = Field(..., gt=0)
+    week_start: str  # "YYYY-MM-DD" — hafta seçicide gösterilecek hafta
+    description: Optional[str] = None
+
+
 class WeeklyAutoSettings(BaseModel):
     enabled: bool
 
@@ -264,6 +271,75 @@ async def update_auto_settings(company_id: str, data: WeeklyAutoSettings, payloa
         upsert=True,
     )
     return {"enabled": data.enabled}
+
+
+@router.post("/manual/{company_id}")
+async def create_manual_obligation(company_id: str, data: ManualObligationBody, payload: dict = Depends(require_auth)):
+    """
+    Admin manuel olarak bir kurye için fatura yükümlülüğü oluşturur.
+    Otomatik üretimden farklı: `is_manual=True` flag ile işaretlenir.
+    Kurye, panelindeki Faturalarım modalında bu kaydı görür ve fatura yükler.
+    """
+    if not _is_admin(payload):
+        raise HTTPException(status_code=403, detail="Yetki yok")
+
+    # Hafta validasyonu
+    try:
+        ws_dt = datetime.strptime(data.week_start, "%Y-%m-%d")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Geçersiz hafta (YYYY-MM-DD bekleniyor)")
+    week_start_date = ws_dt.strftime("%Y-%m-%d")
+    week_end_date = (ws_dt + timedelta(days=6)).strftime("%Y-%m-%d")
+
+    # Kurye varlığını ve şirket eşleşmesini doğrula
+    courier = await db.couriers.find_one(
+        {"id": data.courier_id, "company_id": company_id},
+        {"_id": 0, "id": 1, "name": 1, "fcm_token": 1},
+    )
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+
+    rec_id = str(uuid.uuid4())
+    now_iso = datetime.now(TR_TZ).isoformat()
+    admin_id = payload.get("user_id") or payload.get("id") or ""
+    admin_name = payload.get("name") or payload.get("username") or "Admin"
+
+    record = {
+        "id": rec_id,
+        "company_id": company_id,
+        "courier_id": data.courier_id,
+        "courier_name": courier.get("name") or "",
+        "week_start": week_start_date,
+        "week_end": week_end_date,
+        "expected_amount": round(float(data.amount), 2),
+        "status": "pending",
+        "is_remainder": False,
+        "is_manual": True,
+        "manual_description": (data.description or "").strip() or None,
+        "created_by": admin_id,
+        "created_by_name": admin_name,
+        "created_at": now_iso,
+    }
+    await db.courier_invoice_obligations.insert_one(record)
+
+    # Cache invalide
+    _WEEK_CACHE.clear()
+
+    # Kurye push bildirimi
+    try:
+        token = courier.get("fcm_token")
+        if token:
+            await send_push_notification(
+                token,
+                "Yeni Fatura Yükümlülüğü",
+                f"{week_start_date} - {week_end_date} haftası için {data.amount:.2f} TL fatura kesmeniz isteniyor.",
+                {"type": "MANUAL_OBLIGATION_CREATED", "request_id": rec_id},
+            )
+    except Exception as e:
+        logger.warning(f"Manuel obligation push hatası ({data.courier_id}): {e}")
+
+    return {"item": await _serialize(record)}
+
 
 
 # ============ SCHEDULER HELPERS ============
