@@ -8,7 +8,7 @@ import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import {
-  Receipt, ChevronLeft, ChevronRight, Loader2, ExternalLink, Download,
+  Receipt, ChevronLeft, ChevronRight, Loader2, ExternalLink, Download, FileDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -26,6 +26,7 @@ export default function MonthlyInvoicesCard({ companyId }) {
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState({ items: [], total_amount: 0 });
+  const [mergingPdf, setMergingPdf] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!companyId) return;
@@ -70,6 +71,36 @@ export default function MonthlyInvoicesCard({ companyId }) {
     }
   };
 
+  const downloadMergedPdf = async () => {
+    setMergingPdf(true);
+    try {
+      const res = await axios.get(
+        `${API}/courier-invoice-obligations/monthly-invoices/${companyId}/merged-pdf`,
+        { params: { year, month }, responseType: "blob" },
+      );
+      const url = URL.createObjectURL(res.data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Kurye_Faturalari_${MONTHS_TR[month - 1]}_${year}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success("PDF indirildi");
+    } catch (e) {
+      let detail = "PDF birleştirilemedi";
+      if (e.response?.data instanceof Blob) {
+        try {
+          const txt = await e.response.data.text();
+          detail = JSON.parse(txt).detail || detail;
+        } catch {/* ignore */}
+      }
+      toast.error(detail);
+    } finally {
+      setMergingPdf(false);
+    }
+  };
+
   return (
     <div className="border-2 border-border bg-white" data-testid="monthly-invoices-card">
       <div className="p-3 border-b-2 border-border bg-slate-50">
@@ -79,16 +110,34 @@ export default function MonthlyInvoicesCard({ companyId }) {
             <h3 className="font-semibold text-sm">Ay Faturaları</h3>
             <span className="text-xs text-muted-foreground">({data.items.length})</span>
           </div>
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={prev}>
-              <ChevronLeft className="w-4 h-4" />
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={downloadMergedPdf}
+              disabled={mergingPdf || loading || data.items.length === 0}
+              className="h-8 text-xs"
+              data-testid="monthly-invoices-merge-pdf"
+              title="Bu ayın tüm faturalarını tek PDF olarak indir"
+            >
+              {mergingPdf ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
+              ) : (
+                <FileDown className="w-3.5 h-3.5 mr-1" />
+              )}
+              Tek PDF İndir
             </Button>
-            <span className="text-sm font-medium min-w-[120px] text-center">
-              {MONTHS_TR[month - 1]} {year}
-            </span>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={next}>
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={prev}>
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <span className="text-sm font-medium min-w-[120px] text-center">
+                {MONTHS_TR[month - 1]} {year}
+              </span>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={next}>
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>

@@ -38,10 +38,12 @@ export default function FaturalarTab({ companyId, isSuperAdmin }) {
         params: { weeks: 7 },
       });
       const w = res.data.weeks || [];
-      setWeeks(w);
-      if (!selectedWeekStart && w.length > 0) {
-        // Önce mevcut haftaya geç (en yeni)
-        setSelectedWeekStart(w[0].week_start);
+      // Eskiden yeniye soldan sağa: API yeniden eskiye döndüğü için reverse ediyoruz
+      const sorted = [...w].reverse();
+      setWeeks(sorted);
+      if (!selectedWeekStart && sorted.length > 0) {
+        // Varsayılan: en yeni hafta (en sağdaki)
+        setSelectedWeekStart(sorted[sorted.length - 1].week_start);
       }
     } catch {
       toast.error("Hafta özetleri alınamadı");

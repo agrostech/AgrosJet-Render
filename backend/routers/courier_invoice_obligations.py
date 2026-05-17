@@ -8,16 +8,18 @@ oluşturulur. Toggle: weekly_obligation_settings (her şirket için aç/kapa).
 - Admin paneli: tümünü görür, onaylar (declared_amount, partial chain)
 """
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime, timezone, timedelta
 import uuid
+import io
 import logging
 import re
 
 from utils.database import db
 from utils.jwt_utils import require_auth
-from services.r2_storage import upload_file_to_r2, generate_presigned_url
+from services.r2_storage import upload_file_to_r2, generate_presigned_url, download_file_from_r2
 from services.notifications import send_push_notification
 
 router = APIRouter(prefix="/api/courier-invoice-obligations", tags=["CourierInvoiceObligations"])
@@ -963,3 +965,133 @@ async def monthly_invoices(company_id: str, year: int, month: int, payload: dict
 
     items.sort(key=lambda x: x.get("decided_at") or "", reverse=True)
     return {"items": items, "total_amount": round(sum(float(i.get("amount") or 0) for i in items), 2)}
+
+
+@router.get("/monthly-invoices/{company_id}/merged-pdf")
+async def monthly_invoices_merged_pdf(company_id: str, year: int, month: int, payload: dict = Depends(require_auth)):
+    """
+    Bir ayın tüm onaylı faturalarını tek bir PDF'e birleştirir.
+    Hem yeni sistem (approved obligation R2 files) hem eski sistem (invoices) dahil.
+    """
+    from pypdf import PdfReader, PdfWriter
+    from PIL import Image
+
+    if not _is_admin(payload):
+        raise HTTPException(status_code=403, detail="Yetki yok")
+    if not (2020 <= year <= 2099) or not (1 <= month <= 12):
+        raise HTTPException(status_code=400, detail="Geçersiz tarih")
+
+    start_dt = datetime(year, month, 1, tzinfo=TR_TZ)
+    end_dt = datetime(year + 1, 1, 1, tzinfo=TR_TZ) if month == 12 else datetime(year, month + 1, 1, tzinfo=TR_TZ)
+    start_iso = start_dt.isoformat()
+    end_iso = end_dt.isoformat()
+
+    writer = PdfWriter()
+    pages_added = 0
+    failed = []
+
+    def _add_bytes_as_pdf(file_bytes: bytes, filename: str):
+        nonlocal pages_added
+        if not file_bytes:
+            failed.append(filename or "?")
+            return
+        name = (filename or "").lower()
+        try:
+            if name.endswith(".pdf") or file_bytes[:4] == b"%PDF":
+                reader = PdfReader(io.BytesIO(file_bytes))
+                for p in reader.pages:
+                    writer.add_page(p)
+                    pages_added += 1
+            else:
+                img = Image.open(io.BytesIO(file_bytes))
+                if img.mode in ("RGBA", "P"):
+                    img = img.convert("RGB")
+                buf = io.BytesIO()
+                img.save(buf, format="PDF")
+                buf.seek(0)
+                reader = PdfReader(buf)
+                for p in reader.pages:
+                    writer.add_page(p)
+                    pages_added += 1
+        except Exception as e:
+            logger.warning(f"PDF merge hatası ({filename}): {e}")
+            failed.append(filename or "?")
+
+    # 1) Yeni sistem: approved obligation'lar (R2'den indir)
+    approved = await db.courier_invoice_obligations.find(
+        {
+            "company_id": company_id,
+            "status": "approved",
+            "decided_at": {"$gte": start_iso, "$lt": end_iso},
+        },
+        {"_id": 0, "invoice_r2_key": 1, "invoice_filename": 1, "courier_name": 1, "id": 1},
+    ).sort("decided_at", 1).to_list(2000)
+    for o in approved:
+        r2_key = o.get("invoice_r2_key")
+        if not r2_key:
+            continue
+        try:
+            file_bytes = await download_file_from_r2(r2_key)
+        except Exception as e:
+            logger.warning(f"R2 indirme hatası ({r2_key}): {e}")
+            failed.append(o.get("invoice_filename") or o.get("id") or "?")
+            continue
+        _add_bytes_as_pdf(file_bytes, o.get("invoice_filename") or "")
+
+    # 2) Eski sistem: invoices koleksiyonu (verified=True)
+    try:
+        invoices = await db.invoices.find(
+            {
+                "company_id": company_id,
+                "verified": True,
+                "uploaded_at": {"$gte": start_iso, "$lt": end_iso},
+            },
+            {"_id": 0},
+        ).sort("uploaded_at", 1).to_list(2000)
+    except Exception:
+        invoices = []
+    for inv in invoices:
+        file_content = None
+        # R2 storage öncelikli
+        if inv.get("storage_type") == "r2" and inv.get("r2_key"):
+            try:
+                file_content = await download_file_from_r2(inv["r2_key"])
+            except Exception:
+                pass
+        # Local file fallback
+        if not file_content and inv.get("file_path"):
+            import os
+            if os.path.exists(inv["file_path"]):
+                with open(inv["file_path"], "rb") as f:
+                    file_content = f.read()
+        # base64 file_data fallback (legacy)
+        if not file_content and inv.get("file_data"):
+            try:
+                import base64
+                file_content = base64.b64decode(inv["file_data"])
+            except Exception:
+                file_content = None
+        _add_bytes_as_pdf(file_content, inv.get("file_name") or inv.get("filename") or "")
+
+    if pages_added == 0:
+        msg = "Birleştirilebilecek fatura bulunamadı"
+        if failed:
+            msg += f" (hatalı: {len(failed)})"
+        raise HTTPException(status_code=404, detail=msg)
+
+    output = io.BytesIO()
+    writer.write(output)
+    output.seek(0)
+    month_name = ["Ocak", "Subat", "Mart", "Nisan", "Mayis", "Haziran",
+                  "Temmuz", "Agustos", "Eylul", "Ekim", "Kasim", "Aralik"][month - 1]
+    filename = f"Kurye_Faturalari_{month_name}_{year}.pdf"
+    return StreamingResponse(
+        output,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "X-Pages-Added": str(pages_added),
+            "X-Failed-Count": str(len(failed)),
+        },
+    )
+
