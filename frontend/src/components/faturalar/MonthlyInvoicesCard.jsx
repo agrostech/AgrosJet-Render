@@ -8,9 +8,10 @@ import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import {
-  Receipt, ChevronLeft, ChevronRight, Loader2, ExternalLink, Download, FileDown,
+  Receipt, ChevronLeft, ChevronRight, Loader2, Download, FileDown, Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PdfViewerModal } from "@/components/ui/pdf-viewer-modal";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -27,6 +28,24 @@ export default function MonthlyInvoicesCard({ companyId }) {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState({ items: [], total_amount: 0 });
   const [mergingPdf, setMergingPdf] = useState(false);
+  const [viewingFile, setViewingFile] = useState(null);
+
+  const fetchAndView = async (item) => {
+    try {
+      const endpoint = item.source === "obligation"
+        ? `${API}/courier-invoice-obligations/${item.id}/file`
+        : `${API}/invoices/download/${item.id}`;
+      const res = await axios.get(endpoint, { responseType: "blob" });
+      const blob = res.data;
+      const url = URL.createObjectURL(blob);
+      const contentType = blob.type || "application/pdf";
+      const ext = contentType === "application/pdf" ? "pdf" : contentType.split("/")[1] || "bin";
+      const fileName = `${item.courier_name || "Fatura"} - ${item.invoice_number || item.invoice_date || "fatura"}.${ext}`;
+      setViewingFile({ url, fileName, contentType, _revoke: () => URL.revokeObjectURL(url) });
+    } catch (e) {
+      toast.error(e?.response?.data?.detail || "Fatura yüklenemedi");
+    }
+  };
 
   const fetchData = useCallback(async () => {
     if (!companyId) return;
@@ -179,15 +198,17 @@ export default function MonthlyInvoicesCard({ companyId }) {
                   {formatMoney(it.amount)}
                 </span>
                 <div className="flex items-center gap-1 flex-shrink-0">
-                  {it.source === "obligation" && it.file_url && (
-                    <a
-                      href={it.file_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center text-[11px] text-primary hover:underline"
+                  {((it.source === "obligation" && it.file_url) || it.source === "invoice") && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 w-7 p-0"
+                      onClick={() => fetchAndView(it)}
+                      title="Görüntüle"
+                      data-testid={`monthly-invoice-view-${it.id}`}
                     >
-                      Aç <ExternalLink className="w-3 h-3 ml-0.5" />
-                    </a>
+                      <Eye className="w-4 h-4" />
+                    </Button>
                   )}
                   {it.source === "invoice" && (
                     <Button
@@ -212,6 +233,16 @@ export default function MonthlyInvoicesCard({ companyId }) {
           <span className="text-muted-foreground font-medium">Toplam:</span>
           <span className="font-bold">{formatMoney(data.total_amount)}</span>
         </div>
+      )}
+
+      {viewingFile && (
+        <PdfViewerModal
+          file={viewingFile}
+          onClose={() => {
+            viewingFile._revoke?.();
+            setViewingFile(null);
+          }}
+        />
       )}
     </div>
   );
