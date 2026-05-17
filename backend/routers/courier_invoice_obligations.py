@@ -263,6 +263,31 @@ def _last_week_pzt_paz(opening_time: str):
     return last_monday, this_monday
 
 
+def _hakedis_window_match(company_id: str, week_start_date: str, week_end_date: str,
+                          week_start_iso: str, week_end_iso: str) -> dict:
+    """
+    Bir haftanın hakediş transaction'larını eşleştiren $match filtresi.
+
+    Daily hakediş transaction'ları `daily_hakedis_meta.business_date` field'ı içerir
+    (created_at değil!). Manual hakediş (eski/legacy) için fallback olarak
+    `created_at` penceresi kullanılır. created_at = işleme zamanı olduğundan
+    (örn. 10 Mayıs hakedişi 11 Mayıs 06:00'da yazılır) doğrudan created_at ile
+    filtreleme off-by-one hatasına yol açar.
+    """
+    return {
+        "company_id": company_id, "entity_type": "courier", "is_hakedis": True,
+        "$or": [
+            # Günlük hakediş: business_date'e göre filtre
+            {"daily_hakedis_meta.business_date": {"$gte": week_start_date, "$lte": week_end_date}},
+            # Manuel/legacy hakediş: meta yoksa created_at'a düş
+            {
+                "daily_hakedis_meta": {"$exists": False},
+                "created_at": {"$gte": week_start_iso, "$lt": week_end_iso},
+            },
+        ],
+    }
+
+
 async def generate_weekly_obligations_for_company(company_id: str) -> int:
     """Tek şirket için geçen haftanın hakediş toplamına göre obligation üretir."""
     settings = await db.weekly_obligation_settings.find_one({"company_id": company_id})
@@ -274,7 +299,7 @@ async def generate_weekly_obligations_for_company(company_id: str) -> int:
     week_start_iso = last_monday.isoformat()
     week_end_iso = this_monday.isoformat()
     week_start_date = last_monday.strftime("%Y-%m-%d")
-    week_end_date = (this_monday - timedelta(seconds=1)).strftime("%Y-%m-%d")
+    week_end_date = (this_monday - timedelta(days=1)).strftime("%Y-%m-%d")
 
     # Bu hafta için zaten oluşturulmuş mu?
     already = await db.courier_invoice_obligations.find_one({
@@ -285,13 +310,10 @@ async def generate_weekly_obligations_for_company(company_id: str) -> int:
     if already:
         return 0
 
-    # Geçen haftanın hakediş transaction'larını topla — daily_hakedis ile haftalık karışmasın:
-    # tüm "is_hakedis=True" transaction'ları o pencerede toplanır (her ikisi de dahil).
+    # Geçen haftanın hakediş transaction'larını topla
     pipeline = [
-        {"$match": {
-            "company_id": company_id, "entity_type": "courier", "is_hakedis": True,
-            "created_at": {"$gte": week_start_iso, "$lt": week_end_iso},
-        }},
+        {"$match": _hakedis_window_match(company_id, week_start_date, week_end_date,
+                                          week_start_iso, week_end_iso)},
         {"$group": {"_id": "$entity_id", "total": {"$sum": "$amount"}}},
     ]
     rows = await db.transactions.aggregate(pipeline).to_list(2000)
@@ -394,6 +416,7 @@ async def upcoming_preview(company_id: str, payload: dict = Depends(require_auth
     next_monday = this_monday + timedelta(days=7)
 
     week_start_date = this_monday.strftime("%Y-%m-%d")
+    week_end_date = (next_monday - timedelta(days=1)).strftime("%Y-%m-%d")
     week_label = f"{this_monday.strftime('%d.%m')} - {(next_monday - timedelta(days=1)).strftime('%d.%m.%Y')}"
 
     # Aynı hafta için zaten oluşturulmuş yükümlülükler (skip listesi)
@@ -414,10 +437,10 @@ async def upcoming_preview(company_id: str, payload: dict = Depends(require_auth
     auto_enabled = bool((settings or {}).get("enabled", False))
 
     pipeline = [
-        {"$match": {
-            "company_id": company_id, "entity_type": "courier", "is_hakedis": True,
-            "created_at": {"$gte": this_monday.isoformat(), "$lt": next_monday.isoformat()},
-        }},
+        {"$match": _hakedis_window_match(
+            company_id, week_start_date, week_end_date,
+            this_monday.isoformat(), next_monday.isoformat(),
+        )},
         {"$group": {"_id": "$entity_id", "total": {"$sum": "$amount"}, "tx_count": {"$sum": 1}}},
     ]
     rows = await db.transactions.aggregate(pipeline).to_list(2000)
