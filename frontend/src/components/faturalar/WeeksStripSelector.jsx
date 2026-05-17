@@ -34,7 +34,8 @@ function defaultRenderBadge(w, isSelected) {
   const total = w.total_couriers || 0;
   const created = w.created || 0;
   const uploaded = w.uploaded || 0;
-  const allUploaded = total > 0 && uploaded === total && created === total;
+  const approved = w.approved || 0;
+  const allApproved = total > 0 && approved === total && created === total;
   const isFuture = w.is_current && created === 0;
   if (isFuture) {
     return (
@@ -50,7 +51,7 @@ function defaultRenderBadge(w, isSelected) {
       </div>
     );
   }
-  if (allUploaded) {
+  if (allApproved) {
     return (
       <div className={`mt-0.5 ${isSelected ? "text-green-400" : "text-green-500"}`}>
         <CheckCircle2 className="w-4 h-4 mx-auto" />

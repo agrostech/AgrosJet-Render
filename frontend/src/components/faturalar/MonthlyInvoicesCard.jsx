@@ -237,17 +237,6 @@ export default function MonthlyInvoicesCard({ companyId, isSuperAdmin }) {
                       <Eye className="w-4 h-4" />
                     </Button>
                   )}
-                  {it.source === "invoice" && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-7 w-7 p-0"
-                      onClick={() => downloadOldInvoice(it.id)}
-                      title="İndir"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                    </Button>
-                  )}
                   {isSuperAdmin && (
                     <Button
                       size="sm"
