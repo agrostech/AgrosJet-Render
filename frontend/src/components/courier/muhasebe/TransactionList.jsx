@@ -107,30 +107,7 @@ function TransactionRow({ tx, invoices = [], companyInfo, uploadingFor, onUpload
       </td>
       <td className="p-3 text-center">
         <div className="flex items-center justify-center gap-1">
-          {showUploadButton && companyInfo && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onOpenInvoiceMessage(tx.amount)}
-              className="h-7 text-xs gap-1"
-              title="Fatura Talep Et"
-            >
-              <Send className="w-3 h-3" />
-              Talep
-            </Button>
-          )}
-          {showUploadButton ? (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onUploadClick(tx.id)}
-              disabled={uploadingFor === tx.id}
-              className="h-7 text-xs gap-1"
-            >
-              <Upload className="w-3 h-3" />
-              {uploadingFor === tx.id ? "..." : "Yükle"}
-            </Button>
-          ) : hasInvoice ? (
+          {hasInvoice && (
             <>
               {/* Show all invoices for this transaction */}
               {invoices.map((inv, idx) => (
@@ -157,23 +134,7 @@ function TransactionRow({ tx, invoices = [], companyInfo, uploadingFor, onUpload
                   )}
                 </div>
               ))}
-              {/* Shortfall invoice upload button */}
-              {hasShortfall && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => onUploadShortfallClick(tx.id)}
-                  disabled={uploadingFor === `shortfall_${tx.id}`}
-                  className="h-7 text-xs gap-1 border-amber-300 text-amber-700 hover:bg-amber-50"
-                  title="Eksik fatura yükle"
-                >
-                  <AlertTriangle className="w-3 h-3" />
-                  {uploadingFor === `shortfall_${tx.id}` ? "..." : "Eksik Yükle"}
-                </Button>
-              )}
             </>
-          ) : (
-            <span className="text-muted-foreground text-xs">-</span>
           )}
         </div>
       </td>
@@ -256,30 +217,7 @@ function TransactionMobileItem({ tx, invoices = [], companyInfo, uploadingFor, o
             {tx.type === 'payment_out' ? '-' : ''}{formatMoney(tx.amount)}
           </p>
           <div className="mt-1 flex items-center justify-end gap-1 flex-wrap">
-            {showUploadButton && companyInfo && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onOpenInvoiceMessage(tx.amount)}
-                className="h-6 text-[10px] gap-1 px-2"
-                title="Fatura Talep Et"
-              >
-                <Send className="w-3 h-3" />
-                Talep
-              </Button>
-            )}
-            {showUploadButton ? (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onUploadClick(tx.id)}
-                disabled={uploadingFor === tx.id}
-                className="h-6 text-[10px] gap-1 px-2"
-              >
-                <Upload className="w-3 h-3" />
-                Fatura
-              </Button>
-            ) : hasInvoice ? (
+            {hasInvoice && (
               <div className="flex items-center justify-end gap-1 flex-wrap">
                 {/* Show all invoices */}
                 {invoices.map((inv, idx) => (
@@ -305,21 +243,8 @@ function TransactionMobileItem({ tx, invoices = [], companyInfo, uploadingFor, o
                     )}
                   </div>
                 ))}
-                {/* Shortfall upload button for mobile */}
-                {hasShortfall && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onUploadShortfallClick(tx.id)}
-                    disabled={uploadingFor === `shortfall_${tx.id}`}
-                    className="h-6 text-[10px] gap-1 px-2 border-amber-300 text-amber-700"
-                  >
-                    <AlertTriangle className="w-3 h-3" />
-                    Eksik
-                  </Button>
-                )}
               </div>
-            ) : null}
+            )}
           </div>
         </div>
       </div>

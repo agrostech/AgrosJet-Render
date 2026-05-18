@@ -394,6 +394,69 @@ async def create_manual_obligation(company_id: str, data: ManualObligationBody, 
     return {"item": await _serialize(record)}
 
 
+@router.post("/{obligation_id}/courier-cancel-upload")
+async def courier_cancel_upload(obligation_id: str, payload: dict = Depends(require_auth)):
+    """
+    Kurye yüklediği faturayı 60 dakika içinde geri çekebilir (uploaded statüsünde).
+    Onaylandıysa veya 60 dakika geçtiyse 403 döner. R2 dosyası silinir ve
+    yükümlülük tekrar 'pending' duruma getirilir.
+    """
+    if not _is_courier(payload):
+        raise HTTPException(status_code=403, detail="Sadece kurye iptal edebilir")
+
+    courier_id = payload.get("sub") or payload.get("user_id")
+    rec = await db.courier_invoice_obligations.find_one({"id": obligation_id}, {"_id": 0})
+    if not rec:
+        raise HTTPException(status_code=404, detail="Kayıt bulunamadı")
+    if rec.get("courier_id") != courier_id:
+        raise HTTPException(status_code=403, detail="Yetki yok")
+    if rec.get("status") != "uploaded":
+        raise HTTPException(status_code=400, detail="Sadece yüklenmiş (onay bekleyen) fatura iptal edilebilir")
+
+    # Yükleme zamanını kontrol et (60 dk)
+    uploaded_at = rec.get("uploaded_at")
+    if not uploaded_at:
+        raise HTTPException(status_code=400, detail="Yükleme zamanı bulunamadı")
+    try:
+        if isinstance(uploaded_at, str):
+            up_dt = datetime.fromisoformat(uploaded_at)
+            if up_dt.tzinfo is None:
+                up_dt = up_dt.replace(tzinfo=TR_TZ)
+        else:
+            up_dt = uploaded_at
+    except Exception:
+        raise HTTPException(status_code=400, detail="Yükleme zamanı geçersiz")
+    elapsed = (datetime.now(TR_TZ) - up_dt).total_seconds()
+    if elapsed > 60 * 60:
+        raise HTTPException(status_code=400, detail="60 dakikalık iptal süresi doldu")
+
+    # R2 dosyasını sil
+    file_key = rec.get("invoice_file_key")
+    if file_key:
+        try:
+            from services.r2_storage import delete_file_from_r2
+            await delete_file_from_r2(file_key)
+        except Exception as e:
+            logger.warning(f"R2 dosya silme hatası ({file_key}): {e}")
+
+    # Yükümlülüğü pending'e geri al
+    await db.courier_invoice_obligations.update_one(
+        {"id": obligation_id},
+        {
+            "$set": {"status": "pending"},
+            "$unset": {
+                "invoice_file_key": "",
+                "invoice_file_url": "",
+                "invoice_filename": "",
+                "uploaded_at": "",
+                "invoice_number": "",
+                "invoice_date": "",
+            },
+        },
+    )
+    return {"success": True, "obligation_id": obligation_id}
+
+
 @router.delete("/{obligation_id}")
 async def delete_obligation(obligation_id: str, payload: dict = Depends(require_auth)):
     """

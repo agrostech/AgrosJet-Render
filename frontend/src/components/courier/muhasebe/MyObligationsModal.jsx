@@ -20,6 +20,7 @@ import {
   Loader2,
   Eye,
   Send,
+  Trash2,
 } from "lucide-react";
 import InvoiceMessageModal from "./InvoiceMessageModal";
 import { PdfViewerModal } from "@/components/ui/pdf-viewer-modal";
@@ -60,12 +61,25 @@ const formatWeekLabel = (start, end) => {
   return `${toShort(start)} – ${toShort(end)}`;
 };
 
-function ObligationRow({ item, onUploaded, onRequestInvoice, onView }) {
+function ObligationRow({ item, onUploaded, onRequestInvoice, onView, onCancelled }) {
   const fileInputRef = useRef(null);
   const [busy, setBusy] = useState(false);
+  const [canceling, setCanceling] = useState(false);
 
   const isPending = item.status === "pending";
   const isUploaded = item.status === "uploaded";
+
+  // 60 dk sil yetkisi: uploaded_at'tan elapsed < 3600s ise
+  const canCancel = (() => {
+    if (!isUploaded || !item.uploaded_at) return false;
+    try {
+      const up = new Date(item.uploaded_at).getTime();
+      const elapsed = (Date.now() - up) / 1000;
+      return elapsed < 60 * 60;
+    } catch {
+      return false;
+    }
+  })();
 
   const onPick = () => {
     if (busy) return;
@@ -171,15 +185,42 @@ function ObligationRow({ item, onUploaded, onRequestInvoice, onView }) {
       )}
 
       {isUploaded && item.invoice_file_url && (
-        <button
-          type="button"
-          onClick={() => onView(item)}
-          className="mt-3 w-full inline-flex items-center justify-center gap-1.5 h-9 text-sm font-medium text-slate-700 hover:bg-slate-50 border border-slate-200 rounded-lg transition"
-          data-testid={`obligation-view-${item.id}`}
-        >
-          <Eye className="w-3.5 h-3.5" />
-          Faturayı Görüntüle
-        </button>
+        <div className="mt-3 flex gap-2">
+          <button
+            type="button"
+            onClick={() => onView(item)}
+            className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 text-sm font-medium text-slate-700 hover:bg-slate-50 border border-slate-200 rounded-lg transition"
+            data-testid={`obligation-view-${item.id}`}
+          >
+            <Eye className="w-3.5 h-3.5" />
+            Faturayı Görüntüle
+          </button>
+          {canCancel && (
+            <button
+              type="button"
+              disabled={canceling}
+              onClick={async () => {
+                if (canceling) return;
+                if (!window.confirm("Yüklediğiniz faturayı geri çekmek istiyor musunuz?")) return;
+                setCanceling(true);
+                try {
+                  await axios.post(`${API}/courier-invoice-obligations/${item.id}/courier-cancel-upload`);
+                  toast.success("Fatura silindi");
+                  onCancelled?.();
+                } catch (e) {
+                  toast.error(e.response?.data?.detail || "İşlem başarısız");
+                } finally {
+                  setCanceling(false);
+                }
+              }}
+              className="inline-flex items-center justify-center gap-1.5 h-9 px-3 text-sm font-medium text-red-600 hover:bg-red-50 border border-red-200 rounded-lg transition disabled:opacity-60"
+              data-testid={`obligation-cancel-${item.id}`}
+              title="60 dakika içinde silinebilir"
+            >
+              {canceling ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
@@ -249,6 +290,10 @@ export default function MyObligationsModal({ open, onOpenChange, onUpdated, comp
                 onView={async (o) => {
                   const file = await fetchObligationFile(o);
                   if (file) setViewingFile(file);
+                }}
+                onCancelled={() => {
+                  fetchItems();
+                  onUpdated?.();
                 }}
               />
             ))}
