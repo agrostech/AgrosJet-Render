@@ -503,17 +503,22 @@ def _hakedis_window_match(company_id: str, week_start_date: str, week_end_date: 
 
 async def _direct_delivery_fees_for_week(company_id: str, monday_dt: datetime) -> dict:
     """
-    Pazartesi açılış → bir sonraki Pazartesi açılış penceresinde, `delivered`
-    siparişlerden kurye bazında `courier_fee` toplamı (DOĞRUDAN TESLİMAT
-    ÜCRETLERİ). Saatlik kazançlar ve transaction işlemleri DAHİL EDİLMEZ —
-    böylece işlem geçmişindeki manuel/düzeltilmiş hakediş kayıtları sapma
-    yaratmaz.
+    Pazartesi açılış → bir sonraki Pazartesi açılış penceresinde:
+      • `delivered` siparişlerden kurye bazında `courier_fee` toplamı
+        (DOĞRUDAN TESLİMAT ÜCRETLERİ)
+      • + saatlik kazançlar: 7 iş günü için
+        `courier_daily_active.active_minutes` × kurye `hourly_rate` / 60
+
+    Transactions koleksiyonu HİÇ kullanılmaz — bu yüzden işlem geçmişindeki
+    manuel/düzeltilmiş hakediş kayıtları hesaba sapma yapmaz.
 
     Return: {courier_id: {"name": str, "amount": float, "orders": int,
                           "fcm_token": str|None}}
     """
     start_iso = monday_dt.isoformat()
     end_iso = (monday_dt + timedelta(days=7)).isoformat()
+
+    # 1) Teslimat ücretleri toplamı
     pipeline = [
         {"$match": {
             "company_id": company_id, "status": "delivered",
@@ -527,29 +532,52 @@ async def _direct_delivery_fees_for_week(company_id: str, monday_dt: datetime) -
         }},
     ]
     rows = await db.orders.aggregate(pipeline).to_list(2000)
-    ids = [r["_id"] for r in rows if r.get("_id")]
-    if not ids:
-        return {}
-    couriers = await db.couriers.find(
-        {"id": {"$in": ids}},
-        {"_id": 0, "id": 1, "name": 1, "fcm_token": 1},
-    ).to_list(2000)
-    name_map = {c["id"]: c for c in couriers}
     out = {}
     for r in rows:
         cid = r.get("_id")
         if not cid:
             continue
         amt = float(r.get("amount") or 0)
-        if amt <= 0:
+        out[cid] = {"amount": amt, "orders": int(r.get("orders") or 0)}
+
+    # 2) Saatlik kazançlar: ilgili haftanın 7 iş günü için
+    business_dates = [
+        (monday_dt + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(7)
+    ]
+    active_pipeline = [
+        {"$match": {"date": {"$in": business_dates}, "courier_id": {"$ne": None}}},
+        {"$group": {"_id": "$courier_id", "minutes": {"$sum": "$active_minutes"}}},
+    ]
+    active_rows = await db.courier_daily_active.aggregate(active_pipeline).to_list(5000)
+    minutes_map = {r["_id"]: int(r.get("minutes") or 0) for r in active_rows if r.get("_id")}
+
+    # Kurye isim + hourly_rate + fcm_token toplu çek
+    all_ids = list(set(list(out.keys()) + list(minutes_map.keys())))
+    if not all_ids:
+        return {}
+    couriers = await db.couriers.find(
+        {"id": {"$in": all_ids}},
+        {"_id": 0, "id": 1, "name": 1, "fcm_token": 1, "hourly_rate": 1},
+    ).to_list(2000)
+    name_map = {c["id"]: c for c in couriers}
+
+    # 3) Birleştir
+    final = {}
+    for cid in all_ids:
+        delivery_amt = float(out.get(cid, {}).get("amount") or 0)
+        minutes = minutes_map.get(cid, 0)
+        rate = float((name_map.get(cid) or {}).get("hourly_rate") or 0)
+        hourly_earnings = round((minutes / 60.0) * rate, 2) if rate > 0 else 0.0
+        total = round(delivery_amt + hourly_earnings, 2)
+        if total <= 0:
             continue
-        out[cid] = {
-            "amount": round(amt, 2),
-            "orders": int(r.get("orders") or 0),
+        final[cid] = {
+            "amount": total,
+            "orders": int(out.get(cid, {}).get("orders") or 0),
             "name": (name_map.get(cid) or {}).get("name") or cid,
             "fcm_token": (name_map.get(cid) or {}).get("fcm_token"),
         }
-    return out
+    return final
 
 
 async def generate_weekly_obligations_for_company(company_id: str) -> int:
