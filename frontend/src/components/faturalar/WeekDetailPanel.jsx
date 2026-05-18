@@ -418,7 +418,7 @@ export default function WeekDetailPanel({ companyId, week, isFuture, isSuperAdmi
                   <th className="p-2.5 text-right font-semibold">Beklenen</th>
                   <th className="p-2.5 text-center font-semibold">Durum</th>
                   <th className="p-2.5 text-left font-semibold">Fatura</th>
-                  <th className="p-2.5 text-right font-semibold">Aksiyon</th>
+                  <th className="p-2.5 text-right font-semibold">İşlemler</th>
                 </tr>
               </thead>
               <tbody>

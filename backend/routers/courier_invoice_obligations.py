@@ -29,13 +29,33 @@ TR_TZ = timezone(timedelta(hours=3))
 
 async def _log_obligation_activity(company_id: str, payload: dict, action: str,
                                     entity_name: str = "", details: str = ""):
-    """Hareketler sekmesi için activity log oluşturur. Hata olursa sessizce yutar."""
+    """Hareketler sekmesi için activity log oluşturur. Hata olursa sessizce yutar.
+
+    Admin adı: payload'da name/username yoksa, sub (user id) ile admin_users
+    veya couriers koleksiyonundan çözümlenir; yine bulunamazsa "Sistem" yazılır.
+    """
     try:
+        admin_id = payload.get("sub") or payload.get("user_id") or ""
+        admin_name = payload.get("name") or payload.get("username") or ""
+        if not admin_name and admin_id:
+            role = payload.get("role")
+            # Önce admin_users sonra couriers (kurye yükleyici olabilir)
+            if role == "courier" or payload.get("is_courier"):
+                doc = await db.couriers.find_one({"id": admin_id}, {"_id": 0, "name": 1})
+            else:
+                doc = await db.admins.find_one({"id": admin_id}, {"_id": 0, "name": 1, "username": 1})
+                if not doc:
+                    doc = await db.couriers.find_one({"id": admin_id}, {"_id": 0, "name": 1})
+            if doc:
+                admin_name = doc.get("name") or doc.get("username") or ""
+        if not admin_name:
+            admin_name = "Sistem"
+
         from routers.accounting import create_activity_log
         await create_activity_log({
             "company_id": company_id,
-            "admin_id": payload.get("sub") or payload.get("user_id") or "",
-            "admin_name": payload.get("name") or payload.get("username") or "Sistem",
+            "admin_id": admin_id,
+            "admin_name": admin_name,
             "action": action,
             "entity_type": "courier_invoice_obligation",
             "entity_name": entity_name,
@@ -1077,16 +1097,23 @@ async def _expected_couriers_for_week(company_id: str, monday_dt: datetime) -> d
 
 
 @router.get("/weeks-summary/{company_id}")
-async def weeks_summary(company_id: str, weeks: int = 7, payload: dict = Depends(require_auth)):
+async def weeks_summary(
+    company_id: str,
+    weeks: int = 7,
+    offset: int = 0,
+    payload: dict = Depends(require_auth),
+):
     """
     Son N hafta için aggregate özet: yüklenen/oluşturulan/toplam kurye sayıları.
     Hafta seçicide gösterilir. 60 saniye in-memory cache.
+    offset: kaç hafta geriye kaydır (0 = bu hafta dahil son N hafta).
     """
     if not _is_admin(payload):
         raise HTTPException(status_code=403, detail="Yetki yok")
 
     weeks = max(1, min(int(weeks or 7), 26))
-    cache_key = f"weeks_summary:{company_id}:{weeks}"
+    offset = max(0, min(int(offset or 0), 500))
+    cache_key = f"weeks_summary:{company_id}:{weeks}:{offset}"
     cached = _cache_get(cache_key)
     if cached:
         return cached
@@ -1108,7 +1135,7 @@ async def weeks_summary(company_id: str, weeks: int = 7, payload: dict = Depends
 
     result_weeks = []
     for i in range(weeks):
-        monday_dt = this_monday - timedelta(weeks=i)
+        monday_dt = this_monday - timedelta(weeks=(i + offset))
         ws_iso, we_iso, ws_date, we_date = _week_range_for(monday_dt)
         label = f"{monday_dt.strftime('%d.%m')} - {(monday_dt + timedelta(days=6)).strftime('%d.%m')}"
 

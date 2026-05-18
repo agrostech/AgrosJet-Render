@@ -22,6 +22,7 @@ export default function FaturalarTab({ companyId, isSuperAdmin }) {
   const [weeks, setWeeks] = useState([]);
   const [selectedWeekStart, setSelectedWeekStart] = useState(null);
   const [loadingWeeks, setLoadingWeeks] = useState(false);
+  const [weekOffset, setWeekOffset] = useState(0);
 
   // Eski "eksik faturalar" listesini için useFaturalar hook'unu yıl/ay agnostic çekiyoruz
   const now = new Date();
@@ -36,13 +37,13 @@ export default function FaturalarTab({ companyId, isSuperAdmin }) {
     setLoadingWeeks(true);
     try {
       const res = await axios.get(`${API}/courier-invoice-obligations/weeks-summary/${companyId}`, {
-        params: { weeks: 7 },
+        params: { weeks: 7, offset: weekOffset },
       });
       const w = res.data.weeks || [];
       const sorted = [...w].reverse();
       setWeeks(sorted);
       setSelectedWeekStart((prev) => {
-        if (prev) return prev;
+        if (prev && sorted.some((s) => s.week_start === prev)) return prev;
         return sorted.length > 0 ? sorted[sorted.length - 1].week_start : null;
       });
     } catch {
@@ -51,7 +52,7 @@ export default function FaturalarTab({ companyId, isSuperAdmin }) {
     } finally {
       setLoadingWeeks(false);
     }
-  }, [companyId]);
+  }, [companyId, weekOffset]);
 
   useEffect(() => { fetchWeeks(); }, [fetchWeeks]);
 
@@ -65,6 +66,10 @@ export default function FaturalarTab({ companyId, isSuperAdmin }) {
         weeks={weeks}
         selectedWeekStart={selectedWeekStart}
         onSelect={(w) => setSelectedWeekStart(w.week_start)}
+        canPrev={true}
+        canNext={weekOffset > 0}
+        onPrevPage={() => { setSelectedWeekStart(null); setWeekOffset((o) => o + 7); }}
+        onNextPage={() => { setSelectedWeekStart(null); setWeekOffset((o) => Math.max(0, o - 7)); }}
       />
 
       {/* Otomatik işleme aç/kapa */}
