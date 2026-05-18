@@ -152,6 +152,19 @@ async def blocking_count(payload: dict = Depends(require_auth)):
     return {"count": c}
 
 
+@router.get("/pending-list/{company_id}")
+async def pending_obligations_list(company_id: str, payload: dict = Depends(require_auth)):
+    """Tüm zaman 'Bekliyor' durumdaki yükümlülükleri kurye + tutar + hafta ile döner."""
+    if not _is_admin(payload):
+        raise HTTPException(status_code=403, detail="Yetki yok")
+    rows = await db.courier_invoice_obligations.find(
+        {"company_id": company_id, "status": "pending"},
+        {"_id": 0},
+    ).sort("week_start", -1).to_list(2000)
+    items = [await _serialize(r) for r in rows]
+    return {"items": items, "total": len(items)}
+
+
 @router.get("/pending-courier-ids/{company_id}")
 async def pending_courier_ids(company_id: str, payload: dict = Depends(require_auth)):
     """Admin: bu şirkette pending VEYA uploaded yükümlülüğü olan kuryelerin id listesi."""

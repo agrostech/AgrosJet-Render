@@ -1,8 +1,11 @@
-import { useState, useMemo } from "react";
-import { AlertCircle, Check, Filter, MessageCircle, AlertTriangle, Trash2, Phone, User, Loader2 } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import axios from "axios";
+import { AlertCircle, Check, Filter, MessageCircle, AlertTriangle, Trash2, Phone, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const formatDate = (dateStr) => {
   if (!dateStr) return "-";
@@ -13,17 +16,51 @@ const formatMoney = (amount) => {
   return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.abs(amount)) + ' TL';
 };
 
-export function MissingInvoicesCard({ missingInvoices, isSuperAdmin, onDismiss }) {
+export function MissingInvoicesCard({ missingInvoices, isSuperAdmin, onDismiss, companyId }) {
   const [selectedCourier, setSelectedCourier] = useState("");
   const [deletingId, setDeletingId] = useState(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState(null);
   const [showReminderModal, setShowReminderModal] = useState(false);
+  const [pendingObligations, setPendingObligations] = useState([]);
 
-  // Get unique couriers who have missing invoices
+  // Tüm zaman pending obligations çek (zaman filtresinden bağımsız)
+  useEffect(() => {
+    if (!companyId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await axios.get(`${API}/courier-invoice-obligations/pending-list/${companyId}`);
+        if (!cancelled) setPendingObligations(res.data.items || []);
+      } catch {
+        if (!cancelled) setPendingObligations([]);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [companyId, missingInvoices.length]);
+
+  // Pending obligations'ı normalize edip aynı listeye ekle
+  const allInvoices = useMemo(() => {
+    const pend = pendingObligations.map((o) => ({
+      id: o.id,
+      _source: "obligation",
+      courier_id: o.courier_id,
+      courier_name: o.courier_name,
+      phone: "",
+      amount: o.expected_amount,
+      display_amount: o.expected_amount,
+      created_at: o.created_at,
+      description: `${o.week_start} → ${o.week_end} haftası`,
+      missing_type: o.is_manual ? "manual" : "weekly",
+    }));
+    const old = (missingInvoices || []).map((x) => ({ ...x, _source: "transaction" }));
+    return [...pend, ...old];
+  }, [pendingObligations, missingInvoices]);
+
+  // Get unique couriers
   const couriersWithMissing = useMemo(() => {
     const courierMap = {};
-    missingInvoices.forEach(tx => {
+    allInvoices.forEach(tx => {
       if (!courierMap[tx.courier_id]) {
         courierMap[tx.courier_id] = {
           courier_id: tx.courier_id,
@@ -33,21 +70,19 @@ export function MissingInvoicesCard({ missingInvoices, isSuperAdmin, onDismiss }
           count: 0
         };
       }
-      // Use display_amount for shortfall, amount for no_invoice
       const displayAmount = tx.display_amount || tx.amount;
       courierMap[tx.courier_id].total_amount += Math.abs(displayAmount);
       courierMap[tx.courier_id].count += 1;
     });
     return Object.values(courierMap).sort((a, b) => (a.courier_name || '').localeCompare(b.courier_name || '', 'tr'));
-  }, [missingInvoices]);
+  }, [allInvoices]);
 
-  // Filter invoices by selected courier
+  // Filter
   const filteredInvoices = useMemo(() => {
-    if (!selectedCourier) return missingInvoices;
-    return missingInvoices.filter(tx => tx.courier_id === selectedCourier);
-  }, [missingInvoices, selectedCourier]);
+    if (!selectedCourier) return allInvoices;
+    return allInvoices.filter(tx => tx.courier_id === selectedCourier);
+  }, [allInvoices, selectedCourier]);
 
-  // Get selected courier's data for WhatsApp
   const selectedCourierData = useMemo(() => {
     return couriersWithMissing.find(c => c.courier_id === selectedCourier);
   }, [couriersWithMissing, selectedCourier]);
@@ -90,12 +125,12 @@ Lütfen en kısa sürede faturalarınızı yükleyiniz.`;
   return (
     <>
     <div className="border-2 border-border bg-white">
-      <div className="p-3 border-b-2 border-border bg-red-50">
+      <div className="p-3 border-b-2 border-border bg-amber-50">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-red-500" />
-            <h3 className="font-semibold text-sm text-red-700">Eksik Faturalar</h3>
-            <span className="text-xs text-red-500">({filteredInvoices.length})</span>
+            <Clock className="w-4 h-4 text-amber-600" />
+            <h3 className="font-semibold text-sm text-amber-800">Bekleyen Faturalar</h3>
+            <span className="text-xs text-amber-600">({filteredInvoices.length})</span>
           </div>
           
           {/* WhatsApp reminder button - only when a courier is selected */}
@@ -116,17 +151,17 @@ Lütfen en kısa sürede faturalarınızı yükleyiniz.`;
         {couriersWithMissing.length > 0 && (
           <div className="mt-2">
             <div className="flex items-center gap-2">
-              <Filter className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
+              <Filter className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
               <select
                 value={selectedCourier}
                 onChange={(e) => setSelectedCourier(e.target.value)}
-                className="flex-1 h-9 text-sm border border-red-200 rounded px-2 bg-white min-w-0"
+                className="flex-1 h-9 text-sm border border-amber-200 rounded px-2 bg-white min-w-0"
                 data-testid="missing-invoices-courier-filter"
               >
                 <option value="">Tüm Kuryeler</option>
                 {couriersWithMissing.map(courier => (
                   <option key={courier.courier_id} value={courier.courier_id}>
-                    {courier.courier_name} ({courier.count} eksik)
+                    {courier.courier_name} ({courier.count} bekleyen)
                   </option>
                 ))}
               </select>
@@ -137,15 +172,16 @@ Lütfen en kısa sürede faturalarınızı yükleyiniz.`;
       
       <div className="max-h-96 overflow-y-auto">
         {filteredInvoices.length === 0 ? (
-          <div className="p-8 text-center text-green-600 text-sm">
+          <div className="p-8 text-center text-emerald-600 text-sm">
             <Check className="w-12 h-12 mx-auto mb-2 opacity-50" />
-            {selectedCourier ? "Bu kurye için eksik fatura yok" : "Tüm hakedişler için fatura yüklenmiş"}
+            {selectedCourier ? "Bu kurye için bekleyen fatura yok" : "Bekleyen fatura yok"}
           </div>
         ) : (
           <div className="divide-y divide-border">
             {filteredInvoices.map((tx) => {
               const displayAmount = tx.display_amount || tx.amount;
               const isShortfall = tx.missing_type === 'shortfall';
+              const isObligation = tx._source === 'obligation';
               const isDeleting = deletingId === tx.id;
               
               const handleDeleteClick = () => {
@@ -154,11 +190,17 @@ Lütfen en kısa sürede faturalarınızı yükleyiniz.`;
               };
               
               return (
-                <div key={tx.id} className={`p-3 hover:bg-red-50/50 ${isShortfall ? 'bg-amber-50/30' : ''}`}>
+                <div key={tx.id} className={`p-3 hover:bg-amber-50/50 ${isShortfall ? 'bg-amber-50/30' : ''}`}>
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <p className="font-medium text-sm truncate">{tx.courier_name}</p>
+                        {isObligation && (
+                          <span className="flex items-center gap-1 px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[10px] rounded font-medium flex-shrink-0">
+                            <Clock className="w-3 h-3" />
+                            Bekliyor
+                          </span>
+                        )}
                         {isShortfall && (
                           <span className="flex items-center gap-1 px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[10px] rounded font-medium flex-shrink-0">
                             <AlertTriangle className="w-3 h-3" />
@@ -176,10 +218,10 @@ Lütfen en kısa sürede faturalarınızı yükleyiniz.`;
                       )}
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className={`text-sm font-semibold font-mono ${isShortfall ? 'text-amber-600' : 'text-red-600'}`}>
+                      <span className={`text-sm font-semibold font-mono ${isObligation ? 'text-blue-600' : isShortfall ? 'text-amber-600' : 'text-red-600'}`}>
                         {formatMoney(displayAmount)}
                       </span>
-                      {isSuperAdmin && onDismiss && (
+                      {!isObligation && isSuperAdmin && onDismiss && (
                         <Button
                           variant="ghost"
                           size="sm"

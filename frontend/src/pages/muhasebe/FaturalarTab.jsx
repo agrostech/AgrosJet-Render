@@ -92,17 +92,16 @@ export default function FaturalarTab({ companyId, isSuperAdmin }) {
         />
       )}
 
-      {/* 3. ALT: Eksik Faturalar (eski sistem) */}
-      {missingInvoices.length > 0 && (
+      {/* 3. ALT: Ay Faturaları (sol) + Bekleyen Faturalar (sağ) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+        <MonthlyInvoicesCard companyId={companyId} isSuperAdmin={isSuperAdmin} />
         <MissingInvoicesCard
+          companyId={companyId}
           missingInvoices={missingInvoices}
           isSuperAdmin={isSuperAdmin}
           onDismiss={dismissMissingInvoice}
         />
-      )}
-
-      {/* 4. ALT: Ay Faturaları (birleşik: approved obligation + eski invoices) */}
-      <MonthlyInvoicesCard companyId={companyId} isSuperAdmin={isSuperAdmin} />
+      </div>
     </div>
   );
 }
