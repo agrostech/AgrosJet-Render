@@ -501,24 +501,72 @@ def _hakedis_window_match(company_id: str, week_start_date: str, week_end_date: 
     }
 
 
-async def generate_weekly_obligations_for_company(company_id: str) -> int:
-    """Tek şirket için geçen haftanın hakediş toplamına göre obligation üretir.
-
-    Strateji: O haftanın 7 günü için `calculate_day_hakedis` (saatlik dahil)
-    çağrılıp tahmini tutar bulunur. Mevcut işlenmiş transaction'lar da topluca
-    sayılır (ikisinden büyük olan = obligation). Bu sayede otomatik işlenmemiş
-    günler de obligation'a dahil olur.
+async def _direct_delivery_fees_for_week(company_id: str, monday_dt: datetime) -> dict:
     """
-    from services.daily_hakedis_service import calculate_day_hakedis
+    Pazartesi açılış → bir sonraki Pazartesi açılış penceresinde, `delivered`
+    siparişlerden kurye bazında `courier_fee` toplamı (DOĞRUDAN TESLİMAT
+    ÜCRETLERİ). Saatlik kazançlar ve transaction işlemleri DAHİL EDİLMEZ —
+    böylece işlem geçmişindeki manuel/düzeltilmiş hakediş kayıtları sapma
+    yaratmaz.
 
+    Return: {courier_id: {"name": str, "amount": float, "orders": int,
+                          "fcm_token": str|None}}
+    """
+    start_iso = monday_dt.isoformat()
+    end_iso = (monday_dt + timedelta(days=7)).isoformat()
+    pipeline = [
+        {"$match": {
+            "company_id": company_id, "status": "delivered",
+            "courier_id": {"$ne": None},
+            "delivered_at": {"$gte": start_iso, "$lt": end_iso},
+        }},
+        {"$group": {
+            "_id": "$courier_id",
+            "amount": {"$sum": {"$ifNull": ["$courier_fee", 0]}},
+            "orders": {"$sum": 1},
+        }},
+    ]
+    rows = await db.orders.aggregate(pipeline).to_list(2000)
+    ids = [r["_id"] for r in rows if r.get("_id")]
+    if not ids:
+        return {}
+    couriers = await db.couriers.find(
+        {"id": {"$in": ids}},
+        {"_id": 0, "id": 1, "name": 1, "fcm_token": 1},
+    ).to_list(2000)
+    name_map = {c["id"]: c for c in couriers}
+    out = {}
+    for r in rows:
+        cid = r.get("_id")
+        if not cid:
+            continue
+        amt = float(r.get("amount") or 0)
+        if amt <= 0:
+            continue
+        out[cid] = {
+            "amount": round(amt, 2),
+            "orders": int(r.get("orders") or 0),
+            "name": (name_map.get(cid) or {}).get("name") or cid,
+            "fcm_token": (name_map.get(cid) or {}).get("fcm_token"),
+        }
+    return out
+
+
+async def generate_weekly_obligations_for_company(company_id: str) -> int:
+    """Tek şirket için geçen haftanın doğrudan teslimat ücretleri toplamına göre
+    obligation üretir.
+
+    Strateji: Pazartesi açılış → bir sonraki Pazartesi açılış penceresinde
+    `delivered` siparişlerin `courier_fee` toplamı = beklenen tutar. İşlem
+    geçmişindeki hakediş kayıtları (manuel düzeltmeler) bu hesaba dahil
+    edilmez; böylece sapma oluşmaz.
+    """
     settings = await db.weekly_obligation_settings.find_one({"company_id": company_id})
     if not settings or not settings.get("enabled"):
         return 0
     company = await db.companies.find_one({"id": company_id}, {"_id": 0, "opening_time": 1})
     opening = (company or {}).get("opening_time") or "06:00"
     last_monday, this_monday = _last_week_pzt_paz(opening)
-    week_start_iso = last_monday.isoformat()
-    week_end_iso = this_monday.isoformat()
     week_start_date = last_monday.strftime("%Y-%m-%d")
     week_end_date = (this_monday - timedelta(days=1)).strftime("%Y-%m-%d")
 
@@ -531,48 +579,19 @@ async def generate_weekly_obligations_for_company(company_id: str) -> int:
     if already:
         return 0
 
-    # Mevcut hakediş transaction toplamları
-    pipeline = [
-        {"$match": _hakedis_window_match(company_id, week_start_date, week_end_date,
-                                          week_start_iso, week_end_iso)},
-        {"$group": {"_id": "$entity_id", "total": {"$sum": "$amount"}}},
-    ]
-    rows = await db.transactions.aggregate(pipeline).to_list(2000)
-    processed_map = {r["_id"]: float(r["total"]) for r in rows}
-
-    # 7 günün potansiyel hakedişini topla (saatlik dahil, işlenmemiş günler de)
-    courier_expected = {}  # courier_id -> {"name": str, "amount": float}
-    cur_dt = last_monday
-    while cur_dt < this_monday:
-        biz_date = cur_dt.strftime("%Y-%m-%d")
-        day_data = await calculate_day_hakedis(company_id, biz_date)
-        for c in day_data.get("couriers", []):
-            amt = float(c.get("amount") or 0)
-            if amt <= 0:
-                continue
-            cid = c["courier_id"]
-            slot = courier_expected.setdefault(cid, {"name": c.get("courier_name") or "", "amount": 0.0})
-            slot["amount"] += amt
-        cur_dt = cur_dt + timedelta(days=1)
-
-    # Birleşik kurye seti
-    all_courier_ids = set(processed_map.keys()) | set(courier_expected.keys())
-    if not all_courier_ids:
+    # Doğrudan teslimat ücretleri (saatlik / transactions HARİÇ)
+    courier_fees = await _direct_delivery_fees_for_week(company_id, last_monday)
+    if not courier_fees:
+        await db.weekly_obligation_settings.update_one(
+            {"company_id": company_id},
+            {"$set": {"last_auto_run": datetime.now(TR_TZ).isoformat()}},
+        )
         return 0
-
-    couriers = await db.couriers.find(
-        {"id": {"$in": list(all_courier_ids)}},
-        {"_id": 0, "id": 1, "name": 1, "fcm_token": 1}
-    ).to_list(2000)
-    name_map = {c["id"]: c for c in couriers}
 
     created = 0
     now_iso = datetime.now(TR_TZ).isoformat()
-    for cid in all_courier_ids:
-        processed_amt = processed_map.get(cid, 0.0)
-        expected_amt = courier_expected.get(cid, {}).get("amount", 0.0)
-        # Obligation tutarı: işlenmiş ve tahmin'in büyüğü
-        total = round(max(processed_amt, expected_amt), 2)
+    for cid, info in courier_fees.items():
+        total = round(float(info.get("amount") or 0), 2)
         if total <= 0:
             continue
         rec_id = str(uuid.uuid4())
@@ -580,7 +599,7 @@ async def generate_weekly_obligations_for_company(company_id: str) -> int:
             "id": rec_id,
             "company_id": company_id,
             "courier_id": cid,
-            "courier_name": (name_map.get(cid) or {}).get("name") or courier_expected.get(cid, {}).get("name") or "",
+            "courier_name": info.get("name") or "",
             "week_start": week_start_date,
             "week_end": week_end_date,
             "expected_amount": total,
@@ -589,9 +608,8 @@ async def generate_weekly_obligations_for_company(company_id: str) -> int:
             "created_at": now_iso,
         })
         created += 1
-        # Push
         try:
-            token = (name_map.get(cid) or {}).get("fcm_token")
+            token = info.get("fcm_token")
             if token:
                 await send_push_notification(
                     token, "Eksik Faturanız Var",
@@ -689,7 +707,8 @@ async def upcoming_preview(company_id: str, payload: dict = Depends(require_auth
     )
     auto_enabled = bool((settings or {}).get("enabled", False))
 
-    # Mevcut işlenmiş transaction toplamı (kurye bazında)
+    # Mevcut işlenmiş transaction toplamı (sadece bilgilendirme amaçlı — beklenen
+    # tutar artık doğrudan teslimat ücretlerinden çekiliyor)
     processed_pipeline = [
         {"$match": _hakedis_window_match(
             company_id, week_start_date, week_end_date,
@@ -701,26 +720,17 @@ async def upcoming_preview(company_id: str, payload: dict = Depends(require_auth
     processed_map = {r["_id"]: {"total": float(r["total"]), "tx_count": int(r.get("tx_count") or 0)}
                      for r in processed_rows}
 
-    # Haftanın 7 günü için potansiyel hakediş hesapla (saatlik dahil)
-    courier_totals = {}  # courier_id -> {expected, name, days}
-    cur_dt = this_monday
-    while cur_dt < next_monday:
-        biz_date = cur_dt.strftime("%Y-%m-%d")
-        day_data = await calculate_day_hakedis(company_id, biz_date)
-        for c in day_data.get("couriers", []):
-            amt = float(c.get("amount") or 0)
-            if amt <= 0:
-                continue
-            cid = c["courier_id"]
-            slot = courier_totals.setdefault(cid, {
-                "courier_id": cid,
-                "courier_name": c.get("courier_name") or cid,
-                "expected_amount": 0.0,
-                "days_with_earnings": 0,
-            })
-            slot["expected_amount"] += amt
-            slot["days_with_earnings"] += 1
-        cur_dt = cur_dt + timedelta(days=1)
+    # Doğrudan teslimat ücretleri (saatlik / işlem geçmişi HARİÇ) — obligation
+    # tutarı her zaman buradan hesaplanır.
+    courier_fees = await _direct_delivery_fees_for_week(company_id, this_monday)
+    courier_totals = {}
+    for cid, info in courier_fees.items():
+        courier_totals[cid] = {
+            "courier_id": cid,
+            "courier_name": info.get("name") or cid,
+            "expected_amount": float(info.get("amount") or 0),
+            "days_with_earnings": 1 if (info.get("amount") or 0) > 0 else 0,
+        }
 
     previews = []
     total_amount = 0.0
@@ -774,25 +784,21 @@ def _week_range_for(monday_dt: datetime):
 
 
 async def _expected_couriers_for_week(company_id: str, monday_dt: datetime) -> dict:
-    """7 günü tarayıp kurye bazında potansiyel hakediş toplamı döner.
+    """Hafta için kurye bazında BEKLENEN tutar = doğrudan teslimat ücretleri
+    toplamı (`delivered orders.courier_fee`). Saatlik kazançlar ve transactions
+    DAHİL EDİLMEZ. UI tutarlılığı için otomatik obligation oluşturma ile aynı
+    kaynağı kullanır.
     Return: {courier_id: {"name": str, "amount": float, "days": int}}"""
-    from services.daily_hakedis_service import calculate_day_hakedis
-    result = {}
-    cur = monday_dt
-    end = monday_dt + timedelta(days=7)
-    while cur < end:
-        biz_date = cur.strftime("%Y-%m-%d")
-        data = await calculate_day_hakedis(company_id, biz_date)
-        for c in data.get("couriers", []):
-            amt = float(c.get("amount") or 0)
-            if amt <= 0:
-                continue
-            cid = c["courier_id"]
-            slot = result.setdefault(cid, {"name": c.get("courier_name") or "", "amount": 0.0, "days": 0})
-            slot["amount"] += amt
-            slot["days"] += 1
-        cur = cur + timedelta(days=1)
-    return result
+    fees = await _direct_delivery_fees_for_week(company_id, monday_dt)
+    return {
+        cid: {
+            "name": info.get("name") or cid,
+            "amount": float(info.get("amount") or 0),
+            # "days" bilgisi artık önemli değil ama by-week için 1 koyalım (varlık göstergesi)
+            "days": 1 if (info.get("amount") or 0) > 0 else 0,
+        }
+        for cid, info in fees.items()
+    }
 
 
 @router.get("/weeks-summary/{company_id}")
