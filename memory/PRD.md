@@ -219,4 +219,5 @@ Multi-tenant delivery management platform for restaurants, couriers, and adminis
   - `components/muhasebe/CourierObligationsBanner.jsx`: Muhasebe → Kuryeler sekmesinde seçili kuryenin pending+uploaded yükümlülük uyarısı.
 - **Test**: `backend/tests/test_courier_invoice_obligations.py` 14/14 PASS (daily-data 7-day, admin list, courier list, summary, auto-settings, blocking-count, upload 404, auth gating).
 
+- 2026-02-18: **Kurye Faturalarım modalına eksik fatura uyarı yazısı**. `MyObligationsModal.jsx` modal başlığının altında, kuryenin en az bir `status === "pending"` faturası varsa düz kırmızı tonlu mini bir uyarı satırı gösteriliyor: "Yüklenmemiş faturalarınız var. Bu süreçte hakediş ödemesi yapılmaz ve nakit/kart tahsilatlı sipariş atamaları durdurulur. Lütfen eksik faturalarınızı yükleyin." Tüm faturalar yüklendiğinde otomatik gizleniyor. `data-testid="my-obligations-pending-warning"`.
 

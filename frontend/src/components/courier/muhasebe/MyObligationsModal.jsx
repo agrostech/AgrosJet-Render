@@ -271,6 +271,15 @@ export default function MyObligationsModal({ open, onOpenChange, onUpdated, comp
           </DialogTitle>
         </DialogHeader>
 
+        {!loading && items.some((o) => o.status === "pending") && (
+          <p
+            className="text-xs text-red-600 leading-snug mt-1"
+            data-testid="my-obligations-pending-warning"
+          >
+            Yüklenmemiş faturalarınız var. Bu süreçte hakediş ödemesi yapılmaz ve nakit/kart tahsilatlı sipariş atamaları durdurulur. Lütfen eksik faturalarınızı yükleyin.
+          </p>
+        )}
+
         {loading ? (
           <div className="py-10 flex items-center justify-center">
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
