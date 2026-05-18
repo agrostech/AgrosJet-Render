@@ -196,13 +196,16 @@ export default function WeekDetailPanel({ companyId, week, isFuture, isSuperAdmi
   const [viewingFile, setViewingFile] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [bulkCreating, setBulkCreating] = useState(false);
 
+  const weekStart = week?.week_start;
   const fetchData = useCallback(async () => {
-    if (!week) return;
+    if (!weekStart) return;
     setLoading(true);
     try {
       const res = await axios.get(`${API}/courier-invoice-obligations/by-week/${companyId}`, {
-        params: { week_start: week.week_start },
+        params: { week_start: weekStart },
       });
       setData(res.data);
     } catch {
@@ -211,7 +214,7 @@ export default function WeekDetailPanel({ companyId, week, isFuture, isSuperAdmi
     } finally {
       setLoading(false);
     }
-  }, [companyId, week]);
+  }, [companyId, weekStart]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -238,6 +241,50 @@ export default function WeekDetailPanel({ companyId, week, isFuture, isSuperAdmi
   if (!week) return null;
 
   const rows = data?.rows || [];
+  // "Predicted" (henüz obligation oluşmamış, hakediş tahminli) satırlar
+  const selectablePredicted = rows.filter((r) => !r.obligation && r.expected_amount > 0);
+
+  const toggleSelectAll = () => {
+    setSelectedIds((prev) => {
+      if (prev.size === selectablePredicted.length) return new Set();
+      return new Set(selectablePredicted.map((r) => r.courier_id));
+    });
+  };
+
+  const toggleSelect = (cid) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(cid)) next.delete(cid);
+      else next.add(cid);
+      return next;
+    });
+  };
+
+  const handleBulkCreate = async () => {
+    const picked = selectablePredicted.filter((r) => selectedIds.has(r.courier_id));
+    if (picked.length === 0) return;
+    setBulkCreating(true);
+    try {
+      const res = await axios.post(
+        `${API}/courier-invoice-obligations/bulk-create/${companyId}`,
+        {
+          week_start: weekStart,
+          couriers: picked.map((r) => ({
+            courier_id: r.courier_id,
+            expected_amount: r.expected_amount,
+          })),
+        }
+      );
+      toast.success(`${res.data.created} fatura yükümlülüğü oluşturuldu`);
+      setSelectedIds(new Set());
+      fetchData();
+      onChanged?.();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Oluşturulamadı");
+    } finally {
+      setBulkCreating(false);
+    }
+  };
 
   return (
     <div className="border-2 border-border bg-white" data-testid="week-detail-panel">
@@ -260,16 +307,29 @@ export default function WeekDetailPanel({ companyId, week, isFuture, isSuperAdmi
             )}
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="text-sm text-right">
-              <div>
-                Beklenen: <span className="font-bold">{formatMoney(data?.total_expected || 0)}</span>
-              </div>
-              {data && data.total_processed > 0 && (
-                <div className="text-green-600 text-xs">
-                  İşlenen: {formatMoney(data.total_processed)}
-                </div>
-              )}
-            </div>
+            {selectablePredicted.length > 0 && (
+              <>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={toggleSelectAll}
+                  className="h-8 text-xs"
+                  data-testid="bulk-select-all"
+                >
+                  {selectedIds.size === selectablePredicted.length ? "Seçimi Temizle" : "Tümünü Seç"}
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleBulkCreate}
+                  disabled={selectedIds.size === 0 || bulkCreating}
+                  className="h-8 text-xs gap-1"
+                  data-testid="bulk-create-obligations"
+                >
+                  {bulkCreating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+                  Oluştur ({selectedIds.size})
+                </Button>
+              </>
+            )}
             <Button
               size="sm"
               variant="outline"
@@ -298,6 +358,7 @@ export default function WeekDetailPanel({ companyId, week, isFuture, isSuperAdmi
             <table className="hidden sm:table w-full text-sm">
               <thead className="border-b bg-muted/30 sticky top-0 z-10">
                 <tr>
+                  <th className="p-2.5 w-8"></th>
                   <th className="p-2.5 text-left font-semibold">Kurye</th>
                   <th className="p-2.5 text-right font-semibold">Beklenen</th>
                   <th className="p-2.5 text-center font-semibold">Durum</th>
@@ -308,6 +369,17 @@ export default function WeekDetailPanel({ companyId, week, isFuture, isSuperAdmi
               <tbody>
                 {rows.map((r) => (
                   <tr key={r.row_key} className="border-b hover:bg-slate-50">
+                    <td className="p-2.5 text-center">
+                      {!r.obligation && r.expected_amount > 0 ? (
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(r.courier_id)}
+                          onChange={() => toggleSelect(r.courier_id)}
+                          className="w-4 h-4 cursor-pointer accent-slate-900"
+                          data-testid={`week-row-checkbox-${r.courier_id}`}
+                        />
+                      ) : null}
+                    </td>
                     <td className="p-2.5 max-w-[240px]">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <p className="font-medium truncate" title={r.courier_name}>{r.courier_name}</p>
@@ -396,6 +468,14 @@ export default function WeekDetailPanel({ companyId, week, isFuture, isSuperAdmi
                 <div key={r.row_key} className="p-3" data-testid={`week-row-mob-${r.row_key}`}>
                   <div className="flex items-center justify-between gap-2 mb-1">
                     <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
+                      {!r.obligation && r.expected_amount > 0 && (
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(r.courier_id)}
+                          onChange={() => toggleSelect(r.courier_id)}
+                          className="w-4 h-4 cursor-pointer accent-slate-900"
+                        />
+                      )}
                       <p className="font-medium text-sm truncate">{r.courier_name}</p>
                       {r.obligation?.is_manual && (
                         <span className="text-[9px] bg-purple-100 text-purple-700 px-1 py-0.5 rounded font-medium">

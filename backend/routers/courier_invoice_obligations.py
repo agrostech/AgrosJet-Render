@@ -326,6 +326,93 @@ async def update_auto_settings(company_id: str, data: WeeklyAutoSettings, payloa
     return {"enabled": data.enabled}
 
 
+@router.post("/bulk-create/{company_id}")
+async def bulk_create_obligations(company_id: str, body: dict, payload: dict = Depends(require_auth)):
+    """
+    Admin, hafta detay panelinden seçtiği kuryeler için manuel olarak
+    yükümlülük oluşturur (otomatik scheduler'ı beklemeden).
+    Body: {"week_start": "YYYY-MM-DD", "couriers": [{"courier_id": str, "expected_amount": float}]}
+    Aynı hafta ve kurye için non-remainder pending kayıt varsa atlanır.
+    """
+    if not _is_admin(payload):
+        raise HTTPException(status_code=403, detail="Yetki yok")
+
+    week_start = body.get("week_start")
+    couriers = body.get("couriers") or []
+    if not week_start or not couriers:
+        raise HTTPException(status_code=400, detail="week_start ve couriers zorunlu")
+    try:
+        ws_dt = datetime.strptime(week_start, "%Y-%m-%d")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Geçersiz hafta")
+    week_end_date = (ws_dt + timedelta(days=6)).strftime("%Y-%m-%d")
+
+    courier_ids = [c.get("courier_id") for c in couriers if c.get("courier_id")]
+    if not courier_ids:
+        return {"created": 0, "skipped": 0, "items": []}
+    courier_map = {
+        c["id"]: c
+        for c in await db.couriers.find(
+            {"id": {"$in": courier_ids}},
+            {"_id": 0, "id": 1, "name": 1, "fcm_token": 1},
+        ).to_list(2000)
+    }
+
+    # Aynı hafta için mevcut non-remainder kayıtları
+    existing = await db.courier_invoice_obligations.find(
+        {
+            "company_id": company_id,
+            "week_start": week_start,
+            "courier_id": {"$in": courier_ids},
+            "is_remainder": {"$ne": True},
+        },
+        {"_id": 0, "courier_id": 1},
+    ).to_list(2000)
+    existing_ids = {e["courier_id"] for e in existing}
+
+    now_iso = datetime.now(TR_TZ).isoformat()
+    created_items = []
+    skipped = 0
+    for c in couriers:
+        cid = c.get("courier_id")
+        amt = round(float(c.get("expected_amount") or 0), 2)
+        if not cid or amt <= 0:
+            skipped += 1
+            continue
+        if cid in existing_ids:
+            skipped += 1
+            continue
+        info = courier_map.get(cid) or {}
+        rec_id = str(uuid.uuid4())
+        record = {
+            "id": rec_id,
+            "company_id": company_id,
+            "courier_id": cid,
+            "courier_name": info.get("name") or cid,
+            "week_start": week_start,
+            "week_end": week_end_date,
+            "expected_amount": amt,
+            "status": "pending",
+            "is_remainder": False,
+            "created_at": now_iso,
+        }
+        await db.courier_invoice_obligations.insert_one(record)
+        created_items.append(await _serialize(record))
+        # Push
+        try:
+            token = info.get("fcm_token")
+            if token:
+                await send_push_notification(
+                    token, "Eksik Faturanız Var",
+                    f"{week_start} - {week_end_date} haftası için {amt:.2f} TL fatura kesmeniz gerekiyor.",
+                    {"type": "OBLIGATION_CREATED", "request_id": rec_id},
+                )
+        except Exception as e:
+            logger.warning(f"Bulk obligation push hatası ({cid}): {e}")
+
+    return {"created": len(created_items), "skipped": skipped, "items": created_items}
+
+
 @router.post("/manual/{company_id}")
 async def create_manual_obligation(company_id: str, data: ManualObligationBody, payload: dict = Depends(require_auth)):
     """

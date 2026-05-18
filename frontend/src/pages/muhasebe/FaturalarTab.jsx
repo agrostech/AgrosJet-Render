@@ -39,20 +39,19 @@ export default function FaturalarTab({ companyId, isSuperAdmin }) {
         params: { weeks: 7 },
       });
       const w = res.data.weeks || [];
-      // Eskiden yeniye soldan sağa: API yeniden eskiye döndüğü için reverse ediyoruz
       const sorted = [...w].reverse();
       setWeeks(sorted);
-      if (!selectedWeekStart && sorted.length > 0) {
-        // Varsayılan: en yeni hafta (en sağdaki)
-        setSelectedWeekStart(sorted[sorted.length - 1].week_start);
-      }
+      setSelectedWeekStart((prev) => {
+        if (prev) return prev;
+        return sorted.length > 0 ? sorted[sorted.length - 1].week_start : null;
+      });
     } catch {
       toast.error("Hafta özetleri alınamadı");
       setWeeks([]);
     } finally {
       setLoadingWeeks(false);
     }
-  }, [companyId, selectedWeekStart]);
+  }, [companyId]);
 
   useEffect(() => { fetchWeeks(); }, [fetchWeeks]);
 
