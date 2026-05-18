@@ -85,6 +85,7 @@ def _cache_set(key: str, value):
     _WEEK_CACHE[key] = (time.time(), value)
 
 
+
 class ApproveBody(BaseModel):
     declared_amount: float = Field(..., gt=0)
     invoice_number: Optional[str] = None
@@ -883,12 +884,14 @@ async def generate_weekly_obligations_for_company(company_id: str) -> dict:
         return {"enabled": True, "created": 0, "items": [], "skipped": [],
                 "week_start": week_start_date, "week_end": week_end_date}
 
-    # Bu hafta için mevcut (non-remainder) obligation tutarları toplamı (kurye bazında)
+    # Bu hafta için mevcut (non-remainder, NON-manuel) obligation tutarları toplamı.
+    # Manuel faturalar predicted/delta hesabını etkilemez — bağımsız faturalardır.
     existing_pipeline = [
         {"$match": {
             "company_id": company_id,
             "week_start": week_start_date,
             "is_remainder": {"$ne": True},
+            "is_manual": {"$ne": True},
         }},
         {"$group": {"_id": "$courier_id", "total": {"$sum": "$expected_amount"}}},
     ]
@@ -1197,9 +1200,6 @@ async def weeks_summary(
         ws_iso, we_iso, ws_date, we_date = _week_range_for(monday_dt)
         label = f"{monday_dt.strftime('%d.%m')} - {(monday_dt + timedelta(days=6)).strftime('%d.%m')}"
 
-        # Tahmini hakediş (calculate_day_hakedis 7 gün toplamı)
-        expected = await _expected_couriers_for_week(company_id, monday_dt)
-
         # Mevcut obligation kayıtları
         obligs = await db.courier_invoice_obligations.find(
             {"company_id": company_id, "week_start": ws_date},
@@ -1209,12 +1209,13 @@ async def weeks_summary(
         created = len(non_remainder_obligs)
         uploaded = sum(1 for o in non_remainder_obligs if o.get("status") in ("uploaded", "approved"))
         approved = sum(1 for o in non_remainder_obligs if o.get("status") == "approved")
+        pending = sum(1 for o in non_remainder_obligs if o.get("status") == "pending")
 
-        # by-week ile aynı satır sayısını üretelim:
-        # predicted (hakediş var, auto-oblig yok) + tüm non-remainder obligation
-        courier_has_auto_oblig = {o["courier_id"] for o in non_remainder_obligs if not o.get("is_manual")}
-        predicted_no_auto = sum(1 for cid in expected.keys() if cid not in courier_has_auto_oblig)
-        total_for_strip = predicted_no_auto + len(non_remainder_obligs)
+        # Toplam: listede gerçekten "Bekliyor" statülü kaç fatura varsa onu say.
+        # Predicted satırlar (henüz oluşmamış olası faturalar) toplama dahil edilmez —
+        # onlar ayrı bir kavram. Bu badge'in amacı admin'e "kaç pending fatura var"
+        # bilgisini doğru vermek.
+        total_for_strip = pending
 
         result_weeks.append({
             "week_start": ws_date,
@@ -1289,13 +1290,16 @@ async def by_week(company_id: str, week_start: str, payload: dict = Depends(requ
     ).to_list(2000) if all_courier_ids else []
     courier_info = {c["id"]: c for c in couriers_db}
 
-    # Mevcut non-remainder obligation tutarları (kurye bazında toplam)
+    # Mevcut non-remainder, NON-MANUAL obligation tutarları (kurye bazında toplam).
+    # Manuel faturalar bağımsızdır — predicted hesabını etkilemezler. Aksi halde
+    # admin küçük bir manuel oluşturduğunda kalan haftalık tutar yanlış yere düşer.
     courier_existing_total = {}
     for cid, oblig_list in obligs_by_courier.items():
         total = 0.0
         for o in oblig_list:
-            if not o.get("is_remainder"):
-                total += float(o.get("expected_amount") or 0)
+            if o.get("is_remainder") or o.get("is_manual"):
+                continue
+            total += float(o.get("expected_amount") or 0)
         courier_existing_total[cid] = round(total, 2)
 
     rows = []
