@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Header, Depends
 from typing import Optional
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import uuid
 
 from utils.database import db
@@ -441,6 +441,58 @@ async def create_transaction(
             # Don't fail the transaction if JetPuan credit fails
             print(f"JetPuan credit failed: {e}")
     
+    # Hakediş (Fatura) checkbox işaretliyse içinde bulunulan hafta için
+    # Bekliyor obligation oluştur (yeni decoupled sistem). amount = tx tutarı.
+    if (
+        actual_entity_type == "courier"
+        and data.is_hakedis
+        and data.type == "payment_in"
+        and float(data.amount or 0) > 0
+    ):
+        try:
+            from routers.courier_invoice_obligations import (
+                _last_week_pzt_paz, _log_obligation_activity,
+            )
+            company = await db.companies.find_one(
+                {"id": data.company_id}, {"_id": 0, "opening_time": 1}
+            )
+            opening = (company or {}).get("opening_time") or "06:00"
+            # İçinde bulunulan haftanın Pazartesisi
+            _, this_monday = _last_week_pzt_paz(opening)
+            week_start_date = this_monday.strftime("%Y-%m-%d")
+            week_end_date = (this_monday + timedelta(days=6)).strftime("%Y-%m-%d")
+
+            obl_id = str(uuid.uuid4())
+            obl_doc = {
+                "id": obl_id,
+                "company_id": data.company_id,
+                "courier_id": actual_entity_id,
+                "courier_name": entity_name,
+                "week_start": week_start_date,
+                "week_end": week_end_date,
+                "expected_amount": round(float(data.amount), 2),
+                "status": "pending",
+                "is_remainder": False,
+                "is_manual": True,
+                "source": "transaction_hakedis",
+                "transaction_id": transaction["id"],
+                "created_at": get_turkey_now(),
+            }
+            await db.courier_invoice_obligations.insert_one(obl_doc)
+            # Log
+            await _log_obligation_activity(
+                company_id=data.company_id,
+                payload={
+                    "sub": data.admin_id, "name": data.admin_name,
+                    "role": "admin", "company_id": data.company_id,
+                },
+                action="obligation_manual_created",
+                entity_name=entity_name,
+                details=f"{week_start_date} haftası, {float(data.amount):.2f} TL (Hakediş işleminden)",
+            )
+        except Exception as e:
+            print(f"Hakediş -> Obligation oluşturulamadı: {e}")
+
     return {"message": "İşlem kaydedildi", "id": transaction["id"]}
 
 

@@ -235,10 +235,10 @@ function PaymentForm({
               onCheckedChange={setIsHakedis}
               data-testid="hakedis-checkbox"
             />
-            <Label htmlFor="hakedis" className="text-xs font-medium cursor-pointer">Hakediş</Label>
+            <Label htmlFor="hakedis" className="text-xs font-medium cursor-pointer">Fatura</Label>
           </div>
           
-          {/* JetPuan checkbox - only visible when Hakediş is checked */}
+          {/* JetPuan checkbox - only visible when Fatura is checked */}
           {isHakedis && (
             <div className="flex items-center gap-1.5 px-3 py-2 bg-purple-50 rounded h-10 border border-purple-200">
               <Checkbox
@@ -349,7 +349,7 @@ function TransactionHistory({
                   <td className="p-2 text-xs">
                     <div className="flex items-center gap-1">
                       {tx.description}
-                      {tx.is_hakedis && <span className="ml-1 px-1 py-0.5 bg-blue-100 text-blue-700 text-[10px] rounded">Hakediş</span>}
+                      {tx.is_hakedis && <span className="ml-1 px-1 py-0.5 bg-blue-100 text-blue-700 text-[10px] rounded">Fatura</span>}
                       {tx.is_hakedis && tx.invoice_verified && (
                         <CheckCircle2 className="w-5 h-5 text-green-600 ml-1 flex-shrink-0" title="Fatura onaylandı" />
                       )}

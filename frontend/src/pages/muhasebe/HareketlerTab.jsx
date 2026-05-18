@@ -4,7 +4,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { History, User, Building2, Wallet, Plus, Minus, Search, FileSpreadsheet } from "lucide-react";
+import { History, User, Building2, Wallet, Plus, Minus, Search, FileSpreadsheet, FileText } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -78,6 +78,8 @@ export default function HareketlerTab({ companyId }) {
       case 'courier': return <User className="w-4 h-4" />;
       case 'business': return <Building2 className="w-4 h-4" />;
       case 'vendor': return <Wallet className="w-4 h-4" />;
+      case 'courier_invoice_obligation': return <FileText className="w-4 h-4" />;
+      case 'daily_hakedis': return <Wallet className="w-4 h-4" />;
       default: return <History className="w-4 h-4" />;
     }
   };
@@ -87,6 +89,8 @@ export default function HareketlerTab({ companyId }) {
       case 'courier': return 'Kurye';
       case 'business': return 'Restoran';
       case 'vendor': return 'Cari';
+      case 'courier_invoice_obligation': return 'Kurye Faturası';
+      case 'daily_hakedis': return 'Günlük Hakediş';
       default: return type;
     }
   };
@@ -244,6 +248,70 @@ export default function HareketlerTab({ companyId }) {
               ({formatCurrency(details.requested_amount)})
             </span>
           )}
+        </span>
+      );
+    }
+    if (action === 'obligation_manual_created') {
+      return (
+        <span className="inline-flex items-center gap-1">
+          <Plus className="w-3 h-3 text-blue-600" />
+          <span className="text-blue-700 font-medium">Manuel Fatura Oluşturuldu</span>
+        </span>
+      );
+    }
+    if (action === 'obligation_bulk_created') {
+      return (
+        <span className="inline-flex items-center gap-1">
+          <Plus className="w-3 h-3 text-blue-600" />
+          <span className="text-blue-700 font-medium">Toplu Fatura Oluşturuldu</span>
+        </span>
+      );
+    }
+    if (action === 'obligation_uploaded') {
+      return (
+        <span className="inline-flex items-center gap-1">
+          <FileText className="w-3 h-3 text-emerald-600" />
+          <span className="text-emerald-700 font-medium">Fatura Yüklendi</span>
+        </span>
+      );
+    }
+    if (action === 'obligation_approved') {
+      return (
+        <span className="inline-flex items-center gap-1">
+          <FileText className="w-3 h-3 text-green-600" />
+          <span className="text-green-700 font-medium">Fatura Onaylandı</span>
+        </span>
+      );
+    }
+    if (action === 'obligation_deleted') {
+      return (
+        <span className="inline-flex items-center gap-1">
+          <Minus className="w-3 h-3 text-red-600" />
+          <span className="text-red-700 font-medium">Fatura Silindi</span>
+        </span>
+      );
+    }
+    if (action === 'obligation_cancelled_courier') {
+      return (
+        <span className="inline-flex items-center gap-1">
+          <Minus className="w-3 h-3 text-orange-600" />
+          <span className="text-orange-700 font-medium">Kurye Faturayı İptal Etti</span>
+        </span>
+      );
+    }
+    if (action === 'daily_hakedis_processed') {
+      return (
+        <span className="inline-flex items-center gap-1">
+          <Plus className="w-3 h-3 text-indigo-600" />
+          <span className="text-indigo-700 font-medium">Günlük Hakediş İşlendi</span>
+        </span>
+      );
+    }
+    if (action === 'daily_hakedis_undo') {
+      return (
+        <span className="inline-flex items-center gap-1">
+          <Minus className="w-3 h-3 text-amber-600" />
+          <span className="text-amber-700 font-medium">Günlük Hakediş Geri Alındı</span>
         </span>
       );
     }
