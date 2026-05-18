@@ -557,6 +557,7 @@ async def generate_weekly_missing_invoices(company_id: str, week_start: str):
             restaurant_totals[rid]["online_meal_card"] += total
     
     created_count = 0
+    created_items_summary: list = []
     
     for restaurant in restaurants:
         rid = restaurant["id"]
@@ -618,8 +619,14 @@ async def generate_weekly_missing_invoices(company_id: str, week_start: str):
         }
         await db.restaurant_invoices.insert_one(new_record)
         created_count += 1
+        created_items_summary.append({"name": restaurant["name"], "amount": float(required_amount)})
     
-    return {"message": f"{created_count} eksik fatura kaydı oluşturuldu", "count": created_count}
+    return {
+        "message": f"{created_count} eksik fatura kaydı oluşturuldu",
+        "count": created_count,
+        "items": created_items_summary,
+        "week_label": week_label,
+    }
 
 
 # ========== Month Invoices Endpoint ====================

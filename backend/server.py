@@ -294,6 +294,7 @@ async def lifespan(app: FastAPI):
                 
                 try:
                     from routers.restaurant_invoices import generate_weekly_missing_invoices
+                    from services.email_service import send_auto_process_report
                     result = await generate_weekly_missing_invoices(company_id, week_start)
                     
                     await db.restaurant_invoice_settings.update_one(
@@ -303,8 +304,31 @@ async def lifespan(app: FastAPI):
                     
                     if result.get("count", 0) > 0:
                         print(f"Auto restaurant invoices for {company_id}: {result['count']} records created")
+
+                    # Süperadminlere otomatik işleme raporu
+                    try:
+                        await send_auto_process_report(
+                            company_id=company_id,
+                            tab_name="Restoran Faturaları (Haftalık)",
+                            period_label=result.get("week_label") or "Geçen hafta",
+                            success_items=result.get("items") or [],
+                            failed_items=[],
+                        )
+                    except Exception as e:
+                        print(f"Restaurant invoice email error ({company_id}): {e}")
                 except Exception as e:
                     print(f"Auto restaurant invoice error for {company_id}: {e}")
+                    try:
+                        from services.email_service import send_auto_process_report
+                        await send_auto_process_report(
+                            company_id=company_id,
+                            tab_name="Restoran Faturaları (Haftalık)",
+                            period_label="Geçen hafta",
+                            success_items=[],
+                            failed_items=[{"name": "Scheduler hatası", "reason": str(e)}],
+                        )
+                    except Exception:
+                        pass
         except Exception as e:
             print(f"Auto restaurant invoice job error: {e}")
     
@@ -446,6 +470,7 @@ async def lifespan(app: FastAPI):
     async def daily_hakedis_auto_job():
         try:
             from services.daily_hakedis_service import process_auto_daily_for_company
+            from services.email_service import send_auto_process_report
             from datetime import datetime, timezone, timedelta
             tr = timezone(timedelta(hours=3))
             now = datetime.now(tr)
@@ -460,9 +485,63 @@ async def lifespan(app: FastAPI):
                 except Exception:
                     continue
                 try:
-                    await process_auto_daily_for_company(c["id"])
+                    result = await process_auto_daily_for_company(c["id"])
                 except Exception as e:
                     print(f"daily hakedis auto error ({c.get('id')}): {e}")
+                    try:
+                        await send_auto_process_report(
+                            company_id=c["id"],
+                            tab_name="Kurye Hakediş (Günlük)",
+                            period_label="—",
+                            success_items=[],
+                            failed_items=[{"name": "Scheduler hatası", "reason": str(e)}],
+                        )
+                    except Exception:
+                        pass
+                    continue
+
+                # Skip emails when auto-process not actually run for this company
+                if isinstance(result, dict) and isinstance(result.get("skipped"), str):
+                    sk = result["skipped"]
+                    if sk.startswith("no_settings") or sk.startswith("day_disabled"):
+                        continue
+                    # no_items: send report anyway (run happened but nothing to do)
+                    biz_date = result.get("business_date") or ""
+                    try:
+                        await send_auto_process_report(
+                            company_id=c["id"],
+                            tab_name="Kurye Hakediş (Günlük)",
+                            period_label=biz_date or "Dün",
+                            success_items=[],
+                            failed_items=[],
+                            extras={"Durum": "İşlenecek kurye bulunamadı"},
+                        )
+                    except Exception as e:
+                        print(f"daily hakedis email error ({c.get('id')}): {e}")
+                    continue
+
+                # Normal sonuç
+                success_items = [
+                    {"name": p.get("courier_name") or "—",
+                     "amount": float(p.get("amount") or 0),
+                     "note": (f"{p.get('order_count')} sipariş" if p.get("order_count") else "")}
+                    for p in (result.get("processed") or [])
+                ]
+                failed_items = [
+                    {"name": s.get("courier_name") or "—", "reason": s.get("reason") or ""}
+                    for s in (result.get("skipped") or [])
+                ]
+                biz_date = result.get("business_date") or ""
+                try:
+                    await send_auto_process_report(
+                        company_id=c["id"],
+                        tab_name="Kurye Hakediş (Günlük)",
+                        period_label=biz_date or "Dün",
+                        success_items=success_items,
+                        failed_items=failed_items,
+                    )
+                except Exception as e:
+                    print(f"daily hakedis email error ({c.get('id')}): {e}")
         except Exception as e:
             print(f"Daily hakedis job error: {e}")
 

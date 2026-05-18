@@ -852,7 +852,7 @@ async def _direct_delivery_fees_for_week(company_id: str, monday_dt: datetime) -
     return final
 
 
-async def generate_weekly_obligations_for_company(company_id: str) -> int:
+async def generate_weekly_obligations_for_company(company_id: str) -> dict:
     """Tek şirket için geçen haftanın doğrudan teslimat ücretleri toplamına göre
     obligation üretir.
 
@@ -860,10 +860,13 @@ async def generate_weekly_obligations_for_company(company_id: str) -> int:
     `delivered` siparişlerin `courier_fee` toplamı = beklenen tutar. İşlem
     geçmişindeki hakediş kayıtları (manuel düzeltmeler) bu hesaba dahil
     edilmez; böylece sapma oluşmaz.
+
+    Returns: {"enabled": bool, "created": int, "items": [...], "skipped": [...],
+              "week_start": str, "week_end": str}
     """
     settings = await db.weekly_obligation_settings.find_one({"company_id": company_id})
     if not settings or not settings.get("enabled"):
-        return 0
+        return {"enabled": False, "created": 0, "items": [], "skipped": [], "week_start": "", "week_end": ""}
     company = await db.companies.find_one({"id": company_id}, {"_id": 0, "opening_time": 1})
     opening = (company or {}).get("opening_time") or "06:00"
     last_monday, this_monday = _last_week_pzt_paz(opening)
@@ -877,7 +880,8 @@ async def generate_weekly_obligations_for_company(company_id: str) -> int:
             {"company_id": company_id},
             {"$set": {"last_auto_run": datetime.now(TR_TZ).isoformat()}},
         )
-        return 0
+        return {"enabled": True, "created": 0, "items": [], "skipped": [],
+                "week_start": week_start_date, "week_end": week_end_date}
 
     # Bu hafta için mevcut (non-remainder) obligation tutarları toplamı (kurye bazında)
     existing_pipeline = [
@@ -892,22 +896,27 @@ async def generate_weekly_obligations_for_company(company_id: str) -> int:
     existing_map = {r["_id"]: float(r.get("total") or 0) for r in existing_rows if r.get("_id")}
 
     created = 0
+    created_items: list = []
+    skipped_items: list = []
     now_iso = datetime.now(TR_TZ).isoformat()
     for cid, info in courier_fees.items():
         total = round(float(info.get("amount") or 0), 2)
+        name = info.get("name") or ""
         if total <= 0:
             continue
         already = existing_map.get(cid, 0.0)
         delta = round(total - already, 2)
         # 0.01 TL eşiği — küçük yuvarlama farklarını yoksay
         if delta <= 0.01:
+            if already > 0:
+                skipped_items.append({"name": name, "reason": f"Zaten oluşturulmuş ({already:.2f} TL)"})
             continue
         rec_id = str(uuid.uuid4())
         await db.courier_invoice_obligations.insert_one({
             "id": rec_id,
             "company_id": company_id,
             "courier_id": cid,
-            "courier_name": info.get("name") or "",
+            "courier_name": name,
             "week_start": week_start_date,
             "week_end": week_end_date,
             "expected_amount": delta,
@@ -916,6 +925,10 @@ async def generate_weekly_obligations_for_company(company_id: str) -> int:
             "created_at": now_iso,
         })
         created += 1
+        note = ""
+        if already > 0:
+            note = f"Fark (toplam {total:.2f} - mevcut {already:.2f})"
+        created_items.append({"name": name, "amount": delta, "note": note})
         try:
             token = info.get("fcm_token")
             if token:
@@ -931,11 +944,14 @@ async def generate_weekly_obligations_for_company(company_id: str) -> int:
         {"company_id": company_id},
         {"$set": {"last_auto_run": now_iso}},
     )
-    return created
+    return {"enabled": True, "created": created, "items": created_items, "skipped": skipped_items,
+            "week_start": week_start_date, "week_end": week_end_date}
 
 
 async def generate_weekly_obligations_all_companies():
     """Scheduler bu fonksiyonu Pazartesi açılış ±5dk penceresinde çağırır."""
+    from services.email_service import send_auto_process_report
+
     now = datetime.now(TR_TZ)
     if now.weekday() != 0:  # 0 = Monday
         return 0
@@ -952,9 +968,38 @@ async def generate_weekly_obligations_all_companies():
         except Exception:
             continue
         try:
-            total += await generate_weekly_obligations_for_company(c["id"])
+            result = await generate_weekly_obligations_for_company(c["id"])
+            if not result.get("enabled"):
+                continue
+            total += int(result.get("created") or 0)
+            # Süperadminlere rapor e-postası
+            try:
+                period = ""
+                if result.get("week_start") and result.get("week_end"):
+                    ws = result["week_start"]
+                    we = result["week_end"]
+                    period = f"{ws[8:10]}.{ws[5:7]}.{ws[0:4]} – {we[8:10]}.{we[5:7]}.{we[0:4]}"
+                await send_auto_process_report(
+                    company_id=c["id"],
+                    tab_name="Kurye Faturaları (Haftalık Yükümlülük)",
+                    period_label=period or "Geçen hafta",
+                    success_items=result.get("items") or [],
+                    failed_items=result.get("skipped") or [],
+                )
+            except Exception as e:
+                logger.warning(f"obligation report email error ({c.get('id')}): {e}")
         except Exception as e:
             logger.error(f"obligation üretim hatası ({c.get('id')}): {e}")
+            try:
+                await send_auto_process_report(
+                    company_id=c["id"],
+                    tab_name="Kurye Faturaları (Haftalık Yükümlülük)",
+                    period_label="Geçen hafta",
+                    success_items=[],
+                    failed_items=[{"name": "Scheduler hatası", "reason": str(e)}],
+                )
+            except Exception:
+                pass
     return total
 
 

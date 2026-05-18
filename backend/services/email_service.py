@@ -106,6 +106,174 @@ async def get_superadmin_email(company_id: str) -> Optional[str]:
     return superadmin.get("email") if superadmin else None
 
 
+async def get_all_superadmin_emails(company_id: str) -> list:
+    """Return all configured superadmin email addresses for a company."""
+    cursor = db.admins.find(
+        {"company_id": company_id, "role": "superadmin"},
+        {"_id": 0, "email": 1},
+    )
+    emails: list = []
+    async for a in cursor:
+        em = (a.get("email") or "").strip()
+        if em and em not in emails:
+            emails.append(em)
+    return emails
+
+
+async def send_auto_process_report(
+    company_id: str,
+    tab_name: str,
+    period_label: str,
+    success_items: list,
+    failed_items: list,
+    extras: Optional[dict] = None,
+) -> bool:
+    """
+    Otomatik işleme sonrasında şirketin tüm superadminlerine rapor gönderir.
+
+    success_items: [{"name": str, "amount": float, "note": str?}]
+    failed_items: [{"name": str, "reason": str}]
+    """
+    emails = await get_all_superadmin_emails(company_id)
+    if not emails:
+        logger.info(f"send_auto_process_report: no superadmin email ({company_id})")
+        return False
+
+    service = EmailService()
+    if not await service.load_system_settings():
+        logger.warning("send_auto_process_report: SMTP not configured")
+        return False
+
+    company = await db.companies.find_one({"id": company_id}, {"_id": 0, "name": 1}) or {}
+    company_name = company.get("name") or "—"
+
+    from datetime import datetime, timezone, timedelta
+    tr_tz = timezone(timedelta(hours=3))
+    time_str = datetime.now(tr_tz).strftime("%d.%m.%Y %H:%M")
+
+    success_count = len(success_items)
+    failed_count = len(failed_items)
+    total_amount = sum(float(it.get("amount") or 0) for it in success_items)
+
+    def _money(n: float) -> str:
+        return f"{n:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " TL"
+
+    success_rows = "".join(
+        f"<tr><td style='padding:6px 8px;border-bottom:1px solid #e2e8f0'>{(it.get('name') or '—')}</td>"
+        f"<td style='padding:6px 8px;border-bottom:1px solid #e2e8f0;text-align:right;font-family:ui-monospace,Menlo,monospace'>{_money(float(it.get('amount') or 0))}</td>"
+        f"<td style='padding:6px 8px;border-bottom:1px solid #e2e8f0;color:#64748b;font-size:12px'>{(it.get('note') or '')}</td></tr>"
+        for it in success_items[:200]
+    ) or "<tr><td colspan='3' style='padding:10px;color:#64748b;text-align:center'>İşlem yapılmadı</td></tr>"
+
+    failed_rows = "".join(
+        f"<tr><td style='padding:6px 8px;border-bottom:1px solid #fee2e2'>{(it.get('name') or '—')}</td>"
+        f"<td style='padding:6px 8px;border-bottom:1px solid #fee2e2;color:#b91c1c;font-size:12px'>{(it.get('reason') or '')}</td></tr>"
+        for it in failed_items[:200]
+    )
+
+    extras_html = ""
+    if extras:
+        items_html = "".join(
+            f"<li style='margin:2px 0;color:#475569'><strong>{k}:</strong> {v}</li>"
+            for k, v in extras.items()
+        )
+        extras_html = f"<ul style='margin:8px 0 0 0;padding-left:18px;font-size:13px'>{items_html}</ul>"
+
+    failed_block = ""
+    if failed_count > 0:
+        failed_block = (
+            "<h3 style='font-size:14px;margin:18px 0 6px 0;color:#b91c1c'>Atlanan / Hatalar</h3>"
+            "<table style='width:100%;border-collapse:collapse;background:#fef2f2;border:1px solid #fee2e2;border-radius:6px;overflow:hidden'>"
+            "<thead><tr style='background:#fee2e2'><th style='padding:6px 8px;text-align:left;font-size:12px;color:#7f1d1d'>Kayıt</th>"
+            "<th style='padding:6px 8px;text-align:left;font-size:12px;color:#7f1d1d'>Sebep</th></tr></thead>"
+            f"<tbody>{failed_rows}</tbody></table>"
+        )
+
+    html_body = f"""
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"></head>
+<body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;margin:0;padding:20px;background:#f5f5f5;color:#0f172a">
+  <div style="max-width:680px;margin:0 auto;background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08)">
+    <div style="background:#0f172a;color:#fff;padding:18px 24px">
+      <div style="font-size:12px;letter-spacing:.08em;opacity:.7;text-transform:uppercase">Otomatik İşleme Raporu</div>
+      <div style="font-size:20px;font-weight:700;margin-top:4px">{tab_name}</div>
+    </div>
+    <div style="padding:20px 24px">
+      <table style="width:100%;font-size:13px;color:#475569;border-collapse:collapse">
+        <tr><td style="padding:2px 0;width:140px">Şirket</td><td style="padding:2px 0;color:#0f172a;font-weight:600">{company_name}</td></tr>
+        <tr><td style="padding:2px 0">Dönem</td><td style="padding:2px 0;color:#0f172a">{period_label}</td></tr>
+        <tr><td style="padding:2px 0">Çalışma Zamanı</td><td style="padding:2px 0;color:#0f172a">{time_str}</td></tr>
+      </table>
+
+      <div style="display:flex;gap:12px;margin:18px 0 6px 0;flex-wrap:wrap">
+        <div style="flex:1;min-width:140px;background:#ecfdf5;border:1px solid #d1fae5;border-radius:8px;padding:12px">
+          <div style="font-size:11px;color:#047857;letter-spacing:.05em;text-transform:uppercase">Başarılı</div>
+          <div style="font-size:20px;font-weight:700;color:#065f46">{success_count}</div>
+        </div>
+        <div style="flex:1;min-width:140px;background:#fef2f2;border:1px solid #fee2e2;border-radius:8px;padding:12px">
+          <div style="font-size:11px;color:#b91c1c;letter-spacing:.05em;text-transform:uppercase">Atlanan / Hata</div>
+          <div style="font-size:20px;font-weight:700;color:#7f1d1d">{failed_count}</div>
+        </div>
+        <div style="flex:1;min-width:140px;background:#eff6ff;border:1px solid #dbeafe;border-radius:8px;padding:12px">
+          <div style="font-size:11px;color:#1d4ed8;letter-spacing:.05em;text-transform:uppercase">Toplam Tutar</div>
+          <div style="font-size:18px;font-weight:700;color:#1e3a8a;font-family:ui-monospace,Menlo,monospace">{_money(total_amount)}</div>
+        </div>
+      </div>
+      {extras_html}
+
+      <h3 style="font-size:14px;margin:18px 0 6px 0;color:#0f172a">İşlenen Kayıtlar</h3>
+      <table style="width:100%;border-collapse:collapse;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden">
+        <thead><tr style="background:#e2e8f0">
+          <th style="padding:6px 8px;text-align:left;font-size:12px;color:#334155">Kayıt</th>
+          <th style="padding:6px 8px;text-align:right;font-size:12px;color:#334155">Tutar</th>
+          <th style="padding:6px 8px;text-align:left;font-size:12px;color:#334155">Not</th>
+        </tr></thead>
+        <tbody>{success_rows}</tbody>
+      </table>
+
+      {failed_block}
+    </div>
+    <div style="background:#f1f5f9;padding:12px 24px;text-align:center;font-size:11px;color:#64748b">
+      Bu rapor otomatik olarak gönderilmiştir · AgrosJet
+    </div>
+  </div>
+</body></html>
+"""
+
+    plain_lines = [
+        f"{tab_name} - Otomatik İşleme Raporu",
+        f"Şirket: {company_name}",
+        f"Dönem: {period_label}",
+        f"Çalışma Zamanı: {time_str}",
+        "",
+        f"Başarılı: {success_count}  |  Atlanan/Hata: {failed_count}  |  Toplam: {_money(total_amount)}",
+        "",
+    ]
+    if success_items:
+        plain_lines.append("İşlenen Kayıtlar:")
+        for it in success_items[:200]:
+            plain_lines.append(
+                f"  - {it.get('name','—')}  {_money(float(it.get('amount') or 0))}  {it.get('note','')}".rstrip()
+            )
+    if failed_items:
+        plain_lines.append("")
+        plain_lines.append("Atlanan/Hata:")
+        for it in failed_items[:200]:
+            plain_lines.append(f"  - {it.get('name','—')}: {it.get('reason','')}")
+    plain_body = "\n".join(plain_lines)
+
+    subject = f"[AgrosJet] {tab_name} • Otomatik İşleme - {company_name}"
+
+    any_ok = False
+    for em in emails:
+        r = service.send_email(em, subject, html_body, plain_body)
+        if r.get("success"):
+            any_ok = True
+        else:
+            logger.warning(f"auto-process report to {em} failed: {r.get('error')}")
+    return any_ok
+
+
 async def send_notification_email(company_id: str, title: str, message: str, notification_type: str = None) -> bool:
     """
     Send notification email to super admin.

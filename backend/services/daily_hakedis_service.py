@@ -166,14 +166,14 @@ async def apply_day_hakedis(company_id: str, business_date: str, items: list, ad
     for it in items:
         amount = float(it.get("amount") or 0)
         if amount <= 0:
-            skipped.append({"courier_id": it.get("courier_id"), "reason": "Tutar 0 veya negatif"})
+            skipped.append({"courier_id": it.get("courier_id"), "courier_name": it.get("courier_name") or "", "reason": "Tutar 0 veya negatif"})
             continue
         existing = await db.transactions.find_one({
             "company_id": company_id, "entity_type": "courier", "entity_id": it["courier_id"],
             "is_hakedis": True, "description": {"$regex": desc_escaped, "$options": "i"},
         })
         if existing:
-            skipped.append({"courier_id": it["courier_id"], "reason": "Bu gün için zaten işlenmiş"})
+            skipped.append({"courier_id": it["courier_id"], "courier_name": it.get("courier_name") or "", "reason": "Bu gün için zaten işlenmiş"})
             continue
         parts = [desc_root]
         if it.get("order_count"):
@@ -208,9 +208,9 @@ async def apply_day_hakedis(company_id: str, business_date: str, items: list, ad
                 await calculate_and_credit_points(it["courier_id"], amount)
             except Exception as e:
                 print(f"JetPuan credit failed ({it.get('courier_id')}): {e}")
-        processed.append({"courier_id": it["courier_id"], "amount": amount, "transaction_id": tx["id"]})
+        processed.append({"courier_id": it["courier_id"], "courier_name": it.get("courier_name") or "", "amount": amount, "transaction_id": tx["id"], "order_count": it.get("order_count", 0)})
 
-    return {"processed": processed, "skipped": skipped, "total_amount": sum(p["amount"] for p in processed)}
+    return {"processed": processed, "skipped": skipped, "total_amount": sum(p["amount"] for p in processed), "business_date": business_date}
 
 
 async def revert_day_hakedis(company_id: str, business_date: str, courier_ids: list = None):
