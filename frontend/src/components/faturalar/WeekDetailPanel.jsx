@@ -241,6 +241,17 @@ export default function WeekDetailPanel({ companyId, week, isFuture, isSuperAdmi
   if (!week) return null;
 
   const rows = data?.rows || [];
+
+  // Başlık tarihi: dd.mm.yyyy - dd.mm.yyyy
+  const fmtTr = (s) => {
+    if (!s) return "";
+    const m = String(s).slice(0, 10).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    return m ? `${m[3]}.${m[2]}.${m[1]}` : s;
+  };
+  const headerLabel = data?.week_start && data?.week_end
+    ? `${fmtTr(data.week_start)} - ${fmtTr(data.week_end)}`
+    : (data?.week_label || week.label);
+
   // "Predicted" (henüz obligation oluşmamış, hakediş tahminli) satırlar
   const selectablePredicted = rows.filter((r) => !r.obligation && r.expected_amount > 0);
 
@@ -293,7 +304,7 @@ export default function WeekDetailPanel({ companyId, week, isFuture, isSuperAdmi
           <div className="flex items-center gap-2">
             <FileText className="w-5 h-5 text-slate-700" />
             <h3 className="font-semibold text-base">
-              {data?.week_label || week.label}
+              {headerLabel}
             </h3>
             {data && (
               <span className="text-sm text-muted-foreground">

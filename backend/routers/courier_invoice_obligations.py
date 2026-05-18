@@ -1156,7 +1156,14 @@ async def by_week(company_id: str, week_start: str, payload: dict = Depends(requ
                 "is_predicted": False,
             })
 
-    rows.sort(key=lambda r: (r["courier_name"].lower(), -r["expected_amount"]))
+    # Sıralama: önce onaylı OLMAYANLAR alfabetik, sonra onaylılar alfabetik
+    def _sort_key(r):
+        is_approved = bool(r.get("obligation") and r["obligation"].get("status") == "approved")
+        return (
+            1 if is_approved else 0,
+            (r.get("courier_name") or "").lower(),
+        )
+    rows.sort(key=_sort_key)
 
     total_expected = round(sum(r["expected_amount"] for r in rows), 2)
     total_processed = round(sum(r["processed_amount"] for r in rows), 2)

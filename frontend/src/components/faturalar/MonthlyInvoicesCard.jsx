@@ -22,6 +22,13 @@ const MONTHS_TR = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
 const formatMoney = (n) =>
   new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(n || 0)) + " TL";
 
+const formatDateTr = (s) => {
+  if (!s) return "";
+  const m = String(s).slice(0, 10).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return s;
+  return `${m[3]}.${m[2]}.${m[1]}`;
+};
+
 export default function MonthlyInvoicesCard({ companyId, isSuperAdmin }) {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
@@ -216,9 +223,9 @@ export default function MonthlyInvoicesCard({ companyId, isSuperAdmin }) {
                     )}
                   </div>
                   <p className="text-[11px] text-muted-foreground mt-0.5">
-                    {it.invoice_number ? `No: ${it.invoice_number}` : "(no yok)"}
-                    {it.invoice_date && ` • Tarih: ${it.invoice_date}`}
-                    {it.week_start && ` • Hafta: ${it.week_start} → ${it.week_end}`}
+                    {it.invoice_number ? `No: ${it.invoice_number}` : null}
+                    {it.invoice_date ? `${it.invoice_number ? " • " : ""}Tarih: ${formatDateTr(it.invoice_date)}` : null}
+                    {it.week_start ? `${(it.invoice_number || it.invoice_date) ? " • " : ""}Hafta: ${formatDateTr(it.week_start)} → ${formatDateTr(it.week_end)}` : null}
                   </p>
                 </div>
                 <span className="text-sm font-semibold tabular-nums flex-shrink-0">
