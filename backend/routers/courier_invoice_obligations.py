@@ -748,16 +748,7 @@ async def generate_weekly_obligations_for_company(company_id: str) -> int:
     week_start_date = last_monday.strftime("%Y-%m-%d")
     week_end_date = (this_monday - timedelta(days=1)).strftime("%Y-%m-%d")
 
-    # Bu hafta için zaten oluşturulmuş mu?
-    already = await db.courier_invoice_obligations.find_one({
-        "company_id": company_id,
-        "week_start": week_start_date,
-        "is_remainder": {"$ne": True},
-    }, {"_id": 0, "id": 1})
-    if already:
-        return 0
-
-    # Doğrudan teslimat ücretleri (saatlik / transactions HARİÇ)
+    # Doğrudan teslimat ücretleri + saatlik kazançlar
     courier_fees = await _direct_delivery_fees_for_week(company_id, last_monday)
     if not courier_fees:
         await db.weekly_obligation_settings.update_one(
@@ -766,11 +757,28 @@ async def generate_weekly_obligations_for_company(company_id: str) -> int:
         )
         return 0
 
+    # Bu hafta için mevcut (non-remainder) obligation tutarları toplamı (kurye bazında)
+    existing_pipeline = [
+        {"$match": {
+            "company_id": company_id,
+            "week_start": week_start_date,
+            "is_remainder": {"$ne": True},
+        }},
+        {"$group": {"_id": "$courier_id", "total": {"$sum": "$expected_amount"}}},
+    ]
+    existing_rows = await db.courier_invoice_obligations.aggregate(existing_pipeline).to_list(2000)
+    existing_map = {r["_id"]: float(r.get("total") or 0) for r in existing_rows if r.get("_id")}
+
     created = 0
     now_iso = datetime.now(TR_TZ).isoformat()
     for cid, info in courier_fees.items():
         total = round(float(info.get("amount") or 0), 2)
         if total <= 0:
+            continue
+        already = existing_map.get(cid, 0.0)
+        delta = round(total - already, 2)
+        # 0.01 TL eşiği — küçük yuvarlama farklarını yoksay
+        if delta <= 0.01:
             continue
         rec_id = str(uuid.uuid4())
         await db.courier_invoice_obligations.insert_one({
@@ -780,7 +788,7 @@ async def generate_weekly_obligations_for_company(company_id: str) -> int:
             "courier_name": info.get("name") or "",
             "week_start": week_start_date,
             "week_end": week_end_date,
-            "expected_amount": total,
+            "expected_amount": delta,
             "status": "pending",
             "is_remainder": False,
             "created_at": now_iso,
@@ -791,7 +799,7 @@ async def generate_weekly_obligations_for_company(company_id: str) -> int:
             if token:
                 await send_push_notification(
                     token, "Eksik Faturanız Var",
-                    f"{week_start_date} - {week_end_date} haftası için {total:.2f} TL fatura kesmeniz gerekiyor.",
+                    f"{week_start_date} - {week_end_date} haftası için {delta:.2f} TL fatura kesmeniz gerekiyor.",
                     {"type": "OBLIGATION_CREATED", "request_id": rec_id},
                 )
         except Exception as e:
@@ -1107,29 +1115,32 @@ async def by_week(company_id: str, week_start: str, payload: dict = Depends(requ
     ).to_list(2000) if all_courier_ids else []
     courier_info = {c["id"]: c for c in couriers_db}
 
-    # Hangi kuryelerin auto-generated (non-manual, non-remainder) obligation'ı var?
-    # Bu kuryeler için "predicted" satırı eklemiyoruz çünkü obligation zaten temsil ediyor.
-    courier_has_auto_oblig = set()
+    # Mevcut non-remainder obligation tutarları (kurye bazında toplam)
+    courier_existing_total = {}
     for cid, oblig_list in obligs_by_courier.items():
+        total = 0.0
         for o in oblig_list:
-            if not o.get("is_remainder") and not o.get("is_manual"):
-                courier_has_auto_oblig.add(cid)
-                break
+            if not o.get("is_remainder"):
+                total += float(o.get("expected_amount") or 0)
+        courier_existing_total[cid] = round(total, 2)
 
     rows = []
 
-    # 1) Predicted satırlar: hakediş var ama auto-obligation yok
+    # 1) Predicted satırlar: hesaplanan beklenen > mevcut non-remainder obligation
+    # toplamı (delta > 0.01). Aradaki fark predicted satır olarak gösterilir; admin
+    # checkbox ile bu satırlardan yükümlülük oluşturabilir.
     for cid in expected.keys():
-        if cid in courier_has_auto_oblig:
-            continue
         exp = expected[cid]
         info = courier_info.get(cid, {})
+        delta = round(float(exp["amount"]) - courier_existing_total.get(cid, 0.0), 2)
+        if delta <= 0.01:
+            continue
         rows.append({
             "row_key": f"predicted:{cid}",
             "courier_id": cid,
             "courier_name": info.get("name") or exp.get("name") or cid,
             "phone": info.get("phone") or "",
-            "expected_amount": round(exp["amount"], 2),
+            "expected_amount": delta,
             "processed_amount": round(processed_map.get(cid, 0.0), 2),
             "days_with_earnings": exp["days"],
             "obligation": None,
