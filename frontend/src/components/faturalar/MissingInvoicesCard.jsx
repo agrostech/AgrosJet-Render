@@ -196,7 +196,7 @@ Lütfen en kısa sürede faturalarınızı yükleyiniz.`;
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="font-medium text-sm truncate">{tx.courier_name}</p>
                         {isObligation && (
-                          <span className="flex items-center gap-1 px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[10px] rounded font-medium flex-shrink-0">
+                          <span className="flex items-center gap-1 px-1.5 py-0.5 bg-orange-100 text-orange-700 text-[10px] rounded font-medium flex-shrink-0">
                             <Clock className="w-3 h-3" />
                             Bekliyor
                           </span>
@@ -218,7 +218,7 @@ Lütfen en kısa sürede faturalarınızı yükleyiniz.`;
                       )}
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className={`text-sm font-semibold font-mono ${isObligation ? 'text-blue-600' : isShortfall ? 'text-amber-600' : 'text-red-600'}`}>
+                      <span className={`text-sm font-semibold font-mono ${isObligation ? 'text-orange-600' : isShortfall ? 'text-amber-600' : 'text-red-600'}`}>
                         {formatMoney(displayAmount)}
                       </span>
                       {isSuperAdmin && (
