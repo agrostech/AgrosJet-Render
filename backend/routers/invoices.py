@@ -227,19 +227,9 @@ async def upload_invoice(
             {"$set": {"invoice_id": invoice["id"]}}
         )
     
-    # Create notification for admin
-    notification = {
-        "id": str(uuid.uuid4()),
-        "company_id": company_id,
-        "type": "invoice_uploaded",
-        "title": "Hakediş Faturası Yüklendi" if not is_shortfall_invoice else "Eksik Fatura Yüklendi",
-        "message": f"{courier_name} {'eksik ' if is_shortfall_invoice else ''}fatura yükledi",
-        "is_read": False,
-        "created_at": get_turkey_now(),
-        "link": "/admin/muhasebe"
-    }
-    await db.notifications.insert_one(notification)
-    
+    # NOT: Eski admin bildirim sistemi kaldırıldı (yeni fatura yükümlülüğü sistemi
+    # kullanılıyor). Buraya admin notification eklenmez.
+
     return {
         "message": "Fatura başarıyla yüklendi",
         "invoice_id": invoice["id"],

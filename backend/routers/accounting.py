@@ -68,6 +68,14 @@ async def create_activity_log(log_data: dict):
             "transaction_created": ("muhasebe_hareket", "Yeni İşlem", f"{admin_name} tarafından {entity_name} için yeni işlem eklendi."),
             "transaction_deleted": ("muhasebe_hareket", "İşlem Silindi", f"{admin_name} tarafından {entity_name} için işlem silindi."),
             "transaction_updated": ("muhasebe_hareket", "İşlem Güncellendi", f"{admin_name} tarafından {entity_name} için işlem güncellendi."),
+            "obligation_manual_created": ("muhasebe_hareket", "Manuel Fatura Oluşturuldu", f"{admin_name} {entity_name} için manuel fatura oluşturdu."),
+            "obligation_bulk_created": ("muhasebe_hareket", "Toplu Fatura Oluşturuldu", f"{admin_name} {entity_name} için fatura yükümlülükleri oluşturdu."),
+            "obligation_uploaded": ("muhasebe_hareket", "Fatura Yüklendi", f"{entity_name} fatura yükledi."),
+            "obligation_approved": ("muhasebe_hareket", "Fatura Onaylandı", f"{admin_name} {entity_name} için faturayı onayladı."),
+            "obligation_deleted": ("muhasebe_hareket", "Fatura Silindi", f"{admin_name} {entity_name} için faturayı sildi."),
+            "obligation_cancelled_courier": ("muhasebe_hareket", "Fatura İptal Edildi (Kurye)", f"{entity_name} yüklediği faturayı 60 dk içinde iptal etti."),
+            "daily_hakedis_processed": ("muhasebe_hareket", "Günlük Hakediş İşlendi", f"{admin_name} {entity_name} günlük hakedişini işledi."),
+            "daily_hakedis_undo": ("muhasebe_hareket", "Günlük Hakediş Geri Alındı", f"{admin_name} {entity_name} günlük hakedişini geri aldı."),
         }
         
         if action in notification_map:

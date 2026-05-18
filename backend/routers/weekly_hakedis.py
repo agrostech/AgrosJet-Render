@@ -714,8 +714,31 @@ async def get_daily_hakedis_week(company_id: str, week_start: str, week_end: str
 async def apply_daily_hakedis(company_id: str, data: DailyApplyRequest):
     """Tek bir iş günü için seçili kuryelere bakiye yazar."""
     from services.daily_hakedis_service import apply_day_hakedis
+    from routers.accounting import create_activity_log
+
     items = [it.dict() for it in data.items]
     res = await apply_day_hakedis(company_id, data.business_date, items, data.admin_id, data.admin_name, data.add_jetpuan)
+
+    # Activity log
+    try:
+        processed = res.get("processed") or []
+        if processed:
+            names = ", ".join([p.get("courier_name") or "" for p in processed[:5]])
+            if len(processed) > 5:
+                names += f" +{len(processed) - 5} kurye"
+            total = sum(float(p.get("amount") or 0) for p in processed)
+            await create_activity_log({
+                "company_id": company_id,
+                "admin_id": data.admin_id or "",
+                "admin_name": data.admin_name or "Sistem",
+                "action": "daily_hakedis_processed",
+                "entity_type": "daily_hakedis",
+                "entity_name": names,
+                "details": f"{data.business_date} günü, {len(processed)} kurye, toplam {total:.2f} TL",
+            })
+    except Exception as e:
+        print(f"daily hakedis log err: {e}")
+
     return {"message": f"{len(res['processed'])} kayıt işlendi", **res}
 
 
@@ -725,7 +748,26 @@ async def revert_daily_hakedis(company_id: str, data: DailyRevertRequest, payloa
     if not _is_super(payload):
         raise HTTPException(status_code=403, detail="Sadece superadmin geri alabilir")
     from services.daily_hakedis_service import revert_day_hakedis
+    from routers.accounting import create_activity_log
+
     res = await revert_day_hakedis(company_id, data.business_date, data.courier_ids)
+
+    # Activity log
+    try:
+        reverted = res.get("reverted") or []
+        if reverted:
+            await create_activity_log({
+                "company_id": company_id,
+                "admin_id": payload.get("sub") or "",
+                "admin_name": payload.get("name") or payload.get("username") or "Admin",
+                "action": "daily_hakedis_undo",
+                "entity_type": "daily_hakedis",
+                "entity_name": f"{len(reverted)} kurye",
+                "details": f"{data.business_date} günü geri alındı",
+            })
+    except Exception as e:
+        print(f"daily hakedis undo log err: {e}")
+
     return {"message": f"{len(res['reverted'])} kayıt geri alındı", **res}
 
 

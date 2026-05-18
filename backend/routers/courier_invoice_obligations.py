@@ -26,6 +26,24 @@ router = APIRouter(prefix="/api/courier-invoice-obligations", tags=["CourierInvo
 logger = logging.getLogger(__name__)
 TR_TZ = timezone(timedelta(hours=3))
 
+
+async def _log_obligation_activity(company_id: str, payload: dict, action: str,
+                                    entity_name: str = "", details: str = ""):
+    """Hareketler sekmesi için activity log oluşturur. Hata olursa sessizce yutar."""
+    try:
+        from routers.accounting import create_activity_log
+        await create_activity_log({
+            "company_id": company_id,
+            "admin_id": payload.get("sub") or payload.get("user_id") or "",
+            "admin_name": payload.get("name") or payload.get("username") or "Sistem",
+            "action": action,
+            "entity_type": "courier_invoice_obligation",
+            "entity_name": entity_name,
+            "details": details,
+        })
+    except Exception as e:
+        logger.warning(f"Activity log oluşturulamadı ({action}): {e}")
+
 # In-memory cache (60 sn TTL) — weeks-summary için ağır hesaplama
 _WEEK_CACHE: dict = {}
 _WEEK_CACHE_TTL = 60.0
@@ -205,6 +223,16 @@ async def upload_invoice(
         update_doc["invoice_date"] = invoice_date.strip()
     await db.courier_invoice_obligations.update_one({"id": req_id}, {"$set": update_doc})
     updated = await db.courier_invoice_obligations.find_one({"id": req_id}, {"_id": 0})
+
+    # Activity log: Kurye fatura yükledi
+    await _log_obligation_activity(
+        company_id=rec.get("company_id"),
+        payload=payload,
+        action="obligation_uploaded",
+        entity_name=rec.get("courier_name") or "",
+        details=f"{rec.get('week_start')} - {rec.get('week_end')} haftası, {rec.get('expected_amount', 0):.2f} TL",
+    )
+
     return {"success": True, "item": await _serialize(updated)}
 
 
@@ -301,6 +329,17 @@ async def approve(req_id: str, body: ApproveBody, payload: dict = Depends(requir
         logger.warning(f"Push hatası: {e}")
 
     updated = await db.courier_invoice_obligations.find_one({"id": req_id}, {"_id": 0})
+
+    # Activity log
+    await _log_obligation_activity(
+        company_id=rec.get("company_id"),
+        payload=payload,
+        action="obligation_approved",
+        entity_name=rec.get("courier_name") or "",
+        details=f"{rec.get('week_start')} - {rec.get('week_end')} haftası, onaylanan {declared:.2f} TL"
+                + (f", kalan {expected - declared:.2f} TL yeni yükümlülük" if remainder_id else ""),
+    )
+
     return {"success": True, "item": await _serialize(updated), "remainder_obligation_id": remainder_id}
 
 
@@ -410,6 +449,19 @@ async def bulk_create_obligations(company_id: str, body: dict, payload: dict = D
         except Exception as e:
             logger.warning(f"Bulk obligation push hatası ({cid}): {e}")
 
+    # Activity log: toplu oluşturma
+    if created_items:
+        names = ", ".join([c.get("courier_name") or "" for c in created_items[:5]])
+        if len(created_items) > 5:
+            names += f" +{len(created_items) - 5} kurye"
+        total_amt = sum(float(c.get("expected_amount") or 0) for c in created_items)
+        await _log_obligation_activity(
+            company_id=company_id, payload=payload,
+            action="obligation_bulk_created",
+            entity_name=names,
+            details=f"{week_start} haftası, {len(created_items)} yükümlülük, toplam {total_amt:.2f} TL",
+        )
+
     return {"created": len(created_items), "skipped": skipped, "items": created_items}
 
 
@@ -478,6 +530,15 @@ async def create_manual_obligation(company_id: str, data: ManualObligationBody, 
     except Exception as e:
         logger.warning(f"Manuel obligation push hatası ({data.courier_id}): {e}")
 
+    # Activity log: manuel oluşturma
+    await _log_obligation_activity(
+        company_id=company_id, payload=payload,
+        action="obligation_manual_created",
+        entity_name=courier.get("name") or "",
+        details=f"{week_start_date} haftası, {data.amount:.2f} TL"
+                + (f" - {data.description}" if data.description else ""),
+    )
+
     return {"item": await _serialize(record)}
 
 
@@ -541,6 +602,16 @@ async def courier_cancel_upload(obligation_id: str, payload: dict = Depends(requ
             },
         },
     )
+
+    # Activity log
+    await _log_obligation_activity(
+        company_id=rec.get("company_id"),
+        payload=payload,
+        action="obligation_cancelled_courier",
+        entity_name=rec.get("courier_name") or "",
+        details=f"{rec.get('week_start')} - {rec.get('week_end')} haftası, {rec.get('expected_amount', 0):.2f} TL",
+    )
+
     return {"success": True, "obligation_id": obligation_id}
 
 
@@ -598,6 +669,16 @@ async def delete_obligation(obligation_id: str, payload: dict = Depends(require_
             "recreated_from_deleted_id": obligation_id,
         })
         recreated = True
+
+    # Activity log
+    await _log_obligation_activity(
+        company_id=rec.get("company_id"),
+        payload=payload,
+        action="obligation_deleted",
+        entity_name=rec.get("courier_name") or "",
+        details=f"{rec.get('week_start')} - {rec.get('week_end')} haftası, {rec.get('expected_amount', 0):.2f} TL"
+                + (" — yeni Bekliyor yükümlülük oluşturuldu" if recreated else ""),
+    )
 
     return {"success": True, "deleted_id": obligation_id, "recreated": recreated, "new_id": new_id}
 
