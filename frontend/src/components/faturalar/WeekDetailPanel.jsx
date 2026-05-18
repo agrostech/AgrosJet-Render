@@ -242,14 +242,25 @@ export default function WeekDetailPanel({ companyId, week, isFuture, isSuperAdmi
 
   const rows = data?.rows || [];
 
-  // Başlık tarihi: dd.mm.yyyy - dd.mm.yyyy
+  // Başlık tarihi: dd.mm.yyyy - dd.mm.yyyy (Pazartesi → bir sonraki Pazartesi)
   const fmtTr = (s) => {
     if (!s) return "";
     const m = String(s).slice(0, 10).match(/^(\d{4})-(\d{2})-(\d{2})$/);
     return m ? `${m[3]}.${m[2]}.${m[1]}` : s;
   };
+  const addOneDay = (s) => {
+    if (!s) return s;
+    try {
+      const d = new Date(`${String(s).slice(0, 10)}T00:00:00`);
+      if (!isNaN(d.getTime())) {
+        d.setDate(d.getDate() + 1);
+        return d.toISOString().slice(0, 10);
+      }
+    } catch { /* noop */ }
+    return s;
+  };
   const headerLabel = data?.week_start && data?.week_end
-    ? `${fmtTr(data.week_start)} - ${fmtTr(data.week_end)}`
+    ? `${fmtTr(data.week_start)} - ${fmtTr(addOneDay(data.week_end))}`
     : (data?.week_label || week.label);
 
   // "Predicted" (henüz obligation oluşmamış, hakediş tahminli) satırlar

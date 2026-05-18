@@ -15,11 +15,20 @@ const MONTHS_TR = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
                     "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
 
 function parseWeek(w) {
-  // w.week_start / w.week_end "YYYY-MM-DD" veya ISO datetime (slice ile normalize)
+  // w.week_start: Pazartesi, w.week_end: Pazar. Pazartesi → bir sonraki
+  // Pazartesi göstermek için end +1 gün.
   const ws = (w.week_start || "0000-00-00").slice(0, 10);
   const we = (w.week_end || "0000-00-00").slice(0, 10);
+  let endIso = we;
+  try {
+    const d = new Date(`${we}T00:00:00`);
+    if (!isNaN(d.getTime())) {
+      d.setDate(d.getDate() + 1);
+      endIso = d.toISOString().slice(0, 10);
+    }
+  } catch { /* noop */ }
   const [ys, ms, ds] = ws.split("-");
-  const [, me, de] = we.split("-");
+  const [, me, de] = endIso.split("-");
   const startDay = parseInt(ds, 10) || 0;
   const endDay = parseInt(de, 10) || 0;
   const startMonth = parseInt(ms, 10) || 1;

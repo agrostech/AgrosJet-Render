@@ -29,6 +29,18 @@ const formatDateTr = (s) => {
   return `${m[3]}.${m[2]}.${m[1]}`;
 };
 
+const addOneDayTr = (s) => {
+  if (!s) return "";
+  try {
+    const d = new Date(`${String(s).slice(0, 10)}T00:00:00`);
+    if (!isNaN(d.getTime())) {
+      d.setDate(d.getDate() + 1);
+      return formatDateTr(d.toISOString().slice(0, 10));
+    }
+  } catch { /* noop */ }
+  return formatDateTr(s);
+};
+
 export default function MonthlyInvoicesCard({ companyId, isSuperAdmin }) {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
@@ -225,7 +237,7 @@ export default function MonthlyInvoicesCard({ companyId, isSuperAdmin }) {
                   <p className="text-[11px] text-muted-foreground mt-0.5">
                     {it.invoice_number ? `No: ${it.invoice_number}` : null}
                     {it.invoice_date ? `${it.invoice_number ? " • " : ""}Tarih: ${formatDateTr(it.invoice_date)}` : null}
-                    {it.week_start ? `${(it.invoice_number || it.invoice_date) ? " • " : ""}Hafta: ${formatDateTr(it.week_start)} → ${formatDateTr(it.week_end)}` : null}
+                    {it.week_start ? `${(it.invoice_number || it.invoice_date) ? " • " : ""}Hafta: ${formatDateTr(it.week_start)} → ${addOneDayTr(it.week_end)}` : null}
                   </p>
                 </div>
                 <span className="text-sm font-semibold tabular-nums flex-shrink-0">
