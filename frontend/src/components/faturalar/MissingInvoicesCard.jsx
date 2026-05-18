@@ -221,7 +221,7 @@ Lütfen en kısa sürede faturalarınızı yükleyiniz.`;
                       <span className={`text-sm font-semibold font-mono ${isObligation ? 'text-blue-600' : isShortfall ? 'text-amber-600' : 'text-red-600'}`}>
                         {formatMoney(displayAmount)}
                       </span>
-                      {!isObligation && isSuperAdmin && onDismiss && (
+                      {isSuperAdmin && (
                         <Button
                           variant="ghost"
                           size="sm"
@@ -256,8 +256,12 @@ Lütfen en kısa sürede faturalarınızı yükleyiniz.`;
       <ConfirmModal
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
-        title="Eksik Fatura Kaydını Sil"
-        description={pendingDelete ? `${pendingDelete.courier_name} - ${pendingDelete.description} için eksik fatura kaydını silmek istediğinizden emin misiniz?` : ""}
+        title={pendingDelete?._source === "obligation" ? "Faturayı Sil" : "Eksik Fatura Kaydını Sil"}
+        description={pendingDelete
+          ? pendingDelete._source === "obligation"
+            ? `${pendingDelete.courier_name} - ${formatMoney(pendingDelete.amount)} (${pendingDelete.description}) silinecek. Bu işlem geri alınamaz.`
+            : `${pendingDelete.courier_name} - ${pendingDelete.description} için eksik fatura kaydını silmek istediğinizden emin misiniz?`
+          : ""}
         confirmText="Sil"
         cancelText="İptal"
         variant="destructive"
@@ -265,7 +269,12 @@ Lütfen en kısa sürede faturalarınızı yükleyiniz.`;
           if (!pendingDelete) return;
           setDeletingId(pendingDelete.id);
           try {
-            await onDismiss(pendingDelete.id);
+            if (pendingDelete._source === "obligation") {
+              await axios.delete(`${API}/courier-invoice-obligations/${pendingDelete.id}`);
+              setPendingObligations((prev) => prev.filter((p) => p.id !== pendingDelete.id));
+            } else if (onDismiss) {
+              await onDismiss(pendingDelete.id);
+            }
           } finally {
             setDeletingId(null);
             setConfirmOpen(false);
