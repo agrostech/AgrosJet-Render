@@ -5,11 +5,11 @@
  * Her satırda: isim, beklenen tutar, durum rozeti, fatura no/tarih, dosya, aksiyon.
  * "Onayla" aksiyonu uploaded → approved geçişi.
  */
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import {
-  FileText, Loader2, CheckCircle2, AlertTriangle, Clock, Plus, Eye, Trash2,
+  FileText, Loader2, CheckCircle2, AlertTriangle, Clock, Plus, Eye, Trash2, Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -198,6 +198,39 @@ export default function WeekDetailPanel({ companyId, week, isFuture, isSuperAdmi
   const [deleting, setDeleting] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [bulkCreating, setBulkCreating] = useState(false);
+  const [uploadingId, setUploadingId] = useState(null);
+  const uploadInputRef = useRef(null);
+  const uploadTargetRef = useRef(null);
+
+  const triggerAdminUpload = (obligation) => {
+    uploadTargetRef.current = obligation;
+    uploadInputRef.current?.click();
+  };
+
+  const handleAdminUpload = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    const target = uploadTargetRef.current;
+    if (!file || !target) return;
+    setUploadingId(target.id);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      await axios.post(
+        `${API}/courier-invoice-obligations/${target.id}/upload`,
+        fd,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+      toast.success("Fatura yüklendi");
+      fetchData();
+      onChanged?.();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Yüklenemedi");
+    } finally {
+      setUploadingId(null);
+      uploadTargetRef.current = null;
+    }
+  };
 
   const weekStart = week?.week_start;
   const fetchData = useCallback(async () => {
@@ -455,6 +488,20 @@ export default function WeekDetailPanel({ companyId, week, isFuture, isSuperAdmi
                             <Eye className="w-4 h-4" />
                           </Button>
                         )}
+                        {r.obligation?.status === "pending" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 px-2.5 text-xs gap-1"
+                            onClick={() => triggerAdminUpload(r.obligation)}
+                            disabled={uploadingId === r.obligation.id}
+                            data-testid={`week-upload-btn-${r.courier_id}`}
+                            title="Fatura Yükle"
+                          >
+                            {uploadingId === r.obligation.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                            Yükle
+                          </Button>
+                        )}
                         {r.obligation?.status === "uploaded" && (
                           <Button
                             size="sm"
@@ -538,6 +585,19 @@ export default function WeekDetailPanel({ companyId, week, isFuture, isSuperAdmi
                           <Eye className="w-4 h-4" />
                         </Button>
                       )}
+                      {r.obligation?.status === "pending" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 px-2 text-xs gap-1"
+                          onClick={() => triggerAdminUpload(r.obligation)}
+                          disabled={uploadingId === r.obligation.id}
+                          title="Fatura Yükle"
+                        >
+                          {uploadingId === r.obligation.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+                          Yükle
+                        </Button>
+                      )}
                       {r.obligation?.status === "uploaded" && (
                         <Button
                           size="sm"
@@ -597,6 +657,14 @@ export default function WeekDetailPanel({ companyId, week, isFuture, isSuperAdmi
           }}
         />
       )}
+
+      <input
+        ref={uploadInputRef}
+        type="file"
+        accept=".pdf,.jpg,.jpeg,.png,.webp"
+        className="hidden"
+        onChange={handleAdminUpload}
+      />
 
       <ConfirmModal
         open={!!deleteTarget}

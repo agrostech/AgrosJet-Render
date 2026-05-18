@@ -186,15 +186,19 @@ async def upload_invoice(
     invoice_date: Optional[str] = Form(None),
     payload: dict = Depends(require_auth),
 ):
-    if not _is_courier(payload):
+    """Kurye veya admin (kuryenin yerine) fatura yükler."""
+    is_courier = _is_courier(payload)
+    is_admin = _is_admin(payload)
+    if not (is_courier or is_admin):
         raise HTTPException(status_code=403, detail="Yetki yok")
-    courier_id = payload.get("sub") or payload.get("user_id")
-    company_id = payload.get("company_id")
-    rec = await db.courier_invoice_obligations.find_one(
-        {"id": req_id, "company_id": company_id, "courier_id": courier_id}, {"_id": 0}
-    )
+
+    rec = await db.courier_invoice_obligations.find_one({"id": req_id}, {"_id": 0})
     if not rec:
         raise HTTPException(status_code=404, detail="Kayıt bulunamadı")
+    if is_courier:
+        courier_id_p = payload.get("sub") or payload.get("user_id")
+        if rec.get("courier_id") != courier_id_p:
+            raise HTTPException(status_code=403, detail="Yetki yok")
     if rec.get("status") != "pending":
         raise HTTPException(status_code=400, detail="Bu kayıt için fatura yükleyemezsiniz")
     if not file or not file.filename:
@@ -207,6 +211,8 @@ async def upload_invoice(
     ext = (file.filename.rsplit(".", 1)[-1] or "pdf").lower()
     if ext not in ("pdf", "jpg", "jpeg", "png", "webp"):
         raise HTTPException(status_code=400, detail="Desteklenmeyen format")
+    company_id = rec.get("company_id")
+    courier_id = rec.get("courier_id")
     key = f"courier-invoice-obligations/{company_id}/{courier_id}/{req_id}/{uuid.uuid4()}.{ext}"
     upload = await upload_file_to_r2(content, key, content_type=file.content_type or f"application/{ext}")
     if not upload.get("success"):
@@ -216,6 +222,7 @@ async def upload_invoice(
         "invoice_file_key": key,
         "invoice_filename": file.filename,
         "uploaded_at": datetime.now(TR_TZ).isoformat(),
+        "uploaded_by": "admin" if is_admin and not is_courier else "courier",
     }
     if invoice_number and invoice_number.strip():
         update_doc["invoice_number"] = invoice_number.strip()
@@ -224,13 +231,14 @@ async def upload_invoice(
     await db.courier_invoice_obligations.update_one({"id": req_id}, {"$set": update_doc})
     updated = await db.courier_invoice_obligations.find_one({"id": req_id}, {"_id": 0})
 
-    # Activity log: Kurye fatura yükledi
+    # Activity log
     await _log_obligation_activity(
         company_id=rec.get("company_id"),
         payload=payload,
         action="obligation_uploaded",
         entity_name=rec.get("courier_name") or "",
-        details=f"{rec.get('week_start')} - {rec.get('week_end')} haftası, {rec.get('expected_amount', 0):.2f} TL",
+        details=f"{rec.get('week_start')} - {rec.get('week_end')} haftası, {rec.get('expected_amount', 0):.2f} TL"
+                + (" (admin tarafından)" if is_admin and not is_courier else ""),
     )
 
     return {"success": True, "item": await _serialize(updated)}
