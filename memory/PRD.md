@@ -228,3 +228,5 @@ Multi-tenant delivery management platform for restaurants, couriers, and adminis
   - `generate_weekly_obligations_for_company`: Aynı şekilde `existing_pipeline` artık `is_manual=True` kayıtları dışlıyor; Pazartesi otomatik üretiminde manuel faturalar haftalık delta hesabını etkilemez.
   - `weeks-summary`: `total_couriers` artık sadece `status="pending"` non-remainder obligation sayısını döndürüyor. Önceki davranışta `predicted_no_auto + tüm obligation` olarak şişiyordu — badge "0/15/29" gibi tutarsız görünüyordu. Artık liste ile birebir uyumlu.
 
+- 2026-02-18: **Ghost (hayalet) kuryeler için manuel fatura oluşturma fix**. `create_manual_obligation` (`routers/courier_invoice_obligations.py`) artık `couriers.company_id` doğrudan eşleşmediğinde `company_couriers` junction tablosundan da arıyor. Hayalet kuryelerde `couriers.company_id` boş olduğu için daha önce 404 "Kurye bulunamadı" hatası dönüyordu; admin onlar için fatura yükümlülüğü oluşturamıyordu. Test: ghost kurye oluştur → manuel obligation 250.50 TL pending olarak başarıyla yazılıyor (curl ile uçtan uca doğrulandı). Upload akışı zaten `db.couriers` lookup yapmadığı için ek değişiklik gerekmedi.
+

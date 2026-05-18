@@ -525,11 +525,25 @@ async def create_manual_obligation(company_id: str, data: ManualObligationBody, 
     week_start_date = ws_dt.strftime("%Y-%m-%d")
     week_end_date = (ws_dt + timedelta(days=6)).strftime("%Y-%m-%d")
 
-    # Kurye varlığını ve şirket eşleşmesini doğrula
+    # Kurye varlığını ve şirket eşleşmesini doğrula.
+    # Hayalet (ghost) kuryelerde `couriers.company_id` boş olabilir; bunlar yalnız
+    # `company_couriers` junction tablosu üzerinden şirkete bağlıdır. Bu nedenle
+    # önce junction'ı kontrol et, eşleşme varsa kurye dokümanını ayrıca al.
     courier = await db.couriers.find_one(
         {"id": data.courier_id, "company_id": company_id},
         {"_id": 0, "id": 1, "name": 1, "fcm_token": 1},
     )
+    if not courier:
+        relation = await db.company_couriers.find_one(
+            {"company_id": company_id, "courier_id": data.courier_id,
+             "is_archived": {"$ne": True}},
+            {"_id": 0, "courier_id": 1},
+        )
+        if relation:
+            courier = await db.couriers.find_one(
+                {"id": data.courier_id},
+                {"_id": 0, "id": 1, "name": 1, "fcm_token": 1},
+            )
     if not courier:
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
 
