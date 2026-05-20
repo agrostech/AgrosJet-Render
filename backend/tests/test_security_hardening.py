@@ -13,7 +13,7 @@ import time
 import io
 
 # Use external URL for most tests
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://logo-deployment-test-1.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://earnings-obligations.preview.emergentagent.com').rstrip('/')
 
 # Use localhost for rate limit testing (K8s ingress distributes IPs)
 LOCALHOST_URL = "http://localhost:8001"

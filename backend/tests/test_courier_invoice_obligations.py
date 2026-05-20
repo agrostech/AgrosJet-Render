@@ -4,7 +4,7 @@ import pytest
 import requests
 from datetime import datetime, timezone, timedelta
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://logo-deployment-test-1.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://earnings-obligations.preview.emergentagent.com").rstrip("/")
 TR_TZ = timezone(timedelta(hours=3))
 
 

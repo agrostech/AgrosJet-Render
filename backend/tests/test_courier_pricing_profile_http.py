@@ -8,7 +8,7 @@ import uuid
 import pytest
 import requests
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://logo-deployment-test-1.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://earnings-obligations.preview.emergentagent.com").rstrip("/")
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "123456"
 
