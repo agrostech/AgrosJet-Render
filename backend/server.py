@@ -644,6 +644,9 @@ async def lifespan(app: FastAPI):
     
     # --- MongoDB Yedekleme ---
     from services.backup_service import run_frequent_backup, run_daily_backup
+    # Multi-env güvenlik: Aynı R2 bucket'a birden fazla deployment yazmasını engelle.
+    # ENABLE_BACKUPS=false ise bu instance yedek yazmaz (örn. Render staging).
+    ENABLE_BACKUPS = os.environ.get("ENABLE_BACKUPS", "true").strip().lower() in ("1", "true", "yes")
     
     # --- Konum Güncelliği Bildirimi ---
     from services.location_alert_service import check_stale_locations
@@ -664,24 +667,28 @@ async def lifespan(app: FastAPI):
     )
     
     # 15 dakikada bir yedek (max 5 döngüsel)
-    scheduler.add_job(
-        run_frequent_backup,
-        'interval',
-        minutes=15,
-        id="mongo_backup_frequent",
-        name="MongoDB Backup (15dk)",
-        replace_existing=True
-    )
-    
-    # 12 saatte bir günlük yedek (max 4 döngüsel)
-    scheduler.add_job(
-        run_daily_backup,
-        'interval',
-        hours=12,
-        id="mongo_backup_daily",
-        name="MongoDB Backup (12 saat)",
-        replace_existing=True
-    )
+    if ENABLE_BACKUPS:
+        scheduler.add_job(
+            run_frequent_backup,
+            'interval',
+            minutes=15,
+            id="mongo_backup_frequent",
+            name="MongoDB Backup (15dk)",
+            replace_existing=True
+        )
+
+        # 12 saatte bir günlük yedek (max 4 döngüsel)
+        scheduler.add_job(
+            run_daily_backup,
+            'interval',
+            hours=12,
+            id="mongo_backup_daily",
+            name="MongoDB Backup (12 saat)",
+            replace_existing=True
+        )
+        logger.info("[BACKUP] MongoDB backup scheduler enabled (15dk + 12h)")
+    else:
+        logger.warning("[BACKUP] ENABLE_BACKUPS=false → MongoDB backup scheduler DISABLED on this instance")
     
     scheduler.start()
     
