@@ -12,7 +12,7 @@ from reportlab.lib.utils import ImageReader
 from pypdf import PdfWriter, PdfReader
 from PIL import Image as PILImage
 
-LOGO_DIR = "/app/uploads/logos"
+LOGO_DIR = os.environ.get("LOGO_DIR", "/app/uploads/logos")
 
 # Register Turkish-compatible fonts
 _FONTS_AVAILABLE = False

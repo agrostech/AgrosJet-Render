@@ -25,8 +25,8 @@ from utils.jwt_utils import require_admin, require_auth
 router = APIRouter(prefix="/api/invoices", tags=["Invoices"], dependencies=[Depends(require_auth)])
 
 # Legacy local upload dir (for backward compatibility)
-UPLOAD_DIR = "/app/uploads/invoices"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+from utils.storage_paths import get_writable_dir
+UPLOAD_DIR = get_writable_dir("/app/uploads/invoices")
 
 # R2 folder prefix for invoices (Turkish)
 R2_INVOICE_PREFIX = "FATURALAR"

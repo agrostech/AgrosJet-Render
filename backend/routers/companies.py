@@ -13,9 +13,10 @@ from utils.jwt_utils import require_auth
 
 router = APIRouter(prefix="/api", tags=["Companies"])
 
-# Legacy local dir (for backward compat serving old logos)
-LOGO_DIR = "/app/uploads/logos"
-os.makedirs(LOGO_DIR, exist_ok=True)
+# Legacy local dir (for backward compat serving old logos).
+# Real storage is R2; this is only used for legacy file serving.
+from utils.storage_paths import get_writable_dir
+LOGO_DIR = get_writable_dir(os.environ.get("LOGO_DIR", "/app/uploads/logos"))
 
 
 # --- Pydantic Models ---

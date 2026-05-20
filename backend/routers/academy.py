@@ -18,10 +18,9 @@ from utils.jwt_utils import require_admin, require_auth
 router = APIRouter(prefix="/api/academy", tags=["Academy"], dependencies=[Depends(require_auth)])
 
 # Legacy upload directories (for backward compatibility)
-UPLOAD_DIR = "/app/uploads/academy"
-IMAGES_DIR = "/app/uploads/academy/images"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
-os.makedirs(IMAGES_DIR, exist_ok=True)
+from utils.storage_paths import get_writable_dir
+UPLOAD_DIR = get_writable_dir("/app/uploads/academy")
+IMAGES_DIR = get_writable_dir("/app/uploads/academy/images")
 
 # R2 folder prefix for academy (Turkish)
 R2_ACADEMY_PREFIX = "AKADEMI"

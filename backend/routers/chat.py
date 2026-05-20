@@ -262,9 +262,9 @@ async def upload_chat_file(
     sender_id: str = Form(...)
 ):
     """Upload a file for chat (image or document)"""
-    # Create uploads directory if not exists
-    upload_dir = "/app/uploads/chat"
-    os.makedirs(upload_dir, exist_ok=True)
+    # Create uploads directory if not exists (writable on any FS)
+    from utils.storage_paths import get_writable_dir
+    upload_dir = get_writable_dir("/app/uploads/chat")
     
     # Generate unique filename
     ext = os.path.splitext(file.filename)[1] if file.filename else ""
@@ -295,7 +295,9 @@ async def upload_chat_file(
 async def get_chat_file(filename: str):
     """Serve uploaded chat files"""
     from fastapi.responses import FileResponse
-    file_path = f"/app/uploads/chat/{filename}"
+    from utils.storage_paths import get_writable_dir
+    upload_dir = get_writable_dir("/app/uploads/chat")
+    file_path = os.path.join(upload_dir, filename)
     if os.path.exists(file_path):
         return FileResponse(file_path)
     raise HTTPException(status_code=404, detail="Dosya bulunamadı")

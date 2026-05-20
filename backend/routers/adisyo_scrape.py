@@ -515,9 +515,18 @@ public_router = APIRouter(prefix="/api/adisyo-scrape", tags=["Adisyo Scrape (Chr
 async def download_extension():
     """Chrome eklentisinin zip paketini indir (auth gerektirmez)"""
     from fastapi.responses import FileResponse
-    zip_path = "/app/chrome_extension/agrosjet-adisyo-bridge.zip"
+    # Resolve relative to repo root (../ from backend/routers/)
+    zip_path = os.environ.get(
+        "EXTENSION_ZIP_PATH",
+        os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", "chrome_extension", "agrosjet-adisyo-bridge.zip"))
+    )
     if not os.path.exists(zip_path):
-        raise HTTPException(status_code=404, detail="Eklenti paketi bulunamadı")
+        # Backward-compat: legacy absolute location
+        legacy = "/app/chrome_extension/agrosjet-adisyo-bridge.zip"
+        if os.path.exists(legacy):
+            zip_path = legacy
+        else:
+            raise HTTPException(status_code=404, detail="Eklenti paketi bulunamadı")
     return FileResponse(
         zip_path,
         media_type="application/zip",

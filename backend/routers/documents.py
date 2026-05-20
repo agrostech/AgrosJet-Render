@@ -19,8 +19,8 @@ from utils.jwt_utils import require_admin, require_auth
 router = APIRouter(prefix="/api/documents", tags=["Documents"], dependencies=[Depends(require_auth)])
 
 # Legacy local upload dir (for backward compatibility)
-UPLOAD_DIR = "/app/uploads/documents"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+from utils.storage_paths import get_writable_dir
+UPLOAD_DIR = get_writable_dir("/app/uploads/documents")
 
 # R2 folder prefix for documents (Turkish)
 R2_DOCUMENTS_PREFIX = "EVRAKLAR"
