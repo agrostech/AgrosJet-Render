@@ -10,6 +10,7 @@ services:
     healthCheckPath: /api/health
     autoDeploy: true
     envVars:
+      # --- Core (ZORUNLU) ---
       - key: MONGO_URL
         sync: false
       - key: DB_NAME
@@ -18,29 +19,37 @@ services:
         sync: false
       - key: CORS_ORIGINS
         sync: false
-      - key: SMTP_SERVER
+      # --- Cloudflare R2 (Dosya yükleme) ---
+      - key: CLOUDFLARE_ACCOUNT_ID
         sync: false
-      - key: SMTP_PORT
+      - key: CLOUDFLARE_ACCESS_KEY_ID
         sync: false
-      - key: SMTP_USER
+      - key: CLOUDFLARE_SECRET_ACCESS_KEY
         sync: false
-      - key: SMTP_PASSWORD
+      - key: CLOUDFLARE_BUCKET_NAME
         sync: false
+      # --- SepetTakip / Adisyo bridge ---
+      - key: SEPETTAKIP_API_BASE
+        sync: false
+      - key: SEPETTAKIP_API_KEY
+        sync: false
+      - key: SEPETTAKIP_COURIER_KEY
+        sync: false
+      - key: GETIR_WEBHOOK_API_KEY
+        sync: false
+      - key: WEBHOOK_BASE_URL
+        sync: false
+      # --- LLM / Maps ---
       - key: EMERGENT_LLM_KEY
         sync: false
-      - key: R2_ACCESS_KEY_ID
+      - key: GEMINI_API_KEY
         sync: false
-      - key: R2_SECRET_ACCESS_KEY
+      - key: GOOGLE_MAPS_API_KEY
         sync: false
-      - key: R2_ENDPOINT
+      # --- Web Push (VAPID) ---
+      - key: VAPID_PUBLIC_KEY
         sync: false
-      - key: R2_BUCKET
-        sync: false
-      - key: VATANSMS_API_ID
-        sync: false
-      - key: VATANSMS_API_KEY
-        sync: false
-      - key: VATANSMS_SENDER
+      - key: VAPID_PRIVATE_KEY
         sync: false
 
   # Frontend - React (Static Site)
@@ -53,6 +62,8 @@ services:
     autoDeploy: true
     envVars:
       - key: REACT_APP_BACKEND_URL
+        sync: false
+      - key: REACT_APP_GOOGLE_MAPS_API_KEY
         sync: false
     routes:
       - type: rewrite
